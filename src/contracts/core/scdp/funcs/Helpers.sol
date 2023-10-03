@@ -43,7 +43,7 @@ function totalCollateralValuesSCDP() view returns (uint256 value, uint256 valueA
  * @return value in USD
  * @return valueAdjusted Value adjusted by kFactors in USD
  */
-function totalDebtValuesAtRatioSCDP(uint256 _ratio) view returns (uint256 value, uint256 valueAdjusted) {
+function totalDebtValuesAtRatioSCDP(uint32 _ratio) view returns (uint256 value, uint256 valueAdjusted) {
     address[] memory assets = scdp().krAssets;
     for (uint256 i; i < assets.length; ) {
         Asset storage asset = cs().assets[assets[i]];

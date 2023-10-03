@@ -59,7 +59,7 @@ library SGlobal {
      */
     function totalDebtValueAtRatioSCDP(
         SCDPState storage self,
-        uint256 _ratio,
+        uint32 _ratio,
         bool _ignorekFactor
     ) internal view returns (uint256 totalValue) {
         address[] memory assets = self.krAssets;

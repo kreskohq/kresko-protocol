@@ -4,54 +4,53 @@ import { getAnchorNameAndSymbol } from "@utils/strings";
 import { KreskoAssetAnchor } from "types/typechain";
 
 export async function createKrAsset<T extends AllTokenSymbols>(
-    symbol: T,
-    name: string,
-    decimals = 18,
+  symbol: T,
+  name: string,
+  decimals = 18,
 ): Promise<{ KreskoAsset: KreskoAsset; KreskoAssetAnchor: KreskoAssetAnchor }> {
-    const { deployer } = await hre.ethers.getNamedSigners();
-    const { admin } = await getDeploymentUsers(hre);
+  const { deployer } = await hre.ethers.getNamedSigners();
+  const { admin } = await getDeploymentUsers(hre);
 
-    const { anchorName, anchorSymbol } = getAnchorNameAndSymbol(symbol, name);
+  const { anchorName, anchorSymbol } = getAnchorNameAndSymbol(symbol, name);
 
-    const Kresko = await hre.getContractOrFork("Kresko");
-    const kreskoAssetInitArgs = [name, symbol, decimals, admin, Kresko.address];
-    const num = 100;
-    num.RAY;
-    const [KreskoAsset] = await hre.deploy("KreskoAsset", {
-        from: deployer.address,
-        log: true,
-        deploymentName: symbol,
-        proxy: {
-            owner: deployer.address,
-            proxyContract: "OptimizedTransparentProxy",
-            execute: {
-                methodName: "initialize",
-                args: kreskoAssetInitArgs,
-            },
-        },
-    });
+  const Kresko = await hre.getContractOrFork("Kresko");
+  const kreskoAssetInitArgs = [name, symbol, decimals, admin, Kresko.address];
 
-    const kreskoAssetAnchorInitArgs = [KreskoAsset.address, anchorName, anchorSymbol, admin];
+  const [KreskoAsset] = await hre.deploy("KreskoAsset", {
+    from: deployer.address,
+    log: true,
+    deploymentName: symbol,
+    proxy: {
+      owner: deployer.address,
+      proxyContract: "OptimizedTransparentProxy",
+      execute: {
+        methodName: "initialize",
+        args: kreskoAssetInitArgs,
+      },
+    },
+  });
 
-    const [KreskoAssetAnchor] = await hre.deploy("KreskoAssetAnchor", {
-        from: deployer.address,
-        log: true,
-        deploymentName: anchorSymbol,
-        args: [KreskoAsset.address],
-        proxy: {
-            owner: deployer.address,
-            proxyContract: "OptimizedTransparentProxy",
-            execute: {
-                methodName: "initialize",
-                args: kreskoAssetAnchorInitArgs,
-            },
-        },
-    });
+  const kreskoAssetAnchorInitArgs = [KreskoAsset.address, anchorName, anchorSymbol, admin];
 
-    await KreskoAsset.grantRole(Role.OPERATOR, KreskoAssetAnchor.address);
+  const [KreskoAssetAnchor] = await hre.deploy("KreskoAssetAnchor", {
+    from: deployer.address,
+    log: true,
+    deploymentName: anchorSymbol,
+    args: [KreskoAsset.address],
+    proxy: {
+      owner: deployer.address,
+      proxyContract: "OptimizedTransparentProxy",
+      execute: {
+        methodName: "initialize",
+        args: kreskoAssetAnchorInitArgs,
+      },
+    },
+  });
 
-    return {
-        KreskoAsset,
-        KreskoAssetAnchor,
-    };
+  await KreskoAsset.grantRole(Role.OPERATOR, KreskoAssetAnchor.address);
+
+  return {
+    KreskoAsset,
+    KreskoAssetAnchor,
+  };
 }

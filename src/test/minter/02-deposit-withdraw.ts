@@ -3,7 +3,6 @@ import { getInternalEvent } from "@utils/events";
 import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
 import { wrapKresko } from "@utils/redstone";
 import Action from "@utils/test/actions";
-import { Error } from "@utils/test/errors";
 import { DepositWithdrawFixture, depositWithdrawFixture } from "@utils/test/fixtures";
 import { depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
 import optimized from "@utils/test/helpers/optimizations";
@@ -12,7 +11,7 @@ import { fromBig, toBig } from "@utils/values";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import hre from "hardhat";
-import {
+import type {
   CollateralDepositedEventObject,
   CollateralWithdrawnEventObject,
   Kresko,

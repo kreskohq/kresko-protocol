@@ -39,7 +39,7 @@ library CError {
     error NO_PUSH_ORACLE_SET(string underlyingId);
     error INVALID_FEE_TYPE(uint8 invalid, uint8 valid);
     error ZERO_ADDRESS();
-    error BURN_AMOUNT_OVERFLOW(uint256, uint256);
+    error BURN_AMOUNT_OVERFLOW(uint256 burnAmount, uint256 debtAmount);
     error PAUSED(address who);
     error ZERO_PRICE(string underlyingId);
     error SEQUENCER_DOWN_NO_REDSTONE_AVAILABLE();
@@ -96,7 +96,7 @@ library CError {
     error INVALID_WITHDRAW(uint256 sharesIn, uint256 assetsOut);
     error ROUNDING_ERROR(string desc, uint256 sharesIn, uint256 assetsOut);
     error MAX_DEPOSIT_EXCEEDED(uint256 assetsIn, uint256 maxDeposit);
-    error MAX_SUPPLY_EXCEEDED(address asset, uint256 newSupply, uint256 maxSupply);
+    error MAX_SUPPLY_EXCEEDED(address asset, uint256 supply, uint256 maxSupply);
     error COLLATERAL_VALUE_LOW(uint256 value, uint256 minRequiredValue);
     error MINT_VALUE_LOW(address asset, uint256 value, uint256 minRequiredValue);
     error INVALID_FEE(uint256 invalid, uint256 valid);

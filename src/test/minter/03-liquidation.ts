@@ -8,9 +8,7 @@ import optimized from "@utils/test/helpers/optimizations";
 import { fromBig, toBig } from "@utils/values";
 import { Kresko, LiquidationOccurredEvent } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
 
-const INTEREST_RATE_DELTA = 0.01;
 const USD_DELTA = toBig(0.1, 9);
-const CR_DELTA = 1e-4;
 
 // -------------------------------- Set up mock assets --------------------------------
 

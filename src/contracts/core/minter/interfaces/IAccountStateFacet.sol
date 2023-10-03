@@ -107,7 +107,7 @@ interface IAccountStateFacet {
      * @param _ratio Collateralization ratio required: higher ratio = more collateral required
      * @return uint256 Minimum collateral value of a particular account.
      */
-    function getAccountMinCollateralAtRatio(address _account, uint256 _ratio) external view returns (uint256);
+    function getAccountMinCollateralAtRatio(address _account, uint32 _ratio) external view returns (uint256);
 
     /**
      * @notice Get a list of accounts and their collateral ratios

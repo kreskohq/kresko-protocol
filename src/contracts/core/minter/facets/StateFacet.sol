@@ -18,17 +18,17 @@ contract StateFacet is IStateFacet {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IStateFacet
-    function getMinCollateralRatio() external view returns (uint256) {
+    function getMinCollateralRatio() external view returns (uint32) {
         return ms().minCollateralRatio;
     }
 
     /// @inheritdoc IStateFacet
-    function getLiquidationThreshold() external view returns (uint256) {
+    function getLiquidationThreshold() external view returns (uint32) {
         return ms().liquidationThreshold;
     }
 
     /// @inheritdoc IStateFacet
-    function getMaxLiquidationRatio() external view returns (uint256) {
+    function getMaxLiquidationRatio() external view returns (uint32) {
         return ms().maxLiquidationRatio;
     }
 

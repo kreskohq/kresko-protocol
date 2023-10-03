@@ -210,7 +210,7 @@ library CAsset {
     function minCollateralValueAtRatio(
         Asset storage _krAsset,
         uint256 _amount,
-        uint256 _ratio
+        uint32 _ratio
     ) internal view returns (uint256 minCollateralValue) {
         if (_amount == 0) return 0;
         // Calculate the collateral value required to back this Kresko asset amount at the given ratio

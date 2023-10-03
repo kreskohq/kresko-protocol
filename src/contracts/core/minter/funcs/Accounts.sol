@@ -128,7 +128,7 @@ library MAccounts {
     function accountMinCollateralAtRatio(
         MinterState storage self,
         address _account,
-        uint256 _ratio
+        uint32 _ratio
     ) internal view returns (uint256 minCollateralValue) {
         return self.accountTotalDebtValue(_account).percentMul(_ratio);
     }

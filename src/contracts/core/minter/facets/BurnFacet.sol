@@ -28,11 +28,9 @@ contract BurnFacet is CModifiers, IBurnFacet {
         uint256 _burnAmount,
         uint256 _mintedKreskoAssetIndex
     ) external nonReentrant isKrAsset(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
-        if (_burnAmount == 0) {
-            revert CError.ZERO_BURN(_kreskoAsset);
-        }
-        MinterState storage s = ms();
+        if (_burnAmount == 0) revert CError.ZERO_BURN(_kreskoAsset);
 
+        MinterState storage s = ms();
         Asset storage asset = cs().assets[_kreskoAsset];
 
         if (cs().safetyStateSet) {
@@ -41,14 +39,10 @@ contract BurnFacet is CModifiers, IBurnFacet {
 
         // Get accounts principal debt
         uint256 debtAmount = s.accountDebtAmount(_account, _kreskoAsset, asset);
-        if (debtAmount == 0) {
-            revert CError.ZERO_DEBT(_kreskoAsset);
-        }
+        if (debtAmount == 0) revert CError.ZERO_DEBT(_kreskoAsset);
 
         if (_burnAmount != type(uint256).max) {
-            if (debtAmount > _burnAmount) {
-                revert CError.BURN_AMOUNT_OVERFLOW(debtAmount, _burnAmount);
-            }
+            if (_burnAmount > debtAmount) revert CError.BURN_AMOUNT_OVERFLOW(_burnAmount, debtAmount);
             // Ensure principal left is either 0 or >= minDebtValue
             _burnAmount = asset.checkDust(_burnAmount, debtAmount);
         } else {

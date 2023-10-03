@@ -37,7 +37,7 @@ contract AccountStateFacet is IAccountStateFacet {
             MinterAccountState({
                 totalDebtValue: debtValue,
                 totalCollateralValue: collateralValue,
-                collateralRatio: collateralValue.percentDiv(debtValue)
+                collateralRatio: debtValue > 0 ? collateralValue.percentDiv(debtValue) : 0
             });
     }
 
@@ -109,7 +109,7 @@ contract AccountStateFacet is IAccountStateFacet {
     }
 
     /// @inheritdoc IAccountStateFacet
-    function getAccountMinCollateralAtRatio(address _account, uint256 _ratio) public view returns (uint256) {
+    function getAccountMinCollateralAtRatio(address _account, uint32 _ratio) public view returns (uint256) {
         return ms().accountMinCollateralAtRatio(_account, _ratio);
     }
 

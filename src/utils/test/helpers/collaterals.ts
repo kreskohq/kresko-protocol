@@ -115,12 +115,12 @@ export const withdrawCollateral = async (args: InputArgs) => {
 
 export const getMaxWithdrawal = async (user: string, collateral: any) => {
   const [collateralValue, MCR, collateralPrice] = await Promise.all([
-    hre.Diamond.getAccountTotalCollateralValue(user, collateral.address),
+    hre.Diamond.getAccountTotalCollateralValue(user),
     hre.Diamond.getMinCollateralRatio(),
     collateral.getPrice(),
   ]);
 
-  const minCollateralRequired = await hre.Diamond.getAccountMinCollateralAtRatio(user, MCR.add((15e8).toString()));
+  const minCollateralRequired = await hre.Diamond.getAccountMinCollateralAtRatio(user, MCR);
   const maxWithdrawValue = collateralValue.sub(minCollateralRequired);
   const maxWithdrawAmount = maxWithdrawValue.wadDiv(collateralPrice);
 

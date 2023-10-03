@@ -5,13 +5,13 @@ import {MinterParams} from "minter/Types.sol";
 
 interface IStateFacet {
     /// @notice The collateralization ratio at which positions may be liquidated.
-    function getLiquidationThreshold() external view returns (uint256);
+    function getLiquidationThreshold() external view returns (uint32);
 
     /// @notice Multiplies max liquidation multiplier, if a full liquidation happens this is the resulting CR.
-    function getMaxLiquidationRatio() external view returns (uint256);
+    function getMaxLiquidationRatio() external view returns (uint32);
 
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
-    function getMinCollateralRatio() external view returns (uint256);
+    function getMinCollateralRatio() external view returns (uint32);
 
     /// @notice simple check if kresko asset exists
     function getKrAssetExists(address _krAsset) external view returns (bool);

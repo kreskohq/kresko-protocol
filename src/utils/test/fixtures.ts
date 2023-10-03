@@ -19,6 +19,7 @@ import {
   testKrAssetConfig,
 } from "./mocks";
 import Role from "./roles";
+import { AllTokenSymbols } from "@deploy-config/shared";
 
 type SCDPFixtureParams = {
   krAssets: () => Promise<TestKrAsset>[];
@@ -153,8 +154,12 @@ export const diamondFixture = hre.deployments.createFixture<{ facets: Facet[] },
   };
 });
 
-export const kreskoAssetFixture = hre.deployments.createFixture(async hre => {
-  return await createKrAsset("KreskoAsset", "KreskoAsset");
+export const kreskoAssetFixture = hre.deployments.createFixture<
+  Awaited<ReturnType<typeof createKrAsset>>,
+  { name: string; symbol: AllTokenSymbols }
+>(async (hre, opts) => {
+  console.debug(opts);
+  return await createKrAsset(opts!.symbol, opts!.name);
 });
 export type DefaultFixture = {
   users: [SignerWithAddress, Kresko][];
