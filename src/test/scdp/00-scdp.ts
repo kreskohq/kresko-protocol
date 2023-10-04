@@ -130,7 +130,7 @@ const createCollaterals = () => [
   }),
 ];
 
-describe("SCDP", async function () {
+describe.only("SCDP", async function () {
   let swapper: SignerWithAddress;
   let depositor: SignerWithAddress;
   let depositor2: SignerWithAddress;
@@ -194,16 +194,6 @@ describe("SCDP", async function () {
         const depositAssets = await hre.Diamond.getDepositAssetsSCDP();
 
         expect(depositAssets).to.include.members([f.Collateral.address, f.Collateral8Dec.address, f.KISS.address]);
-
-        const assetsEnabled = await Promise.all([
-          hre.Diamond.getAssetEnabledSCDP(f.Collateral.address),
-          hre.Diamond.getAssetEnabledSCDP(f.Collateral8Dec.address),
-          hre.Diamond.getAssetEnabledSCDP(f.KrAsset.address),
-          hre.Diamond.getAssetEnabledSCDP(f.KrAsset2.address),
-          hre.Diamond.getAssetEnabledSCDP(f.KISS.address),
-        ]);
-
-        expect(assetsEnabled).to.deep.equal([true, true, true, true, true]);
       });
       it("should be able to whitelist new deposit asset", async () => {
         const assetInfoBefore = await hre.Diamond.getAsset(f.KrAsset2.address);
@@ -231,39 +221,32 @@ describe("SCDP", async function () {
       });
 
       it("should be able to disable a deposit asset", async () => {
-        await hre.Diamond.disableAssetsSCDP([f.Collateral.address], true);
+        await hre.Diamond.setDepositAssetSCDP(f.Collateral.address, false);
         const collaterals = await hre.Diamond.getCollateralsSCDP();
         expect(collaterals).to.include(f.Collateral.address);
         const depositAssets = await hre.Diamond.getDepositAssetsSCDP();
         expect(depositAssets).to.not.include(f.Collateral.address);
-        expect(await hre.Diamond.getAssetEnabledSCDP(f.Collateral.address)).to.equal(true);
         expect(await hre.Diamond.getDepositEnabledSCDP(f.Collateral.address)).to.equal(false);
       });
 
       it("should be able to disable and enable a collateral asset", async () => {
-        await hre.Diamond.disableAssetsSCDP([f.Collateral.address], false);
+        await hre.Diamond.setCollateralSCDP(f.Collateral.address, false);
 
-        expect(await hre.Diamond.getCollateralsSCDP()).to.include(f.Collateral.address);
+        expect(await hre.Diamond.getCollateralsSCDP()).to.not.include(f.Collateral.address);
         expect(await hre.Diamond.getDepositAssetsSCDP()).to.not.include(f.Collateral.address);
-        expect(await hre.Diamond.getAssetEnabledSCDP(f.Collateral.address)).to.equal(false);
-        expect(await hre.Diamond.getDepositEnabledSCDP(f.Collateral.address)).to.equal(false);
-
-        await hre.Diamond.enableAssetsSCDP([f.Collateral.address], false);
-
-        expect(await hre.Diamond.getCollateralsSCDP()).to.include(f.Collateral.address);
-        expect(await hre.Diamond.getDepositAssetsSCDP()).to.not.include(f.Collateral.address);
-        expect(await hre.Diamond.getAssetEnabledSCDP(f.Collateral.address)).to.equal(true);
-        expect(await hre.Diamond.getDepositEnabledSCDP(f.Collateral.address)).to.equal(false);
-
-        await hre.Diamond.enableAssetsSCDP([f.Collateral.address], true);
         expect(await hre.Diamond.getDepositEnabledSCDP(f.Collateral.address)).to.equal(true);
-      });
-      it("should be able to remove a collateral asset", async () => {
-        await hre.Diamond.removeCollateralsSCDP([f.Collateral.address]);
-        const collaterals = await hre.Diamond.getDepositAssetsSCDP();
-        expect(collaterals).to.not.include(f.Collateral.address);
-        expect(await hre.Diamond.getAssetEnabledSCDP(f.Collateral.address)).to.equal(false);
+
+        await hre.Diamond.setDepositAssetSCDP(f.Collateral.address, false);
         expect(await hre.Diamond.getDepositEnabledSCDP(f.Collateral.address)).to.equal(false);
+
+        await hre.Diamond.setCollateralSCDP(f.Collateral.address, true);
+        expect(await hre.Diamond.getCollateralsSCDP()).to.include(f.Collateral.address);
+        expect(await hre.Diamond.getDepositAssetsSCDP()).to.not.include(f.Collateral.address);
+        expect(await hre.Diamond.getDepositEnabledSCDP(f.Collateral.address)).to.equal(false);
+
+        await hre.Diamond.setDepositAssetSCDP(f.Collateral.address, true);
+        expect(await hre.Diamond.getDepositEnabledSCDP(f.Collateral.address)).to.equal(true);
+        expect(await hre.Diamond.getDepositAssetsSCDP()).to.include(f.Collateral.address);
       });
 
       it("should be able to add whitelisted kresko asset", async () => {
@@ -272,7 +255,6 @@ describe("SCDP", async function () {
         expect(assetInfo.swapOutFeeSCDP).to.equal(scdpKrAssetConfig.swapOutFeeSCDP);
         expect(assetInfo.liqIncentiveSCDP).to.equal(scdpKrAssetConfig.liqIncentiveSCDP);
         expect(assetInfo.protocolFeeShareSCDP).to.equal(scdpKrAssetConfig.protocolFeeShareSCDP);
-        expect(await hre.Diamond.getAssetEnabledSCDP(f.KrAsset.address)).to.equal(true);
       });
 
       it("should be able to update a whitelisted kresko asset", async () => {
@@ -294,19 +276,13 @@ describe("SCDP", async function () {
         expect(krAssets).to.include(f.KrAsset.address);
         const collaterals = await hre.Diamond.getCollateralsSCDP();
         expect(collaterals).to.include(f.KrAsset.address);
-        expect(await hre.Diamond.getAssetEnabledSCDP(f.KrAsset.address)).to.equal(true);
         expect(await hre.Diamond.getDepositEnabledSCDP(f.KrAsset.address)).to.equal(false);
       });
-      it("should be able to disable a whitelisted kresko asset", async () => {
-        await hre.Diamond.disableAssetsSCDP([f.KrAsset.address], false);
-        expect(await hre.Diamond.getKreskoAssetsSCDP()).to.include(f.KrAsset.address);
-        expect(await hre.Diamond.getAssetEnabledSCDP(f.KrAsset.address)).to.equal(false);
-      });
+
       it("should be able to remove a whitelisted kresko asset", async () => {
-        await hre.Diamond.removeKrAssetsSCDP([f.KrAsset.address]);
+        await hre.Diamond.setKrAssetSCDP(f.KrAsset.address, false);
         const krAssets = await hre.Diamond.getKreskoAssetsSCDP();
         expect(krAssets).to.not.include(f.KrAsset.address);
-        expect(await hre.Diamond.getAssetEnabledSCDP(f.KrAsset.address)).to.equal(false);
         expect(await hre.Diamond.getDepositEnabledSCDP(f.KrAsset.address)).to.equal(false);
       });
 
@@ -1114,7 +1090,7 @@ describe("SCDP", async function () {
           f.KrAsset2.getPrice(),
           hre.Diamond.getStatisticsSCDP(),
         ]);
-        const repayAmount = maxLiquidatable.wadDiv(krAssetPrice);
+        const repayAmount = maxLiquidatable.repayValue.wadDiv(krAssetPrice);
 
         await f.KrAsset2.setBalance(hre.users.liquidator, repayAmount.add((1e18).toString()));
         expect(statsBefore.cr).to.lt(scdpParams.liquidationThreshold);

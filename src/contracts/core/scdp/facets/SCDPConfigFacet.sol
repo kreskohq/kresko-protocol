@@ -112,9 +112,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
     /// @inheritdoc ISCDPConfigFacet
     function setDepositAssetSCDP(address _assetAddr, bool _enabled) external onlyRole(Role.ADMIN) {
         Asset storage asset = cs().assets[_assetAddr];
-        if (!asset.isSCDPCollateral) {
-            revert CError.COLLATERAL_DOES_NOT_EXIST(_assetAddr);
-        } else if (_enabled && asset.isSCDPDepositAsset) {
+        if (_enabled && asset.isSCDPDepositAsset) {
             revert CError.ASSET_ALREADY_ENABLED(_assetAddr);
         } else if (!_enabled && !asset.isSCDPDepositAsset) {
             revert CError.ASSET_ALREADY_DISABLED(_assetAddr);

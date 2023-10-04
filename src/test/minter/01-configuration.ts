@@ -24,13 +24,15 @@ describe("Minter - Configuration", function () {
       await expect(hre.Diamond.updateMinCollateralRatio(update.minCollateralRatio)).to.not.be.reverted;
       await expect(hre.Diamond.updateLiquidationThreshold(update.liquidationThreshold)).to.not.be.reverted;
       await expect(hre.Diamond.updateMaxLiquidationRatio(update.MLR)).to.not.be.reverted;
-      // await expect(hre.Diamond.updateMinDebtValue(update.minDebtValue)).to.not.be.reverted;
-      // await expect(hre.Diamond.updateFeeRecipient(update.feeRecipient)).to.not.be.reverted;
-      // await expect(hre.Diamond.updateOracleDeviationPct(update.oracleDeviationPct)).to.not.be.reverted;
-      // expect(update.minDebtValue.toBigInt()).to.equal(minDebtValue);
-      // expect(update.feeRecipient).to.equal(feeRecipient);
-      // expect(update.oracleDeviationPct).to.equal(oracleDeviationPct);
+      await expect(hre.Diamond.updateOracleDeviationPct(0.05e4)).to.not.be.reverted;
+      await expect(hre.Diamond.updateSequencerGracePeriodTime(1000)).to.not.be.reverted;
+      await expect(hre.Diamond.updateExtOracleDecimals(2)).to.not.be.reverted;
+      await expect(hre.Diamond.updateMinDebtValue(20e8)).to.not.be.reverted;
+
       const { minCollateralRatio, maxLiquidationRatio, liquidationThreshold } = await hre.Diamond.getMinterParameters();
+      expect(await hre.Diamond.getMinDebtValue()).to.equal(20e8);
+      expect(await hre.Diamond.getExtOracleDecimals()).to.equal(2);
+      expect(await hre.Diamond.getOracleDeviationPct()).to.equal(0.05e4);
       expect(update.minCollateralRatio).to.equal(minCollateralRatio);
       expect(update.MLR).to.equal(maxLiquidationRatio);
       expect(update.liquidationThreshold).to.equal(liquidationThreshold);
@@ -68,10 +70,10 @@ describe("Minter - Configuration", function () {
       const currentMLM = await hre.Diamond.getMaxLiquidationRatio();
       const newMLR = 1.42e4;
 
-      expect(currentMLM.eq(newMLR)).to.be.false;
+      expect(currentMLM).to.not.eq(newMLR);
 
       await expect(hre.Diamond.updateMaxLiquidationRatio(newMLR)).to.not.be.reverted;
-      expect((await hre.Diamond.getMaxLiquidationRatio()).eq(newMLR)).to.be.true;
+      expect(await hre.Diamond.getMaxLiquidationRatio()).to.eq(newMLR);
     });
 
     it("can update oracle deviation pct", async function () {
@@ -123,6 +125,7 @@ describe("Minter - Configuration", function () {
         krAssetConfig: update,
       });
 
+      await hre.Diamond.updateFeeds(newConfig.assetStruct.underlyingId, newConfig.feedConfig);
       await wrapContractWithSigner(hre.Diamond, hre.users.deployer).updateAsset(
         f.KrAsset.address,
         newConfig.assetStruct,
@@ -133,6 +136,7 @@ describe("Minter - Configuration", function () {
       const newPriceOfOne = fromBig(await hre.Diamond.getValue(f.KrAsset.address, toBig(1)), 8);
 
       expect(newValues.isKrAsset).to.equal(true);
+      expect(newValues.isCollateral).to.equal(false);
       expect(newValues.kFactor).to.equal(update.kFactor);
       expect(newValues.supplyLimit).to.equal(update.supplyLimit);
 
@@ -147,19 +151,23 @@ describe("Minter - Configuration", function () {
         openFee: 0.052e4,
         isSCDPKrAsset: true,
         swapInFeeSCDP: 0.052e4,
+        liqIncentiveSCDP: 1.1e4,
         anchor: f.KrAsset.anchor.address,
       };
 
       await hre.Diamond.updateAsset(f.KrAsset.address, update2);
 
       const newValues2 = await hre.Diamond.getAsset(f.KrAsset.address);
-
       expect(newValues2.isKrAsset).to.equal(true);
-      expect(newValues.kFactor).to.equal(update2.kFactor);
-      expect(newValues.openFee).to.equal(update2.closeFee);
-      expect(newValues.closeFee).to.equal(update2.openFee);
-      expect(newValues.swapInFeeSCDP).to.equal(update2.swapInFeeSCDP);
-      expect(newValues.supplyLimit).to.equal(update2.supplyLimit);
+      expect(newValues2.isSCDPCollateral).to.equal(true);
+      expect(newValues2.isCollateral).to.equal(false);
+      expect(newValues2.isSCDPDepositAsset).to.equal(false);
+      expect(newValues2.isSCDPCoverAsset).to.equal(false);
+      expect(newValues2.kFactor).to.equal(update2.kFactor);
+      expect(newValues2.openFee).to.equal(update2.closeFee);
+      expect(newValues2.closeFee).to.equal(update2.openFee);
+      expect(newValues2.swapInFeeSCDP).to.equal(update2.swapInFeeSCDP);
+      expect(newValues2.supplyLimit).to.equal(update2.supplyLimit);
     });
   });
 });

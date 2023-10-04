@@ -19,7 +19,7 @@ export const getAssetConfig = async (
   if (!config.krAssetConfig && !config.collateralConfig && !config.scdpDepositConfig && !config.scdpKrAssetConfig)
     throw new Error("No config provided");
   const configuredDataPoint = defaultRedstoneDataPoints.find(i => i.dataFeedId === config.underlyingId);
-  if (!configuredDataPoint) throw new Error(`No configure price data point: ${config.symbol} ${config.underlyingId}`);
+  if (!configuredDataPoint) throw new Error(`No configured price data point: ${config.symbol} ${config.underlyingId}`);
 
   const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()]);
 

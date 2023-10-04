@@ -22,7 +22,7 @@ import {
 const INTEREST_RATE_DELTA = toBig("0.000001");
 const INTEREST_RATE_PRICE_DELTA = toBig("0.0001", 8);
 
-describe.only("Minter", function () {
+describe("Minter", function () {
   let f: MintRepayFixture;
 
   let user1: SignerWithAddress;
