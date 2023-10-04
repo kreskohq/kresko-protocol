@@ -130,7 +130,7 @@ const createCollaterals = () => [
   }),
 ];
 
-describe.only("SCDP", async function () {
+describe("SCDP", async function () {
   let swapper: SignerWithAddress;
   let depositor: SignerWithAddress;
   let depositor2: SignerWithAddress;

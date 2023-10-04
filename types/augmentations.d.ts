@@ -30,42 +30,8 @@ declare module "mocha" {
       liquidator?: SignerWithAddress;
       treasury?: SignerWithAddress;
     };
-    users: {
-      deployer: SignerWithAddress;
-      owner: SignerWithAddress;
-      admin: SignerWithAddress;
-      operator: SignerWithAddress;
-      userOne: SignerWithAddress;
-      userTwo: SignerWithAddress;
-      userThree: SignerWithAddress;
-      nonadmin?: SignerWithAddress;
-      liquidator?: SignerWithAddress;
-      treasury?: SignerWithAddress;
-    };
-    usersArr: SignerWithAddress[];
-    /* -------------------------------------------------------------------------- */
-    /*                                   Diamond                                  */
-    /* -------------------------------------------------------------------------- */
-    facets: Facet[];
-    Multisig: GnosisSafeL2;
-    Diamond: TC["Kresko"];
-    DiamondDeployment: Deployment;
     krAssets: TestAsset<KreskoAsset, "mock">[];
-    collateral: TestAsset<ERC20Upgradeable>;
-    krAsset: TestAsset<KreskoAsset>;
     collaterals: TestAsset<ERC20Upgradeable>[];
-    /* -------------------------------------------------------------------------- */
-    /*                              Misc / Deprecated                             */
-    /* -------------------------------------------------------------------------- */
-    treasury: string;
-    // @todo DEPRECATING
-    Oracles: FakeContract[];
-    TKN1: Contracts.ERC20Upgradeable;
-    TKN2: Contracts.ERC20Upgradeable;
-    USDC: Contracts.ERC20Upgradeable;
-    krTSLA: Contracts.KreskoAsset;
-    Kresko: Contracts.Kresko;
-    WETH10OraclePrice: number;
   }
 }
 export {};
@@ -133,8 +99,6 @@ declare module "hardhat/types/runtime" {
     /* -------------------------------------------------------------------------- */
 
     krAssets: TestAsset<KreskoAsset, "mock">[];
-    collateral: TestAsset<ERC20Upgradeable, "mock">;
-    krAsset: TestAsset<KreskoAsset, "mock">;
     extAssets: TestAsset<ERC20Upgradeable, "mock">[];
     facets: { name: string; address: string; functions: number }[];
 

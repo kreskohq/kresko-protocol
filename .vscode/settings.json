@@ -1,11 +1,6 @@
 {
-  "mochaExplorer.require": [
-    "ts-node/register",
-    "tsconfig-paths/register"
-  ],
-  "mochaExplorer.files": [
-    "./src/test/**/*.ts"
-  ],
+  "mochaExplorer.require": ["ts-node/register", "tsconfig-paths/register"],
+  "mochaExplorer.files": ["./src/test/**/*.ts"],
   "mochaExplorer.timeout": 120000,
   "mochaExplorer.multiFileSuites": true,
   "typescript.tsdk": "node_modules/typescript/lib",
@@ -17,7 +12,7 @@
     "mochawesome-report": true,
     "**/deployments/**": true,
     "packages/contracts/pnpm-lock.yaml": true,
-    "node_modules/**": true,
+    "node_modules/**": true
   },
   "editor.formatOnSave": true,
   "solidity.linter": "solhint",
@@ -54,7 +49,7 @@
     "kresko-helpers/=lib/kresko-foundry-helpers/src/",
     "periphery/=src/contracts/periphery/",
     "@kreskolabs/=node_modules/@kreskolabs/",
-    "@openzeppelin/=node_modules/@openzeppelin/",
+    "@openzeppelin/=node_modules/@openzeppelin/"
   ],
   "solidity.defaultCompiler": "remote",
   "workbench.colorCustomizations": {
@@ -76,7 +71,5 @@
     "titleBar.inactiveBackground": "#20222899",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
-
-
-
+  "inline-bookmarks.view.showVisibleFilesOnly": false
 }

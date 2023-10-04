@@ -143,6 +143,7 @@ const getReceiver = async (kresko: Kresko, grantRole = true) => {
   }
   return Receiver;
 };
+
 export const diamondFixture = hre.deployments.createFixture<{ facets: Facet[] }, {}>(async hre => {
   const result = await hre.deployments.fixture("diamond-init");
   if (result.Diamond) {
@@ -157,10 +158,8 @@ export const diamondFixture = hre.deployments.createFixture<{ facets: Facet[] },
 export const kreskoAssetFixture = hre.deployments.createFixture<
   Awaited<ReturnType<typeof createKrAsset>>,
   { name: string; symbol: AllTokenSymbols }
->(async (hre, opts) => {
-  console.debug(opts);
-  return await createKrAsset(opts!.symbol, opts!.name);
-});
+>(async (hre, opts) => createKrAsset(opts!.symbol, opts!.name));
+
 export type DefaultFixture = {
   users: [SignerWithAddress, Kresko][];
   collaterals: TestExtAsset[];
@@ -475,7 +474,6 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     amount: toBig(100000000),
     asset: DefaultCollateral,
   });
-
   const initialMintAmount = toBig(10); // 10 * $11 = $110 in debt value
   await mintKrAsset({
     user: hre.users.userOne,
@@ -501,6 +499,8 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     DefaultCollateral.setPrice(testCollateralConfig.price!);
     Collateral2.setPrice(TEN_USD);
     Collateral8Dec.setPrice(TEN_USD);
+    await hre.Diamond.updateCollateralFactor(DefaultCollateral.address, 1e4);
+    await hre.Diamond.updateKFactor(KrAssetCollateral.address, 1e4);
   };
 
   /* -------------------------------------------------------------------------- */
