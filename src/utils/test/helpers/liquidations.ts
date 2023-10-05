@@ -82,8 +82,8 @@ export const liquidate = async (
     allowSeizeUnderflow = false,
 ) => {
     const [depositsBefore, debtBefore, liqAmount] = await Promise.all([
-        optimized.getAccountCollateralAmount(user.address, collateral),
-        optimized.getAccountDebtAmount(user.address, krAsset),
+        hre.Diamond.getAccountCollateralAmount(user.address, collateral.address),
+        hre.Diamond.getAccountDebtAmount(user.address, krAsset.address),
         getLiqAmount(user, krAsset, collateral),
     ]);
 
@@ -135,8 +135,8 @@ export const liquidate = async (
     );
 
     const [depositsAfter, debtAfter, decimals] = await Promise.all([
-        optimized.getAccountCollateralAmount(user.address, collateral),
-        optimized.getAccountDebtAmount(user.address, krAsset),
+        hre.Diamond.getAccountCollateralAmount(user.address, collateral.address),
+        hre.Diamond.getAccountDebtAmount(user.address, krAsset.address),
         collateral.contract.decimals(),
     ]);
     return {

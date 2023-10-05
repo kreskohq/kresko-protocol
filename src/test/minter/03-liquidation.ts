@@ -34,7 +34,7 @@ describe("Minter - Liquidations", function () {
         [[user1, User], [user2], [user3], [user4], [user5], [liquidator, Liquidator], [liquidatorTwo, LiquidatorTwo]] =
             f.users;
 
-        f.reset();
+        await f.reset();
     });
 
     describe("#isAccountLiquidatable", () => {

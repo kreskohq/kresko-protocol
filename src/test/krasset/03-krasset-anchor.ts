@@ -8,7 +8,7 @@ describe("KreskoAssetAnchor", () => {
     let KreskoAssetAnchor: KreskoAssetAnchor;
 
     beforeEach(async function () {
-        ({ KreskoAsset, KreskoAssetAnchor } = await kreskoAssetFixture());
+        ({ KreskoAsset, KreskoAssetAnchor } = await kreskoAssetFixture({ krAsset: "KreskoAsset3" }));
 
         // Grant minting rights for test deployer
         await Promise.all([

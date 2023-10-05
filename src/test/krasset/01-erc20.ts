@@ -5,7 +5,7 @@ describe("KreskoAsset", () => {
     let KreskoAsset: KreskoAsset;
 
     beforeEach(async function () {
-        ({ KreskoAsset } = await kreskoAssetFixture());
+        ({ KreskoAsset } = await kreskoAssetFixture({ krAsset: "KreskoAsset5" }));
         this.owner = hre.users.deployer;
         this.mintAmount = 125;
         await KreskoAsset.grantRole(Role.OPERATOR, this.owner.address);

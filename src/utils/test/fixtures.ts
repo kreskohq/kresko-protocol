@@ -165,15 +165,21 @@ export const diamondFixture = hre.deployments.createFixture<{ facets: Facet[] },
     };
 });
 
-export const kreskoAssetFixture = hre.deployments.createFixture(
-    async (hre, token: string = hre.ethers.constants.AddressZero, tokenDecimals: number = 18) => {
-        const krAsset = await createKrAsset("KreskoAsset", "KreskoAsset", 18, token, tokenDecimals);
-        return {
-            KreskoAsset: krAsset.contract as KreskoAsset,
-            KreskoAssetAnchor: krAsset.anchor as KreskoAssetAnchor,
-        };
-    },
-);
+type KreskoAssetFixture = {
+    KreskoAsset: KreskoAsset;
+    KreskoAssetAnchor: KreskoAssetAnchor;
+};
+export const kreskoAssetFixture = hre.deployments.createFixture<
+    KreskoAssetFixture,
+    { krAsset: string; token?: string; tokenDecimals?: number }
+>(async (hre, opts) => {
+    if (!opts?.krAsset) throw new Error("Must supply a kr asset name");
+    const krAsset = await createKrAsset(opts?.krAsset, opts?.krAsset, 18, opts?.token, opts?.tokenDecimals);
+    return {
+        KreskoAsset: krAsset.contract as KreskoAsset,
+        KreskoAssetAnchor: krAsset.anchor as KreskoAssetAnchor,
+    };
+});
 
 export type DefaultFixture = {
     users: [SignerWithAddress, Kresko][];
@@ -318,8 +324,8 @@ export const depositWithdrawFixture = hre.deployments.createFixture<DepositWithd
 
     const DefaultCollateral = hre.collaterals!.find(c => c.deployArgs!.name === defaultCollateralArgs.name)!;
 
-    const DefaultKrAsset = hre.krAssets!.find(k => k.deployArgs!.name === defaultKrAssetArgs.name)!;
-    const KrAssetCollateral = hre.krAssets!.find(k => k.deployArgs!.name === "MockKreskoAssetCollateral")!;
+    const DefaultKrAsset = hre.allAssets!.find(k => k.deployArgs!.name === defaultKrAssetArgs.name)!;
+    const KrAssetCollateral = hre.allAssets!.find(k => k.deployArgs!.name === "MockKreskoAssetCollateral")!;
 
     const initialDeposits = toBig(10000);
     const initialBalance = toBig(100000);

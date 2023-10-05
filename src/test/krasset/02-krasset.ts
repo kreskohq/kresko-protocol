@@ -15,7 +15,11 @@ describe("KreskoAsset", () => {
         // Give WETH to deployer
         await WETH.connect(hre.users.devOne).deposit({ value: toBig(100) });
 
-        ({ KreskoAsset, KreskoAssetAnchor } = await kreskoAssetFixture(WETH.address, await WETH.decimals()));
+        ({ KreskoAsset, KreskoAssetAnchor } = await kreskoAssetFixture({
+            krAsset: "KreskoAsset4",
+            token: WETH.address,
+            tokenDecimals: await WETH.decimals(),
+        }));
 
         // Grant minting rights for test deployer
         await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);

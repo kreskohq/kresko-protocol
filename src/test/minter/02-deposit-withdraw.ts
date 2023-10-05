@@ -28,6 +28,7 @@ describe("Minter - Deposit Withdraw", function () {
 
     beforeEach(async function () {
         f = await depositWithdrawFixture();
+        f.KrAssetCollateral.setPrice(10);
         [[user, User], [depositor, Depositor], [withdrawer, Withdrawer]] = f.users;
     });
 

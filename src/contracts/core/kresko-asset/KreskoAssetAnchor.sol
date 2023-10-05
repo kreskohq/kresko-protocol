@@ -116,7 +116,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         // Check for rounding error since we round down in previewDeposit.
         require(shares != 0, Error.ZERO_SHARES);
 
-        // Mint shares to kresko
+        // Mint shares to asset
         _mint(address(asset), shares);
     }
 
@@ -128,7 +128,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         // Check for rounding error since we round down in previewDeposit.
         require(shares != 0, Error.ZERO_SHARES);
 
-        // Burn shares from kresko
+        // Burn shares from a
         _burn(address(asset), shares);
     }
 
