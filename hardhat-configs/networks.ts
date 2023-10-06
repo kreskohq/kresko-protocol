@@ -1,4 +1,4 @@
-import { INFURA_API_KEY, RPC_URL, ETHERSCAN } from "@kreskolabs/configs";
+import { RPC_URL, ETHERSCAN, INFURA_API_KEY } from "@kreskolabs/configs/ext";
 import type { HttpNetworkConfig, NetworksUserConfig } from "hardhat/types";
 import * as chains from "viem/chains";
 
@@ -117,7 +117,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
   },
   polygonMumbai: {
     accounts: { mnemonic },
-    url: RPC_URL().polygonMumbai.mumbai.alchemy,
+    url: RPC_URL().polygonMumbai.alchemy,
     chainId: chains.polygonMumbai.id,
     tags: ["polygonMumbai"],
     verify: {
@@ -135,7 +135,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
   },
   polygonZkEvmTestnet: {
     accounts: { mnemonic },
-    url: RPC_URL().polygonZkEvmTestnet.testnet.alchemy,
+    url: RPC_URL().polygonZkEvmTestnet.alchemy,
     chainId: chains.polygonZkEvmTestnet.id,
     tags: ["polygonZkEvmTestnet"],
     verify: {

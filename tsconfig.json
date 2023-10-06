@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "module": "node16",
+    "module": "nodenext",
     "target": "esnext",
-    "moduleResolution": "node16",
+    "moduleResolution": "nodenext",
     "noErrorTruncation": true,
     "forceConsistentCasingInFileNames": true,
     "resolvePackageJsonExports": true,
