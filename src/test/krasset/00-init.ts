@@ -12,12 +12,6 @@ describe("KreskoAsset", function () {
   describe("#initialization - anchor", () => {
     beforeEach(async function () {
       f = await kreskoAssetFixture({ name, symbol });
-      console.debug({
-        symbol: await f.KreskoAsset.symbol(),
-        name: await f.KreskoAsset.name(),
-        anchorSymbol: await f.KreskoAssetAnchor.symbol(),
-        anchorName: await f.KreskoAssetAnchor.name(),
-      });
     });
     it("cant initialize twice", async function () {
       await expect(f.KreskoAsset.initialize(name!, symbol, 18, hre.addr.deployer, hre.Diamond.address)).to.be.reverted;

@@ -338,10 +338,6 @@ describe("Minter - Liquidations", function () {
 
         const liqAmount = await getLiqAmount(user1, f.KrAsset, f.Collateral);
         // const allowSeizeUnderflow = false;
-        console.debug({
-          cr: await hre.Diamond.getAccountCollateralRatio(user1.address),
-          userInfo: await hre.Diamond.getAccountState(user1.address),
-        });
 
         await expect(
           Liquidator.liquidate(
