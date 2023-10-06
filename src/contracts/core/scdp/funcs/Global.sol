@@ -41,7 +41,7 @@ library SGlobal {
     /**
      * @notice Checks whether the collateral value is less than minimum required.
      * @notice Reverts when collateralValue is below minimum required.
-     * @param _ratio ratio to check
+     * @param _ratio Ratio to check in 1e4 percentage precision (uint32).
      */
     function checkCollateralValue(SCDPState storage self, uint32 _ratio) internal view {
         uint256 collateralValue = self.totalCollateralValueSCDP(false);
@@ -53,7 +53,7 @@ library SGlobal {
 
     /**
      * @notice Returns the value of the krAsset held in the pool at a ratio.
-     * @param _ratio Percentage ratio to apply for the value
+     * @param _ratio Percentage ratio to apply for the value in 1e4 percentage precision (uint32).
      * @param _ignorekFactor Whether to ignore kFactor
      * @return totalValue Total value in USD
      */

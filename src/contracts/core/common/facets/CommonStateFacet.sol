@@ -12,7 +12,7 @@ contract CommonStateFacet is ICommonStateFacet {
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getStorageVersion() external view returns (uint256) {
+    function getStorageVersion() external view returns (uint96) {
         return ds().storageVersion;
     }
 
@@ -27,12 +27,27 @@ contract CommonStateFacet is ICommonStateFacet {
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getMinDebtValue() external view returns (uint256) {
+    function getMinDebtValue() external view returns (uint96) {
         return cs().minDebtValue;
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getOracleDeviationPct() external view returns (uint256) {
+    function getOracleDeviationPct() external view returns (uint16) {
         return cs().oracleDeviationPct;
+    }
+
+    /// @inheritdoc ICommonStateFacet
+    function getSequencerUptimeFeed() external view returns (address) {
+        return cs().sequencerUptimeFeed;
+    }
+
+    /// @inheritdoc ICommonStateFacet
+    function getSequencerUptimeFeedGracePeriod() external view returns (uint32) {
+        return cs().sequencerGracePeriodTime;
+    }
+
+    /// @inheritdoc ICommonStateFacet
+    function getOracleTimeout() external view returns (uint32) {
+        return cs().oracleTimeout;
     }
 }

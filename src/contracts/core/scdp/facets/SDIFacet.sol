@@ -89,7 +89,9 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
         Asset storage asset = cs().assets[_assetAddr];
         if (asset.underlyingId == EMPTY_BYTES12) {} else if (asset.pushedPrice().price == 0) {
             revert CError.NO_PUSH_PRICE(asset.underlyingId.toString());
-        } else if (asset.isSCDPCoverAsset) {}
+        } else if (asset.isSCDPCoverAsset) {
+            revert CError.ASSET_ALREADY_ENABLED(_assetAddr);
+        }
 
         asset.isSCDPCoverAsset = true;
         bool shouldPushToAssets = true;
@@ -104,12 +106,17 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
     }
 
     function disableCoverAssetSDI(address _assetAddr) external onlyRole(Role.ADMIN) {
-        if (!cs().assets[_assetAddr].isSCDPCoverAsset) {}
+        if (!cs().assets[_assetAddr].isSCDPCoverAsset) {
+            revert CError.ASSET_ALREADY_DISABLED(_assetAddr);
+        }
 
         cs().assets[_assetAddr].isSCDPCoverAsset = false;
     }
 
     function setCoverRecipientSDI(address _newCoverRecipient) external onlyRole(Role.ADMIN) {
+        if (_newCoverRecipient == address(0)) {
+            revert CError.ZERO_ADDRESS();
+        }
         sdi().coverRecipient = _newCoverRecipient;
     }
 }

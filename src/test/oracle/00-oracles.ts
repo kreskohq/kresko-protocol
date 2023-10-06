@@ -1,5 +1,6 @@
+import { ZERO_ADDRESS } from "@kreskolabs/lib";
 import { expect } from "@test/chai";
-import { wrapPrices } from "@utils/redstone";
+import { defaultRedstoneDataPoints, wrapPrices } from "@utils/redstone";
 import { DefaultFixture, defaultFixture } from "@utils/test/fixtures";
 import { testCollateralConfig } from "@utils/test/mocks";
 import { toBig } from "@utils/values";
@@ -16,7 +17,6 @@ describe("Oracles", () => {
     [, [user]] = f.users;
     this.deployer = await hre.ethers.getNamedSigner("deployer");
     this.userOne = await hre.ethers.getNamedSigner("userOne");
-    mockSequencerUptimeFeed = await (await hre.ethers.getContractFactory("MockSequencerUptimeFeed")).deploy();
     f.Collateral.setPrice(10);
   });
 
@@ -82,12 +82,10 @@ describe("Oracles", () => {
 
       const redstoneCollateralPrice = 200;
       const redstoneDiamond = wrapPrices(hre.Diamond, [
+        ...defaultRedstoneDataPoints.map(p => (p.value === 0 ? { ...p, value: 1 } : p)),
         { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
       ]);
-
-      /// set sequencer uptime feed address
-      await redstoneDiamond.updateSequencerUptimeFeed(mockSequencerUptimeFeed.address);
-
+      (await hre.getContractOrFork("MockSequencerUptimeFeed")).setAnswer(1);
       // should return redstone price if sequencer is down
       expect(await redstoneDiamond.getAccountTotalCollateralValue(user.address)).to.be.equal(
         f.depositAmount.wadMul(toBig(redstoneCollateralPrice, 8)),
@@ -95,6 +93,7 @@ describe("Oracles", () => {
       );
 
       f.Collateral.setPrice(10);
+      (await hre.getContractOrFork("MockSequencerUptimeFeed")).setAnswer(0);
     });
   });
 });

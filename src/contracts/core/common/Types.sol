@@ -188,7 +188,7 @@ struct CommonInitArgs {
     uint16 oracleDeviationPct;
     uint8 oracleDecimals;
     address sequencerUptimeFeed;
-    uint24 sequencerGracePeriodTime;
+    uint32 sequencerGracePeriodTime;
     uint32 oracleTimeout;
     address kreskian;
     address questForKresk;

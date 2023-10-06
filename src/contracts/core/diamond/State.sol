@@ -47,7 +47,7 @@ struct DiamondState {
     /// @notice Pending new diamond owner
     address pendingOwner;
     /// @notice Storage version
-    uint8 storageVersion;
+    uint96 storageVersion;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -2,7 +2,23 @@
 pragma solidity >=0.8.19;
 
 contract MockSequencerUptimeFeed {
-    uint256 internal _startedAt = block.timestamp;
+    uint256 internal __startedAt;
+    uint256 internal __updatedAt;
+    int256 internal __answer;
+
+    constructor() {
+        __startedAt = block.timestamp;
+        __updatedAt = block.timestamp;
+    }
+
+    /// @notice 0 = up, 1 = down
+    function setAnswer(int256 _answer) external {
+        if (_answer != __answer) {
+            __startedAt = block.timestamp;
+            __answer = _answer;
+        }
+        __updatedAt = block.timestamp;
+    }
 
     function latestRoundData()
         public
@@ -10,6 +26,6 @@ contract MockSequencerUptimeFeed {
         virtual
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
-        return (0, 0, _startedAt, block.timestamp, 0);
+        return (0, __answer, __startedAt, updatedAt, 0);
     }
 }

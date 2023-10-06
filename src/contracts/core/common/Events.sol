@@ -19,7 +19,7 @@ library DiamondEvent {
     /**
      * @dev Triggered when the contract has been initialized or reinitialized.
      */
-    event Initialized(address indexed operator, uint8 version);
+    event Initialized(address indexed operator, uint96 version);
 }
 
 /**

@@ -77,13 +77,13 @@ describe("Minter - Configuration", function () {
     });
 
     it("can update oracle deviation pct", async function () {
-      const currentODPCT = await hre.Diamond.getOracleDeviationPct();
-      const newODPCT = 0.03e4;
+      const currentDeviationPct = await hre.Diamond.getOracleDeviationPct();
+      const newDeviationPct = 0.03e4;
 
-      expect(currentODPCT.eq(newODPCT)).to.be.false;
+      expect(currentDeviationPct).to.not.equal(newDeviationPct);
 
-      await expect(hre.Diamond.updateOracleDeviationPct(newODPCT)).to.not.be.reverted;
-      expect((await hre.Diamond.getOracleDeviationPct()).eq(newODPCT)).to.be.true;
+      await expect(hre.Diamond.updateOracleDeviationPct(newDeviationPct)).to.not.be.reverted;
+      expect(await hre.Diamond.getOracleDeviationPct()).to.equal(newDeviationPct);
     });
 
     it("can update kFactor of a kresko asset separately", async function () {

@@ -40,21 +40,19 @@ export type SCDPFixture = {
 };
 
 export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtureParams>(async (hre, params) => {
-  const result = await hre.deployments.fixture("scdp");
+  const result = await hre.deployments.fixture("local");
   if (result.Diamond) {
     hre.Diamond = wrapKresko(await hre.getContractOrFork("Kresko"));
   }
-
+  await time.increase(3610);
   const [krAssets, collaterals] = await Promise.all([
     Promise.all(params!.krAssets()),
     Promise.all(params!.collaterals()),
   ]);
   const [KreskoAsset, KreskoAsset2, KISS] = krAssets;
   const [CollateralAsset, CollateralAsset8Dec] = collaterals;
-
   const users = [hre.users.testUserFive, hre.users.testUserSix, hre.users.testUserSeven];
 
-  await time.increase(3602);
   await hre.Diamond.setFeeAssetSCDP(krAssets[2].address);
   for (const user of users) {
     await Promise.all([
@@ -74,6 +72,7 @@ export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtur
       ),
     ]);
   }
+
   await hre.Diamond.setSwapPairs([
     {
       assetIn: KreskoAsset2.address,
@@ -177,8 +176,7 @@ export const defaultFixture = hre.deployments.createFixture<DefaultFixture, {}>(
   if (result.Diamond) {
     hre.Diamond = wrapKresko(await hre.getContractOrFork("Kresko"));
   }
-  await time.increase(3602);
-
+  await time.increase(3610);
   const depositAmount = toBig(1000);
   const mintAmount = toBig(100);
   const DefaultCollateral = hre.extAssets!.find(c => c.config.args.underlyingId === testCollateralConfig.underlyingId)!;
@@ -226,8 +224,7 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
   if (result.Diamond) {
     hre.Diamond = wrapKresko(await hre.getContractOrFork("Kresko"));
   }
-  await time.increase(3602);
-
+  await time.increase(3610);
   const KreskoAsset = await addMockKreskoAsset({
     underlyingId: "KrAsset5",
     symbol: "KrAsset5",
@@ -304,7 +301,7 @@ export const depositWithdrawFixture = hre.deployments.createFixture<DepositWithd
   if (result.Diamond) {
     hre.Diamond = wrapKresko(await hre.getContractOrFork("Kresko"));
   }
-  await time.increase(3602);
+  await time.increase(3610);
 
   const withdrawer = hre.users.userThree;
 
@@ -362,7 +359,7 @@ export const mintRepayFixture = hre.deployments.createFixture<MintRepayFixture, 
   if (result.Diamond) {
     hre.Diamond = wrapKresko(await hre.getContractOrFork("Kresko"));
   }
-  await time.increase(3602);
+  await time.increase(3610);
 
   const DefaultCollateral = hre.extAssets!.find(c => c.config.args.underlyingId === testCollateralConfig.underlyingId)!;
 
@@ -445,7 +442,7 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
   if (result.Diamond) {
     hre.Diamond = wrapKresko(await hre.getContractOrFork("Kresko"));
   }
-  await time.increase(3602);
+  await time.increase(3610);
 
   const KrAssetCollateral = hre.krAssets!.find(k => k.config.args.underlyingId === "KrAsset3")!;
   const DefaultCollateral = hre.extAssets.find(c => c.config.args.underlyingId === testCollateralConfig.underlyingId)!;

@@ -12,7 +12,7 @@ interface ICommonConfigurationFacet {
      * @dev Updates the contract's minimum debt value.
      * @param _newMinDebtValue The new minimum debt value as a wad.
      */
-    function updateMinDebtValue(uint64 _newMinDebtValue) external;
+    function updateMinDebtValue(uint96 _newMinDebtValue) external;
 
     /**
      * @notice Sets the decimal precision of external oracle
@@ -36,7 +36,7 @@ interface ICommonConfigurationFacet {
      * @notice Sets sequencer grace period time
      * @param _sequencerGracePeriodTime grace period time
      */
-    function updateSequencerGracePeriodTime(uint24 _sequencerGracePeriodTime) external;
+    function updateSequencerGracePeriodTime(uint32 _sequencerGracePeriodTime) external;
 
     /**
      * @notice Sets oracle timeout

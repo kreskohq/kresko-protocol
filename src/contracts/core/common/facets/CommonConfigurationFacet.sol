@@ -56,7 +56,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSMo
     }
 
     /// @inheritdoc ICommonConfigurationFacet
-    function updateMinDebtValue(uint64 _newMinDebtValue) public override onlyRole(Role.ADMIN) {
+    function updateMinDebtValue(uint96 _newMinDebtValue) public override onlyRole(Role.ADMIN) {
         if (_newMinDebtValue > Constants.MAX_MIN_DEBT_VALUE) {
             revert CError.INVALID_MIN_DEBT(_newMinDebtValue, Constants.MAX_MIN_DEBT_VALUE);
         }
@@ -94,7 +94,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, CModifiers, DSMo
     }
 
     /// @inheritdoc ICommonConfigurationFacet
-    function updateSequencerGracePeriodTime(uint24 _sequencerGracePeriodTime) public onlyRole(Role.ADMIN) {
+    function updateSequencerGracePeriodTime(uint32 _sequencerGracePeriodTime) public onlyRole(Role.ADMIN) {
         cs().sequencerGracePeriodTime = _sequencerGracePeriodTime;
     }
 

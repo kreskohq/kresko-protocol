@@ -44,7 +44,6 @@ function safePrice(bytes12 _assetId, OracleType[2] memory _oracles, uint256 _ora
     if (prices[0] == 0 && prices[1] == 0) {
         revert CError.ZERO_PRICE(_assetId.toString());
     }
-
     if (!isSequencerUp()) {
         return handleSequencerDown(_oracles, prices);
     }
@@ -100,8 +99,8 @@ function pushPrice(OracleType[2] memory _oracles, bytes12 _assetId) view returns
  * Or revert if price deviates more than `_oracleDeviationPct`
  */
 function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _oracleDeviationPct) pure returns (uint256) {
-    if (_referencePrice == 0) return _primaryPrice;
-    if (_primaryPrice == 0) return _referencePrice;
+    if (_referencePrice == 0 && _primaryPrice != 0) return _primaryPrice;
+    if (_primaryPrice == 0 && _referencePrice != 0) return _referencePrice;
     if (
         (_referencePrice.percentMul(1e4 - _oracleDeviationPct) <= _primaryPrice) &&
         (_referencePrice.percentMul(1e4 + _oracleDeviationPct) >= _primaryPrice)
@@ -114,9 +113,9 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
 }
 
 function handleSequencerDown(OracleType[2] memory oracles, uint256[2] memory prices) pure returns (uint256) {
-    if (oracles[0] == OracleType.Redstone) {
+    if (oracles[0] == OracleType.Redstone && prices[0] != 0) {
         return prices[0];
-    } else if (oracles[1] == OracleType.Redstone) {
+    } else if (oracles[1] == OracleType.Redstone && prices[1] != 0) {
         return prices[1];
     }
     revert CError.SEQUENCER_DOWN_NO_REDSTONE_AVAILABLE();

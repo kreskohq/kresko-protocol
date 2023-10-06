@@ -64,7 +64,9 @@ export const getCommonInitializer = async (hre: HardhatRuntimeEnvironment): Prom
       admin,
       treasury,
       council: multisig,
-      sequencerUptimeFeed: hre.network.live ? config.sequencerUptimeFeed : ethers.constants.AddressZero,
+      sequencerUptimeFeed: hre.network.live
+        ? config.sequencerUptimeFeed
+        : (await hre.deployments.get("MockSequencerUptimeFeed")).address,
     },
   };
 };
