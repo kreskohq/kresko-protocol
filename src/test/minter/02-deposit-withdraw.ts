@@ -69,11 +69,11 @@ describe("Minter - Deposit Withdraw", function () {
           .reverted;
 
         // Account has deposit entry
-        const depositedCollateralAssetsAfter = await optimized.getAccountCollateralAssets(depositor.address);
+        const depositedCollateralAssetsAfter = await hre.Diamond.getAccountCollateralAssets(depositor.address);
         expect(depositedCollateralAssetsAfter).to.deep.equal([f.Collateral.address]);
 
         // Account's collateral deposit balances have increased
-        expect(await optimized.getAccountCollateralAmount(depositor.address, f.Collateral.address)).to.equal(
+        expect(await hre.Diamond.getAccountCollateralAmount(depositor.address, f.Collateral.address)).to.equal(
           f.initialDeposits,
         );
         // Kresko's balance has increased
@@ -316,11 +316,11 @@ describe("Minter - Deposit Withdraw", function () {
             await Withdrawer.withdrawCollateral(withdrawer.address, f.Collateral.address, withdrawAmount, 0);
             // Ensure that the collateral asset is still in the account's deposited collateral
             // assets array.
-            const depositedCollateralAssets = await optimized.getAccountCollateralAssets(withdrawer.address);
+            const depositedCollateralAssets = await hre.Diamond.getAccountCollateralAssets(withdrawer.address);
             expect(depositedCollateralAssets).to.deep.equal([f.Collateral.address]);
 
             // Ensure the change in the user's deposit is recorded.
-            const amountDeposited = await optimized.getAccountCollateralAmount(
+            const amountDeposited = await hre.Diamond.getAccountCollateralAmount(
               withdrawer.address,
               f.Collateral.address,
             );
