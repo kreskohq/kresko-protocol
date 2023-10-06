@@ -2,7 +2,6 @@ export * from "./add-facet";
 export * from "./add-asset";
 export * from "./deploy-contract";
 export * from "./deploy-kiss";
-export * from "./deploy-price-feed";
 export * from "./deploy-token";
 export * from "./fund-operator";
 export * from "./get-market-open";

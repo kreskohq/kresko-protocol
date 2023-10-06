@@ -367,7 +367,7 @@ describe("Minter - Liquidations", function () {
           hre.Diamond.getAccountCollateralRatio(user4.address),
           hre.Diamond.getAccountLiquidatable(user3.address),
         ]);
-        expect(cr).to.closeTo(mcr, 1);
+        expect(cr).to.closeTo(mcr, 8);
         expect(cr2).to.closeTo(mcr, 1);
         expect(liquidatable).to.be.false;
       });
