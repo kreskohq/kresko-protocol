@@ -102,13 +102,7 @@ contract UniswapMath {
         uint256 truePriceTokenB
     ) external view returns (uint256 reserveA, uint256 reserveB) {
         return
-            UniswapV2LiquidityMathLibrary.getReservesAfterArbitrage(
-                factory,
-                tokenA,
-                tokenB,
-                truePriceTokenA,
-                truePriceTokenB
-            );
+            UniswapV2LiquidityMathLibrary.getReservesAfterArbitrage(factory, tokenA, tokenB, truePriceTokenA, truePriceTokenB);
     }
 
     function getLiquidityValue(

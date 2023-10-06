@@ -4,42 +4,42 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const options = {
-    wallet: {
-        mnemonic: process.env.MNEMONIC,
-        defaultBalance: 100,
-        unlockedAccounts: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        lock: false,
-    },
-    fork: {
-        url: `${RPC_URL().optimismGoerli.alchemy}@5561222`,
-    },
-    server: {
-        port: 7545,
-    },
-    miner: {
-        defaultGasPrice: 100,
-    },
-    chain: {
-        allowUnlimitedContractSize: false,
-    },
+  wallet: {
+    mnemonic: process.env.MNEMONIC,
+    defaultBalance: 100,
+    unlockedAccounts: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    lock: false,
+  },
+  fork: {
+    url: `${RPC_URL().optimismGoerli.alchemy}@5561222`,
+  },
+  server: {
+    port: 7545,
+  },
+  miner: {
+    defaultGasPrice: 100,
+  },
+  chain: {
+    allowUnlimitedContractSize: false,
+  },
 };
 
 const server = spawn("ganache-cli", [
-    "--fork",
-    options.fork.url,
-    "--mnemonic",
-    options.wallet.mnemonic!,
-    "--defaultBalanceEther",
-    options.wallet.defaultBalance.toString(),
-    "--unlock",
-    options.wallet.unlockedAccounts.join(","),
-    "--allowUnlimitedContractSize",
-    "--gasPrice",
-    options.miner.defaultGasPrice.toString(),
-    "--port",
-    options.server.port.toString(),
+  "--fork",
+  options.fork.url,
+  "--mnemonic",
+  options.wallet.mnemonic!,
+  "--defaultBalanceEther",
+  options.wallet.defaultBalance.toString(),
+  "--unlock",
+  options.wallet.unlockedAccounts.join(","),
+  "--allowUnlimitedContractSize",
+  "--gasPrice",
+  options.miner.defaultGasPrice.toString(),
+  "--port",
+  options.server.port.toString(),
 ]);
 
 server.stdout.on("data", (data: any) => {
-    console.log(`${data}`);
+  console.log(`${data}`);
 });

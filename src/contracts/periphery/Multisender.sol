@@ -51,12 +51,7 @@ contract Multisender {
         }
     }
 
-    function distribute(
-        address[] calldata accounts,
-        uint256 wethAmount,
-        uint256 ethAmount,
-        uint256 kissAmount
-    ) external {
+    function distribute(address[] calldata accounts, uint256 wethAmount, uint256 ethAmount, uint256 kissAmount) external {
         require(owners[msg.sender], "!o");
         for (uint256 i; i < accounts.length; i++) {
             if (funded[accounts[i]]) continue;

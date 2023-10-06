@@ -6,20 +6,20 @@ import type { DeployFunction } from "hardhat-deploy/dist/types";
 const logger = getLogger("init-scdp-facets");
 
 const deploy: DeployFunction = async function (hre) {
-    if (!hre.Diamond.address) {
-        throw new Error("Diamond not deployed");
-    }
+  if (!hre.Diamond.address) {
+    throw new Error("Diamond not deployed");
+  }
 
-    const initializer = await getSCDPInitializer(hre);
+  const initializer = await getSCDPInitializer(hre);
 
-    await addFacets({
-        names: scdpFacets,
-        initializerName: initializer.name,
-        initializerFunction: "initializeSCDP",
-        initializerArgs: initializer.args,
-    });
+  await addFacets({
+    names: scdpFacets,
+    initializerName: initializer.name,
+    initializerFunction: "initializeSCDP",
+    initializerArgs: initializer.args,
+  });
 
-    logger.success("Added: SCDP facets.");
+  logger.success("Added: SCDP facets.");
 };
 
 deploy.tags = ["all", "local", "protocol-test", "protocol-init", "scdp-facets"];

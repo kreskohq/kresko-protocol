@@ -29,13 +29,7 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerableUpgradeable, IER
      * @param _admin The adminstrator of this contract.
      * @param _kresko The protocol, can perform mint and burn.
      */
-    function initialize(
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
-        address _admin,
-        address _kresko
-    ) external;
+    function initialize(string memory _name, string memory _symbol, uint8 _decimals, address _admin, address _kresko) external;
 
     function kresko() external view returns (address);
 

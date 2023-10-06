@@ -32,12 +32,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     constructor(IKreskoAsset _asset) payable ERC4626Upgradeable(_asset) {}
 
     /// @inheritdoc IKreskoAssetAnchor
-    function initialize(
-        IKreskoAsset _asset,
-        string memory _name,
-        string memory _symbol,
-        address _admin
-    ) external initializer {
+    function initialize(IKreskoAsset _asset, string memory _name, string memory _symbol, address _admin) external initializer {
         // ERC4626
         __ERC4626Upgradeable_init(_asset, _name, _symbol);
 
@@ -132,11 +127,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     }
 
     /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
-    function redeem(
-        uint256,
-        address,
-        address
-    ) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
+    function redeem(uint256, address, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
         revert("NOT_ALLOWED");
     }
 

@@ -43,12 +43,14 @@ contract Multicall3 {
         uint256 length = calls.length;
         returnData = new bytes[](length);
         Call calldata call;
-        for (uint256 i = 0; i < length;) {
+        for (uint256 i = 0; i < length; ) {
             bool success;
             call = calls[i];
             (success, returnData[i]) = call.target.call(call.callData);
             require(success, "Multicall3: call failed");
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -61,12 +63,14 @@ contract Multicall3 {
         uint256 length = calls.length;
         returnData = new Result[](length);
         Call calldata call;
-        for (uint256 i = 0; i < length;) {
+        for (uint256 i = 0; i < length; ) {
             Result memory result = returnData[i];
             call = calls[i];
             (result.success, result.returnData) = call.target.call(call.callData);
             if (requireSuccess) require(result.success, "Multicall3: call failed");
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -76,7 +80,10 @@ contract Multicall3 {
     /// @return blockNumber The block number where the calls were executed
     /// @return blockHash The hash of the block where the calls were executed
     /// @return returnData An array of Result structs
-    function tryBlockAndAggregate(bool requireSuccess, Call[] calldata calls) public payable returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData) {
+    function tryBlockAndAggregate(
+        bool requireSuccess,
+        Call[] calldata calls
+    ) public payable returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData) {
         blockNumber = block.number;
         blockHash = blockhash(block.number);
         returnData = tryAggregate(requireSuccess, calls);
@@ -88,7 +95,9 @@ contract Multicall3 {
     /// @return blockNumber The block number where the calls were executed
     /// @return blockHash The hash of the block where the calls were executed
     /// @return returnData An array of Result structs
-    function blockAndAggregate(Call[] calldata calls) public payable returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData) {
+    function blockAndAggregate(
+        Call[] calldata calls
+    ) public payable returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData) {
         (blockNumber, blockHash, returnData) = tryBlockAndAggregate(true, calls);
     }
 
@@ -99,7 +108,7 @@ contract Multicall3 {
         uint256 length = calls.length;
         returnData = new Result[](length);
         Call3 calldata calli;
-        for (uint256 i = 0; i < length;) {
+        for (uint256 i = 0; i < length; ) {
             Result memory result = returnData[i];
             calli = calls[i];
             (result.success, result.returnData) = calli.target.call(calli.callData);
@@ -118,7 +127,9 @@ contract Multicall3 {
                     revert(0x00, 0x64)
                 }
             }
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -131,13 +142,15 @@ contract Multicall3 {
         uint256 length = calls.length;
         returnData = new Result[](length);
         Call3Value calldata calli;
-        for (uint256 i = 0; i < length;) {
+        for (uint256 i = 0; i < length; ) {
             Result memory result = returnData[i];
             calli = calls[i];
             uint256 val = calli.value;
             // Humanity will be a Type V Kardashev Civilization before this overflows - andreas
             // ~ 10^25 Wei in existence << ~ 10^76 size uint fits in a uint256
-            unchecked { valAccumulator += val; }
+            unchecked {
+                valAccumulator += val;
+            }
             (result.success, result.returnData) = calli.target.call{value: val}(calli.callData);
             assembly {
                 // Revert if the call fails and failure is not allowed
@@ -154,7 +167,9 @@ contract Multicall3 {
                     revert(0x00, 0x84)
                 }
             }
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
         // Finally, make sure the msg.value = SUM(call[0...i].value)
         require(msg.value == valAccumulator, "Multicall3: value mismatch");
@@ -214,7 +229,7 @@ contract Multicall3 {
         chainid = block.chainid;
     }
 
-     function multiSend(bytes memory transactions) public payable {
+    function multiSend(bytes memory transactions) public payable {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             let length := mload(transactions)
@@ -239,13 +254,13 @@ contract Multicall3 {
                 let data := add(transactions, add(i, 0x55))
                 let success := 0
                 switch operation
-                    case 0 {
-                        success := call(gas(), to, value, data, dataLength, 0, 0)
-                    }
-                    // This version does not allow delegatecalls
-                    case 1 {
-                        revert(0, 0)
-                    }
+                case 0 {
+                    success := call(gas(), to, value, data, dataLength, 0, 0)
+                }
+                // This version does not allow delegatecalls
+                case 1 {
+                    revert(0, 0)
+                }
                 if eq(success, 0) {
                     revert(0, 0)
                 }
@@ -253,5 +268,5 @@ contract Multicall3 {
                 i := add(i, add(0x55, dataLength))
             }
         }
-        }
+    }
 }

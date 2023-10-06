@@ -45,12 +45,7 @@ library UniswapV2LiquidityMathLibrary {
         require(reserveA > 0 && reserveB > 0, "UniswapV2ArbitrageLibrary: ZERO_PAIR_RESERVES");
 
         // then compute how much to swap to arb to the true price
-        (bool aToB, uint256 amountIn) = computeProfitMaximizingTrade(
-            truePriceTokenA,
-            truePriceTokenB,
-            reserveA,
-            reserveB
-        );
+        (bool aToB, uint256 amountIn) = computeProfitMaximizingTrade(truePriceTokenA, truePriceTokenB, reserveA, reserveB);
 
         if (amountIn == 0) {
             return (reserveA, reserveB);

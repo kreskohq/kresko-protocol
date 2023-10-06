@@ -6,19 +6,19 @@ import { addFacets } from "@scripts/add-facets";
 const logger = getLogger("minter-facets");
 
 const deploy: DeployFunction = async function (hre) {
-    if (!hre.Diamond.address) {
-        throw new Error("Diamond not deployed");
-    }
+  if (!hre.Diamond.address) {
+    throw new Error("Diamond not deployed");
+  }
 
-    const initializer = await getMinterInitializer(hre);
+  const initializer = await getMinterInitializer(hre);
 
-    await addFacets({
-        names: minterFacets,
-        initializerName: initializer.name,
-        initializerFunction: "initializeMinter",
-        initializerArgs: initializer.args,
-    });
-    logger.success("Added: Minter facets");
+  await addFacets({
+    names: minterFacets,
+    initializerName: initializer.name,
+    initializerFunction: "initializeMinter",
+    initializerArgs: initializer.args,
+  });
+  logger.success("Added: Minter facets");
 };
 
 deploy.tags = ["all", "local", "protocol-test", "protocol-init", "minter-facets"];

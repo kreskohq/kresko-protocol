@@ -72,9 +72,9 @@ pnpm deploy --network <network>
 
 ### Forking
 
--   value of `process.env.FORKING` maps to network key and it's setup within `hardhat-configs/networks`
--   set a specific block with `process.env.FORKING_BLOCKNUMBER`
--   HRE is extended with helpers to get live deployments within the forked network (https://github.com/wighawag/hardhat-deploy#companionnetworks)
+- value of `process.env.FORKING` maps to network key and it's setup within `hardhat-configs/networks`
+- set a specific block with `process.env.FORKING_BLOCKNUMBER`
+- HRE is extended with helpers to get live deployments within the forked network (https://github.com/wighawag/hardhat-deploy#companionnetworks)
 
 Run deploy in fork
 
@@ -92,33 +92,33 @@ pnpm fork:test
 
 ### General
 
--   All external functions are contained in the facets, `hardhat-diamond-abi` will combine their ABI to a separate artifact (Kresko.json) after compile.
+- All external functions are contained in the facets, `hardhat-diamond-abi` will combine their ABI to a separate artifact (Kresko.json) after compile.
 
--   Core logic is mostly defined inside library functions. These internal functions are attached to the minter storage struct for ease of use.
+- Core logic is mostly defined inside library functions. These internal functions are attached to the minter storage struct for ease of use.
 
--   Storage is used through a inline assembly pointer inside free function. To access the storage (+ attached internal lib functions) simply call the free function anywhere within the diamond.
+- Storage is used through a inline assembly pointer inside free function. To access the storage (+ attached internal lib functions) simply call the free function anywhere within the diamond.
 
--   Note that Staking, AMM and KreskoAsset contracts do not live inside the diamond scope.
+- Note that Staking, AMM and KreskoAsset contracts do not live inside the diamond scope.
 
 ### State
 
 #### Nay
 
--   Do not add new state variables to the beginning or middle of structs. Doing this makes the new state variable overwrite existing state variable data and all state variables after the new state variable reference the wrong storage location.
+- Do not add new state variables to the beginning or middle of structs. Doing this makes the new state variable overwrite existing state variable data and all state variables after the new state variable reference the wrong storage location.
 
--   Do not put structs directly in structs unless you don’t plan on ever adding more state variables to the inner structs. You won't be able to add new state variables to inner structs in upgrades. This makes sense because a struct uses a fixed number of storage locations. Adding a new state variable to an inner struct would cause the next state variable after the inner struct to be overwritten. Structs that are in mappings can be extended in upgrades, because those structs are stored in random locations based on keccak256 hashing.
+- Do not put structs directly in structs unless you don’t plan on ever adding more state variables to the inner structs. You won't be able to add new state variables to inner structs in upgrades. This makes sense because a struct uses a fixed number of storage locations. Adding a new state variable to an inner struct would cause the next state variable after the inner struct to be overwritten. Structs that are in mappings can be extended in upgrades, because those structs are stored in random locations based on keccak256 hashing.
 
--   Do not add new state variables to structs that are used in arrays.
+- Do not add new state variables to structs that are used in arrays.
 
--   Do not use the same namespace string for different structs. This is obvious. Two different structs at the same location will overwrite each other.
+- Do not use the same namespace string for different structs. This is obvious. Two different structs at the same location will overwrite each other.
 
 #### Yay
 
--   To add new state variables to DiamondStorage pattern in eg. MinterStorage (ms), add them to the end of the struct. This makes sense because it is not possible for existing facets to overwrite state variables at new storage locations.
+- To add new state variables to DiamondStorage pattern in eg. MinterStorage (ms), add them to the end of the struct. This makes sense because it is not possible for existing facets to overwrite state variables at new storage locations.
 
--   New state variables can be added to the ends of structs that are used in mappings.
+- New state variables can be added to the ends of structs that are used in mappings.
 
--   The names of state variables can be changed, but that might be confusing if different facets are using different names for the same storage locations.
+- The names of state variables can be changed, but that might be confusing if different facets are using different names for the same storage locations.
 
 _Learning references_
 

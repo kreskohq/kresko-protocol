@@ -6,6 +6,7 @@ coverage/
 bind/
 dist/
 bin/
+out/
 lib/
 build/
 node_modules/

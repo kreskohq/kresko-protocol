@@ -1,12 +1,11 @@
-# folders
-
 .yarn/
 build/**/*
 dist/**/*
 artifacts/**/*
 cache/**/*
 bin/**/*
+out
 lib/**/*
 node_modules/
 ./src/contracts/vendor/
-./src/test/**/*
+./src/test/**/*;

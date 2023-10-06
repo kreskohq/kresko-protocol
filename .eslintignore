@@ -5,6 +5,7 @@ cache/
 coverage/
 dist/
 lib/
+out/**/*
 temp/**/*
 types/**/*
 node_modules/

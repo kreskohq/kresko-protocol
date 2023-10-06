@@ -1,17 +1,17 @@
 {
-    "compilerOptions": {
-        "target": "esnext",
-        "module": "ESNext",
-        "declaration": true,
-        "moduleResolution": "node",
-        "outDir": "dist",
-        "lib": ["ESNext"],
-        "strict": true,
-        "baseUrl": "./",
-        "rootDirs": ["src"],
-        "esModuleInterop": true,
-        "resolveJsonModule": true
-    },
-    "include": ["src"],
-    "exclude": ["node_modules", "dist"]
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "ESNext",
+    "declaration": true,
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "lib": ["ESNext"],
+    "strict": true,
+    "baseUrl": "./",
+    "rootDirs": ["src"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }

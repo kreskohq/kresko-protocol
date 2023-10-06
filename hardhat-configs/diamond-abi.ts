@@ -1,31 +1,31 @@
 interface DiamondAbiUserConfig {
-    name: string;
-    include?: string[];
-    exclude?: string[];
-    filter?: (abiElement: any, index: number, abi: any[], fullyQualifiedName: string) => boolean;
-    strict?: boolean;
+  name: string;
+  include?: string[];
+  exclude?: string[];
+  filter?: (abiElement: any, index: number, abi: any[], fullyQualifiedName: string) => boolean;
+  strict?: boolean;
 }
 
 export const diamondAbiConfig: DiamondAbiUserConfig[] = [
-    {
-        name: "Kresko",
-        include: ["facets/*", "MEvent", "SEvent"],
-        exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking", "periphery/*"],
-        strict: false,
-        filter(abiElement, index, abi, fq) {
-            if (abiElement.type === "error") {
-                return false;
-            }
-            if (abiElement.type === "event") {
-                if (abiElement.name === "CloseFeePaid" && fq.includes("BurnHelperFacet")) {
-                    return false;
-                } else if (abiElement.name === "RoleGranted" && fq.includes("ConfigurationFacet")) {
-                    return false;
-                }
-            }
-            return true;
-        },
+  {
+    name: "Kresko",
+    include: ["facets/*", "MEvent", "SEvent"],
+    exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking", "periphery/*"],
+    strict: false,
+    filter(abiElement, index, abi, fq) {
+      if (abiElement.type === "error") {
+        return false;
+      }
+      if (abiElement.type === "event") {
+        if (abiElement.name === "CloseFeePaid" && fq.includes("BurnHelperFacet")) {
+          return false;
+        } else if (abiElement.name === "RoleGranted" && fq.includes("ConfigurationFacet")) {
+          return false;
+        }
+      }
+      return true;
     },
+  },
 ];
 // subgraph: {
 //     name: "MySubgraph", // Defaults to the name of the root folder of the hardhat project

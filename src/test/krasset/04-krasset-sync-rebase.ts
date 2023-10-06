@@ -8,89 +8,87 @@ import { expect } from "chai";
 import hre from "hardhat";
 
 describe.skip("Test KreskoAsset with Rebase and sync", () => {
-    let KreskoAsset: TestKrAsset;
+  let KreskoAsset: TestKrAsset;
 
-    beforeEach(async function () {
-        KreskoAsset = this.krAssets.find(asset => asset.config.args.symbol === "krETH")!;
+  beforeEach(async function () {
+    KreskoAsset = this.krAssets.find(asset => asset.config.args.symbol === "krETH")!;
 
-        const KISS = await hre.getContractOrFork("KISS");
-        // [hre.UniV2Factory] = await hre.deploy("UniswapV2Factory", {
-        //     args: [hre.users.deployer.address],
-        // });
-        // [hre.UniV2Router] = await hre.deploy("UniswapV2Router02", {
-        //     args: [hre.UniV2Factory.address, (await hre.deploy("WETH"))[0].address],
-        // });
+    const KISS = await hre.getContractOrFork("KISS");
+    // [hre.UniV2Factory] = await hre.deploy("UniswapV2Factory", {
+    //     args: [hre.users.deployer.address],
+    // });
+    // [hre.UniV2Router] = await hre.deploy("UniswapV2Router02", {
+    //     args: [hre.UniV2Factory.address, (await hre.deploy("WETH"))[0].address],
+    // });
 
-        await depositMockCollateral({
-            user: hre.users.testUserEight,
-            asset: this.collaterals.find(c => c.config.args.underlyingId === testCollateralConfig.underlyingId)!,
-            amount: toBig(100000),
-        });
-        await mintKrAsset({
-            user: hre.users.testUserEight,
-            asset: KreskoAsset,
-            amount: toBig(64),
-        });
-        await mintKrAsset({
-            user: hre.users.testUserEight,
-            asset: KISS,
-            amount: toBig(1000),
-        });
-        this.pool = await addLiquidity({
-            user: hre.users.testUserEight,
-            router: hre.UniV2Router,
-            token0: KreskoAsset,
-            token1: {
-                address: KISS.address,
-                contract: KISS,
-            } as any,
-            amount0: toBig(64),
-            amount1: toBig(1000),
-        });
-
-        await KreskoAsset.contract.grantRole(Role.OPERATOR, hre.addr.deployer);
+    await depositMockCollateral({
+      user: hre.users.testUserEight,
+      asset: this.collaterals.find(c => c.config.args.underlyingId === testCollateralConfig.underlyingId)!,
+      amount: toBig(100000),
+    });
+    await mintKrAsset({
+      user: hre.users.testUserEight,
+      asset: KreskoAsset,
+      amount: toBig(64),
+    });
+    await mintKrAsset({
+      user: hre.users.testUserEight,
+      asset: KISS,
+      amount: toBig(1000),
+    });
+    this.pool = await addLiquidity({
+      user: hre.users.testUserEight,
+      router: hre.UniV2Router,
+      token0: KreskoAsset,
+      token1: {
+        address: KISS.address,
+        contract: KISS,
+      } as any,
+      amount0: toBig(64),
+      amount1: toBig(1000),
     });
 
-    it("Rebases the asset with no sync of uniswap pools - Reserves not updated", async function () {
-        const denominator = 2;
-        const positive = true;
-        const beforeTotalSupply = await KreskoAsset.contract.totalSupply();
+    await KreskoAsset.contract.grantRole(Role.OPERATOR, hre.addr.deployer);
+  });
 
-        const [beforeReserve0, beforeReserve1, beforeTimestamp] = await this.pool.getReserves();
+  it("Rebases the asset with no sync of uniswap pools - Reserves not updated", async function () {
+    const denominator = 2;
+    const positive = true;
+    const beforeTotalSupply = await KreskoAsset.contract.totalSupply();
 
-        await KreskoAsset.contract.mint(hre.addr.deployer, defaultMintAmount);
-        const deployerBalanceBefore = await KreskoAsset.contract.balanceOf(hre.addr.deployer);
-        await KreskoAsset.contract.rebase(toBig(denominator), positive, []);
+    const [beforeReserve0, beforeReserve1, beforeTimestamp] = await this.pool.getReserves();
 
-        const [afterReserve0, afterReserve1, afterTimestamp] = await this.pool.getReserves();
+    await KreskoAsset.contract.mint(hre.addr.deployer, defaultMintAmount);
+    const deployerBalanceBefore = await KreskoAsset.contract.balanceOf(hre.addr.deployer);
+    await KreskoAsset.contract.rebase(toBig(denominator), positive, []);
 
-        expect(await KreskoAsset.contract.balanceOf(hre.addr.deployer)).to.equal(
-            deployerBalanceBefore.mul(denominator),
-        );
-        expect(await KreskoAsset.contract.totalSupply()).to.equal(
-            beforeTotalSupply.add(defaultMintAmount).mul(denominator),
-        );
+    const [afterReserve0, afterReserve1, afterTimestamp] = await this.pool.getReserves();
 
-        expect(afterReserve0).to.equal(beforeReserve0);
-        expect(afterReserve1).to.equal(beforeReserve1);
-        expect(beforeTimestamp).to.equal(afterTimestamp);
-    });
+    expect(await KreskoAsset.contract.balanceOf(hre.addr.deployer)).to.equal(deployerBalanceBefore.mul(denominator));
+    expect(await KreskoAsset.contract.totalSupply()).to.equal(
+      beforeTotalSupply.add(defaultMintAmount).mul(denominator),
+    );
 
-    it("Rebases the asset with sync of uniswap pools - Reserve should be updated", async function () {
-        const denominator = 2;
-        const positive = true;
+    expect(afterReserve0).to.equal(beforeReserve0);
+    expect(afterReserve1).to.equal(beforeReserve1);
+    expect(beforeTimestamp).to.equal(afterTimestamp);
+  });
 
-        const [beforeReserve0, beforeReserve1, beforeTimestamp] = await this.pool.getReserves();
+  it("Rebases the asset with sync of uniswap pools - Reserve should be updated", async function () {
+    const denominator = 2;
+    const positive = true;
 
-        await KreskoAsset.contract.rebase(toBig(denominator), positive, [this.pool.address]);
+    const [beforeReserve0, beforeReserve1, beforeTimestamp] = await this.pool.getReserves();
 
-        const [afterReserve0, afterReserve1, afterTimestamp] = await this.pool.getReserves();
+    await KreskoAsset.contract.rebase(toBig(denominator), positive, [this.pool.address]);
 
-        if (beforeReserve0.eq(afterReserve0)) {
-            expect(afterReserve1).to.equal(beforeReserve1.mul(denominator));
-        } else {
-            expect(afterReserve0).to.equal(beforeReserve0.mul(denominator));
-        }
-        expect(afterTimestamp).to.gt(beforeTimestamp);
-    });
+    const [afterReserve0, afterReserve1, afterTimestamp] = await this.pool.getReserves();
+
+    if (beforeReserve0.eq(afterReserve0)) {
+      expect(afterReserve1).to.equal(beforeReserve1.mul(denominator));
+    } else {
+      expect(afterReserve0).to.equal(beforeReserve0.mul(denominator));
+    }
+    expect(afterTimestamp).to.gt(beforeTimestamp);
+  });
 });
