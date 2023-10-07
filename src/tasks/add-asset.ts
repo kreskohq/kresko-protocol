@@ -1,21 +1,21 @@
-import { getLogger } from "@kreskolabs/lib/meta";
-import { getAnchorNameAndSymbol } from "@utils/strings";
-import { getAssetConfig } from "@utils/test/helpers/general";
-import { task, types } from "hardhat/config";
+import { getLogger } from '@kreskolabs/lib/meta';
+import { getAnchorNameAndSymbol } from '@utils/strings';
+import { getAssetConfig } from '@utils/test/helpers/general';
+import { task, types } from 'hardhat/config';
 
-import { AssetArgs } from "types";
-import { TASK_ADD_ASSET } from "./names";
-import { testKrAssetConfig } from "@utils/test/mocks";
-import { redstoneMap } from "@utils/redstone";
+import { AssetArgs } from 'types';
+import { TASK_ADD_ASSET } from './names';
+import { testKrAssetConfig } from '@utils/test/mocks';
+import { redstoneMap } from '@utils/redstone';
 type AddAssetArgs = {
   address: string;
   assetConfig: AssetArgs;
   log: boolean;
 };
 task(TASK_ADD_ASSET)
-  .addParam("address", "address of the asset")
-  .addParam("assetConfig", "configuration for the asset", testKrAssetConfig, types.json)
-  .addOptionalParam("log", "Log outputs", false, types.boolean)
+  .addParam('address', 'address of the asset')
+  .addParam('assetConfig', 'configuration for the asset', testKrAssetConfig, types.json)
+  .addOptionalParam('log', 'Log outputs', false, types.boolean)
   .setAction(async function (taskArgs: AddAssetArgs, hre) {
     const { address, log } = taskArgs;
     const config = taskArgs.assetConfig;
@@ -32,21 +32,21 @@ task(TASK_ADD_ASSET)
     const logger = getLogger(TASK_ADD_ASSET, log);
 
     if (config.krAssetConfig && config.krAssetConfig.kFactor === 0) {
-      throw new Error("Invalid kFactor for " + config.symbol);
+      throw new Error('Invalid kFactor for ' + config.symbol);
     }
     if (config.collateralConfig && config.collateralConfig.cFactor === 0) {
-      throw new Error("Invalid cFactor for " + config.symbol);
+      throw new Error('Invalid cFactor for ' + config.symbol);
     }
     const redstoneId = redstoneMap[config.underlyingId as keyof typeof redstoneMap];
     if (!redstoneId) throw new Error(`RedstoneId not found for ${config.symbol}`);
 
     hre.checkAddress(config.feed, `Invalid oracle address: ${config.feed}, Kresko Asset: ${config.symbol}`);
 
-    const Kresko = await hre.getContractOrFork("Kresko");
+    const Kresko = await hre.getContractOrFork('Kresko');
     const Asset =
       config.krAssetConfig || config.scdpKrAssetConfig
-        ? await hre.getContractOrFork("KreskoAsset", config.symbol)
-        : await hre.ethers.getContractAt("ERC20Upgradeable", address);
+        ? await hre.getContractOrFork('KreskoAsset', config.symbol)
+        : await hre.ethers.getContractAt('ERC20Upgradeable', address);
 
     const assetInfo = await Kresko.getAsset(Asset.address);
     const exists = assetInfo.decimals != 0;
@@ -59,19 +59,19 @@ task(TASK_ADD_ASSET)
         args: config,
       },
       m: null,
-      balanceOf: acc => Asset.balanceOf(typeof acc === "string" ? acc : acc.address),
+      balanceOf: acc => Asset.balanceOf(typeof acc === 'string' ? acc : acc.address),
       c: Asset,
       assetInfo: () => Kresko.getAsset(Asset.address),
-      priceFeed: await hre.ethers.getContractAt("MockOracle", config.feed),
+      priceFeed: await hre.ethers.getContractAt('MockOracle', config.feed),
     };
     const { anchorSymbol } = getAnchorNameAndSymbol(config.symbol, config.name);
     if (exists) {
       logger.warn(`Asset ${config.symbol} already exists! Skipping..`);
     } else {
       const anchor =
-        config.symbol === "KISS"
-          ? await hre.ethers.getContractAt("KreskoAssetAnchor", Asset.address)
-          : await hre.getContractOrNull("KreskoAssetAnchor", anchorSymbol);
+        config.symbol === 'KISS'
+          ? await hre.ethers.getContractAt('KreskoAssetAnchor', Asset.address)
+          : await hre.getContractOrNull('KreskoAssetAnchor', anchorSymbol);
 
       if (config.krAssetConfig) {
         if (!anchor) {
@@ -99,7 +99,7 @@ task(TASK_ADD_ASSET)
       asset.config.feedConfig = parsedConfig.feedConfig;
       asset.config.extendedInfo = parsedConfig.extendedInfo;
       const tx = await Kresko.addAsset(Asset.address, parsedConfig.assetStruct, parsedConfig.feedConfig, true);
-      logger.success("txHash", tx.hash);
+      logger.success('txHash', tx.hash);
       logger.success(`Succesfully added asset: ${config.symbol}`);
     }
 

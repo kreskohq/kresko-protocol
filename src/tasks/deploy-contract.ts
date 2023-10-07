@@ -1,10 +1,10 @@
-import { getLogger } from "@kreskolabs/lib/meta";
-import { task } from "hardhat/config";
-import { TASK_DEPLOY_CONTRACT } from "./names";
+import { getLogger } from '@kreskolabs/lib/meta';
+import { task } from 'hardhat/config';
+import { TASK_DEPLOY_CONTRACT } from './names';
 
 const logger = getLogger(TASK_DEPLOY_CONTRACT);
 
-task(TASK_DEPLOY_CONTRACT, "deploy something", async (_, _hre) => {
+task(TASK_DEPLOY_CONTRACT, 'deploy something', async (_, _hre) => {
   logger.log(`Deploying contract...`);
   //   const { deployer } = await hre.ethers.getNamedSigners();
 

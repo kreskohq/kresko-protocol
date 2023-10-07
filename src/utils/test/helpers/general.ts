@@ -1,12 +1,12 @@
-import { WrapperBuilder } from "@redstone-finance/evm-connector";
-import { formatBytesString } from "@utils/values";
-import { defaultRedstoneDataPoints } from "@utils/redstone";
-import { ethers } from "ethers";
-import { AssetArgs, AssetConfig, OracleType } from "types";
+import { WrapperBuilder } from '@redstone-finance/evm-connector';
+import { formatBytesString } from '@utils/values';
+import { defaultRedstoneDataPoints } from '@utils/redstone';
+import { ethers } from 'ethers';
+import { AssetArgs, AssetConfig, OracleType } from 'types';
 import type {
   AssetStruct,
   FeedConfigurationStruct,
-} from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+} from 'types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -17,7 +17,7 @@ export const getAssetConfig = async (
   config: AssetArgs,
 ): Promise<AssetConfig> => {
   if (!config.krAssetConfig && !config.collateralConfig && !config.scdpDepositConfig && !config.scdpKrAssetConfig)
-    throw new Error("No config provided");
+    throw new Error('No config provided');
   const configuredDataPoint = defaultRedstoneDataPoints.find(i => i.dataFeedId === config.underlyingId);
   if (!configuredDataPoint) throw new Error(`No configured price data point: ${config.symbol} ${config.underlyingId}`);
 
@@ -50,30 +50,30 @@ export const getAssetConfig = async (
 
   if (assetStruct.isKrAsset) {
     if (assetStruct.anchor == ethers.constants.AddressZero || assetStruct.anchor == null) {
-      throw new Error("KrAsset anchor cannot be zero address");
+      throw new Error('KrAsset anchor cannot be zero address');
     }
     if (assetStruct.kFactor === 0) {
-      throw new Error("KrAsset kFactor cannot be zero");
+      throw new Error('KrAsset kFactor cannot be zero');
     }
   }
 
   if (assetStruct.isCollateral) {
     if (assetStruct.factor === 0) {
-      throw new Error("Colalteral factor cannot be zero");
+      throw new Error('Colalteral factor cannot be zero');
     }
     if (assetStruct.liqIncentive === 0) {
-      throw new Error("Collateral liquidation incentive cannot be zero");
+      throw new Error('Collateral liquidation incentive cannot be zero');
     }
   }
 
   if (assetStruct.isSCDPKrAsset) {
     if (assetStruct.liqIncentiveSCDP === 0) {
-      throw new Error("KrAsset liquidation incentive cannot be zero");
+      throw new Error('KrAsset liquidation incentive cannot be zero');
     }
   }
 
   if (!config.feed) {
-    throw new Error("No feed provided");
+    throw new Error('No feed provided');
   }
 
   const feedConfig: FeedConfigurationStruct = {

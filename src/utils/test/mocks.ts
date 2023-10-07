@@ -1,5 +1,5 @@
-import { MaxUint128, toBig } from "@utils/values";
-import { AssetArgs, OracleType } from "types";
+import { MaxUint128, toBig } from '@utils/values';
+import { AssetArgs, OracleType } from 'types';
 
 export type InputArgs = {
   user: SignerWithAddress;
@@ -7,7 +7,7 @@ export type InputArgs = {
   amount: BigNumber;
 };
 
-export type InputArgsSimple = Omit<InputArgs, "asset"> & {
+export type InputArgsSimple = Omit<InputArgs, 'asset'> & {
   asset: { address: string };
 };
 
@@ -25,13 +25,13 @@ export const defaultCloseFee = 0.02e4; // 2%
 export const defaultOpenFee = 0; // 0%
 
 export const testKrAssetConfig: AssetArgs = {
-  underlyingId: "KrAsset",
-  name: "KrAsset",
-  symbol: "KrAsset",
+  underlyingId: 'KrAsset',
+  name: 'KrAsset',
+  symbol: 'KrAsset',
   marketOpen: true,
   price: TEN_USD,
   krAssetConfig: {
-    anchorSymbol: "aKrAsset",
+    anchorSymbol: 'aKrAsset',
     closeFee: defaultCloseFee,
     openFee: defaultOpenFee,
     kFactor: 1e4,
@@ -42,9 +42,9 @@ export const testKrAssetConfig: AssetArgs = {
 };
 
 export const testCollateralConfig: AssetArgs = {
-  underlyingId: "Collateral",
-  name: "Collateral",
-  symbol: "Collateral",
+  underlyingId: 'Collateral',
+  name: 'Collateral',
+  symbol: 'Collateral',
   price: TEN_USD,
   marketOpen: true,
   collateralConfig: {

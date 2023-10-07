@@ -1,20 +1,20 @@
-import { AssetConfigExtended } from "@deploy-config/arbitrumGoerli";
-import { AllTokenSymbols } from "@deploy-config/shared";
-import { AllUnderlyingIds } from "@utils/redstone";
-import { BigNumber } from "ethers";
-import { Address } from "hardhat-deploy/types";
-import type * as Contracts from "./typechain";
+import { AssetConfigExtended } from '@config/deploy/arbitrumGoerli';
+import { AllTokenSymbols } from '@config/deploy';
+import { AllUnderlyingIds } from '@utils/redstone';
+import { BigNumber } from 'ethers';
+import { Address } from 'hardhat-deploy/types';
+import type * as Contracts from './typechain';
 import {
   AssetStruct,
   CommonInitArgsStruct,
   FeedConfigurationStruct,
   MinterInitArgsStruct,
   SCDPInitArgsStruct,
-} from "./typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+} from './typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 export type Split<S extends string, D extends string> = string extends S
   ? string[]
-  : S extends ""
+  : S extends ''
   ? []
   : S extends `${infer T}${D}${infer U}`
   ? [T, ...Split<U, D>]
@@ -32,27 +32,27 @@ export type ExcludeType<T, E> = {
 }[keyof T];
 
 export type Excludes =
-  | "AccessControlEnumerableUpgradeable"
-  | "AccessControlUpgradeable"
-  | "FallbackManager"
-  | "BaseGuard"
-  | "Guard"
-  | "GuardManager"
-  | "ModuleManager"
-  | "OwnerManager"
-  | "EtherPaymentFallback"
-  | "StorageAccessible";
+  | 'AccessControlEnumerableUpgradeable'
+  | 'AccessControlUpgradeable'
+  | 'FallbackManager'
+  | 'BaseGuard'
+  | 'Guard'
+  | 'GuardManager'
+  | 'ModuleManager'
+  | 'OwnerManager'
+  | 'EtherPaymentFallback'
+  | 'StorageAccessible';
 type KeyValue<T = unknown> = {
   [key: string]: T;
 };
-export type FactoryName<T extends KeyValue> = Exclude<keyof T, "factories">;
+export type FactoryName<T extends KeyValue> = Exclude<keyof T, 'factories'>;
 export type MinEthersFactoryExt<C> = {
   connect(address: string, signerOrProvider: any): C;
 };
 export type InferContractType<Factory> = Factory extends MinEthersFactoryExt<infer C> ? C : unknown;
 
 export type GetContractTypes<T extends KeyValue> = {
-  [K in FactoryName<T> as `${Split<K extends string ? K : never, "__factory">[0]}`]: InferContractType<T[K]>;
+  [K in FactoryName<T> as `${Split<K extends string ? K : never, '__factory'>[0]}`]: InferContractType<T[K]>;
 };
 
 export type ContractTypes = GetContractTypes<typeof Contracts>;
@@ -60,7 +60,7 @@ export type ContractNames = keyof ContractTypes;
 
 export type NetworkConfig = {
   [network: string]: {
-    commonInitAgs: Omit<CommonInitArgsStruct, "feeRecipient" | "admin" | "council" | "treasury">;
+    commonInitAgs: Omit<CommonInitArgsStruct, 'feeRecipient' | 'admin' | 'council' | 'treasury'>;
     minterInitArgs: MinterInitArgsStruct;
     scdpInitArgs: SCDPInitArgsStruct;
     assets: AssetConfigExtended[];
@@ -127,15 +127,15 @@ export type CollateralConfig = {
   liqIncentive: BigNumberish;
 };
 export type MinterInitializer = {
-  name: "ConfigurationFacet";
+  name: 'ConfigurationFacet';
   args: MinterInitArgsStruct;
 };
 export type SCDPInitializer = {
-  name: "SCDPConfigFacet";
+  name: 'SCDPConfigFacet';
   args: SCDPInitArgsStruct;
 };
 export type CommonInitializer = {
-  name: "CommonConfigurationFacet";
+  name: 'CommonConfigurationFacet';
   args: CommonInitArgsStruct;
 };
 

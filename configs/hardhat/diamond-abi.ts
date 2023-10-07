@@ -8,18 +8,18 @@ interface DiamondAbiUserConfig {
 
 export const diamondAbiConfig: DiamondAbiUserConfig[] = [
   {
-    name: "Kresko",
-    include: ["facets/*", "MEvent", "SEvent"],
-    exclude: ["vendor", "test/*", "interfaces/*", "krasset/*", "KrStaking", "periphery/*"],
+    name: 'Kresko',
+    include: ['facets/*', 'MEvent', 'SEvent'],
+    exclude: ['vendor', 'test/*', 'interfaces/*', 'krasset/*', 'KrStaking', 'periphery/*'],
     strict: false,
     filter(abiElement, index, abi, fq) {
-      if (abiElement.type === "error") {
+      if (abiElement.type === 'error') {
         return false;
       }
-      if (abiElement.type === "event") {
-        if (abiElement.name === "CloseFeePaid" && fq.includes("BurnHelperFacet")) {
+      if (abiElement.type === 'event') {
+        if (abiElement.name === 'CloseFeePaid' && fq.includes('BurnHelperFacet')) {
           return false;
-        } else if (abiElement.name === "RoleGranted" && fq.includes("ConfigurationFacet")) {
+        } else if (abiElement.name === 'RoleGranted' && fq.includes('ConfigurationFacet')) {
           return false;
         }
       }

@@ -1,8 +1,8 @@
-import { getLogger } from "@kreskolabs/lib/meta";
-import { constants } from "ethers";
-import hre from "hardhat";
-import { mergeABIs } from "hardhat-deploy/dist/src/utils";
-import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
+import { getLogger } from '@kreskolabs/lib/meta';
+import { constants } from 'ethers';
+import hre from 'hardhat';
+import { mergeABIs } from 'hardhat-deploy/dist/src/utils';
+import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
 type Args = {
   names: readonly (keyof TC)[];
   initializerName?: keyof TC;
@@ -15,14 +15,14 @@ type Args = {
 export async function addFacets({
   names,
   initializerName,
-  initializerFunction = "",
+  initializerFunction = '',
   initializerArgs,
   log = true,
 }: Args) {
   try {
-    const logger = getLogger("add-facet", log);
+    const logger = getLogger('add-facet', log);
 
-    logger.log("Adding facets");
+    logger.log('Adding facets');
     console.table(names);
     const { deployer } = await hre.getNamedAccounts();
 
@@ -31,14 +31,14 @@ export async function addFacets({
     /* -------------------------------------------------------------------------- */
 
     // #1.1 Get the deployed artifact
-    const DiamondDeployment = await hre.getDeploymentOrFork("Kresko");
+    const DiamondDeployment = await hre.getDeploymentOrFork('Kresko');
     if (!DiamondDeployment) {
       // #1.2 Throw if it does not exist
       throw new Error(`Trying to add facets but no diamond deployed @ ${hre.network.name}`);
     }
 
     // #2.1 Get contract instance with full ABI
-    const Diamond = await hre.getContractOrFork("Kresko");
+    const Diamond = await hre.getContractOrFork('Kresko');
 
     // #3.1 Save facets that exists before adding new ones
     const facetsBefore = await Diamond.facets();
@@ -76,7 +76,7 @@ export async function addFacets({
       ) {
         FacetCuts.push(facetCut);
       } else {
-        logger.log("Skipping facet", facet);
+        logger.log('Skipping facet', facet);
       }
 
       // #4.6 Push their ABI into a separate array for deployment output later on.
@@ -88,7 +88,7 @@ export async function addFacets({
         functions: sigs.length,
       });
     }
-    logger.success("Facets on-chain:");
+    logger.success('Facets on-chain:');
     console.table(deploymentInfo);
 
     /* -------------------------------------------------------------------------- */
@@ -96,7 +96,7 @@ export async function addFacets({
     /* -------------------------------------------------------------------------- */
 
     // #5.1 Initialize the `diamondCut` initializer argument to do nothing.
-    let initializer: DiamondCutInitializer = [constants.AddressZero, "0x"];
+    let initializer: DiamondCutInitializer = [constants.AddressZero, '0x'];
 
     if (initializerName && FacetCuts.length) {
       // #5.2 If `initializerName` is supplied, try to get the existing deployment
@@ -105,37 +105,37 @@ export async function addFacets({
       let InitializerContract: Contract;
       // #5.3 Deploy the initializer contract if it does not exist
       if (!InitializerArtifact) {
-        logger.log("Initializer deployment not found for", initializerName, "...deploying");
+        logger.log('Initializer deployment not found for', initializerName, '...deploying');
         [InitializerContract] = await hre.deploy(initializerName, {
           from: deployer,
           log,
         });
-        logger.success(initializerName, "succesfully deployed", "txHash:", InitializerContract.deployTransaction.hash);
-        logger.success(initializerName, "address:", InitializerContract.address);
+        logger.success(initializerName, 'succesfully deployed', 'txHash:', InitializerContract.deployTransaction.hash);
+        logger.success(initializerName, 'address:', InitializerContract.address);
       }
       // #5.4 Get the contract instance
       InitializerContract = await hre.getContractOrFork(initializerName);
       if (!initializerArgs || initializerArgs.length === 0) {
         // Ensure we know there are no parameters for the initializer supplied
-        logger.warn("Adding diamondCut initializer with no arguments supplied");
+        logger.warn('Adding diamondCut initializer with no arguments supplied');
       } else {
-        logger.log("Initializer arguments:");
+        logger.log('Initializer arguments:');
         console.table(initializerArgs);
       }
       // #5.5 Prepopulate the initialization tx - replacing the default set on #5.1.
       if (!initializerFunction) {
         throw new Error(`No initializer provided: ${initializerName}`);
       }
-      const tx = await InitializerContract.populateTransaction[initializerFunction](initializerArgs || "0x");
+      const tx = await InitializerContract.populateTransaction[initializerFunction](initializerArgs || '0x');
       if (!tx.to || !tx.data) {
-        throw new Error("Initializer transaction is missing to or data");
+        throw new Error('Initializer transaction is missing to or data');
       }
       initializer = [tx.to, tx.data];
     } else if (!FacetCuts.length) {
-      logger.log("Skipping adding facets because they all exist");
+      logger.log('Skipping adding facets because they all exist');
     } else {
       // Ensure we know that no initializer was supplied for the facets
-      logger.warn("Adding facets without initializer");
+      logger.warn('Adding facets without initializer');
     }
 
     if (FacetCuts.length) {
@@ -147,7 +147,7 @@ export async function addFacets({
 
       // #6.1 Get the on-chain values of facets in the Diamond after the cut.
       const facetsAfter = (await Diamond.facets()).map(f => ({
-        name: deploymentInfo.find(d => d.address === f.facetAddress)?.name ?? "",
+        name: deploymentInfo.find(d => d.address === f.facetAddress)?.name ?? '',
         facetAddress: f.facetAddress,
         functionSelectors: f.functionSelectors,
       }));
@@ -156,19 +156,19 @@ export async function addFacets({
       const addedFacets = facetsAfter.filter(f => !!FacetCuts.find(fc => fc.facetAddress === f.facetAddress));
       if (addedFacets.length !== FacetCuts.length) {
         // Print out relevant errors if facets are not found
-        logger.error(false, "On-chain amount does not match the amount of facets tried to add");
+        logger.error(false, 'On-chain amount does not match the amount of facets tried to add');
         logger.error(
           false,
-          "Facets found on-chain before:",
+          'Facets found on-chain before:',
           facetsBefore.map(f => f.facetAddress),
         );
         logger.error(
           false,
-          "All facets found on-chain after:",
+          'All facets found on-chain after:',
           facetsAfter.map(f => f.facetAddress),
         );
         // Do not continue with any possible scripts after
-        throw new Error("Error adding a facet");
+        throw new Error('Error adding a facet');
       } else {
         // #6.3 Add the new facet into the Diamonds deployment object
         DiamondDeployment.facets = facetsAfter;
@@ -182,20 +182,20 @@ export async function addFacets({
         });
 
         // #6.5 Save the deployment output
-        await hre.deployments.save("Diamond", DiamondDeployment);
+        await hre.deployments.save('Diamond', DiamondDeployment);
         // Live network deployments should be released into the contracts-package.
         if (hre.network.live) {
           // TODO: Automate the release
           logger.log(
-            "New facets saved to deployment file, remember to make a release of the contracts package for frontend",
+            'New facets saved to deployment file, remember to make a release of the contracts package for frontend',
           );
         }
 
         // #6.6 Save the deployment and Diamond into runtime for later steps.
         hre.DiamondDeployment = DiamondDeployment;
-        hre.Diamond = await hre.getContractOrFork("Kresko");
+        hre.Diamond = await hre.getContractOrFork('Kresko');
 
-        logger.success(FacetCuts.length, "facets succesfully added", "txHash:", receipt.transactionHash);
+        logger.success(FacetCuts.length, 'facets succesfully added', 'txHash:', receipt.transactionHash);
       }
       return hre.Diamond;
     } else {
@@ -212,13 +212,13 @@ export async function addFacets({
       if (hre.network.live) {
         // TODO: Automate the release
         logger.log(
-          "New facets saved to deployment file, remember to make a release of the contracts package for frontend",
+          'New facets saved to deployment file, remember to make a release of the contracts package for frontend',
         );
       }
 
       // #6.6 Save the deployment and Diamond into runtime for later steps.
       hre.DiamondDeployment = DiamondDeployment;
-      hre.Diamond = await hre.getContractOrFork("Kresko");
+      hre.Diamond = await hre.getContractOrFork('Kresko');
     }
   } catch (e) {
     console.log(e);

@@ -1,6 +1,6 @@
-import chai from "chai";
-import { smock } from "@defi-wonderland/smock";
-import { BigNumber } from "ethers";
+import chai from 'chai';
+import { smock } from '@defi-wonderland/smock';
+import { BigNumber } from 'ethers';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // chai.use(require("chai-bn")(BigNumber));

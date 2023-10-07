@@ -1,22 +1,22 @@
-import { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig } from 'hardhat/config';
 
 if (!process.env.OPERATOR) {
-  throw new Error("OPERATOR not set");
+  throw new Error('OPERATOR not set');
 }
 if (!process.env.MNEMONIC) {
-  throw new Error("MNEMONIC not set");
+  throw new Error('MNEMONIC not set');
 }
 if (!process.env.FEED_VALIDATOR_PK) {
-  throw new Error("FEED_VALIDATOR_PK not set");
+  throw new Error('FEED_VALIDATOR_PK not set');
 }
 if (!process.env.TREASURY) {
-  throw new Error("TREASURY not set");
+  throw new Error('TREASURY not set');
 }
 if (!process.env.FUNDER) {
-  throw new Error("FUNDER not set");
+  throw new Error('FUNDER not set');
 }
 if (!process.env.MULTISIG) {
-  throw new Error("MULTISIG not set");
+  throw new Error('MULTISIG not set');
 }
 
 export const hardhatUsers = {
@@ -28,7 +28,7 @@ export const hardhatUsers = {
   multisig: {
     default: 0,
     420: process.env.MULTISIG,
-    421613: "0x83b92b8A21d56941cB9d056B36E0cC2aDa15f1E1",
+    421613: '0x83b92b8A21d56941cB9d056B36E0cC2aDa15f1E1',
   },
   treasury: {
     default: process.env.TREASURY,
@@ -123,4 +123,4 @@ export const hardhatUsers = {
     default: 53,
   },
 };
-export const users: HardhatUserConfig["namedAccounts"] = hardhatUsers;
+export const users: HardhatUserConfig['namedAccounts'] = hardhatUsers;

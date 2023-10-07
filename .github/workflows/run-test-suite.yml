@@ -1,66 +1,66 @@
 name: npm
 on: [push]
 jobs:
-    install-with-cache:
-        name: mocha tests
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-node@v3
-              with:
-                  node-version: "18.17.0"
-                  always-auth: true
-                  registry-url: https://registry.npmjs.org
-                  scope: "@kreskolabs"
+  install-with-cache:
+    name: mocha tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18.18.0"
+          always-auth: true
+          registry-url: https://registry.npmjs.org
+          scope: "@kreskolabs"
 
-            - run: git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
-            - run: corepack enable
+      - run: git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
+      - run: corepack enable
 
-            - name: Install Foundry
-              uses: foundry-rs/foundry-toolchain@v1
-              with:
-                  version: nightly
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
-            - uses: pnpm/action-setup@v2.2.2
-              name: Install pnpm
-              id: pnpm-install
-              with:
-                  version: 7
-                  run_install: false
+      - uses: pnpm/action-setup@v2.2.2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
 
-            - name: Get pnpm store directory
-              id: pnpm-cache
-              run: |
-                  echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
 
-            - uses: actions/cache@v3
-              name: Setup pnpm cache
-              with:
-                  path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-            - name: Install packages
-              run: pnpm i
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Install packages
+        run: pnpm i
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-            - run: npm run test:ci
-              env:
-                  FEED_VALIDATOR: ${{ secrets.FEED_VALIDATOR }}
-                  FEED_VALIDATOR_PK: ${{ secrets.FEED_VALIDATOR_PK }}
-                  TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
-                  FEE_RECIPIENT_ADDRESS: ${{ secrets.FEE_RECIPIENT_ADDRESS }}
-                  ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
-                  FUNDER: ${{ secrets.FUNDER }}
-                  MNEMONIC: ${{ secrets.MNEMONIC }}
-                  TREASURY: ${{ secrets.TREASURY }}
-                  MULTISIG: ${{ secrets.MULTISIG }}
-                  OPERATOR: ${{ secrets.OPERATOR }}
-                  ADMIN: ${{ secrets.ADMIN }}
-                  BURN_FEE: 0.015e4
-                  LIQUIDATION_INCENTIVE: 1.05e4
-                  MINIMUM_COLLATERALIZATION_RATIO: 1.5e4
-                  MINIMUM_DEBT_VALUE: 10
-                  LIQUIDATION_THRESHOLD: 1.4e4
+      - run: npm run test:ci
+        env:
+          FEED_VALIDATOR: ${{ secrets.FEED_VALIDATOR }}
+          FEED_VALIDATOR_PK: ${{ secrets.FEED_VALIDATOR_PK }}
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+          FEE_RECIPIENT_ADDRESS: ${{ secrets.FEE_RECIPIENT_ADDRESS }}
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          FUNDER: ${{ secrets.FUNDER }}
+          MNEMONIC: ${{ secrets.MNEMONIC }}
+          TREASURY: ${{ secrets.TREASURY }}
+          MULTISIG: ${{ secrets.MULTISIG }}
+          OPERATOR: ${{ secrets.OPERATOR }}
+          ADMIN: ${{ secrets.ADMIN }}
+          BURN_FEE: 0.015e4
+          LIQUIDATION_INCENTIVE: 1.05e4
+          MINIMUM_COLLATERALIZATION_RATIO: 1.5e4
+          MINIMUM_DEBT_VALUE: 10
+          LIQUIDATION_THRESHOLD: 1.4e4

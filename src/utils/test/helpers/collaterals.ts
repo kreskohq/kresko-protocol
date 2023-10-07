@@ -1,23 +1,23 @@
-import { FakeContract, MockContract, smock } from "@defi-wonderland/smock";
-import { wrapKresko } from "@utils/redstone";
-import { AssetArgs } from "types";
-import { ERC20Upgradeable__factory, MockOracle } from "types/typechain";
-import { InputArgs, testCollateralConfig } from "../mocks";
-import { getAssetConfig } from "./general";
-import optimized from "./optimizations";
-import { getFakeOracle, setPrice } from "./oracle";
-import { getBalanceCollateralFunc, setBalanceCollateralFunc } from "./smock";
-import { envCheck } from "@utils/env";
-import { toBig } from "@utils/values";
+import { FakeContract, MockContract, smock } from '@defi-wonderland/smock';
+import { wrapKresko } from '@utils/redstone';
+import { AssetArgs } from 'types';
+import { ERC20Upgradeable__factory, MockOracle } from 'types/typechain';
+import { InputArgs, testCollateralConfig } from '../mocks';
+import { getAssetConfig } from './general';
+import optimized from './optimizations';
+import { getFakeOracle, setPrice } from './oracle';
+import { getBalanceCollateralFunc, setBalanceCollateralFunc } from './smock';
+import { envCheck } from '@utils/env';
+import { toBig } from '@utils/values';
 
 envCheck();
 
-export const addMockExtAsset = async (args = testCollateralConfig): Promise<TestAsset<ERC20Upgradeable, "mock">> => {
+export const addMockExtAsset = async (args = testCollateralConfig): Promise<TestAsset<ERC20Upgradeable, 'mock'>> => {
   const { deployer } = await hre.ethers.getNamedSigners();
   const { name, price, symbol, decimals } = args;
   const [fakeFeed, contract]: [FakeContract<MockOracle>, MockContract<ERC20Upgradeable>] = await Promise.all([
     getFakeOracle(price),
-    (await smock.mock<ERC20Upgradeable__factory>("ERC20Upgradeable")).deploy(),
+    (await smock.mock<ERC20Upgradeable__factory>('ERC20Upgradeable')).deploy(),
   ]);
 
   contract.name.returns(name);
@@ -26,10 +26,10 @@ export const addMockExtAsset = async (args = testCollateralConfig): Promise<Test
 
   const [config] = await Promise.all([
     getAssetConfig(contract, { ...args, feed: fakeFeed.address }),
-    contract.setVariable("_initialized", 0),
+    contract.setVariable('_initialized', 0),
   ]);
   await wrapKresko(hre.Diamond, deployer).addAsset(contract.address, config.assetStruct, config.feedConfig, true);
-  const asset: TestAsset<ERC20Upgradeable, "mock"> = {
+  const asset: TestAsset<ERC20Upgradeable, 'mock'> = {
     underlyingId: args.underlyingId,
     anchor: null,
     address: contract.address,
@@ -74,7 +74,7 @@ export const updateCollateralAsset = async (address: string, args: AssetArgs) =>
 };
 
 export const depositMockCollateral = async (args: InputArgs) => {
-  const convert = typeof args.amount === "string" || typeof args.amount === "number";
+  const convert = typeof args.amount === 'string' || typeof args.amount === 'number';
   const { user, asset, amount } = args;
   const depositAmount = convert ? toBig(+amount, await asset.contract.decimals()) : amount;
   await asset.contract.setVariables({
@@ -91,7 +91,7 @@ export const depositMockCollateral = async (args: InputArgs) => {
 };
 
 export const depositCollateral = async (args: InputArgs) => {
-  const convert = typeof args.amount === "string" || typeof args.amount === "number";
+  const convert = typeof args.amount === 'string' || typeof args.amount === 'number';
   const { user, asset, amount } = args;
   const depositAmount = convert ? toBig(+amount) : amount;
   if ((await asset.contract.allowance(user.address, hre.Diamond.address)).lt(depositAmount)) {
@@ -101,7 +101,7 @@ export const depositCollateral = async (args: InputArgs) => {
 };
 
 export const withdrawCollateral = async (args: InputArgs) => {
-  const convert = typeof args.amount === "string" || typeof args.amount === "number";
+  const convert = typeof args.amount === 'string' || typeof args.amount === 'number';
   const { user, asset, amount } = args;
   const depositAmount = convert ? toBig(+amount) : amount;
 

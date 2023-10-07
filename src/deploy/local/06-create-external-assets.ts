@@ -1,16 +1,16 @@
-import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
-import type { DeployFunction } from "hardhat-deploy/dist/types";
+import { testnetConfigs } from '@config/deploy/arbitrumGoerli';
+import type { DeployFunction } from 'hardhat-deploy/dist/types';
 
-import { getLogger } from "@kreskolabs/lib/meta";
-import { TASK_DEPLOY_TOKEN } from "@tasks";
-const logger = getLogger("deploy-tokens");
+import { getLogger } from '@kreskolabs/lib/meta';
+import { TASK_DEPLOY_TOKEN } from '@tasks';
+const logger = getLogger('deploy-tokens');
 
 const deploy: DeployFunction = async hre => {
   const assets = testnetConfigs[hre.network.name].assets.filter(a => !!a.collateralConfig && !a.krAssetConfig);
   for (const collateral of assets) {
     const isDeployed = await hre.deployments.getOrNull(collateral.symbol);
 
-    if (collateral.symbol === "WETH") {
+    if (collateral.symbol === 'WETH') {
       continue;
     }
     if (isDeployed != null) continue;
@@ -27,20 +27,20 @@ const deploy: DeployFunction = async hre => {
     logger.log(`Created: External Token ${collateral.name}`);
   }
 
-  logger.success("Created external tokens.");
+  logger.success('Created external tokens.');
 };
 
-deploy.tags = ["all", "local", "external-assets"];
+deploy.tags = ['all', 'local', 'external-assets'];
 
 deploy.skip = async hre => {
   const assets = testnetConfigs[hre.network.name].assets.filter(a => !!a.collateralConfig && !a.krAssetConfig);
   if (!assets.length) {
-    logger.log("Skip: Create External Assets, no external assets configured");
+    logger.log('Skip: Create External Assets, no external assets configured');
     return true;
   }
 
   if (await hre.deployments.getOrNull(assets[assets.length - 1].symbol)) {
-    logger.log("Skip: Create External Assets, already created");
+    logger.log('Skip: Create External Assets, already created');
     return true;
   }
   return false;

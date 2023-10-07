@@ -1,7 +1,7 @@
-import type { DeployFunction } from "hardhat-deploy/dist/types";
-import { testnetConfigs } from "@deploy-config/arbitrumGoerli";
-import { getLogger } from "@kreskolabs/lib/meta";
-import { TASK_ADD_ASSET } from "@tasks";
+import type { DeployFunction } from 'hardhat-deploy/dist/types';
+import { testnetConfigs } from '@config/deploy/arbitrumGoerli';
+import { getLogger } from '@kreskolabs/lib/meta';
+import { TASK_ADD_ASSET } from '@tasks';
 
 const logger = getLogger(TASK_ADD_ASSET);
 
@@ -17,8 +17,8 @@ const deploy: DeployFunction = async function (hre) {
     const oracleAddr = hre.network.live
       ? asset.feed
       : (
-          await hre.deploy("MockOracle", {
-            deploymentName: "MockOracle_" + asset.symbol,
+          await hre.deploy('MockOracle', {
+            deploymentName: 'MockOracle_' + asset.symbol,
             args: [`${asset.symbol}/USD`, await asset.getPrice(), 8],
           })
         )[0].address;
@@ -30,11 +30,11 @@ const deploy: DeployFunction = async function (hre) {
     });
   }
 
-  logger.success("Added assets.");
+  logger.success('Added assets.');
 };
 
-deploy.tags = ["local", "all", "add-assets"];
-deploy.dependencies = ["common-facets", "minter-facets", "scdp-facets"];
+deploy.tags = ['local', 'all', 'add-assets'];
+deploy.dependencies = ['common-facets', 'minter-facets', 'scdp-facets'];
 // deploy.skip = async hre => hre.network.live;
 
 export default deploy;

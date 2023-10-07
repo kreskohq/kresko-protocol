@@ -1,4 +1,4 @@
-import { SolcUserConfig } from "hardhat/types";
+import { SolcUserConfig } from 'hardhat/types';
 
 const oldCompilerSettings = {
   settings: {
@@ -7,8 +7,8 @@ const oldCompilerSettings = {
       runs: 1000,
     },
     outputSelection: {
-      "*": {
-        "*": ["storageLayout", "evm.gasEstimates"],
+      '*': {
+        '*': ['storageLayout', 'evm.gasEstimates'],
       },
     },
   },
@@ -16,7 +16,7 @@ const oldCompilerSettings = {
 export const compilers: { compilers: SolcUserConfig[] } = {
   compilers: [
     {
-      version: "0.8.19",
+      version: '0.8.19',
       settings: {
         viaIR: false,
         optimizer: {
@@ -24,31 +24,31 @@ export const compilers: { compilers: SolcUserConfig[] } = {
           runs: 1000,
         },
         outputSelection: {
-          "*": {
-            "*": [
-              "metadata",
-              "abi",
-              "storageLayout",
-              "evm.methodIdentifiers",
-              "devdoc",
-              "userdoc",
-              "evm.gasEstimates",
-              "evm.byteCode",
+          '*': {
+            '*': [
+              'metadata',
+              'abi',
+              'storageLayout',
+              'evm.methodIdentifiers',
+              'devdoc',
+              'userdoc',
+              'evm.gasEstimates',
+              'evm.byteCode',
             ],
           },
         },
       },
     },
     {
-      version: "0.7.6",
+      version: '0.7.6',
       ...oldCompilerSettings,
     },
     {
-      version: "0.6.12",
+      version: '0.6.12',
       ...oldCompilerSettings,
     },
     {
-      version: "0.6.6",
+      version: '0.6.6',
       settings: {
         optimizer: {
           enabled: !process.env.CI,
@@ -57,7 +57,7 @@ export const compilers: { compilers: SolcUserConfig[] } = {
       },
     },
     {
-      version: "0.5.16",
+      version: '0.5.16',
       settings: {
         optimizer: {
           enabled: !process.env.CI,

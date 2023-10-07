@@ -1,18 +1,18 @@
-import { expect } from "@test/chai";
-import { CError } from "@utils/errors";
-import { getNamedEvent } from "@utils/events";
-import { LiquidationFixture, liquidationsFixture } from "@utils/test/fixtures";
-import { depositMockCollateral } from "@utils/test/helpers/collaterals";
-import { getLiqAmount, liquidate } from "@utils/test/helpers/liquidations";
-import optimized from "@utils/test/helpers/optimizations";
-import { fromBig, toBig } from "@utils/values";
-import { Kresko, LiquidationOccurredEvent } from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+import { expect } from '@test/chai';
+import { CError } from '@utils/errors';
+import { getNamedEvent } from '@utils/events';
+import { LiquidationFixture, liquidationsFixture } from '@utils/test/fixtures';
+import { depositMockCollateral } from '@utils/test/helpers/collaterals';
+import { getLiqAmount, liquidate } from '@utils/test/helpers/liquidations';
+import optimized from '@utils/test/helpers/optimizations';
+import { fromBig, toBig } from '@utils/values';
+import { Kresko, LiquidationOccurredEvent } from 'types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 const USD_DELTA = toBig(0.1, 9);
 
 // -------------------------------- Set up mock assets --------------------------------
 
-describe("Minter - Liquidations", function () {
+describe('Minter - Liquidations', function () {
   let Liquidator: Kresko;
   let LiquidatorTwo: Kresko;
   let User: Kresko;
@@ -35,8 +35,8 @@ describe("Minter - Liquidations", function () {
     await f.reset();
   });
 
-  describe("#isAccountLiquidatable", () => {
-    it("should identify accounts below their liquidation threshold", async function () {
+  describe('#isAccountLiquidatable', () => {
+    it('should identify accounts below their liquidation threshold', async function () {
       const [cr, minCollateralUSD, initialCanLiquidate] = await Promise.all([
         hre.Diamond.getAccountCollateralRatio(user1.address),
         hre.Diamond.getAccountMinCollateralAtRatio(user1.address, hre.Diamond.getLiquidationThreshold()),
@@ -51,8 +51,8 @@ describe("Minter - Liquidations", function () {
     });
   });
 
-  describe("#maxLiquidatableValue", () => {
-    it("calculates correct MLV when kFactor = 1, cFactor = 0.25", async function () {
+  describe('#maxLiquidatableValue', () => {
+    it('calculates correct MLV when kFactor = 1, cFactor = 0.25', async function () {
       const MLVBeforeC1 = await hre.Diamond.getMaxLiqValue(user1.address, f.KrAsset.address, f.Collateral.address);
       const MLVBeforeC2 = await hre.Diamond.getMaxLiqValue(user1.address, f.KrAsset.address, f.Collateral2.address);
       expect(MLVBeforeC1.repayValue).to.be.closeTo(MLVBeforeC2.repayValue, USD_DELTA);
@@ -81,7 +81,7 @@ describe("Minter - Liquidations", function () {
       expect(MLVAfterC2.repayValue.gt(MLVAfterC1.repayValue)).to.be.true;
     });
 
-    it("calculates correct MLV with multiple cdps", async function () {
+    it('calculates correct MLV with multiple cdps', async function () {
       await depositMockCollateral({
         user: user1,
         amount: toBig(0.1, 8),
@@ -101,13 +101,13 @@ describe("Minter - Liquidations", function () {
     });
   });
 
-  describe("#liquidation", () => {
-    describe("#liquidate", () => {
+  describe('#liquidation', () => {
+    describe('#liquidate', () => {
       beforeEach(async function () {
         f.Collateral.setPrice(7.5);
       });
 
-      it("should allow unhealthy accounts to be liquidated", async function () {
+      it('should allow unhealthy accounts to be liquidated', async function () {
         // Fetch pre-liquidation state for users and contracts
         const beforeUserOneCollateralAmount = await optimized.getAccountCollateralAmount(user1.address, f.Collateral);
         const userOneDebtBefore = await optimized.getAccountDebtAmount(user1.address, f.KrAsset);
@@ -145,7 +145,7 @@ describe("Minter - Liquidations", function () {
         expect(await f.Collateral.balanceOf(hre.Diamond.address)).lt(kreskoBalanceBefore);
       });
 
-      it("should liquidate up to MLR with a single CDP", async function () {
+      it('should liquidate up to MLR with a single CDP', async function () {
         await hre.Diamond.updateCollateralFactor(f.Collateral.address, 0.99e4);
         await hre.Diamond.updateKFactor(f.KrAsset.address, 1.02e4);
 
@@ -167,7 +167,7 @@ describe("Minter - Liquidations", function () {
         expect(await hre.Diamond.getAccountLiquidatable(user1.address)).to.be.false;
       });
 
-      it("should liquidate up to MLR with multiple CDPs", async function () {
+      it('should liquidate up to MLR with multiple CDPs', async function () {
         await depositMockCollateral({
           user: user1,
           amount: toBig(10, 8),
@@ -191,7 +191,7 @@ describe("Minter - Liquidations", function () {
         expect(crAfter).to.be.eq(await optimized.getMaxLiquidationRatio());
       });
 
-      it("should emit LiquidationOccurred event", async function () {
+      it('should emit LiquidationOccurred event', async function () {
         const repayAmount = f.userOneMaxLiqPrecalc.wadDiv(toBig(11));
 
         const tx = await Liquidator.liquidate(
@@ -203,7 +203,7 @@ describe("Minter - Liquidations", function () {
           optimized.getAccountDepositIndex(user1.address, f.Collateral.address),
         );
 
-        const event = await getNamedEvent<LiquidationOccurredEvent>(tx, "LiquidationOccurred");
+        const event = await getNamedEvent<LiquidationOccurredEvent>(tx, 'LiquidationOccurred');
 
         expect(event.args.account).to.equal(user1.address);
         expect(event.args.liquidator).to.equal(liquidator.address);
@@ -212,7 +212,7 @@ describe("Minter - Liquidations", function () {
         expect(event.args.seizedCollateralAsset).to.equal(f.Collateral.address);
       });
 
-      it("should not allow liquidations of healthy accounts", async function () {
+      it('should not allow liquidations of healthy accounts', async function () {
         f.Collateral.setPrice(10);
         const repayAmount = 10;
         const mintedKreskoAssetIndex = 0;
@@ -227,19 +227,19 @@ describe("Minter - Liquidations", function () {
             depositedCollateralAssetIndex,
           ),
         )
-          .to.be.revertedWithCustomError(CError(hre), "CANNOT_LIQUIDATE")
+          .to.be.revertedWithCustomError(CError(hre), 'CANNOT_LIQUIDATE')
           .withArgs(16500000000, 15400000000);
       });
 
-      it("should not allow liquidations if repayment amount is 0", async function () {
+      it('should not allow liquidations if repayment amount is 0', async function () {
         // Liquidation should fail
         const repayAmount = 0;
         await expect(LiquidatorTwo.liquidate(user1.address, f.KrAsset.address, repayAmount, f.Collateral.address, 0, 0))
-          .to.be.revertedWithCustomError(CError(hre), "ZERO_REPAY")
+          .to.be.revertedWithCustomError(CError(hre), 'ZERO_REPAY')
           .withArgs(f.KrAsset.address);
       });
 
-      it("should clamp liquidations if repay value/amount exceeds debt", async function () {
+      it('should clamp liquidations if repay value/amount exceeds debt', async function () {
         // Get user's debt for this kresko asset
         const krAssetDebtUserOne = await optimized.getAccountDebtAmount(user1.address, f.KrAsset);
 
@@ -261,7 +261,7 @@ describe("Minter - Liquidations", function () {
           0,
           0,
         );
-        const event = await getNamedEvent<LiquidationOccurredEvent>(tx, "LiquidationOccurred");
+        const event = await getNamedEvent<LiquidationOccurredEvent>(tx, 'LiquidationOccurred');
         const liquidatorBalanceAfter = await f.KrAsset.balanceOf(liquidatorTwo.address);
         expect(event.args.account).to.equal(user1.address);
         expect(event.args.liquidator).to.equal(liquidatorTwo.address);
@@ -279,7 +279,7 @@ describe("Minter - Liquidations", function () {
         );
       });
 
-      it("should not allow liquidations when account is under MCR but not under liquidation threshold", async function () {
+      it('should not allow liquidations when account is under MCR but not under liquidation threshold', async function () {
         f.Collateral.setPrice(f.Collateral.config!.args.price!);
 
         expect(await hre.Diamond.getAccountLiquidatable(user1.address)).to.be.false;
@@ -301,7 +301,7 @@ describe("Minter - Liquidations", function () {
         expect(await hre.Diamond.getAccountLiquidatable(user1.address)).to.be.false;
       });
 
-      it("should allow liquidations without liquidator token approval for Kresko Assets", async function () {
+      it('should allow liquidations without liquidator token approval for Kresko Assets', async function () {
         // Check that liquidator's token approval to Kresko.sol contract is 0
         expect(await f.KrAsset.contract.allowance(liquidatorTwo.address, hre.Diamond.address)).to.equal(0);
         const repayAmount = toBig(0.5);
@@ -315,7 +315,7 @@ describe("Minter - Liquidations", function () {
       it("should not change liquidator's existing token approvals during a successful liquidation", async function () {
         const repayAmount = toBig(0.5);
         await f.KrAsset.setBalance(liquidatorTwo, repayAmount);
-        await f.KrAsset.contract.setVariable("_allowances", {
+        await f.KrAsset.contract.setVariable('_allowances', {
           [liquidatorTwo.address]: { [hre.Diamond.address]: repayAmount },
         });
 
@@ -326,14 +326,14 @@ describe("Minter - Liquidations", function () {
         expect(await f.KrAsset.contract.allowance(liquidatorTwo.address, hre.Diamond.address)).to.equal(repayAmount);
       });
 
-      it("should not allow borrowers to liquidate themselves", async function () {
+      it('should not allow borrowers to liquidate themselves', async function () {
         // Liquidation should fail
         const repayAmount = 5;
         await expect(
           User.liquidate(user1.address, f.KrAsset.address, repayAmount, f.Collateral.address, 0, 0),
-        ).to.be.revertedWithCustomError(CError(hre), "SELF_LIQUIDATION");
+        ).to.be.revertedWithCustomError(CError(hre), 'SELF_LIQUIDATION');
       });
-      it.skip("should error on seize underflow", async function () {
+      it.skip('should error on seize underflow', async function () {
         f.Collateral.setPrice(8);
 
         const liqAmount = await getLiqAmount(user1, f.KrAsset, f.Collateral);
@@ -348,15 +348,15 @@ describe("Minter - Liquidations", function () {
             optimized.getAccountMintIndex(user1.address, f.KrAsset.address),
             optimized.getAccountDepositIndex(user1.address, f.Collateral.address),
           ),
-        ).to.be.revertedWithCustomError(CError(hre), "SEIZE_UNDERFLOW");
+        ).to.be.revertedWithCustomError(CError(hre), 'SEIZE_UNDERFLOW');
       });
     });
-    describe("#liquidate - rebasing events", () => {
+    describe('#liquidate - rebasing events', () => {
       beforeEach(async function () {
         await f.resetRebasing();
       });
 
-      it("should setup correct", async function () {
+      it('should setup correct', async function () {
         const [mcr, cr, cr2, liquidatable] = await Promise.all([
           optimized.getMinCollateralRatio(),
           hre.Diamond.getAccountCollateralRatio(user3.address),
@@ -368,7 +368,7 @@ describe("Minter - Liquidations", function () {
         expect(liquidatable).to.be.false;
       });
 
-      it("should not allow liquidation of healthy accounts after a positive rebase", async function () {
+      it('should not allow liquidation of healthy accounts after a positive rebase', async function () {
         // Rebase params
         const denominator = 4;
         const positive = true;
@@ -386,11 +386,11 @@ describe("Minter - Liquidations", function () {
             optimized.getAccountDepositIndex(user4.address, f.Collateral.address),
           ),
         )
-          .to.be.revertedWithCustomError(CError(hre), "CANNOT_LIQUIDATE")
+          .to.be.revertedWithCustomError(CError(hre), 'CANNOT_LIQUIDATE')
           .withArgs(1000000000000, 933333332400);
       });
 
-      it("should not allow liquidation of healthy accounts after a negative rebase", async function () {
+      it('should not allow liquidation of healthy accounts after a negative rebase', async function () {
         const denominator = 4;
         const positive = false;
         const rebasePrice = 1 * denominator;
@@ -408,10 +408,10 @@ describe("Minter - Liquidations", function () {
             optimized.getAccountDepositIndex(user4.address, f.Collateral.address),
           ),
         )
-          .to.be.revertedWithCustomError(CError(hre), "CANNOT_LIQUIDATE")
+          .to.be.revertedWithCustomError(CError(hre), 'CANNOT_LIQUIDATE')
           .withArgs(1000000000000, 933333332400);
       });
-      it("should allow liquidations of unhealthy accounts after a positive rebase", async function () {
+      it('should allow liquidations of unhealthy accounts after a positive rebase', async function () {
         const denominator = 4;
         const positive = true;
         const rebasePrice = 1 / denominator;
@@ -427,7 +427,7 @@ describe("Minter - Liquidations", function () {
         await liquidate(user4, f.KrAsset, f.Collateral, true);
         await expect(liquidate(user4, f.KrAsset, f.Collateral, true)).to.not.be.reverted;
       });
-      it("should allow liquidations of unhealthy accounts after a negative rebase", async function () {
+      it('should allow liquidations of unhealthy accounts after a negative rebase', async function () {
         const denominator = 4;
         const positive = false;
         const rebasePrice = 1 * denominator;
@@ -440,7 +440,7 @@ describe("Minter - Liquidations", function () {
         expect(await hre.Diamond.getAccountLiquidatable(user4.address)).to.be.true;
         await expect(liquidate(user4, f.KrAsset, f.Collateral, true)).to.not.be.reverted;
       });
-      it("should liquidate krAsset collaterals up to min amount", async function () {
+      it('should liquidate krAsset collaterals up to min amount', async function () {
         f.KrAssetCollateral.setPrice(100);
         await hre.Diamond.updateCollateralFactor(f.KrAssetCollateral.address, 0.99e4);
         await hre.Diamond.updateKFactor(f.KrAssetCollateral.address, 1e4);
@@ -465,7 +465,7 @@ describe("Minter - Liquidations", function () {
 
         expect(depositsAfter).to.equal((1e12).toString());
       });
-      it("should liquidate to 0", async function () {
+      it('should liquidate to 0', async function () {
         f.KrAssetCollateral.setPrice(100);
         await hre.Diamond.updateCollateralFactor(f.KrAssetCollateral.address, 1e4);
         await hre.Diamond.updateKFactor(f.KrAssetCollateral.address, 1e4);
@@ -493,7 +493,7 @@ describe("Minter - Liquidations", function () {
         expect(depositsAfter).to.equal(0);
       });
 
-      it("should liquidate correct amount of krAssets after a positive rebase", async function () {
+      it('should liquidate correct amount of krAssets after a positive rebase', async function () {
         const newPrice = 1.2;
         f.KrAsset.setPrice(newPrice);
 
@@ -542,7 +542,7 @@ describe("Minter - Liquidations", function () {
         expect(results.debtRepaid * denominator).to.equal(results.debtRepaidRebase);
         expect(results.userOneValueAfter).to.equal(results.userTwoValueAfter);
       });
-      it("should liquidate correct amount of assets after a negative rebase", async function () {
+      it('should liquidate correct amount of assets after a negative rebase', async function () {
         const newPrice = 1.2;
         f.KrAsset.setPrice(newPrice);
 

@@ -1,5 +1,5 @@
-import { price } from "@kreskolabs/lib";
-import { AssetArgs, GnosisSafeDeployment, NetworkConfig, OracleType } from "types";
+import { price } from '@kreskolabs/lib/ext';
+import { AssetArgs, GnosisSafeDeployment, NetworkConfig, OracleType } from 'types';
 import {
   CompatibilityFallbackHandler,
   CreateCall,
@@ -10,61 +10,62 @@ import {
   ProxyFactory,
   SignMessageLib,
   SimulateTxAccessor,
-} from "./gnosis-safe";
-import { defaultSupplyLimit } from "@utils/test/mocks";
-import type {
+} from '../../src/utils/gnosis/gnosis-safe';
+import { defaultSupplyLimit } from '@utils/test/mocks';
+
+import { ethers } from 'ethers';
+import { toBig } from '@utils/values';
+import {
   CommonInitArgsStruct,
   MinterInitArgsStruct,
   SCDPInitArgsStruct,
-} from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
-import { ethers } from "ethers";
-import { toBig } from "@utils/values";
+} from 'types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 export const oracles = {
   ARB: {
-    name: "ARB/USD",
-    description: "ARB/USD",
-    chainlink: "0x2eE9BFB2D319B31A573EA15774B755715988E99D",
+    name: 'ARB/USD',
+    description: 'ARB/USD',
+    chainlink: '0x2eE9BFB2D319B31A573EA15774B755715988E99D',
   },
   DAI: {
-    name: "DAI/USD",
-    description: "DAI/USD",
-    chainlink: "0x103b53E977DA6E4Fa92f76369c8b7e20E7fb7fe1",
+    name: 'DAI/USD',
+    description: 'DAI/USD',
+    chainlink: '0x103b53E977DA6E4Fa92f76369c8b7e20E7fb7fe1',
   },
   BTC: {
-    name: "BTCUSD",
-    description: "BTC/USD",
-    chainlink: "0x6550bc2301936011c1334555e62A87705A81C12C",
+    name: 'BTCUSD',
+    description: 'BTC/USD',
+    chainlink: '0x6550bc2301936011c1334555e62A87705A81C12C',
   },
   USDT: {
-    name: "USDT/USD",
-    description: "USDT/USD",
-    chainlink: "0x0a023a3423D9b27A0BE48c768CCF2dD7877fEf5E",
+    name: 'USDT/USD',
+    description: 'USDT/USD',
+    chainlink: '0x0a023a3423D9b27A0BE48c768CCF2dD7877fEf5E',
   },
   USDC: {
-    name: "USDC/USD",
-    description: "USDC/USD",
-    chainlink: "0x1692Bdd32F31b831caAc1b0c9fAF68613682813b",
+    name: 'USDC/USD',
+    description: 'USDC/USD',
+    chainlink: '0x1692Bdd32F31b831caAc1b0c9fAF68613682813b',
   },
   ETH: {
-    name: "ETHUSD",
-    description: "ETH/USD",
-    chainlink: "0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08",
-    price: async () => toBig(await price.twelvedata("ETH/USD"), 8),
+    name: 'ETHUSD',
+    description: 'ETH/USD',
+    chainlink: '0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08',
+    price: async () => toBig(await price.twelvedata('ETH/USD'), 8),
     marketOpen: async () => {
       return true;
     },
   },
   KISS: {
-    name: "KISSUSD",
-    description: "KISS/USD",
+    name: 'KISSUSD',
+    description: 'KISS/USD',
     price: async () => {
-      return toBig("1", 8);
+      return toBig('1', 8);
     },
     marketOpen: async () => {
       return true;
     },
-    chainlink: "0x1A604cF2957Abb03ce62a6642fd822EbcE15166b",
+    chainlink: '0x1A604cF2957Abb03ce62a6642fd822EbcE15166b',
   },
 };
 
@@ -75,12 +76,12 @@ export type AssetConfigExtended = AssetArgs & {
 };
 export const assets = {
   DAI: {
-    underlyingId: "DAI",
-    name: "Dai",
-    symbol: "DAI",
+    underlyingId: 'DAI',
+    name: 'Dai',
+    symbol: 'DAI',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig("1", 8),
+    getPrice: async () => toBig('1', 8),
     getMarketOpen: async () => {
       return true;
     },
@@ -92,12 +93,12 @@ export const assets = {
     mintAmount: 1_000_000,
   },
   WETH: {
-    underlyingId: "ETH",
-    name: "Wrapped Ether",
-    symbol: "WETH",
+    underlyingId: 'ETH',
+    name: 'Wrapped Ether',
+    symbol: 'WETH',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig(await price.twelvedata("ETH/USD"), 8),
+    getPrice: async () => toBig(await price.twelvedata('ETH/USD'), 8),
     getMarketOpen: async () => true,
     feed: oracles.ETH.chainlink,
     collateralConfig: {
@@ -107,12 +108,12 @@ export const assets = {
   },
   // KRASSETS
   KISS: {
-    underlyingId: "KISS",
-    name: "Kresko Integrated Stable System",
-    symbol: "KISS",
+    underlyingId: 'KISS',
+    name: 'Kresko Integrated Stable System',
+    symbol: 'KISS',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig("1", 8),
+    getPrice: async () => toBig('1', 8),
     getMarketOpen: async () => true,
     feed: oracles.KISS.chainlink,
     collateralConfig: {
@@ -135,12 +136,12 @@ export const assets = {
     mintAmount: 50_000_000,
   },
   krBTC: {
-    underlyingId: "BTC",
-    name: "Bitcoin",
-    symbol: "krBTC",
+    underlyingId: 'BTC',
+    name: 'Bitcoin',
+    symbol: 'krBTC',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig(await price.twelvedata("BTC/USD"), 8),
+    getPrice: async () => toBig(await price.twelvedata('BTC/USD'), 8),
     getMarketOpen: async () => true,
     feed: oracles.BTC.chainlink,
     krAssetConfig: {
@@ -157,12 +158,12 @@ export const assets = {
     mintAmount: 5,
   },
   krETH: {
-    underlyingId: "ETH",
-    name: "Ether",
-    symbol: "krETH",
+    underlyingId: 'ETH',
+    name: 'Ether',
+    symbol: 'krETH',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig(await price.twelvedata("ETH/USD"), 8),
+    getPrice: async () => toBig(await price.twelvedata('ETH/USD'), 8),
     getMarketOpen: async () => {
       return true;
     },
@@ -195,7 +196,7 @@ const gnosisSafeDeployments: GnosisSafeDeployment[] = [
 ];
 const commonInitAgs = (
   gate?: boolean,
-): Omit<CommonInitArgsStruct, "feeRecipient" | "admin" | "council" | "treasury"> => ({
+): Omit<CommonInitArgsStruct, 'feeRecipient' | 'admin' | 'council' | 'treasury'> => ({
   oracleDecimals: 8,
   questForKresk: ethers.constants.AddressZero,
   kreskian: ethers.constants.AddressZero,
@@ -203,7 +204,7 @@ const commonInitAgs = (
   minDebtValue: 10e8,
   oracleDeviationPct: 0.1e4,
   sequencerGracePeriodTime: 3600,
-  sequencerUptimeFeed: "0x4da69F028a5790fCCAfe81a75C0D24f46ceCDd69",
+  sequencerUptimeFeed: '0x4da69F028a5790fCCAfe81a75C0D24f46ceCDd69',
   oracleTimeout: 6.5e4,
 });
 
@@ -214,7 +215,7 @@ export const minterInitArgs: MinterInitArgsStruct = {
 export const scdpInitArgs: SCDPInitArgsStruct = {
   minCollateralRatio: 5e4,
   liquidationThreshold: 2e4,
-  swapFeeRecipient: "",
+  swapFeeRecipient: '',
 };
 export const testnetConfigs: NetworkConfig = {
   all: {

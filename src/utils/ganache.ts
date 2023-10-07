@@ -1,6 +1,6 @@
-import { RPC_URL } from "@kreskolabs/configs";
-import { spawn } from "child_process";
-import dotenv from "dotenv";
+import { RPC_URL } from '@kreskolabs/configs/ext';
+import { spawn } from 'child_process';
+import dotenv from 'dotenv';
 dotenv.config();
 
 const options = {
@@ -24,22 +24,22 @@ const options = {
   },
 };
 
-const server = spawn("ganache-cli", [
-  "--fork",
+const server = spawn('ganache-cli', [
+  '--fork',
   options.fork.url,
-  "--mnemonic",
+  '--mnemonic',
   options.wallet.mnemonic!,
-  "--defaultBalanceEther",
+  '--defaultBalanceEther',
   options.wallet.defaultBalance.toString(),
-  "--unlock",
-  options.wallet.unlockedAccounts.join(","),
-  "--allowUnlimitedContractSize",
-  "--gasPrice",
+  '--unlock',
+  options.wallet.unlockedAccounts.join(','),
+  '--allowUnlimitedContractSize',
+  '--gasPrice',
   options.miner.defaultGasPrice.toString(),
-  "--port",
+  '--port',
   options.server.port.toString(),
 ]);
 
-server.stdout.on("data", (data: any) => {
+server.stdout.on('data', (data: any) => {
   console.log(`${data}`);
 });

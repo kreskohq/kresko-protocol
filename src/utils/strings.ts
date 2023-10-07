@@ -1,4 +1,4 @@
-import type { AllTokenSymbols } from "@deploy-config/shared";
+import type { AllTokenSymbols } from '@config/deploy';
 
 export const getAnchorNameAndSymbol = (symbol: AllTokenSymbols, name?: string) => {
   return {

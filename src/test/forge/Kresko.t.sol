@@ -99,7 +99,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         kresko.depositCollateral(user0, address(usdc), depositAmount);
         kresko.getAccountCollateralAmount(user0, address(usdc)).equals(depositAmount);
 
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(100e8);
+        staticCall(kresko.getAccountTotalCollateralValue.selector, user0, usdcPrice).equals(100e8);
     }
 
     function testMint() public prankAddr(user0) {
@@ -113,8 +113,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         kresko.getAccountCollateralAmount(user0, address(usdc)).equals(depositAmount);
 
         call(kresko.mintKreskoAsset.selector, user0, address(krJPY), mintAmount, initialPrices);
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(998e8);
-        staticCall(kresko.getAccountDebtValue.selector, user0, initialPrices).equals(120e8);
+        staticCall(kresko.getAccountTotalCollateralValue.selector, user0, usdcPrice).equals(998e8);
+        staticCall(kresko.getAccountTotalDebtValue.selector, user0, initialPrices).equals(120e8);
     }
 
     function testBurn() public prankAddr(user0) {
@@ -129,8 +129,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
 
         call(kresko.mintKreskoAsset.selector, user0, address(krJPY), mintAmount, initialPrices);
         call(kresko.burnKreskoAsset.selector, user0, address(krJPY), mintAmount, 0, initialPrices);
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(996e8);
-        staticCall(kresko.getAccountDebtValue.selector, user0, initialPrices).equals(0);
+        staticCall(kresko.getAccountTotalCollateralValue.selector, user0, usdcPrice).equals(996e8);
+        staticCall(kresko.getAccountTotalDebtValue.selector, user0, initialPrices).equals(0);
     }
 
     function testWithdraw() public prankAddr(user0) {
@@ -147,8 +147,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
         call(kresko.burnKreskoAsset.selector, user0, address(krJPY), mintAmount, 0, initialPrices);
         call(kresko.withdrawCollateral.selector, user0, address(usdc), 998e18, 0, initialPrices);
 
-        staticCall(kresko.getAccountCollateralValue.selector, user0, usdcPrice).equals(0);
-        staticCall(kresko.getAccountDebtValue.selector, user0, initialPrices).equals(0);
+        staticCall(kresko.getAccountTotalCollateralValue.selector, user0, usdcPrice).equals(0);
+        staticCall(kresko.getAccountTotalDebtValue.selector, user0, initialPrices).equals(0);
     }
 
     function testGas() public prankAddr(user0) {

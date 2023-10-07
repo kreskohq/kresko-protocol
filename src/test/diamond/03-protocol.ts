@@ -6,17 +6,17 @@ import {
   getSCDPInitializer,
   minterFacets,
   scdpFacets,
-} from "@deploy-config/shared";
-import { expect } from "@test/chai";
-import { defaultFixture } from "@utils/test/fixtures";
-import { Role } from "@utils/test/roles";
+} from '@config/deploy';
+import { expect } from '@test/chai';
+import { defaultFixture } from '@utils/test/fixtures';
+import { Role } from '@utils/test/roles';
 
-describe("Diamond", () => {
+describe('Diamond', () => {
   beforeEach(async function () {
     await defaultFixture();
   });
-  describe("#protocol initialization", () => {
-    it("initialized all facets", async function () {
+  describe('#protocol initialization', () => {
+    it('initialized all facets', async function () {
       const facetsOnChain = (await hre.Diamond.facets()).map(([facetAddress, functionSelectors]) => ({
         facetAddress,
         functionSelectors,
@@ -32,7 +32,7 @@ describe("Diamond", () => {
       );
       expect(facetsOnChain).to.have.deep.members(expectedFacets);
     });
-    it("initialized correct state", async function () {
+    it('initialized correct state', async function () {
       expect(await hre.Diamond.getStorageVersion()).to.equal(4);
 
       const { args } = await getCommonInitializer(hre);

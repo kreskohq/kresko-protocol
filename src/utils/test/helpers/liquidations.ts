@@ -1,10 +1,10 @@
-import { wrapKresko } from "@utils/redstone";
-import optimized from "@utils/test/helpers/optimizations";
-import { BigNumber } from "ethers";
-import hre from "hardhat";
-import { depositCollateral, depositMockCollateral } from "./collaterals";
-import { mintKrAsset } from "./krassets";
-import { fromBig, toBig } from "@utils/values";
+import { wrapKresko } from '@utils/redstone';
+import optimized from '@utils/test/helpers/optimizations';
+import { BigNumber } from 'ethers';
+import hre from 'hardhat';
+import { depositCollateral, depositMockCollateral } from './collaterals';
+import { mintKrAsset } from './krassets';
+import { fromBig, toBig } from '@utils/values';
 export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collateral: any, log = false) => {
   const [maxLiquidatableValue, krAssetPrice] = await Promise.all([
     hre.Diamond.getMaxLiqValue(user.address, krAsset.address, collateral.address),
@@ -52,7 +52,7 @@ export const liquidate = async (
     return {
       collateralSeized: 0,
       debtRepaid: 0,
-      tx: new Error("Not liquidatable"),
+      tx: new Error('Not liquidatable'),
     };
   }
   const [minDebt, krAssetPrice] = await Promise.all([optimized.getMinDebtValue(), krAsset.getPrice()]);
@@ -64,11 +64,11 @@ export const liquidate = async (
     if (krAsset.address === collateral.address) {
       await depositMockCollateral({
         user: hre.users.liquidator,
-        asset: hre.extAssets.find(c => c.config.args.underlyingId === "Collateral2")!,
+        asset: hre.extAssets.find(c => c.config.args.underlyingId === 'Collateral2')!,
         amount: toBig(100_000),
       });
     } else {
-      await collateral.contract.setVariable("_balances", {
+      await collateral.contract.setVariable('_balances', {
         [hre.users.liquidator.address]: toBig(100_000),
       });
       await depositCollateral({

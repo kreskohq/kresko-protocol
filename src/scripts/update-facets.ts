@@ -1,7 +1,7 @@
-import { getLogger } from "@kreskolabs/lib/meta";
-import { ethers } from "ethers";
-import { writeFileSync } from "fs";
-import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
+import { getLogger } from '@kreskolabs/lib/meta';
+import { ethers } from 'ethers';
+import { writeFileSync } from 'fs';
+import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
 type Args = {
   facetNames: readonly (keyof TC)[];
   initializer?: {
@@ -21,7 +21,7 @@ type Args = {
  * @param log whether to log
  */
 export async function updateFacets({ facetNames, multisig = false, log = true, initializer }: Args) {
-  const logger = getLogger("update-facets", log);
+  const logger = getLogger('update-facets', log);
 
   logger.log(`Updating ${facetNames.length} facets`);
   console.table(facetNames);
@@ -33,14 +33,14 @@ export async function updateFacets({ facetNames, multisig = false, log = true, i
   /* -------------------------------------------------------------------------- */
 
   // Get the deployed artifact
-  const DiamondDeployment = await hre.getDeploymentOrFork("Diamond");
+  const DiamondDeployment = await hre.getDeploymentOrFork('Diamond');
   if (!DiamondDeployment) {
     // Throw if it does not exist
     throw new Error(`Trying to add facets but no diamond deployed @ ${hre.network.name}`);
   }
 
   //  Get contract instance with full ABI
-  const Diamond = await hre.getContractOrFork("Kresko");
+  const Diamond = await hre.getContractOrFork('Kresko');
 
   // Save facets that exists before adding new ones
   const facetsBefore = await Diamond.facets();
@@ -104,11 +104,11 @@ export async function updateFacets({ facetNames, multisig = false, log = true, i
     });
   }
 
-  logger.success("Deployed new facet contracts:");
+  logger.success('Deployed new facet contracts:');
   console.table(deploymentInfo);
 
   if (!FacetCuts.length) {
-    throw new Error("Tried to update facets but no FacetCuts were generated");
+    throw new Error('Tried to update facets but no FacetCuts were generated');
   }
 
   /* -------------------------------------------------------------------------- */
@@ -117,13 +117,13 @@ export async function updateFacets({ facetNames, multisig = false, log = true, i
 
   let initializerArgs = {
     address: hre.ethers.constants.AddressZero,
-    data: "0x",
+    data: '0x',
   };
   if (
     initializer &&
     (!initializer.contract.address || initializer.contract.address === hre.ethers.constants.AddressZero)
   ) {
-    throw new Error("Initializer contract specificed but not deployed");
+    throw new Error('Initializer contract specificed but not deployed');
   }
   if (initializer) {
     logger.log(`Setting initializer @ ${initializer.contract.address} on ${hre.network.name} network`);
@@ -145,7 +145,7 @@ export async function updateFacets({ facetNames, multisig = false, log = true, i
     // Get the on-chain values of facets in the Diamond after the cut.
     const facetsAfterOnChain = await Diamond.facets();
     const facetsAfter = facetsAfterOnChain.map(f => ({
-      name: deploymentInfo.find(d => d.address === f.facetAddress)?.name ?? "",
+      name: deploymentInfo.find(d => d.address === f.facetAddress)?.name ?? '',
       facetAddress: f.facetAddress,
       functionSelectors: f.functionSelectors,
     }));
@@ -161,27 +161,27 @@ export async function updateFacets({ facetNames, multisig = false, log = true, i
 
     // Live network deployments should be released into the contracts-package.
     if (process.env.FORKING) {
-      logger.log("Forking, not saving deployment output");
+      logger.log('Forking, not saving deployment output');
     } else if (hre.network.live) {
       // Save the deployment output
-      await hre.deployments.save("Diamond", DiamondDeployment);
+      await hre.deployments.save('Diamond', DiamondDeployment);
       logger.log(
-        "New facets saved to deployment file, remember to make a release of the contracts package for frontend",
+        'New facets saved to deployment file, remember to make a release of the contracts package for frontend',
       );
     }
 
     // Save the deployment and Diamond into runtime for later steps.
     hre.DiamondDeployment = DiamondDeployment;
-    hre.Diamond = await hre.getContractOrFork("Kresko");
+    hre.Diamond = await hre.getContractOrFork('Kresko');
 
-    logger.success(facetNames.length, "facets succesfully updated", "txHash:", receipt.transactionHash);
+    logger.success(facetNames.length, 'facets succesfully updated', 'txHash:', receipt.transactionHash);
 
     return {
       facetsAfter: facetsAfterOnChain,
       txParams,
     };
   } else {
-    logger.log("Multisig mode, not executing transaction");
+    logger.log('Multisig mode, not executing transaction');
     hre.facets = deploymentInfo;
     const txParams = await Diamond.populateTransaction.diamondCut(
       FacetCuts,

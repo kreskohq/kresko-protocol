@@ -6,7 +6,7 @@ declare namespace Chai {
   }
 }
 
-declare module "chai-bignumber" {
+declare module 'chai-bignumber' {
   function chaiBignumber(bignumber: any): (chai: any, utils: any) => void;
 
   namespace chaiBignumber {}

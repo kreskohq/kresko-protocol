@@ -1,5 +1,5 @@
-import type { Log } from "@ethersproject/providers";
-import { Contract, type ContractReceipt, type ContractTransaction, type Event } from "ethers";
+import type { Log } from '@ethersproject/providers';
+import { Contract, type ContractReceipt, type ContractTransaction, type Event } from 'ethers';
 
 export async function getNamedEvent<T extends Event = Event>(tx: ContractTransaction, eventName: string): Promise<T> {
   const receipt: ContractReceipt = await tx.wait();

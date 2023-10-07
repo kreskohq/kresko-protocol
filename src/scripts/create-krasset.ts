@@ -1,7 +1,7 @@
-import { Role } from "@utils/test/roles";
-import { AllTokenSymbols, getDeploymentUsers } from "@deploy-config/shared";
-import { getAnchorNameAndSymbol } from "@utils/strings";
-import { KreskoAssetAnchor } from "types/typechain";
+import { Role } from '@utils/test/roles';
+import { AllTokenSymbols, getDeploymentUsers } from '@config/deploy';
+import { getAnchorNameAndSymbol } from '@utils/strings';
+import { KreskoAssetAnchor } from 'types/typechain';
 
 export async function createKrAsset<T extends AllTokenSymbols>(
   symbol: T,
@@ -13,18 +13,18 @@ export async function createKrAsset<T extends AllTokenSymbols>(
 
   const { anchorName, anchorSymbol } = getAnchorNameAndSymbol(symbol, name);
 
-  const Kresko = await hre.getContractOrFork("Kresko");
+  const Kresko = await hre.getContractOrFork('Kresko');
   const kreskoAssetInitArgs = [name, symbol, decimals, admin, Kresko.address];
 
-  const [KreskoAsset] = await hre.deploy("KreskoAsset", {
+  const [KreskoAsset] = await hre.deploy('KreskoAsset', {
     from: deployer.address,
     log: true,
     deploymentName: symbol,
     proxy: {
       owner: deployer.address,
-      proxyContract: "OptimizedTransparentProxy",
+      proxyContract: 'OptimizedTransparentProxy',
       execute: {
-        methodName: "initialize",
+        methodName: 'initialize',
         args: kreskoAssetInitArgs,
       },
     },
@@ -32,16 +32,16 @@ export async function createKrAsset<T extends AllTokenSymbols>(
 
   const kreskoAssetAnchorInitArgs = [KreskoAsset.address, anchorName, anchorSymbol, admin];
 
-  const [KreskoAssetAnchor] = await hre.deploy("KreskoAssetAnchor", {
+  const [KreskoAssetAnchor] = await hre.deploy('KreskoAssetAnchor', {
     from: deployer.address,
     log: true,
     deploymentName: anchorSymbol,
     args: [KreskoAsset.address],
     proxy: {
       owner: deployer.address,
-      proxyContract: "OptimizedTransparentProxy",
+      proxyContract: 'OptimizedTransparentProxy',
       execute: {
-        methodName: "initialize",
+        methodName: 'initialize',
         args: kreskoAssetAnchorInitArgs,
       },
     },

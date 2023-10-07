@@ -1,32 +1,32 @@
-import { smock } from "@defi-wonderland/smock";
-import { wrapKresko } from "@utils/redstone";
-import { BigNumber } from "ethers";
-import { AssetArgs } from "types";
-import { KreskoAssetAnchor__factory, KreskoAsset__factory } from "types/typechain";
-import { InputArgsSimple, defaultCloseFee, defaultSupplyLimit, testKrAssetConfig } from "../mocks";
-import roles from "../roles";
-import { getAssetConfig, wrapContractWithSigner } from "./general";
-import optimized from "./optimizations";
-import { getFakeOracle, setPrice } from "./oracle";
-import { getBalanceKrAssetFunc, setBalanceKrAssetFunc } from "./smock";
-import { getAnchorNameAndSymbol } from "@utils/strings";
-import { toBig } from "@utils/values";
+import { smock } from '@defi-wonderland/smock';
+import { wrapKresko } from '@utils/redstone';
+import { BigNumber } from 'ethers';
+import { AssetArgs } from 'types';
+import { KreskoAssetAnchor__factory, KreskoAsset__factory } from 'types/typechain';
+import { InputArgsSimple, defaultCloseFee, defaultSupplyLimit, testKrAssetConfig } from '../mocks';
+import roles from '../roles';
+import { getAssetConfig, wrapContractWithSigner } from './general';
+import optimized from './optimizations';
+import { getFakeOracle, setPrice } from './oracle';
+import { getBalanceKrAssetFunc, setBalanceKrAssetFunc } from './smock';
+import { getAnchorNameAndSymbol } from '@utils/strings';
+import { toBig } from '@utils/values';
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestAsset<KreskoAsset, any>) => {
   const balance = await asset.contract.balanceOf(user.address);
   return [balance, balance];
 };
 
-export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<TestAsset<KreskoAsset, "mock">> => {
+export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<TestAsset<KreskoAsset, 'mock'>> => {
   const deployer = hre.users.deployer;
   const { name, symbol, price, marketOpen } = args;
   const [krAsset, fakeFeed, anchorFactory] = await Promise.all([
-    await (await smock.mock<KreskoAsset__factory>("KreskoAsset")).deploy(),
+    await (await smock.mock<KreskoAsset__factory>('KreskoAsset')).deploy(),
     getFakeOracle(price, marketOpen),
-    smock.mock<KreskoAssetAnchor__factory>("KreskoAssetAnchor"),
+    smock.mock<KreskoAssetAnchor__factory>('KreskoAssetAnchor'),
   ]);
 
-  await krAsset.setVariable("_initialized", 0);
+  await krAsset.setVariable('_initialized', 0);
   krAsset.decimals.returns(18);
 
   const [akrAsset] = await Promise.all([
@@ -36,7 +36,7 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
     krAsset.initialize(name || symbol, symbol, 18, deployer.address, hre.Diamond.address),
   ]);
 
-  await akrAsset.setVariable("_initialized", 0);
+  await akrAsset.setVariable('_initialized', 0);
   const { anchorSymbol, anchorName } = getAnchorNameAndSymbol(symbol, name);
   const [config] = await Promise.all([
     getAssetConfig(krAsset, {
@@ -56,7 +56,7 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
     krAsset.grantRole(roles.OPERATOR, akrAsset.address),
   ]);
 
-  const asset: TestAsset<KreskoAsset, "mock"> = {
+  const asset: TestAsset<KreskoAsset, 'mock'> = {
     underlyingId: args.underlyingId,
     isKrAsset: true,
     isCollateral: !!args.collateralConfig,
@@ -105,13 +105,13 @@ export const updateKrAsset = async (address: string, args: AssetArgs) => {
 };
 
 export const mintKrAsset = async (args: InputArgsSimple) => {
-  const convert = typeof args.amount === "string" || typeof args.amount === "number";
+  const convert = typeof args.amount === 'string' || typeof args.amount === 'number';
   const { user, asset, amount } = args;
   return wrapKresko(hre.Diamond, user).mintKreskoAsset(user.address, asset.address, convert ? toBig(+amount) : amount);
 };
 
 export const burnKrAsset = async (args: InputArgsSimple) => {
-  const convert = typeof args.amount === "string" || typeof args.amount === "number";
+  const convert = typeof args.amount === 'string' || typeof args.amount === 'number';
   const { user, asset, amount } = args;
 
   return wrapKresko(hre.Diamond, user).burnKreskoAsset(
@@ -124,8 +124,8 @@ export const burnKrAsset = async (args: InputArgsSimple) => {
 
 export const leverageKrAsset = async (
   user: SignerWithAddress,
-  krAsset: TestAsset<KreskoAsset, "mock">,
-  collateralToUse: TestAsset<any, "mock">,
+  krAsset: TestAsset<KreskoAsset, 'mock'>,
+  collateralToUse: TestAsset<any, 'mock'>,
   amount: BigNumber,
 ) => {
   const [krAssetValueBig, mcrBig, collateralValue, collateralToUseInfo, krAssetInfo] = await Promise.all([
@@ -136,7 +136,7 @@ export const leverageKrAsset = async (
     hre.Diamond.getAsset(krAsset.address),
   ]);
 
-  await krAsset.contract.setVariable("_allowances", {
+  await krAsset.contract.setVariable('_allowances', {
     [user.address]: {
       [hre.Diamond.address]: hre.ethers.constants.MaxInt256,
     },

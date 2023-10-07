@@ -1,4 +1,4 @@
-// import { getDeploymentUsers } from "@deploy-config/shared";
+// import { getDeploymentUsers } from "@config/deploy";;
 // import { getLogger } from "@kreskolabs/lib/meta";
 // import { toBig } from "@kreskolabs/lib";
 // import { task, types } from "hardhat/config";

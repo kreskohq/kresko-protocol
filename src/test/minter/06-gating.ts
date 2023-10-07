@@ -1,9 +1,9 @@
-import { expect } from "@test/chai";
-import { DefaultFixture, defaultFixture } from "@utils/test/fixtures";
-import { wrapContractWithSigner } from "@utils/test/helpers/general";
-import { toBig } from "@utils/values";
+import { expect } from '@test/chai';
+import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
+import { wrapContractWithSigner } from '@utils/test/helpers/general';
+import { toBig } from '@utils/values';
 
-describe("Gating", () => {
+describe('Gating', () => {
   let f: DefaultFixture;
 
   beforeEach(async function () {
@@ -30,7 +30,7 @@ describe("Gating", () => {
     };
 
     // Deploy nft contract
-    [this.nft] = await hre.deploy("MockERC1155", {
+    [this.nft] = await hre.deploy('MockERC1155', {
       args: [],
       from: hre.users.deployer.address,
     });
@@ -48,7 +48,7 @@ describe("Gating", () => {
   });
 
   it("should allow to deposit collateral if the user has the required nft's", async function () {
-    await this.nft.safeTransferFrom(hre.users.deployer.address, this.depositArgsOne.user.address, 0, 1, "0x00");
+    await this.nft.safeTransferFrom(hre.users.deployer.address, this.depositArgsOne.user.address, 0, 1, '0x00');
     await expect(
       wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
@@ -58,7 +58,7 @@ describe("Gating", () => {
     ).not.to.be.reverted;
   });
 
-  it("After all the phases anyone should be able to deposit collateral", async function () {
+  it('After all the phases anyone should be able to deposit collateral', async function () {
     await hre.Diamond.updatePhase(3);
 
     // Anyone should be able to deposit collateral

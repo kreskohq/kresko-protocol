@@ -1,7 +1,7 @@
-import { MockContract } from "@defi-wonderland/smock";
-import { toBig } from "@utils/values";
-import { BigNumber } from "ethers";
-import hre from "hardhat";
+import { MockContract } from '@defi-wonderland/smock';
+import { toBig } from '@utils/values';
+import { BigNumber } from 'ethers';
+import hre from 'hardhat';
 
 const keccak256 = hre.ethers.utils.keccak256;
 const hexZeroPad = hre.ethers.utils.hexZeroPad;
@@ -29,7 +29,7 @@ async function getNestedMappingItem(slot: string, key: string, innerKey: string)
 }
 
 export const slots = {
-  minter: "0x5076ab9fa18d2a17cfce4375a530b76392de8264a11126885cd5534d39f0a97c",
+  minter: '0x5076ab9fa18d2a17cfce4375a530b76392de8264a11126885cd5534d39f0a97c',
   depositedCollateralAssets: 0,
   collateralDeposits: 1,
   kreskoAssetDebt: 2,
@@ -75,13 +75,13 @@ export async function getAccountMintedAssets(address: string) {
     return [];
   }
 }
-export async function getAccountCollateralAmount<T extends Omit<TestKrAsset, "deployed">>(
+export async function getAccountCollateralAmount<T extends Omit<TestKrAsset, 'deployed'>>(
   address: string,
   asset: string | any,
 ) {
   try {
-    let assetAddress: string = "";
-    if (typeof asset === "string") {
+    let assetAddress: string = '';
+    if (typeof asset === 'string') {
       assetAddress = asset;
     } else {
       assetAddress = asset.address;
@@ -157,7 +157,7 @@ export async function getIsRebased<T extends KreskoAsset | ERC20Upgradeable>(ass
   let isPositive = false;
 
   // @ts-expect-error
-  if (typeof asset.isRebased !== "function") return [Boolean(false), isPositive, denominator] as const;
+  if (typeof asset.isRebased !== 'function') return [Boolean(false), isPositive, denominator] as const;
 
   try {
     isPositive = Boolean(Number(await getStorageAt(asset.address, slots.kreskoAssetIsRebased)));

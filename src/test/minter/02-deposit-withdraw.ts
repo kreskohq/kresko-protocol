@@ -1,23 +1,23 @@
-import { CError } from "@utils/errors";
-import { getInternalEvent } from "@utils/events";
-import { executeContractCallWithSigners } from "@utils/gnosis/utils/execution";
-import { wrapKresko } from "@utils/redstone";
-import Action from "@utils/test/actions";
-import { DepositWithdrawFixture, depositWithdrawFixture } from "@utils/test/fixtures";
-import { depositCollateral, withdrawCollateral } from "@utils/test/helpers/collaterals";
-import optimized from "@utils/test/helpers/optimizations";
-import Role from "@utils/test/roles";
-import { fromBig, toBig } from "@utils/values";
-import { expect } from "chai";
-import { BigNumber } from "ethers";
-import hre from "hardhat";
+import { CError } from '@utils/errors';
+import { getInternalEvent } from '@utils/events';
+import { executeContractCallWithSigners } from '@utils/gnosis/utils/execution';
+import { wrapKresko } from '@utils/redstone';
+import Action from '@utils/test/actions';
+import { DepositWithdrawFixture, depositWithdrawFixture } from '@utils/test/fixtures';
+import { depositCollateral, withdrawCollateral } from '@utils/test/helpers/collaterals';
+import optimized from '@utils/test/helpers/optimizations';
+import Role from '@utils/test/roles';
+import { fromBig, toBig } from '@utils/values';
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
+import hre from 'hardhat';
 import type {
   CollateralDepositedEventObject,
   CollateralWithdrawnEventObject,
   Kresko,
-} from "types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko";
+} from 'types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
-describe("Minter - Deposit Withdraw", function () {
+describe('Minter - Deposit Withdraw', function () {
   let depositor: SignerWithAddress;
   let withdrawer: SignerWithAddress;
 
@@ -34,9 +34,9 @@ describe("Minter - Deposit Withdraw", function () {
     [[user, User], [depositor, Depositor], [withdrawer, Withdrawer]] = f.users;
   });
 
-  describe("#collateral", () => {
-    describe("#deposit", () => {
-      it("reverts withdraws of krAsset collateral when deposits go below MIN_KRASSET_COLLATERAL_AMOUNT", async function () {
+  describe('#collateral', () => {
+    describe('#deposit', () => {
+      it('reverts withdraws of krAsset collateral when deposits go below MIN_KRASSET_COLLATERAL_AMOUNT', async function () {
         const collateralAmount = toBig(100);
         await f.KrAssetCollateral.setBalance(user, collateralAmount, hre.Diamond.address);
         const depositAmount = collateralAmount.div(2);
@@ -53,18 +53,18 @@ describe("Minter - Deposit Withdraw", function () {
 
         await expect(
           User.withdrawCollateral(user.address, f.KrAssetCollateral.address, withdrawAmount, 0),
-        ).to.be.revertedWithCustomError(CError(hre), "COLLATERAL_VALUE_LOW");
+        ).to.be.revertedWithCustomError(CError(hre), 'COLLATERAL_VALUE_LOW');
       });
 
-      it("reverts deposits of krAsset collateral for less than MIN_KRASSET_COLLATERAL_AMOUNT", async function () {
+      it('reverts deposits of krAsset collateral for less than MIN_KRASSET_COLLATERAL_AMOUNT', async function () {
         const collateralAmount = toBig(100);
         await f.KrAssetCollateral.setBalance(user, collateralAmount, hre.Diamond.address);
         await expect(
           User.depositCollateral(user.address, f.KrAssetCollateral.address, (9e11).toString()),
-        ).to.be.revertedWithCustomError(CError(hre), "COLLATERAL_VALUE_LOW");
+        ).to.be.revertedWithCustomError(CError(hre), 'COLLATERAL_VALUE_LOW');
       });
 
-      it("should allow an account to deposit whitelisted collateral", async function () {
+      it('should allow an account to deposit whitelisted collateral', async function () {
         await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, f.initialDeposits)).not.to.be
           .reverted;
 
@@ -84,7 +84,7 @@ describe("Minter - Deposit Withdraw", function () {
         );
       });
 
-      it("should allow an arbitrary account to deposit whitelisted collateral on behalf of another account", async function () {
+      it('should allow an arbitrary account to deposit whitelisted collateral on behalf of another account', async function () {
         // Initially, the array of the user's deposited collateral assets should be empty.
         const depositedCollateralAssetsBefore = await hre.Diamond.getAccountCollateralAssets(user.address);
         expect(depositedCollateralAssetsBefore).to.deep.equal([]);
@@ -110,7 +110,7 @@ describe("Minter - Deposit Withdraw", function () {
         expect(fromBig(depositorBalanceAfter)).to.equal(fromBig(f.initialBalance) - fromBig(f.initialDeposits));
       });
 
-      it("should allow an account to deposit more collateral to an existing deposit", async function () {
+      it('should allow an account to deposit more collateral to an existing deposit', async function () {
         // Deposit first batch of collateral
         await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, f.initialDeposits)).not.to.be
           .reverted;
@@ -128,7 +128,7 @@ describe("Minter - Deposit Withdraw", function () {
         expect(amountDeposited).to.equal(f.initialDeposits.add(f.initialDeposits));
       });
 
-      it("should allow an account to have deposited multiple collateral assets", async function () {
+      it('should allow an account to have deposited multiple collateral assets', async function () {
         // Load user account with a different type of collateral
         await f.Collateral2.setBalance(depositor, f.initialBalance, hre.Diamond.address);
 
@@ -145,38 +145,38 @@ describe("Minter - Deposit Withdraw", function () {
         expect(depositedCollateralAssetsAfter).to.deep.equal([f.Collateral.address, f.Collateral2.address]);
       });
 
-      it("should emit CollateralDeposited event", async function () {
+      it('should emit CollateralDeposited event', async function () {
         const tx = await Depositor.depositCollateral(depositor.address, f.Collateral.address, f.initialDeposits);
-        const event = await getInternalEvent<CollateralDepositedEventObject>(tx, hre.Diamond, "CollateralDeposited");
+        const event = await getInternalEvent<CollateralDepositedEventObject>(tx, hre.Diamond, 'CollateralDeposited');
         expect(event.account).to.equal(depositor.address);
         expect(event.collateralAsset).to.equal(f.Collateral.address);
         expect(event.amount).to.equal(f.initialDeposits);
       });
 
-      it("should revert if depositing collateral that has not been whitelisted", async function () {
+      it('should revert if depositing collateral that has not been whitelisted', async function () {
         await expect(
           Depositor.depositCollateral(
             depositor.address,
-            "0x0000000000000000000000000000000000000001",
+            '0x0000000000000000000000000000000000000001',
             f.initialDeposits,
           ),
         )
-          .to.be.revertedWithCustomError(CError(hre), "COLLATERAL_DOES_NOT_EXIST")
-          .withArgs("0x0000000000000000000000000000000000000001");
+          .to.be.revertedWithCustomError(CError(hre), 'COLLATERAL_DOES_NOT_EXIST')
+          .withArgs('0x0000000000000000000000000000000000000001');
       });
 
-      it("should revert if depositing an amount of 0", async function () {
+      it('should revert if depositing an amount of 0', async function () {
         await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, 0))
-          .to.be.revertedWithCustomError(CError(hre), "ZERO_DEPOSIT")
+          .to.be.revertedWithCustomError(CError(hre), 'ZERO_DEPOSIT')
           .withArgs(f.Collateral.address);
       });
-      it("should revert if collateral is not depositable", async function () {
+      it('should revert if collateral is not depositable', async function () {
         const { deployer, devTwo, extOne } = await hre.ethers.getNamedSigners();
 
         await executeContractCallWithSigners(
           hre.Multisig,
           hre.Diamond,
-          "toggleAssetsPaused",
+          'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, true, 0],
           [deployer, devTwo, extOne],
         );
@@ -186,13 +186,13 @@ describe("Minter - Deposit Withdraw", function () {
 
         await expect(
           wrapKresko(hre.Diamond, depositor).depositCollateral(depositor.address, f.Collateral.contract.address, 0),
-        ).to.be.revertedWithCustomError(CError(hre), "ACTION_PAUSED_FOR_ASSET");
+        ).to.be.revertedWithCustomError(CError(hre), 'ACTION_PAUSED_FOR_ASSET');
       });
     });
 
-    describe("#withdraw", () => {
+    describe('#withdraw', () => {
       describe("when the account's minimum collateral value is 0", function () {
-        it("should allow an account to withdraw their entire deposit", async function () {
+        it('should allow an account to withdraw their entire deposit', async function () {
           const depositedCollateralAssets = await hre.Diamond.getAccountCollateralAssets(withdrawer.address);
           expect(depositedCollateralAssets).to.deep.equal([f.Collateral.address]);
 
@@ -219,7 +219,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(userOneBalance).to.equal(f.initialDeposits);
         });
 
-        it("should allow an account to withdraw a portion of their deposit", async function () {
+        it('should allow an account to withdraw a portion of their deposit', async function () {
           const withdrawAmount = f.initialDeposits.div(2);
 
           await Withdrawer.withdrawCollateral(withdrawer.address, f.Collateral.address, withdrawAmount, 0);
@@ -242,7 +242,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(userOneBalance).to.equal(f.initialDeposits.sub(amountDeposited));
         });
 
-        it("should allow trusted address to withdraw another accounts deposit", async function () {
+        it('should allow trusted address to withdraw another accounts deposit', async function () {
           // Grant userThree the MANAGER role
           await hre.Diamond.grantRole(Role.MANAGER, user.address);
           expect(await hre.Diamond.hasRole(Role.MANAGER, user.address)).to.equal(true);
@@ -263,7 +263,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(collateralAfter).to.equal(collateralBefore.sub(f.initialDeposits));
         });
 
-        it("should emit CollateralWithdrawn event", async function () {
+        it('should emit CollateralWithdrawn event', async function () {
           const tx = await Withdrawer.withdrawCollateral(
             withdrawer.address,
             f.Collateral.address,
@@ -271,13 +271,13 @@ describe("Minter - Deposit Withdraw", function () {
             0,
           );
 
-          const event = await getInternalEvent<CollateralWithdrawnEventObject>(tx, hre.Diamond, "CollateralWithdrawn");
+          const event = await getInternalEvent<CollateralWithdrawnEventObject>(tx, hre.Diamond, 'CollateralWithdrawn');
           expect(event.account).to.equal(withdrawer.address);
           expect(event.collateralAsset).to.equal(f.Collateral.address);
           expect(event.amount).to.equal(f.initialDeposits);
         });
 
-        it("should not allow untrusted address to withdraw another accounts deposit", async function () {
+        it('should not allow untrusted address to withdraw another accounts deposit', async function () {
           await expect(
             User.withdrawCollateral(withdrawer.address, f.Collateral.address, f.initialBalance, 0),
           ).to.be.revertedWith(
@@ -300,7 +300,7 @@ describe("Minter - Deposit Withdraw", function () {
             this.mcr = await optimized.getMinCollateralRatio();
           });
 
-          it("should allow an account to withdraw their deposit if it does not violate the health factor", async function () {
+          it('should allow an account to withdraw their deposit if it does not violate the health factor', async function () {
             const withdrawAmount = toBig(10);
 
             // Ensure that the withdrawal would not put the account's collateral value
@@ -342,7 +342,7 @@ describe("Minter - Deposit Withdraw", function () {
             expect(accountMinCollateralValueAfter.lte(accountCollateralValueAfter)).to.be.true;
           });
 
-          it("should allow withdraws that exceed deposits and only send the user total deposit available", async function () {
+          it('should allow withdraws that exceed deposits and only send the user total deposit available', async function () {
             const randomUser = hre.users.userFour;
 
             await f.Collateral.setBalance!(randomUser, BigNumber.from(0));
@@ -365,14 +365,14 @@ describe("Minter - Deposit Withdraw", function () {
             expect(await f.Collateral.balanceOf(randomUser.address)).to.equal(toBig(1000));
           });
 
-          it("should revert if withdrawing an amount of 0", async function () {
+          it('should revert if withdrawing an amount of 0', async function () {
             const withdrawAmount = 0;
             await expect(Withdrawer.withdrawCollateral(withdrawer.address, f.Collateral.address, 0, withdrawAmount))
-              .to.be.revertedWithCustomError(CError(hre), "ZERO_AMOUNT")
+              .to.be.revertedWithCustomError(CError(hre), 'ZERO_AMOUNT')
               .withArgs(f.Collateral.address);
           });
 
-          it("should revert if the withdrawal violates the health factor", async function () {
+          it('should revert if the withdrawal violates the health factor', async function () {
             // userOne has a debt position, so attempting to withdraw the entire collateral deposit should be impossible
             const withdrawAmount = f.initialBalance;
 
@@ -387,11 +387,11 @@ describe("Minter - Deposit Withdraw", function () {
             expect(accountCollateralValue.sub(withdrawnCollateralValue).lt(accountMinCollateralValue)).to.be.true;
 
             await expect(Withdrawer.withdrawCollateral(withdrawer.address, f.Collateral.address, withdrawAmount, 0))
-              .to.be.revertedWithCustomError(CError(hre), "COLLATERAL_VALUE_LOW")
+              .to.be.revertedWithCustomError(CError(hre), 'COLLATERAL_VALUE_LOW')
               .withArgs(0, 150000000000);
           });
 
-          it("should revert if the depositedCollateralAssetIndex is incorrect", async function () {
+          it('should revert if the depositedCollateralAssetIndex is incorrect', async function () {
             const withdrawAmount = f.initialDeposits.div(2);
             await expect(
               Withdrawer.withdrawCollateral(
@@ -401,14 +401,14 @@ describe("Minter - Deposit Withdraw", function () {
                 1, // Incorrect index
               ),
             )
-              .to.be.revertedWithCustomError(CError(hre), "INVALID_ASSET_INDEX")
+              .to.be.revertedWithCustomError(CError(hre), 'INVALID_ASSET_INDEX')
               .withArgs(f.Collateral.address, 1, 0);
           });
         });
       });
     });
 
-    describe("#deposit - rebase", function () {
+    describe('#deposit - rebase', function () {
       const mintAmount = toBig(100);
       this.slow(1500);
       beforeEach(async function () {
@@ -416,7 +416,7 @@ describe("Minter - Deposit Withdraw", function () {
 
         // Add krAsset as a collateral with anchor and cFactor of 1
         // Allowance for Kresko
-        await f.KrAssetCollateral.contract.setVariable("_allowances", {
+        await f.KrAssetCollateral.contract.setVariable('_allowances', {
           [user.address]: {
             [hre.Diamond.address]: hre.ethers.constants.MaxInt256,
           },
@@ -431,8 +431,8 @@ describe("Minter - Deposit Withdraw", function () {
         // Deposit all debt on tests
         this.krAssetCollateralAmount = await User.getAccountDebtAmount(user.address, f.KrAssetCollateral.address);
       });
-      describe("deposit amounts are calculated correctly", function () {
-        it("when deposit is made before positive rebase", async function () {
+      describe('deposit amounts are calculated correctly', function () {
+        it('when deposit is made before positive rebase', async function () {
           await User.depositCollateral(user.address, f.KrAssetCollateral.address, this.krAssetCollateralAmount);
 
           // Rebase params
@@ -454,7 +454,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalDeposits).to.equal(expectedDepositsAfter);
           expect(await f.KrAssetCollateral.balanceOf(user.address)).to.equal(0);
         });
-        it("when deposit is made before negative rebase", async function () {
+        it('when deposit is made before negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -477,7 +477,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalDeposits).to.equal(depositAmountAfterRebase);
           expect(await f.KrAssetCollateral.balanceOf(user.address)).to.equal(0);
         });
-        it("when deposit is made after an positiveing rebase", async function () {
+        it('when deposit is made after an positiveing rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -501,7 +501,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalDeposits).to.equal(depositAmount);
           expect(await f.KrAssetCollateral.balanceOf(user.address)).to.equal(0);
         });
-        it("when deposit is made after an negative rebase", async function () {
+        it('when deposit is made after an negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -524,7 +524,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalDeposits).to.equal(depositAmount);
           expect(await f.KrAssetCollateral.balanceOf(user.address)).to.equal(0);
         });
-        it("when deposit is made before and after a positiveing rebase", async function () {
+        it('when deposit is made before and after a positiveing rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -551,7 +551,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalDeposits).to.equal(fullDepositAmount);
           expect(await f.KrAssetCollateral.balanceOf(user.address)).to.equal(0);
         });
-        it("when deposit is made before and after a negative rebase", async function () {
+        it('when deposit is made before and after a negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -582,8 +582,8 @@ describe("Minter - Deposit Withdraw", function () {
           expect(await f.KrAssetCollateral.balanceOf(user.address)).to.equal(0);
         });
       });
-      describe("deposit usd values are calculated correctly", () => {
-        it("when deposit is made before positiveing rebase", async function () {
+      describe('deposit usd values are calculated correctly', () => {
+        it('when deposit is made before positiveing rebase', async function () {
           await User.depositCollateral(user.address, f.KrAssetCollateral.address, this.krAssetCollateralAmount);
           const valueBefore = await hre.Diamond.getAccountTotalCollateralValue(user.address);
 
@@ -602,7 +602,7 @@ describe("Minter - Deposit Withdraw", function () {
           // Ensure that the collateral value stays the same
           expect(valueBefore).to.equal(valueAfter);
         });
-        it("when deposit is made before negative rebase", async function () {
+        it('when deposit is made before negative rebase', async function () {
           await User.depositCollateral(user.address, f.KrAssetCollateral.address, this.krAssetCollateralAmount);
           const valueBefore = await hre.Diamond.getAccountTotalCollateralValue(user.address);
 
@@ -621,7 +621,7 @@ describe("Minter - Deposit Withdraw", function () {
           // Ensure that the collateral value stays the same
           expect(valueBefore).to.equal(valueAfter);
         });
-        it("when deposit is made after an positiveing rebase", async function () {
+        it('when deposit is made after an positiveing rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -645,7 +645,7 @@ describe("Minter - Deposit Withdraw", function () {
           // Ensure that the collateral value stays the same
           expect(expectedValue).to.equal(valueAfter);
         });
-        it("when deposit is made after an negative rebase", async function () {
+        it('when deposit is made after an negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -669,7 +669,7 @@ describe("Minter - Deposit Withdraw", function () {
           // Ensure that the collateral value stays the same
           expect(expectedValue).to.equal(valueAfter);
         });
-        it("when deposit is made before and after a positiveing rebase", async function () {
+        it('when deposit is made before and after a positiveing rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -709,7 +709,7 @@ describe("Minter - Deposit Withdraw", function () {
           // Ensure that the collateral value stays the same
           expect(finalValue).to.equal(expectedValueAfterSecondDeposit);
         });
-        it("when deposit is made before and after a negative rebase", async function () {
+        it('when deposit is made before and after a negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -752,7 +752,7 @@ describe("Minter - Deposit Withdraw", function () {
       });
     });
 
-    describe("#withdraw - rebase", function () {
+    describe('#withdraw - rebase', function () {
       const mintAmount = toBig(100);
       this.slow(1500);
       beforeEach(async function () {
@@ -761,8 +761,8 @@ describe("Minter - Deposit Withdraw", function () {
         // Deposit all debt on tests
         this.krAssetCollateralAmount = await optimized.getAccountDebtAmount(withdrawer.address, f.KrAssetCollateral);
       });
-      describe("withdraw amounts are calculated correctly", () => {
-        it("when withdrawing a deposit made before positive rebase", async function () {
+      describe('withdraw amounts are calculated correctly', () => {
+        it('when withdrawing a deposit made before positive rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -802,7 +802,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalDeposits).to.equal(0);
           expect(finalBalance).to.equal(rebasedDepositAmount);
         });
-        it("when withdrawing a deposit made before negative rebase", async function () {
+        it('when withdrawing a deposit made before negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -841,7 +841,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalDeposits).to.equal(0);
           expect(finalBalance).to.equal(rebasedDepositAmount);
         });
-        it("when withdrawing a deposit made after an positive rebase", async function () {
+        it('when withdrawing a deposit made after an positive rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -879,7 +879,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalDeposits).to.equal(0);
           expect(finalBalance).to.equal(rebasedDepositAmount);
         });
-        it("when withdrawing a deposit made after a negative rebase", async function () {
+        it('when withdrawing a deposit made after a negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -917,7 +917,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalDeposits).to.equal(0);
           expect(finalBalance).to.equal(rebasedDepositAmount);
         });
-        it("when withdrawing a deposit made before and after a positive rebase", async function () {
+        it('when withdrawing a deposit made before and after a positive rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -969,7 +969,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalDeposits).to.equal(0);
           expect(finalBalance).to.equal(fullDepositAmount);
         });
-        it("when withdrawing a deposit made before and after a negative rebase", async function () {
+        it('when withdrawing a deposit made before and after a negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -1022,7 +1022,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalBalance).to.equal(fullDepositAmount);
         });
 
-        it("when withdrawing a non-rebased collateral after a rebase", async function () {
+        it('when withdrawing a non-rebased collateral after a rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -1052,8 +1052,8 @@ describe("Minter - Deposit Withdraw", function () {
           expect(await f.Collateral.contract.balanceOf(withdrawer.address)).to.equal(expectedNrcBalanceAfter);
         });
       });
-      describe("withdraw usd values are calculated correctly", () => {
-        it("when withdrawing a deposit made before positive rebase", async function () {
+      describe('withdraw usd values are calculated correctly', () => {
+        it('when withdrawing a deposit made before positive rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -1084,7 +1084,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalValue).to.equal(0);
           expect(await f.KrAssetCollateral.contract.balanceOf(withdrawer.address)).to.equal(rebasedDepositAmount);
         });
-        it("when withdrawing a deposit made before negative rebase", async function () {
+        it('when withdrawing a deposit made before negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -1117,7 +1117,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalValue).to.equal(0);
           expect(await f.KrAssetCollateral.contract.balanceOf(withdrawer.address)).to.equal(rebasedDepositAmount);
         });
-        it("when withdrwaing a deposit made after an positiveing rebase", async function () {
+        it('when withdrwaing a deposit made after an positiveing rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -1147,7 +1147,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalValue).to.equal(0);
           expect(await f.KrAssetCollateral.contract.balanceOf(withdrawer.address)).to.equal(depositAmount);
         });
-        it("when withdrawing a deposit made after an negative rebase", async function () {
+        it('when withdrawing a deposit made after an negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -1177,7 +1177,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalValue).to.equal(0);
           expect(await f.KrAssetCollateral.contract.balanceOf(withdrawer.address)).to.equal(depositAmount);
         });
-        it("when withdrawing a deposit made before and after a positive rebase", async function () {
+        it('when withdrawing a deposit made before and after a positive rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;
@@ -1227,7 +1227,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalValue).to.equal(0);
           expect(await f.KrAssetCollateral.contract.balanceOf(withdrawer.address)).to.equal(fullDepositAmount);
         });
-        it("when withdrawing a deposit made before and after a negative rebase", async function () {
+        it('when withdrawing a deposit made before and after a negative rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = false;
@@ -1277,7 +1277,7 @@ describe("Minter - Deposit Withdraw", function () {
           expect(finalValue).to.equal(0);
           expect(await f.KrAssetCollateral.contract.balanceOf(withdrawer.address)).to.equal(fullDepositAmount);
         });
-        it("when withdrawing a non-rebased collateral after a rebase", async function () {
+        it('when withdrawing a non-rebased collateral after a rebase', async function () {
           // Rebase params
           const denominator = 4;
           const positive = true;

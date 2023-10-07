@@ -1,8 +1,8 @@
-import hre from "hardhat";
+import hre from 'hardhat';
 
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { getBlockTimestamp } from "./calculations";
-import { toBig, fromBig } from "@utils/values";
+import { time } from '@nomicfoundation/hardhat-network-helpers';
+import { getBlockTimestamp } from './calculations';
+import { toBig, fromBig } from '@utils/values';
 
 type AddLiquidityArgs = {
   user: SignerWithAddress;
@@ -22,16 +22,16 @@ export const addLiquidity = async (args: AddLiquidityArgs) => {
   const { token0, token1, amount0, amount1, user } = args;
   await token0.contract.connect(user).approve(hre.UniV2Router.address, hre.ethers.constants.MaxUint256);
   await token1.contract.connect(user).approve(hre.UniV2Router.address, hre.ethers.constants.MaxUint256);
-  const convertA = typeof amount0 === "string" || typeof amount0 === "number";
-  const convertB = typeof amount1 === "string" || typeof amount1 === "number";
+  const convertA = typeof amount0 === 'string' || typeof amount0 === 'number';
+  const convertB = typeof amount1 === 'string' || typeof amount1 === 'number';
 
   await hre.UniV2Router.connect(user).addLiquidity(
     token0.address,
     token1.address,
     convertA ? toBig(amount0) : amount0,
     convertB ? toBig(amount1) : amount1,
-    "0",
-    "0",
+    '0',
+    '0',
     user.address,
     +(await getBlockTimestamp()) + 1000,
   );
@@ -47,8 +47,8 @@ export const withdrawAllLiquidity = async (args: WithdrawLiquidityArgs) => {
     token0.address,
     token1.address,
     await pair.balanceOf(user.address),
-    "0",
-    "0",
+    '0',
+    '0',
     user.address,
     +(await getBlockTimestamp()) + 1000,
   );
@@ -74,7 +74,7 @@ export const getLPTokenValue = async (args: LPValueArgs) => {
 };
 
 export const getPair = async (token0: any, token1: any) => {
-  return hre.ethers.getContractAt("UniswapV2Pair", await hre.UniV2Factory.getPair(token0.address, token1.address));
+  return hre.ethers.getContractAt('UniswapV2Pair', await hre.UniV2Factory.getPair(token0.address, token1.address));
 };
 
 export const getAMMPrices = async (tokenA: any, tokenB: any) => {
@@ -109,12 +109,12 @@ export const getValuesForUsers = async (logDesc: string, args: LPValueArgsUsers)
   for (const user of users) {
     i++;
     const LPValue = await getLPTokenValue({ user, token0, token1, LPPair });
-    console.log(`User ${i} LP value:`, "$", LPValue);
+    console.log(`User ${i} LP value:`, '$', LPValue);
     results.push(LPValue);
   }
 
-  console.log(logDesc, "tokenB AMM price: ", "$", bPrice);
-  console.log("----------------------------------");
+  console.log(logDesc, 'tokenB AMM price: ', '$', bPrice);
+  console.log('----------------------------------');
   return {
     bPrice,
     results,
@@ -129,7 +129,7 @@ type SwapArgs = {
 };
 export const swap = async (args: SwapArgs) => {
   const { user, amount, router, route } = args;
-  const convert = typeof args.amount === "string" || typeof args.amount === "number";
+  const convert = typeof args.amount === 'string' || typeof args.amount === 'number';
   return await router
     .connect(user)
     .swapExactTokensForTokens(

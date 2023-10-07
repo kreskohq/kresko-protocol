@@ -1,12 +1,12 @@
-import { getLogger } from "@kreskolabs/lib/meta";
-import { getOutDir } from "@scripts/task-utils";
-import { writeFileSync } from "fs";
-import { task } from "hardhat/config";
-import { TaskArguments } from "hardhat/types";
-import { TASK_WRITE_SUBGRAPH_JSON } from "../names";
+import { getLogger } from '@kreskolabs/lib/meta';
+import { getOutDir } from '@scripts/task-utils';
+import { writeFileSync } from 'fs';
+import { task } from 'hardhat/config';
+import { TaskArguments } from 'hardhat/types';
+import { TASK_WRITE_SUBGRAPH_JSON } from '../names';
 
-import { ERC20ABI } from "@utils/abi";
-import { Deployment } from "hardhat-deploy/dist/types";
+import { ERC20ABI } from '@utils/abi';
+import { Deployment } from 'hardhat-deploy/dist/types';
 
 const logger = getLogger(TASK_WRITE_SUBGRAPH_JSON);
 
@@ -24,30 +24,30 @@ type SubgraphExport =
 
 const subgraphExports: SubgraphExport[] = [
   {
-    deployment: "Diamond",
-    artifact: "Kresko",
-    outputName: "Kresko",
+    deployment: 'Diamond',
+    artifact: 'Kresko',
+    outputName: 'Kresko',
   },
   {
-    artifact: "KreskoAsset",
+    artifact: 'KreskoAsset',
     excludedABI: commonABIs,
   },
   {
-    artifact: "KISS",
+    artifact: 'KISS',
     excludedABI: commonABIs,
   },
   {
-    artifact: "Vault",
+    artifact: 'Vault',
     excludedABI: commonABIs,
   },
   {
-    artifact: "ERC20Upgradeable",
-    outputName: "ERC20",
+    artifact: 'ERC20Upgradeable',
+    outputName: 'ERC20',
   },
 ];
 
 task(TASK_WRITE_SUBGRAPH_JSON).setAction(async function (_taskArgs: TaskArguments, hre) {
-  const [baseDir, abiDir] = getOutDir("./subgraph", "./subgraph/abis");
+  const [baseDir, abiDir] = getOutDir('./subgraph', './subgraph/abis');
 
   const results: {
     [name: string]: {
@@ -57,10 +57,10 @@ task(TASK_WRITE_SUBGRAPH_JSON).setAction(async function (_taskArgs: TaskArgument
   }[] = [];
 
   for (const item of subgraphExports) {
-    const deploymentName = typeof item === "string" ? item : item.deployment;
-    const exportABI = typeof item === "string" || !!item.artifact;
+    const deploymentName = typeof item === 'string' ? item : item.deployment;
+    const exportABI = typeof item === 'string' || !!item.artifact;
 
-    const outputName = typeof item === "string" ? item : item.outputName || item.deployment || item.artifact;
+    const outputName = typeof item === 'string' ? item : item.outputName || item.deployment || item.artifact;
     if ((!deploymentName && !exportABI) || !outputName) {
       throw new Error(`no deployment or ABI export configured: ${JSON.stringify(item)}`);
     }
@@ -86,7 +86,7 @@ task(TASK_WRITE_SUBGRAPH_JSON).setAction(async function (_taskArgs: TaskArgument
     }
 
     // Handle ABI export if configured
-    const artifactName = typeof item === "string" ? item : item.artifact!;
+    const artifactName = typeof item === 'string' ? item : item.artifact!;
     let ABI: any[] | undefined;
 
     try {
@@ -100,7 +100,7 @@ task(TASK_WRITE_SUBGRAPH_JSON).setAction(async function (_taskArgs: TaskArgument
       }
     }
     if (ABI) {
-      if (typeof item !== "string") {
+      if (typeof item !== 'string') {
         if (item.includedABI) {
           ABI = ABI.filter(i => !i.name || item.includedABI!.map(v => v.toLowerCase()).includes(i.name.toLowerCase()));
         } else if (item.excludedABI) {
@@ -113,7 +113,7 @@ task(TASK_WRITE_SUBGRAPH_JSON).setAction(async function (_taskArgs: TaskArgument
     }
   }
   const output = {
-    [hre.network.name === "opgoerli" ? "optimism-goerli" : hre.network.name]: results,
+    [hre.network.name === 'opgoerli' ? 'optimism-goerli' : hre.network.name]: results,
   };
 
   writeFileSync(`${baseDir}/networks.json`, JSON.stringify(output, null, 2));

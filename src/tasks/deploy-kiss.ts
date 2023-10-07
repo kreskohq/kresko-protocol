@@ -1,25 +1,25 @@
-import { getDeploymentUsers } from "@deploy-config/shared";
-import { getLogger } from "@kreskolabs/lib/meta";
-import { testKrAssetConfig } from "@utils/test/mocks";
-import { Role } from "@utils/test/roles";
-import { task, types } from "hardhat/config";
-import type { TaskArguments } from "hardhat/types";
-import { TASK_DEPLOY_KISS } from "./names";
-import { MaxUint128, toBig } from "@utils/values";
+import { getDeploymentUsers } from '@config/deploy';
+import { getLogger } from '@kreskolabs/lib/meta';
+import { testKrAssetConfig } from '@utils/test/mocks';
+import { Role } from '@utils/test/roles';
+import { task, types } from 'hardhat/config';
+import type { TaskArguments } from 'hardhat/types';
+import { TASK_DEPLOY_KISS } from './names';
+import { MaxUint128, toBig } from '@utils/values';
 
 const logger = getLogger(TASK_DEPLOY_KISS, true);
 
 task(TASK_DEPLOY_KISS)
-  .addOptionalParam("wait", "wait confirmations", 1, types.int)
+  .addOptionalParam('wait', 'wait confirmations', 1, types.int)
   .setAction(async function (_taskArgs: TaskArguments, hre) {
     logger.log(`Deploying KISS`);
 
     const { multisig } = await getDeploymentUsers(hre);
     const { deployer } = await hre.ethers.getNamedSigners();
-    const Diamond = await hre.getContractOrFork("Diamond");
+    const Diamond = await hre.getContractOrFork('Diamond');
     const args = {
-      name: "KISS",
-      symbol: "KISS",
+      name: 'KISS',
+      symbol: 'KISS',
       decimals: 18,
       admin: multisig,
       operator: Diamond.address,
@@ -27,15 +27,15 @@ task(TASK_DEPLOY_KISS)
 
     const VAULT_ADDRESS = hre.ethers.constants.AddressZero;
 
-    const [KISSContract] = await hre.deploy("KISS", {
+    const [KISSContract] = await hre.deploy('KISS', {
       from: deployer.address,
-      contract: "KISS",
+      contract: 'KISS',
       log: true,
       proxy: {
         owner: deployer.address,
-        proxyContract: "OptimizedTransparentProxy",
+        proxyContract: 'OptimizedTransparentProxy',
         execute: {
-          methodName: "initialize",
+          methodName: 'initialize',
           args: [args.name, args.symbol, args.decimals, args.admin, args.operator, VAULT_ADDRESS],
         },
       },
@@ -58,7 +58,7 @@ task(TASK_DEPLOY_KISS)
       contract: KISSContract,
       config: {
         args: {
-          name: "KISS",
+          name: 'KISS',
           price: 1,
           factor: 1e4,
           supplyLimit: MaxUint128,

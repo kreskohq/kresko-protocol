@@ -1,8 +1,8 @@
-import { getLogger } from "@kreskolabs/lib/meta";
-import { task } from "hardhat/config";
-import type { TaskArguments } from "hardhat/types";
-import { TASK_FUND_OPERATOR } from "./names";
-import { toBig } from "@utils/values";
+import { getLogger } from '@kreskolabs/lib/meta';
+import { task } from 'hardhat/config';
+import type { TaskArguments } from 'hardhat/types';
+import { TASK_FUND_OPERATOR } from './names';
+import { toBig } from '@utils/values';
 
 const log = getLogger(TASK_FUND_OPERATOR);
 

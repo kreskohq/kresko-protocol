@@ -1,6 +1,6 @@
-import { RPC_URL, ETHERSCAN, INFURA_API_KEY } from "@kreskolabs/configs/ext";
-import type { HttpNetworkConfig, NetworksUserConfig } from "hardhat/types";
-import * as chains from "viem/chains";
+import { RPC_URL, ETHERSCAN, INFURA_API_KEY } from '@kreskolabs/configs/ext';
+import type { HttpNetworkConfig, NetworksUserConfig } from 'hardhat/types';
+import * as chains from 'viem/chains';
 
 export const networks = (mnemonic: string): NetworksUserConfig => ({
   hardhat: {
@@ -14,8 +14,8 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     initialBaseFeePerGas: process.env.CI ? 0 : undefined,
     gasPrice: process.env.CI ? 1 : undefined,
     chainId: chains.hardhat.id,
-    tags: ["local"],
-    hardfork: "merge",
+    tags: ['local'],
+    hardfork: 'merge',
   },
   localhost: {
     accounts: {
@@ -23,13 +23,13 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
       count: 100,
     },
     chainId: chains.hardhat.id,
-    tags: ["local"],
+    tags: ['local'],
   },
   ethereum: {
     accounts: { mnemonic },
     url: RPC_URL().mainnet.infura,
     chainId: 1,
-    tags: ["ethereum"],
+    tags: ['ethereum'],
     verify: {
       etherscan: ETHERSCAN.mainnet.config,
     },
@@ -38,7 +38,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     accounts: { mnemonic },
     url: RPC_URL().goerli.alchemy,
     chainId: chains.goerli.id,
-    tags: ["goerli"],
+    tags: ['goerli'],
     verify: {
       etherscan: ETHERSCAN.goerli.config,
     },
@@ -47,7 +47,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     accounts: { mnemonic },
     url: RPC_URL().sepolia.alchemy,
     chainId: 11155111,
-    tags: ["sepolia"],
+    tags: ['sepolia'],
     verify: {
       etherscan: ETHERSCAN.sepolia.config,
     },
@@ -56,7 +56,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     accounts: { mnemonic },
     url: RPC_URL().arbitrum.alchemy,
     chainId: chains.arbitrum.id,
-    tags: ["arbitrum"],
+    tags: ['arbitrum'],
     verify: {
       etherscan: ETHERSCAN.arbitrum.config,
     },
@@ -81,7 +81,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     accounts: { mnemonic },
     url: RPC_URL().arbitrumNova.default,
     chainId: chains.arbitrumNova.id,
-    tags: ["arbitrumNova"],
+    tags: ['arbitrumNova'],
     verify: {
       etherscan: ETHERSCAN.arbitrumNova.config,
     },
@@ -91,7 +91,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     url: RPC_URL().optimism.alchemy,
     chainId: chains.optimism.id,
     saveDeployments: true,
-    tags: ["optimism"],
+    tags: ['optimism'],
     verify: {
       etherscan: ETHERSCAN.optimism.config,
     },
@@ -104,13 +104,13 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     verify: {
       etherscan: ETHERSCAN.optimismGoerli.config,
     },
-    hardfork: "merge",
+    hardfork: 'merge',
   },
   polygon: {
     accounts: { mnemonic },
     url: RPC_URL().polygon.default,
     chainId: chains.polygon.id,
-    tags: ["polygon"],
+    tags: ['polygon'],
     verify: {
       etherscan: ETHERSCAN.polygon.config,
     },
@@ -119,7 +119,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     accounts: { mnemonic },
     url: RPC_URL().polygonMumbai.alchemy,
     chainId: chains.polygonMumbai.id,
-    tags: ["polygonMumbai"],
+    tags: ['polygonMumbai'],
     verify: {
       etherscan: ETHERSCAN.polygonMumbai.config,
     },
@@ -128,7 +128,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     accounts: { mnemonic },
     url: RPC_URL().polygonZkEvm.default,
     chainId: chains.polygonZkEvm.id,
-    tags: ["polygonZkEvm"],
+    tags: ['polygonZkEvm'],
     verify: {
       etherscan: ETHERSCAN.polygonZkEvm.config,
     },
@@ -137,7 +137,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     accounts: { mnemonic },
     url: RPC_URL().polygonZkEvmTestnet.alchemy,
     chainId: chains.polygonZkEvmTestnet.id,
-    tags: ["polygonZkEvmTestnet"],
+    tags: ['polygonZkEvmTestnet'],
     verify: {
       etherscan: ETHERSCAN.polygonZkEvmTestnet.config,
     },
@@ -166,9 +166,9 @@ export const handleForking = (networkConfig: ReturnType<typeof networks>) => {
 export const networksPartialConfig = (mnemonic: string) => ({
   xdai: {
     accounts: { mnemonic },
-    url: "https://rpc.xdaichain.com",
+    url: 'https://rpc.xdaichain.com',
     chainId: 100,
-    tags: ["xdai"],
+    tags: ['xdai'],
   },
   aurora: {
     accounts: {
@@ -177,7 +177,7 @@ export const networksPartialConfig = (mnemonic: string) => ({
     gasPrice: 0,
     chainId: 1313161554,
     url: `https://mainnet.aurora.dev`,
-    tags: ["aurora"],
+    tags: ['aurora'],
   },
   auroraTestnet: {
     accounts: {
@@ -185,74 +185,74 @@ export const networksPartialConfig = (mnemonic: string) => ({
     },
     chainId: 1313161555,
     url: `https://aurora-testnet.infura.io/v3/${INFURA_API_KEY()}`,
-    tags: ["auroraTestnet"],
+    tags: ['auroraTestnet'],
     gasPrice: 0,
   },
   avalanche: {
     accounts: { mnemonic },
-    url: "https://api.avax.network/ext/bc/C/rpc",
+    url: 'https://api.avax.network/ext/bc/C/rpc',
     chainId: 43114,
-    tags: ["avalanche"],
+    tags: ['avalanche'],
   },
   avalancheTestnet: {
     accounts: { mnemonic },
-    url: "https://api.avax-test.network/ext/bc/C/rpc",
+    url: 'https://api.avax-test.network/ext/bc/C/rpc',
     chainId: 43113,
-    tags: ["avalancheTestnet"],
+    tags: ['avalancheTestnet'],
   },
   bsc: {
     accounts: { mnemonic },
-    url: "https://bsc-dataseed.binance.org",
+    url: 'https://bsc-dataseed.binance.org',
     chainId: 56,
-    tags: ["bsc"],
+    tags: ['bsc'],
   },
   bsctest: {
     accounts: { mnemonic },
-    url: "https://data-seed-prebsc-2-s3.binance.org:8545",
+    url: 'https://data-seed-prebsc-2-s3.binance.org:8545',
     chainId: 97,
-    tags: ["bsctest"],
+    tags: ['bsctest'],
   },
   celo: {
-    url: "https://forno.celo.org",
+    url: 'https://forno.celo.org',
     chainId: 42220,
-    tags: ["celo"],
+    tags: ['celo'],
   },
   celotest: {
-    url: "https://alfajores-forno.celo-testnet.org",
+    url: 'https://alfajores-forno.celo-testnet.org',
     chainId: 44787,
-    tags: ["celotest"],
+    tags: ['celotest'],
   },
   moonbeam: {
     chainId: 1284,
-    url: "https://rpc.api.moonbeam.network",
-    tags: ["moonbeam"],
+    url: 'https://rpc.api.moonbeam.network',
+    tags: ['moonbeam'],
   },
   moonriver: {
     chainId: 1285,
-    url: "https://rpc.moonriver.moonbeam.network",
-    tags: ["moonriver"],
+    url: 'https://rpc.moonriver.moonbeam.network',
+    tags: ['moonriver'],
   },
   moonbase: {
     chainId: 1287,
-    url: "https://rpc.api.moonbase.moonbeam.network",
-    tags: ["moonbase"],
+    url: 'https://rpc.api.moonbase.moonbeam.network',
+    tags: ['moonbase'],
   },
   fantom: {
     accounts: { mnemonic },
-    url: "https://rpcapi.fantom.network",
+    url: 'https://rpcapi.fantom.network',
     chainId: 2100,
-    tags: ["fantom"],
+    tags: ['fantom'],
   },
   harmony: {
     accounts: { mnemonic },
-    url: "https://api.s0.t.hmny.io",
+    url: 'https://api.s0.t.hmny.io',
     chainId: 1666600000,
-    tags: ["harmony"],
+    tags: ['harmony'],
   },
   harmonyTestnet: {
     accounts: { mnemonic },
-    url: "https://api.s0.b.hmny.io",
+    url: 'https://api.s0.b.hmny.io',
     chainId: 1666700000,
-    tags: ["harmonyTestnet"],
+    tags: ['harmonyTestnet'],
   },
 });

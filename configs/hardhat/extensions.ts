@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { signatureFilters } from "@deploy-config/shared";
-import { Fragment } from "@ethersproject/abi";
-import { WrapperBuilder } from "@redstone-finance/evm-connector";
-import { checkAddress } from "@scripts/check-address";
-import { getAddresses, getUsers } from "@utils/hardhat";
-import { extendEnvironment } from "hardhat/config";
-import { ContractTypes } from "types";
+import { signatureFilters } from '@config/deploy';
+import { Fragment } from '@ethersproject/abi';
+import { WrapperBuilder } from '@redstone-finance/evm-connector';
+import { checkAddress } from '@scripts/check-address';
+import { getAddresses, getUsers } from '@utils/hardhat';
+import { extendEnvironment } from 'hardhat/config';
+import { ContractTypes } from 'types';
 
 extendEnvironment(async function (hre) {
   // for testing
@@ -24,15 +24,15 @@ extendEnvironment(function (hre) {
   hre.allAssets = [];
   hre.checkAddress = checkAddress;
   hre.getDeploymentOrFork = async deploymentName => {
-    const isFork = !hre.network.live && hre.companionNetworks["live"];
+    const isFork = !hre.network.live && hre.companionNetworks['live'];
     const deployment = !isFork
       ? await hre.deployments.getOrNull(deploymentName)
-      : await hre.companionNetworks["live"].deployments.getOrNull(deploymentName);
+      : await hre.companionNetworks['live'].deployments.getOrNull(deploymentName);
 
-    if (!deployment && deploymentName === "Kresko") {
+    if (!deployment && deploymentName === 'Kresko') {
       return !isFork
-        ? await hre.deployments.getOrNull("Diamond")
-        : await hre.companionNetworks["live"].deployments.getOrNull("Diamond");
+        ? await hre.deployments.getOrNull('Diamond')
+        : await hre.companionNetworks['live'].deployments.getOrNull('Diamond');
     }
     return deployment || (await hre.deployments.getOrNull(deploymentName));
   };
@@ -46,16 +46,16 @@ extendEnvironment(function (hre) {
     if (!deployment) {
       throw new Error(`${deploymentId} not deployed on ${hre.network.name} network`);
     }
-    if (type === "Kresko") {
+    if (type === 'Kresko') {
       return WrapperBuilder.wrap(await hre.ethers.getContractAt(type, deployment.address)).usingSimpleNumericMock({
         mockSignersCount: 1,
         timestampMilliseconds: Date.now(),
         dataPoints: [
-          { dataFeedId: "DAI", value: 0 },
-          { dataFeedId: "USDC", value: 0 },
-          { dataFeedId: "TSLA", value: 0 },
-          { dataFeedId: "ETH", value: 0 },
-          { dataFeedId: "BTC", value: 0 },
+          { dataFeedId: 'DAI', value: 0 },
+          { dataFeedId: 'USDC', value: 0 },
+          { dataFeedId: 'TSLA', value: 0 },
+          { dataFeedId: 'ETH', value: 0 },
+          { dataFeedId: 'BTC', value: 0 },
         ],
       }) as ContractTypes[typeof type];
     }
@@ -69,16 +69,16 @@ extendEnvironment(function (hre) {
     if (!deployment) {
       return null;
     }
-    if (type === "Kresko") {
+    if (type === 'Kresko') {
       return WrapperBuilder.wrap(await hre.ethers.getContractAt(type, deployment.address)).usingSimpleNumericMock({
         mockSignersCount: 1,
         timestampMilliseconds: Date.now(),
         dataPoints: [
-          { dataFeedId: "DAI", value: 0 },
-          { dataFeedId: "USDC", value: 0 },
-          { dataFeedId: "TSLA", value: 0 },
-          { dataFeedId: "ETH", value: 0 },
-          { dataFeedId: "BTC", value: 0 },
+          { dataFeedId: 'DAI', value: 0 },
+          { dataFeedId: 'USDC', value: 0 },
+          { dataFeedId: 'TSLA', value: 0 },
+          { dataFeedId: 'ETH', value: 0 },
+          { dataFeedId: 'BTC', value: 0 },
         ],
       }) as ContractTypes[typeof type];
     }
@@ -112,14 +112,14 @@ extendEnvironment(function (hre) {
         implementation,
         implementation.interface.fragments
           .filter(
-            frag => frag.type === "function" && !signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+            frag => frag.type === 'function' && !signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
           )
           .map(frag => implementation.interface.getSighash(frag)),
 
         deployment,
       ] as const;
     } catch (e: any) {
-      if (e.message.includes("not deployed")) {
+      if (e.message.includes('not deployed')) {
         const implementation = (await hre.ethers.getContractAt(
           type,
           deployment.address,
@@ -128,7 +128,7 @@ extendEnvironment(function (hre) {
           implementation,
           implementation.interface.fragments
             .filter(
-              frag => frag.type === "function" && !signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
+              frag => frag.type === 'function' && !signatureFilters.some(f => f.indexOf(frag.name.toLowerCase()) > -1),
             )
             .map(frag => implementation.interface.getSighash(frag)),
           deployment,
@@ -139,15 +139,15 @@ extendEnvironment(function (hre) {
     }
   };
   hre.getSignature = from =>
-    Fragment.from(from)?.type === "function" && hre.ethers.utils.Interface.getSighash(Fragment.from(from));
+    Fragment.from(from)?.type === 'function' && hre.ethers.utils.Interface.getSighash(Fragment.from(from));
   hre.getSignatures = abi =>
     new hre.ethers.utils.Interface(abi).fragments
-      .filter(f => f.type === "function" && !signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1))
+      .filter(f => f.type === 'function' && !signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1))
       .map(hre.ethers.utils.Interface.getSighash);
 
   hre.getSignaturesWithNames = abi =>
     new hre.ethers.utils.Interface(abi).fragments
-      .filter(f => f.type === "function" && !signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1))
+      .filter(f => f.type === 'function' && !signatureFilters.some(s => s.indexOf(f.name.toLowerCase()) > -1))
       .map(fragment => ({
         name: fragment.name,
         sig: hre.ethers.utils.Interface.getSighash(fragment),

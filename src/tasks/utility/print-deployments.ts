@@ -1,7 +1,7 @@
-import { task } from "hardhat/config";
-import { TASK_PRINT_DEPLOYMENTS } from "../names";
+import { task } from 'hardhat/config';
+import { TASK_PRINT_DEPLOYMENTS } from '../names';
 
-task(TASK_PRINT_DEPLOYMENTS, "Prints the list of deployment addresses", async () => {
+task(TASK_PRINT_DEPLOYMENTS, 'Prints the list of deployment addresses', async () => {
   const deployments = await hre.deployments.all();
   const docs = [];
   for (const [name, deployment] of Object.entries(deployments)) {
@@ -9,5 +9,5 @@ task(TASK_PRINT_DEPLOYMENTS, "Prints the list of deployment addresses", async ()
     docs.push(`${name},  [${deployment.address}](https://goerli-optimism.etherscan.io/address/${deployment.address})`);
   }
 
-  console.log(docs.join("\n"));
+  console.log(docs.join('\n'));
 });

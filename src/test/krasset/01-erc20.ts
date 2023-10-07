@@ -1,19 +1,19 @@
-import { expect } from "@test/chai";
-import { kreskoAssetFixture } from "@utils/test/fixtures";
-import Role from "@utils/test/roles";
+import { expect } from '@test/chai';
+import { kreskoAssetFixture } from '@utils/test/fixtures';
+import Role from '@utils/test/roles';
 
-describe("KreskoAsset", () => {
+describe('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset;
 
   beforeEach(async function () {
-    ({ KreskoAsset } = await kreskoAssetFixture({ name: "Ether", symbol: "krETH" }));
+    ({ KreskoAsset } = await kreskoAssetFixture({ name: 'Ether', symbol: 'krETH' }));
     this.owner = hre.users.deployer;
     this.mintAmount = 125;
     await KreskoAsset.grantRole(Role.OPERATOR, this.owner.address);
   });
 
-  describe("#mint", () => {
-    it("should allow the owner to mint to their own address", async function () {
+  describe('#mint', () => {
+    it('should allow the owner to mint to their own address', async function () {
       expect(await KreskoAsset.totalSupply()).to.equal(0);
       expect(await KreskoAsset.balanceOf(this.owner.address)).to.equal(0);
 
@@ -24,7 +24,7 @@ describe("KreskoAsset", () => {
       expect(await KreskoAsset.balanceOf(this.owner.address)).to.equal(this.mintAmount);
     });
 
-    it("should allow the asset owner to mint to another address", async function () {
+    it('should allow the asset owner to mint to another address', async function () {
       expect(await KreskoAsset.totalSupply()).to.equal(0);
       expect(await KreskoAsset.balanceOf(hre.users.userOne.address)).to.equal(0);
 
@@ -35,7 +35,7 @@ describe("KreskoAsset", () => {
       expect(await KreskoAsset.balanceOf(hre.users.userOne.address)).to.equal(this.mintAmount);
     });
 
-    it("should not allow non-owner addresses to mint tokens", async function () {
+    it('should not allow non-owner addresses to mint tokens', async function () {
       expect(await KreskoAsset.totalSupply()).to.equal(0);
       expect(await KreskoAsset.balanceOf(this.owner.address)).to.equal(0);
 
@@ -47,13 +47,13 @@ describe("KreskoAsset", () => {
       expect(await KreskoAsset.balanceOf(hre.users.userOne.address)).to.equal(0);
     });
 
-    it("should not allow admin to mint tokens", async function () {
+    it('should not allow admin to mint tokens', async function () {
       await KreskoAsset.renounceRole(Role.OPERATOR, this.owner.address);
       await expect(KreskoAsset.connect(hre.users.admin).mint(this.owner.address, this.mintAmount)).to.be.reverted;
     });
   });
 
-  describe("#burn", () => {
+  describe('#burn', () => {
     beforeEach(async function () {
       this.mintAmount = 250;
       await KreskoAsset.connect(this.owner).mint(hre.users.userOne.address, this.mintAmount);
@@ -88,7 +88,7 @@ describe("KreskoAsset", () => {
       expect(await KreskoAsset.allowance(this.owner.address, hre.users.userOne.address)).to.equal(this.mintAmount);
     });
 
-    it("should not allow the operator to burn more tokens than user holds", async function () {
+    it('should not allow the operator to burn more tokens than user holds', async function () {
       const userBalance = await KreskoAsset.balanceOf(hre.users.userOne.address);
       const overUserBalance = Number(userBalance) + 1;
 
@@ -99,7 +99,7 @@ describe("KreskoAsset", () => {
       expect(await KreskoAsset.balanceOf(hre.users.userOne.address)).to.equal(this.mintAmount);
     });
 
-    it("should not allow non-operator addresses to burn tokens", async function () {
+    it('should not allow non-operator addresses to burn tokens', async function () {
       await expect(
         KreskoAsset.connect(hre.users.userTwo).burn(hre.users.userOne.address, this.mintAmount),
       ).to.be.revertedWith(

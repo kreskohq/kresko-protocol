@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { getLogger } from "@kreskolabs/lib/meta";
-import { task } from "hardhat/config";
-import { TASK_VERIFY_DEPLOYMENTS } from "../names";
+import { getLogger } from '@kreskolabs/lib/meta';
+import { task } from 'hardhat/config';
+import { TASK_VERIFY_DEPLOYMENTS } from '../names';
 
 const logger = getLogger(TASK_VERIFY_DEPLOYMENTS);
 
 task(TASK_VERIFY_DEPLOYMENTS).setAction(async function () {
   if (!hre.network.live) {
-    throw new Error("This task is only for live networks");
+    throw new Error('This task is only for live networks');
   }
 
   if (!process.env.TENDERLY_ACCESS_TOKEN) {
-    throw new Error("TENDERLY_ACCESS_TOKEN not found");
+    throw new Error('TENDERLY_ACCESS_TOKEN not found');
   }
 
   const all = await hre.deployments.all();
@@ -22,18 +22,18 @@ task(TASK_VERIFY_DEPLOYMENTS).setAction(async function () {
 
   logger.log(`Verifying export ${all.length} contracts...`);
 
-  logger.log("Verifying contracts on etherscan...");
-  await hre.run("etherscan-verify");
+  logger.log('Verifying contracts on etherscan...');
+  await hre.run('etherscan-verify');
 
   for (const [key, deployment] of Object.entries(all)) {
-    console.log("tenderly", key, deployment.address);
+    console.log('tenderly', key, deployment.address);
     // await hre.tenderly.verifyMultiCompilerAPI(data);
 
-    await fetch("https://api.tenderly.co/api/v1/account/kresko/project/protocol/address", {
-      method: "POST",
+    await fetch('https://api.tenderly.co/api/v1/account/kresko/project/protocol/address', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "X-Access-Key": process.env.TENDERLY_ACCESS_TOKEN,
+        'Content-Type': 'application/json',
+        'X-Access-Key': process.env.TENDERLY_ACCESS_TOKEN,
       },
       body: JSON.stringify({
         address: deployment.address,
@@ -43,5 +43,5 @@ task(TASK_VERIFY_DEPLOYMENTS).setAction(async function () {
     });
   }
 
-  logger.log("Done!");
+  logger.log('Done!');
 });

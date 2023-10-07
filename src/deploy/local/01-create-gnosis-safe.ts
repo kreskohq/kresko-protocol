@@ -1,23 +1,23 @@
-import { getLogger } from "@kreskolabs/lib/meta";
-import { getNamedEvent } from "@utils/events";
-import type { DeployFunction } from "hardhat-deploy/dist/types";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { getLogger } from '@kreskolabs/lib/meta';
+import { getNamedEvent } from '@utils/events';
+import type { DeployFunction } from 'hardhat-deploy/dist/types';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 // import { executeContractCallWithSigners } from "@utils/gnosis";
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const logger = getLogger("multisig");
+  const logger = getLogger('multisig');
   const { ethers, deployments } = hre;
 
   // Multisig signers
   const { deployer, devTwo, extOne, extTwo, devOne } = await ethers.getNamedSigners();
 
   // Get the factory
-  const FactoryDeployment = await deployments.get("GnosisSafeProxyFactory");
+  const FactoryDeployment = await deployments.get('GnosisSafeProxyFactory');
   const Factory = await ethers.getContractAt(FactoryDeployment.abi, FactoryDeployment.address);
 
   // Local mastercopy
-  const MasterCopyDeployment = await deployments.get("GnosisSafeL2");
+  const MasterCopyDeployment = await deployments.get('GnosisSafeL2');
 
   const MasterCopy = await ethers.getContractAt(MasterCopyDeployment.abi, MasterCopyDeployment.address);
   // TODO: bring ReentrancyGuard back into this deployment
@@ -29,7 +29,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     safeUsers.map(user => user.address),
     3,
     ethers.constants.AddressZero,
-    "0x",
+    '0x',
     ethers.constants.AddressZero,
     ethers.constants.AddressZero,
     0,
@@ -39,16 +39,16 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // Encoded params for setup
   const creationTx = await MasterCopy.populateTransaction.setup(...creationArgs);
 
-  if (!creationTx.data) throw new Error("No data found in gnosis creationTx");
+  if (!creationTx.data) throw new Error('No data found in gnosis creationTx');
   const tx = await Factory.createProxy(MasterCopy.address, creationTx.data);
 
-  const creationEvent = await getNamedEvent<any>(tx, "ProxyCreation");
+  const creationEvent = await getNamedEvent<any>(tx, 'ProxyCreation');
 
   const receipt = await tx.wait();
 
-  const SafeDeployment = await deployments.get("GnosisSafeL2");
+  const SafeDeployment = await deployments.get('GnosisSafeL2');
   const SafeProxy = await ethers.getContractAt(SafeDeployment.abi, creationEvent.args.proxy);
-  await deployments.save("GnosisSafeL2", {
+  await deployments.save('GnosisSafeL2', {
     abi: SafeDeployment.abi,
     address: creationEvent.args.proxy,
     args: [...creationArgs],
@@ -64,11 +64,11 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   //     [deployer, devTwo, extOne],
   // );
 
-  logger.success("Multisig succesfully deployed through proxyFactory @", SafeProxy.address);
+  logger.success('Multisig succesfully deployed through proxyFactory @', SafeProxy.address);
   hre.Multisig = SafeProxy;
 };
 
-deploy.tags = ["all", "local", "gnosis-safe"];
+deploy.tags = ['all', 'local', 'gnosis-safe'];
 // deploy.skip = async hre => hre.network.live;
 
 export default deploy;

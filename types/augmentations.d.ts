@@ -1,19 +1,19 @@
-import type { FakeContract } from "@defi-wonderland/smock";
+import type { FakeContract } from '@defi-wonderland/smock';
 
-import { Fragment, FunctionFragment, JsonFragment } from "@ethersproject/abi";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { checkAddress } from "@scripts/check-address";
-import { providers } from "ethers";
-import { hardhatUsers } from "hardhat-configs/users";
-import { ABI, DeployOptions, Deployment, Facet } from "hardhat-deploy/dist/types";
-import "hardhat/types/config";
-import "mocha";
-import * as Contracts from "./typechain";
+import { Fragment, FunctionFragment, JsonFragment } from '@ethersproject/abi';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { checkAddress } from '@scripts/check-address';
+import { providers } from 'ethers';
+import { hardhatUsers } from '@config/hardhat';
+import { ABI, DeployOptions, Deployment, Facet } from 'hardhat-deploy/dist/types';
+import 'hardhat/types/config';
+import 'mocha';
+import * as Contracts from './typechain';
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
 /* ========================================================================== */
 
-declare module "mocha" {
+declare module 'mocha' {
   export interface Context {
     /* -------------------------------------------------------------------------- */
     /*                               Users / Signers                              */
@@ -30,7 +30,7 @@ declare module "mocha" {
       liquidator?: SignerWithAddress;
       treasury?: SignerWithAddress;
     };
-    krAssets: TestAsset<KreskoAsset, "mock">[];
+    krAssets: TestAsset<KreskoAsset, 'mock'>[];
     collaterals: TestAsset<ERC20Upgradeable>[];
   }
 }
@@ -39,7 +39,7 @@ export {};
 /* ========================================================================== */
 /*                         HARDHAT RUNTIME EXTENSIONS                         */
 /* ========================================================================== */
-declare module "hardhat/types/config" {
+declare module 'hardhat/types/config' {
   // This is an example of an extension to one of the Hardhat config values.
 
   // We extend the UserConfig type, which represents the config as written
@@ -58,7 +58,7 @@ declare module "hardhat/types/config" {
   }
 }
 
-declare module "hardhat/types/runtime" {
+declare module 'hardhat/types/runtime' {
   export type HardhatUsers<T> = {
     [key in keyof typeof hardhatUsers]: T;
   };
@@ -81,7 +81,7 @@ declare module "hardhat/types/runtime" {
     };
     deploy<T extends keyof TC>(
       type: T,
-      options?: Omit<DeployOptions, "from"> & {
+      options?: Omit<DeployOptions, 'from'> & {
         deploymentName?: string;
         from?: string;
       },
@@ -98,8 +98,8 @@ declare module "hardhat/types/runtime" {
     /*                                 Deployment                                 */
     /* -------------------------------------------------------------------------- */
 
-    krAssets: TestAsset<KreskoAsset, "mock">[];
-    extAssets: TestAsset<ERC20Upgradeable, "mock">[];
+    krAssets: TestAsset<KreskoAsset, 'mock'>[];
+    extAssets: TestAsset<ERC20Upgradeable, 'mock'>[];
     facets: { name: string; address: string; functions: number }[];
 
     /* -------------------------------------------------------------------------- */
@@ -109,7 +109,7 @@ declare module "hardhat/types/runtime" {
     allAssets: TestAsset<ERC20Upgradeable | KreskoAsset, any>[];
 
     DiamondDeployment: Deployment;
-    Diamond: TC["Kresko"];
+    Diamond: TC['Kresko'];
     Multisig: any;
 
     UniV2Factory: any;
@@ -117,7 +117,7 @@ declare module "hardhat/types/runtime" {
   }
 }
 
-declare module "ethers" {
+declare module 'ethers' {
   interface BigNumber {
     ray: () => BigNumber;
     wad: () => BigNumber;

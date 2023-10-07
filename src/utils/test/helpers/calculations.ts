@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber } from 'ethers';
 export const ONE_YEAR = 60 * 60 * 24 * 365;
 
 export const getBlockTimestamp = async () => {

@@ -1,33 +1,33 @@
-import { expect } from "@test/chai";
-import { getAnchorNameAndSymbol } from "@utils/strings";
-import { kreskoAssetFixture } from "@utils/test/fixtures";
-import Role from "@utils/test/roles";
+import { expect } from '@test/chai';
+import { getAnchorNameAndSymbol } from '@utils/strings';
+import { kreskoAssetFixture } from '@utils/test/fixtures';
+import Role from '@utils/test/roles';
 
-const name = "Ether";
-const symbol = "krETH";
+const name = 'Ether';
+const symbol = 'krETH';
 const { anchorSymbol, anchorName } = getAnchorNameAndSymbol(symbol, name);
-describe("KreskoAsset", function () {
+describe('KreskoAsset', function () {
   let f: Awaited<ReturnType<typeof kreskoAssetFixture>>;
 
-  describe("#initialization - anchor", () => {
+  describe('#initialization - anchor', () => {
     beforeEach(async function () {
       f = await kreskoAssetFixture({ name, symbol });
     });
-    it("cant initialize twice", async function () {
+    it('cant initialize twice', async function () {
       await expect(f.KreskoAsset.initialize(name!, symbol, 18, hre.addr.deployer, hre.Diamond.address)).to.be.reverted;
     });
 
-    it.skip("cant initialize implementation", async function () {
+    it.skip('cant initialize implementation', async function () {
       const deployment = await hre.deployments.get(symbol);
       const implementationAddress = deployment!.implementation;
       expect(implementationAddress).to.not.equal(hre.ethers.constants.AddressZero);
-      const KreskoAssetImpl = await hre.ethers.getContractAt("KreskoAsset", implementationAddress!);
+      const KreskoAssetImpl = await hre.ethers.getContractAt('KreskoAsset', implementationAddress!);
 
       await expect(KreskoAssetImpl.initialize(name!, symbol, 18, hre.addr.deployer, hre.Diamond.address)).to.be
         .reverted;
     });
 
-    it("sets correct state", async function () {
+    it('sets correct state', async function () {
       expect(await f.KreskoAsset.name()).to.equal(name);
       expect(await f.KreskoAsset.symbol()).to.equal(symbol);
       expect(await f.KreskoAsset.kresko()).to.equal(hre.Diamond.address);
@@ -42,21 +42,21 @@ describe("KreskoAsset", function () {
       expect(rebaseInfo.positive).to.equal(false);
     });
 
-    it("can reinitialize metadata", async function () {
-      const newName = "foo";
-      const newSymbol = "bar";
+    it('can reinitialize metadata', async function () {
+      const newName = 'foo';
+      const newSymbol = 'bar';
       await expect(f.KreskoAsset.reinitializeERC20(newName, newSymbol, 2)).to.not.be.reverted;
       expect(await f.KreskoAsset.name()).to.equal(newName);
       expect(await f.KreskoAsset.symbol()).to.equal(newSymbol);
     });
   });
 
-  describe("#initialization - wrapped", () => {
-    it("cant initialize twice", async function () {
+  describe('#initialization - wrapped', () => {
+    it('cant initialize twice', async function () {
       await expect(f.KreskoAssetAnchor.initialize(f.KreskoAsset.address, name!, symbol, hre.addr.deployer)).to.be
         .reverted;
     });
-    it("sets correct state", async function () {
+    it('sets correct state', async function () {
       expect(await f.KreskoAssetAnchor.name()).to.equal(anchorName);
       expect(await f.KreskoAssetAnchor.symbol()).to.equal(anchorSymbol);
       expect(await f.KreskoAssetAnchor.asset()).to.equal(f.KreskoAsset.address);
@@ -71,20 +71,20 @@ describe("KreskoAsset", function () {
       expect(rebaseInfo.positive).to.equal(false);
     });
 
-    it.skip("cant initialize implementation", async function () {
+    it.skip('cant initialize implementation', async function () {
       const deployment = await hre.deployments.get(anchorSymbol);
       const implementationAddress = deployment!.implementation;
 
       expect(implementationAddress).to.not.equal(hre.ethers.constants.AddressZero);
-      const KreskoAssetAnchorImpl = await hre.ethers.getContractAt("KreskoAssetAnchor", implementationAddress!);
+      const KreskoAssetAnchorImpl = await hre.ethers.getContractAt('KreskoAssetAnchor', implementationAddress!);
 
       await expect(KreskoAssetAnchorImpl.initialize(f.KreskoAsset.address, name!, symbol, hre.addr.deployer)).to.be
         .reverted;
     });
 
-    it("can reinitialize metadata", async function () {
-      const newName = "foo";
-      const newSymbol = "bar";
+    it('can reinitialize metadata', async function () {
+      const newName = 'foo';
+      const newSymbol = 'bar';
       await expect(f.KreskoAssetAnchor.reinitializeERC20(newName, newSymbol, 2)).to.not.be.reverted;
       expect(await f.KreskoAssetAnchor.name()).to.equal(newName);
       expect(await f.KreskoAssetAnchor.symbol()).to.equal(newSymbol);

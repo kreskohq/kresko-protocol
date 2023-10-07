@@ -1,13 +1,13 @@
-import { ZERO_ADDRESS } from "@kreskolabs/lib";
-import { expect } from "@test/chai";
-import { defaultRedstoneDataPoints, wrapPrices } from "@utils/redstone";
-import { DefaultFixture, defaultFixture } from "@utils/test/fixtures";
-import { testCollateralConfig } from "@utils/test/mocks";
-import { toBig } from "@utils/values";
-import { OracleType } from "types";
-import { Kresko, MockSequencerUptimeFeed } from "types/typechain";
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { expect } from '@test/chai';
+import { defaultRedstoneDataPoints, wrapPrices } from '@utils/redstone';
+import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
+import { testCollateralConfig } from '@utils/test/mocks';
+import { toBig } from '@utils/values';
+import { OracleType } from 'types';
+import { Kresko, MockSequencerUptimeFeed } from 'types/typechain';
 
-describe("Oracles", () => {
+describe('Oracles', () => {
   let f: DefaultFixture;
   let mockSequencerUptimeFeed: MockSequencerUptimeFeed;
   let user: SignerWithAddress;
@@ -15,21 +15,21 @@ describe("Oracles", () => {
     f = await defaultFixture();
     // Deploy one price feed
     [, [user]] = f.users;
-    this.deployer = await hre.ethers.getNamedSigner("deployer");
-    this.userOne = await hre.ethers.getNamedSigner("userOne");
+    this.deployer = await hre.ethers.getNamedSigner('deployer');
+    this.userOne = await hre.ethers.getNamedSigner('userOne');
     f.Collateral.setPrice(10);
   });
 
-  describe("Redstone", () => {
-    it("should have correct setup", async function () {
+  describe('Redstone', () => {
+    it('should have correct setup', async function () {
       // check initial conditions
       expect(await hre.Diamond.getAccountTotalCollateralValue(user.address)).to.equal(
         toBig(10000, 8),
-        "collateral value should be $10",
+        'collateral value should be $10',
       );
     });
 
-    it("should get redstone price when chainlink price = 0", async function () {
+    it('should get redstone price when chainlink price = 0', async function () {
       /// set chainlink price to 0
       f.Collateral.setPrice(0);
       const redstoneCollateralPrice = 20;
@@ -40,11 +40,11 @@ describe("Oracles", () => {
 
       expect(await redstoneDiamond.getAccountTotalCollateralValue(user.address)).to.equal(
         f.depositAmount.wadMul(toBig(redstoneCollateralPrice, 8)),
-        "collateral value should be $20",
+        'collateral value should be $20',
       );
     });
 
-    it("should get primary price when price +- oracleDeviationPct of reference price ", async function () {
+    it('should get primary price when price +- oracleDeviationPct of reference price ', async function () {
       await f.Collateral.setOracleOrder([OracleType.Redstone, OracleType.Chainlink]);
       /// set chainlink price to 12
       f.Collateral.setPrice(12);
@@ -58,11 +58,11 @@ describe("Oracles", () => {
 
       expect(await redstoneDiamond.getAccountTotalCollateralValue(user.address)).to.equal(
         f.depositAmount.wadMul(toBig(redstoneCollateralPrice, 8)),
-        "collateral value should be $11",
+        'collateral value should be $11',
       );
     });
 
-    it("should revert if price deviates too much", async function () {
+    it('should revert if price deviates too much', async function () {
       /// set chainlink price to 20
       f.Collateral.setPrice(20);
 
@@ -76,7 +76,7 @@ describe("Oracles", () => {
       f.Collateral.setPrice(10);
     });
 
-    it("should return redstone price if sequencer is down", async function () {
+    it('should return redstone price if sequencer is down', async function () {
       /// set chainlink price to 5
       f.Collateral.setPrice(5);
 
@@ -85,15 +85,15 @@ describe("Oracles", () => {
         ...defaultRedstoneDataPoints.map(p => (p.value === 0 ? { ...p, value: 1 } : p)),
         { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
       ]);
-      (await hre.getContractOrFork("MockSequencerUptimeFeed")).setAnswer(1);
+      (await hre.getContractOrFork('MockSequencerUptimeFeed')).setAnswer(1);
       // should return redstone price if sequencer is down
       expect(await redstoneDiamond.getAccountTotalCollateralValue(user.address)).to.be.equal(
         f.depositAmount.wadMul(toBig(redstoneCollateralPrice, 8)),
-        "collateral value should be $200",
+        'collateral value should be $200',
       );
 
       f.Collateral.setPrice(10);
-      (await hre.getContractOrFork("MockSequencerUptimeFeed")).setAnswer(0);
+      (await hre.getContractOrFork('MockSequencerUptimeFeed')).setAnswer(0);
     });
   });
 });

@@ -1,14 +1,14 @@
-import { BigNumber, ethers } from "ethers";
-import { concat, hexlify, toUtf8Bytes } from "ethers/lib/utils";
-export const HashZero = "0x0000000000000000000000000000000000000000000000000000000000000000";
-export const MaxUint128 = "340282366920938463463374607431768211455";
+import { BigNumber, ethers } from 'ethers';
+import { concat, hexlify, toUtf8Bytes } from 'ethers/lib/utils';
+export const HashZero = '0x0000000000000000000000000000000000000000000000000000000000000000';
+export const MaxUint128 = '340282366920938463463374607431768211455';
 export function formatBytesString(text: string, length: number): string {
   // Get the bytes
   const bytes = toUtf8Bytes(text);
 
   // Check we have room for null-termination
   if (bytes.length > 31) {
-    throw new Error("bytes32 string must be less than 32 bytes");
+    throw new Error('bytes32 string must be less than 32 bytes');
   }
 
   // Zero-pad (implicitly null-terminates)
@@ -16,11 +16,11 @@ export function formatBytesString(text: string, length: number): string {
 }
 
 export const toBig = (amount: number | string, decimals: string | number = 18) => {
-  const value = typeof amount === "string" ? amount : amount.toString();
+  const value = typeof amount === 'string' ? amount : amount.toString();
   return ethers.utils.parseUnits(value, decimals);
 };
 export const fromBig = (amount: BigNumber | string, decimals: string | number = 18) => {
-  const value = typeof amount === "string" ? amount : amount.toString();
+  const value = typeof amount === 'string' ? amount : amount.toString();
   return +ethers.utils.formatUnits(value, decimals);
 };
 
@@ -32,9 +32,9 @@ export const RAY = BigNumber.from(10).pow(27);
 export const HALF_RAY = BigNumber.from(RAY).div(2);
 export const WAD_RAY_RATIO = BigNumber.from(10).pow(9);
 export const MAX_UINT_AMOUNT = BigNumber.from(
-  "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+  '115792089237316195423570985008687907853269984665640564039457584007913129639935',
 );
-export const ONE_YEAR = BigNumber.from("31536000");
+export const ONE_YEAR = BigNumber.from('31536000');
 const wadMul = (wad: bigint, other: bigint): bigint => {
   return (HALF_WAD.toBigInt() + wad * other) / WAD.toBigInt();
 };

@@ -1,23 +1,23 @@
-import { smock } from "@defi-wonderland/smock";
-import { addFacet } from "@scripts/add-facet";
-import { removeFacet } from "@scripts/remove-facet";
-import { expect } from "@test/chai";
-import { diamondFixture } from "@utils/test/fixtures";
-import { wrapContractWithSigner } from "@utils/test/helpers/general";
-import { FacetCut, FacetCutAction } from "hardhat-deploy/dist/types";
-import { SmockFacet2__factory, SmockFacet__factory, SmockInit__factory } from "types/typechain";
+import { smock } from '@defi-wonderland/smock';
+import { addFacet } from '@scripts/add-facet';
+import { removeFacet } from '@scripts/remove-facet';
+import { expect } from '@test/chai';
+import { diamondFixture } from '@utils/test/fixtures';
+import { wrapContractWithSigner } from '@utils/test/helpers/general';
+import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
+import { SmockFacet2__factory, SmockFacet__factory, SmockInit__factory } from 'types/typechain';
 
-describe("Diamond", () => {
+describe('Diamond', () => {
   beforeEach(async function () {
     await diamondFixture();
   });
 
-  describe("#upgrades", () => {
-    it("can add a new facet", async function () {
-      const Factory = await smock.mock<SmockFacet__factory>("SmockFacet");
+  describe('#upgrades', () => {
+    it('can add a new facet', async function () {
+      const Factory = await smock.mock<SmockFacet__factory>('SmockFacet');
       const SmockFacet = await Factory.deploy();
 
-      const [SmockInitializer] = await hre.deploy("SmockInit");
+      const [SmockInitializer] = await hre.deploy('SmockInit');
 
       const signatures = hre.getSignatures([...SmockFacet__factory.abi]);
 
@@ -30,7 +30,7 @@ describe("Diamond", () => {
       const initData = await SmockInitializer.populateTransaction.initialize(hre.addr.userOne);
 
       await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
-      const TEST_OPERATOR_ROLE = hre.ethers.utils.id("kresko.test.operator");
+      const TEST_OPERATOR_ROLE = hre.ethers.utils.id('kresko.test.operator');
       const isTestOperator = await hre.Diamond.hasRole(TEST_OPERATOR_ROLE, hre.addr.userOne);
 
       // Succesfully added the new operator through the initialization contract
@@ -43,23 +43,23 @@ describe("Diamond", () => {
       expect(operatorFromNewStorage).to.equal(hre.addr.userOne);
     });
 
-    it("can remove a facet", async function () {
+    it('can remove a facet', async function () {
       const NewFacet = await addFacet({
-        name: "SmockFacet",
-        initializerName: "SmockInit",
+        name: 'SmockFacet',
+        initializerName: 'SmockInit',
         initializerArgs: hre.addr.userOne,
       });
       const facetsBefore = await hre.Diamond.facets();
       expect(facetsBefore.filter(f => f.facetAddress === NewFacet.address).length).to.equal(1);
 
-      await removeFacet({ name: "SmockFacet" });
+      await removeFacet({ name: 'SmockFacet' });
       const facetsAfter = await hre.Diamond.facets();
 
       expect(facetsBefore.length - facetsAfter.length).to.equal(1);
       expect(facetsAfter).to.not.deep.contain(NewFacet.address);
     });
 
-    it("can remove a function", async function () {
+    it('can remove a function', async function () {
       // Delete acceptOwnership from DiamondOwnershipFacet
 
       // Check there is no pending owner
@@ -75,7 +75,7 @@ describe("Diamond", () => {
       expect(pendingOwner).to.equal(wrongOwner);
 
       // Fragment and signature for acceptOwnersip
-      const functionFragment = hre.Diamond.interface.functions["acceptOwnership()"];
+      const functionFragment = hre.Diamond.interface.functions['acceptOwnership()'];
       const signature = hre.ethers.utils.Interface.getSighash(functionFragment);
 
       const facetAddress = await hre.Diamond.facetAddress(signature);
@@ -100,7 +100,7 @@ describe("Diamond", () => {
 
       // Ensure delegatecall did set the correct pending owner with the cut
 
-      const contract = await hre.ethers.getContractAt("AuthEvent", hre.Diamond.address);
+      const contract = await hre.ethers.getContractAt('AuthEvent', hre.Diamond.address);
 
       const filter = contract.filters.PendingOwnershipTransfer(hre.addr.deployer, correctOwner);
       const [event] = await contract.queryFilter(filter);
@@ -112,7 +112,7 @@ describe("Diamond", () => {
       await expect(wrapContractWithSigner(hre.Diamond, hre.users.nonadmin).acceptOwnership()).to.be.reverted;
     });
 
-    it("can replace a function", async function () {
+    it('can replace a function', async function () {
       // Same as above but instead replace the function
       // Check there is no pending owner
       let pendingOwner = await hre.Diamond.pendingOwner();
@@ -127,13 +127,13 @@ describe("Diamond", () => {
       expect(pendingOwner).to.equal(wrongOwner);
 
       // Fragment and signature for acceptOwnersip
-      const functionFragment = hre.Diamond.interface.functions["acceptOwnership()"];
+      const functionFragment = hre.Diamond.interface.functions['acceptOwnership()'];
       const signature = hre.ethers.utils.Interface.getSighash(functionFragment);
 
       const OldOwnershipFacet = await hre.Diamond.facetAddress(signature);
 
-      const [NewOwnershipFacet, allOwnershipFacetSignatures] = await hre.deploy("DiamondOwnershipFacet", {
-        deploymentName: "DiamondOwnershipFacet2",
+      const [NewOwnershipFacet, allOwnershipFacetSignatures] = await hre.deploy('DiamondOwnershipFacet', {
+        deploymentName: 'DiamondOwnershipFacet2',
       });
 
       // Only replace a single function, we could replace all of them
@@ -168,10 +168,10 @@ describe("Diamond", () => {
       expect(currentOwner).to.equal(correctOwner);
     });
 
-    it("can upgrade state", async function () {
+    it('can upgrade state', async function () {
       expect(await hre.Diamond.initialized()).to.equal(true);
 
-      const Factory = await smock.mock<SmockInit__factory>("SmockInit");
+      const Factory = await smock.mock<SmockInit__factory>('SmockInit');
       const SmockInit = await Factory.deploy();
 
       const tx = await SmockInit.populateTransaction.upgradeState();
@@ -180,14 +180,14 @@ describe("Diamond", () => {
       expect(await hre.Diamond.initialized()).to.equal(false);
     });
 
-    it("can preserve old state when extending storage layout", async function () {
+    it('can preserve old state when extending storage layout', async function () {
       expect(await hre.Diamond.initialized()).to.equal(true);
 
       // Add the first facet
-      const Factory = await smock.mock<SmockFacet__factory>("SmockFacet");
+      const Factory = await smock.mock<SmockFacet__factory>('SmockFacet');
       const SmockFacet = await Factory.deploy();
 
-      const [SmockInitializer] = await hre.deploy("SmockInit");
+      const [SmockInitializer] = await hre.deploy('SmockInit');
 
       const signatures = hre.getSignatures([...SmockFacet__factory.abi]);
 
@@ -200,13 +200,13 @@ describe("Diamond", () => {
       const initData = await SmockInitializer.populateTransaction.initialize(hre.addr.userOne);
       await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
 
-      const Diamond = await hre.ethers.getContractAt("SmockFacet", hre.Diamond.address);
+      const Diamond = await hre.ethers.getContractAt('SmockFacet', hre.Diamond.address);
       const isInitialized = await Diamond.smockInitialized();
       expect(isInitialized).to.equal(true);
 
       // Add facet with extended state
       // Add the first facet
-      const Factory2 = await smock.mock<SmockFacet2__factory>("SmockFacet2");
+      const Factory2 = await smock.mock<SmockFacet2__factory>('SmockFacet2');
       const SmockFacet2 = await Factory2.deploy();
 
       const signatures2 = hre.getSignatures([...SmockFacet2__factory.abi]);
@@ -222,7 +222,7 @@ describe("Diamond", () => {
       await hre.Diamond.diamondCut([Cut2], initData2.to!, initData2.data!);
 
       // Here we have appended the storage layout with the `extended` bool property.
-      const DiamondExtended = await hre.ethers.getContractAt("SmockFacet2", hre.Diamond.address);
+      const DiamondExtended = await hre.ethers.getContractAt('SmockFacet2', hre.Diamond.address);
 
       const initializedAfterExtend = await DiamondExtended.getOldStructValueFromExtended();
 
