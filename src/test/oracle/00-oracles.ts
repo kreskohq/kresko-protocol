@@ -1,15 +1,12 @@
-import { ZERO_ADDRESS } from '@kreskolabs/lib';
 import { expect } from '@test/chai';
 import { defaultRedstoneDataPoints, wrapPrices } from '@utils/redstone';
 import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
 import { testCollateralConfig } from '@utils/test/mocks';
 import { toBig } from '@utils/values';
 import { OracleType } from 'types';
-import { Kresko, MockSequencerUptimeFeed } from 'types/typechain';
 
 describe('Oracles', () => {
   let f: DefaultFixture;
-  let mockSequencerUptimeFeed: MockSequencerUptimeFeed;
   let user: SignerWithAddress;
   beforeEach(async function () {
     f = await defaultFixture();
@@ -34,7 +31,7 @@ describe('Oracles', () => {
       f.Collateral.setPrice(0);
       const redstoneCollateralPrice = 20;
 
-      const redstoneDiamond: Kresko = wrapPrices(hre.Diamond, [
+      const redstoneDiamond = wrapPrices(hre.Diamond, [
         { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
       ]);
 
@@ -85,7 +82,7 @@ describe('Oracles', () => {
         ...defaultRedstoneDataPoints.map(p => (p.value === 0 ? { ...p, value: 1 } : p)),
         { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
       ]);
-      (await hre.getContractOrFork('MockSequencerUptimeFeed')).setAnswer(1);
+      await (await hre.getContractOrFork('MockSequencerUptimeFeed')).setAnswer(1);
       // should return redstone price if sequencer is down
       expect(await redstoneDiamond.getAccountTotalCollateralValue(user.address)).to.be.equal(
         f.depositAmount.wadMul(toBig(redstoneCollateralPrice, 8)),
@@ -93,7 +90,7 @@ describe('Oracles', () => {
       );
 
       f.Collateral.setPrice(10);
-      (await hre.getContractOrFork('MockSequencerUptimeFeed')).setAnswer(0);
+      await (await hre.getContractOrFork('MockSequencerUptimeFeed')).setAnswer(0);
     });
   });
 });

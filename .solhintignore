@@ -8,4 +8,7 @@ out
 lib/**/*
 node_modules/
 ./src/contracts/vendor/
+./src/contracts/test/
+./src/contracts/periphery/
+./src/contracts/core/test/
 ./src/test/**/*;

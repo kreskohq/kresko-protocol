@@ -4,7 +4,6 @@ pragma solidity >=0.8.19;
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {Percents} from "common/Constants.sol";
-import {toWad} from "common/funcs/Math.sol";
 import {cs} from "common/State.sol";
 import {CError} from "common/CError.sol";
 import {Asset} from "common/Types.sol";

@@ -22,7 +22,9 @@ const deploy: DeployFunction = async function (hre) {
 
   await wrapKresko(kresko, deployer).mintKreskoAsset(
     deployer.address,
-    (await hre.getContractOrFork('KISS')).address,
+    (
+      await hre.getContractOrFork('KISS')
+    ).address,
     toBig(1_200_000_000),
   );
 

@@ -7,6 +7,7 @@ import {IERC20Permit} from "vendor/IERC20Permit.sol";
 /* solhint-disable var-name-mixedcase */
 /* solhint-disable not-rely-on-time */
 /* solhint-disable func-name-mixedcase */
+/* solhint-disable no-empty-blocks */
 
 /// @notice Modern and gas efficient ERC20 + EIP-2612 implementation.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/tokens/ERC20.sol)

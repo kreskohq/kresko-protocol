@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {Asset} from "common/Types.sol";
-
 interface ICommonStateFacet {
     /// @notice The EIP-712 typehash for the contract's domain.
     function domainSeparator() external view returns (bytes32);

@@ -3,7 +3,6 @@ pragma solidity >=0.8.19;
 
 import {WadRay} from "libs/WadRay.sol";
 import {SCDPState} from "scdp/State.sol";
-import {UserAssetData} from "scdp/Types.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 

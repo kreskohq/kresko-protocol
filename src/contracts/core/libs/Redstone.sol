@@ -5,10 +5,10 @@ import {RedstoneDefaultsLib} from "@redstone-finance/evm-connector/contracts/cor
 import {BitmapLib} from "@redstone-finance/evm-connector/contracts/libs/BitmapLib.sol";
 import {SignatureLib} from "@redstone-finance/evm-connector/contracts/libs/SignatureLib.sol";
 import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@redstone-finance/evm-connector/contracts/core/RedstoneConstants.sol";
 
 // import "@redstone-finance/evm-connector/contracts/core/CalldataExtractor.sol";
-
+// solhint-disable no-empty-blocks
+// solhint-disable avoid-low-level-calls
 /**
  * @title The base contract with helpful constants
  * @author The Redstone Oracles team
