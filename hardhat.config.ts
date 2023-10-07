@@ -56,7 +56,7 @@ const config: HardhatUserConfig = {
   namedAccounts: users,
   mocha: {
     // reporter: 'mochawesome',
-    timeout: process.env.CI ? 90000 : process.env.FORKING ? 300000 : 30000,
+    timeout: process.env.CI ? 45000 : process.env.FORKING ? 300000 : 30000,
   },
   paths: {
     artifacts: 'artifacts',

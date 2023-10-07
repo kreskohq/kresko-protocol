@@ -25,10 +25,9 @@ remappings = [
     '@kreskolabs/=node_modules/@kreskolabs/',
     '@openzeppelin/=node_modules/@openzeppelin/',
 ]
-
 via_ir = false
-optimizer = false
-optimizer_runs = 0
+optimizer = true
+optimizer_runs = 1000
 # [profile.optimizer_details]
 # "yul" = false
 # "constantOptimizer" = false

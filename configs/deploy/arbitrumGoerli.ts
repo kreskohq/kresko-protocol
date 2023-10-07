@@ -216,6 +216,7 @@ export const scdpInitArgs: SCDPInitArgsStruct = {
   minCollateralRatio: 5e4,
   liquidationThreshold: 2e4,
   swapFeeRecipient: '',
+  sdiPricePrecision: 8,
 };
 export const testnetConfigs: NetworkConfig = {
   all: {

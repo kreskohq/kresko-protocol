@@ -25,6 +25,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, IK
     address public kresko;
     bool public isRebased;
 
+    // solhint-disable-next-line no-empty-blocks
     constructor() {
         //
     }

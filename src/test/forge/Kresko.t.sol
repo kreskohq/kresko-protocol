@@ -45,7 +45,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
             minterMcr: 150e2,
             minterLt: 140e2,
             scdpMcr: 200e2,
-            scdpLt: 150e2
+            scdpLt: 150e2,
+            sdiPrecision: 8
         });
         deployDiamond(params);
         vm.warp(3601);

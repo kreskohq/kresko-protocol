@@ -53,6 +53,7 @@ abstract contract DeployHelper is RedstoneHelper {
         uint16 minterLt;
         uint16 scdpMcr;
         uint16 scdpLt;
+        uint8 sdiPrecision;
         address admin;
         address seqFeed;
     }
@@ -228,7 +229,12 @@ abstract contract DeployHelper is RedstoneHelper {
         });
         bytes memory initData = abi.encodeWithSelector(
             SCDPConfigFacet.initializeSCDP.selector,
-            SCDPInitArgs({swapFeeRecipient: TREASURY, minCollateralRatio: params.scdpMcr, liquidationThreshold: params.scdpLt})
+            SCDPInitArgs({
+                swapFeeRecipient: TREASURY,
+                minCollateralRatio: params.scdpMcr,
+                liquidationThreshold: params.scdpLt,
+                sdiPricePrecision: params.sdiPrecision
+            })
         );
         return Initialization(configurationFacetAddress, initData);
     }

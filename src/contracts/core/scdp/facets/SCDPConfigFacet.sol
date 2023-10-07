@@ -16,7 +16,7 @@ import {MEvent} from "minter/Events.sol";
 
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
 import {SCDPInitArgs, PairSetter} from "scdp/Types.sol";
-import {scdp} from "scdp/State.sol";
+import {scdp, sdi} from "scdp/State.sol";
 import {SEvent} from "scdp/Events.sol";
 
 contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
@@ -33,11 +33,14 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
             revert CError.INVALID_LT(_init.liquidationThreshold, _init.minCollateralRatio);
         } else if (_init.swapFeeRecipient == address(0)) {
             revert CError.INVALID_FEE_RECIPIENT(_init.swapFeeRecipient);
+        } else if (_init.sdiPricePrecision < 8) {
+            revert CError.INVALID_DECIMALS(address(0xD1), _init.sdiPricePrecision);
         }
         scdp().minCollateralRatio = _init.minCollateralRatio;
         scdp().liquidationThreshold = _init.liquidationThreshold;
         scdp().swapFeeRecipient = _init.swapFeeRecipient;
         scdp().maxLiquidationRatio = _init.liquidationThreshold + Percents.ONE;
+        sdi().sdiPricePrecision = _init.sdiPricePrecision;
 
         emit DiamondEvent.Initialized(msg.sender, ds().storageVersion++);
     }
@@ -48,7 +51,8 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
             SCDPInitArgs({
                 swapFeeRecipient: scdp().swapFeeRecipient,
                 minCollateralRatio: scdp().minCollateralRatio,
-                liquidationThreshold: scdp().liquidationThreshold
+                liquidationThreshold: scdp().liquidationThreshold,
+                sdiPricePrecision: sdi().sdiPricePrecision
             });
     }
 

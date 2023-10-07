@@ -18,7 +18,7 @@
     "deploy": "hardhat deploy",
     "coverage": "HARDHAT_DEPLOY_FIXTURE=true CI=true hardhat coverage",
     "test": "TEST=true hardhat test --deploy-fixture",
-    "test:ci": "CI=true hardhat test --deploy-fixture",
+    "test:ci": "TEST=true CI=true hardhat test --deploy-fixture",
     "typechain": "hardhat typechain",
     "local": "hardhat node --tags local --watch",
     "lint": "npm run lint:sol && npm run lint:ts && npm run prettier:check",

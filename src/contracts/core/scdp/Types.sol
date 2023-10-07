@@ -6,11 +6,13 @@ import {Asset} from "common/Types.sol";
  * @param swapFeeRecipient The swap fee recipient.
  * @param minCollateralRatio The minimum collateralization ratio.
  * @param liquidationThreshold The liquidation threshold.
+ * @param liquidationThreshold The decimals in SDI price.
  */
 struct SCDPInitArgs {
     address swapFeeRecipient;
     uint32 minCollateralRatio;
     uint32 liquidationThreshold;
+    uint8 sdiPricePrecision;
 }
 
 // Used for setting swap pairs enabled or disabled in the pool.
