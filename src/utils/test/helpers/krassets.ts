@@ -1,6 +1,5 @@
 import { smock } from '@defi-wonderland/smock';
 import { wrapKresko } from '@utils/redstone';
-import { BigNumber } from 'ethers';
 import { AssetArgs } from 'types';
 import { KreskoAssetAnchor__factory, KreskoAsset__factory } from 'types/typechain';
 import { InputArgsSimple, defaultCloseFee, defaultSupplyLimit, testKrAssetConfig } from '../mocks';
@@ -201,7 +200,7 @@ export const leverageKrAsset = async (
     );
 
     // "burn" collateral not needed
-    collateralToUse.setBalance(user, BigNumber.from(0));
+    collateralToUse.setBalance(user, toBig(0));
     // await collateralToUse.contract.connect(user).transfer(hre.ethers.constants.AddressZero, amountToWithdraw);
   }
 };

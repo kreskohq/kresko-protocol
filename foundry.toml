@@ -26,9 +26,9 @@ remappings = [
     '@openzeppelin/=node_modules/@openzeppelin/',
 ]
 
-via_ir = true
-optimizer = true
-optimizer_runs = 10000
+via_ir = false
+optimizer = false
+optimizer_runs = 0
 # [profile.optimizer_details]
 # "yul" = false
 # "constantOptimizer" = false

@@ -1,13 +1,13 @@
 import { MockContract } from '@defi-wonderland/smock';
-import { BigNumber } from 'ethers';
 import { KreskoAssetAnchor } from 'types/typechain';
+import { toBig } from '@utils/values';
 import { getIsRebased, slots } from './optimizations';
 
 export function setBalanceKrAssetFunc(krAsset: MockContract<KreskoAsset>, akrAsset: MockContract<KreskoAssetAnchor>) {
   return async (user: SignerWithAddress, amount: BigNumber, allowanceFor?: string) => {
-    let krSupply = BigNumber.from(0);
-    let atSupply = BigNumber.from(0);
-    let diamondBal = BigNumber.from(0);
+    let krSupply = toBig(0);
+    let atSupply = toBig(0);
+    let diamondBal = toBig(0);
 
     // faster than calls if no rebase..
     try {
@@ -43,7 +43,7 @@ export function setBalanceKrAssetFunc(krAsset: MockContract<KreskoAsset>, akrAss
 
 export function setBalanceCollateralFunc(collateral: MockContract<ERC20Upgradeable>) {
   return async (user: SignerWithAddress, amount: BigNumber, allowanceFor?: string) => {
-    let tSupply = BigNumber.from(0);
+    let tSupply = toBig(0);
     try {
       tSupply = (await collateral.getVariable('_totalSupply')) as BigNumber;
     } catch {}
@@ -64,7 +64,7 @@ export function setBalanceCollateralFunc(collateral: MockContract<ERC20Upgradeab
 
 export function getBalanceCollateralFunc(collateral: MockContract<ERC20Upgradeable>) {
   return async (account: string | SignerWithAddress) => {
-    let balance = BigNumber.from(0);
+    let balance = toBig(0);
     try {
       balance = (await collateral.getVariable('_balances', [
         typeof account === 'string' ? account : account.address,
@@ -77,7 +77,7 @@ export function getBalanceCollateralFunc(collateral: MockContract<ERC20Upgradeab
 
 export function getBalanceKrAssetFunc(krAsset: MockContract<KreskoAsset>) {
   return async (account: string | SignerWithAddress) => {
-    let balance = BigNumber.from(0);
+    let balance = toBig(0);
     try {
       const [isRebased] = await getIsRebased(krAsset);
       balance = isRebased

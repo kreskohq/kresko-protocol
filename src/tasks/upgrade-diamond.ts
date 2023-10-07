@@ -1,4 +1,4 @@
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { task } from 'hardhat/config';
 import { TASK_UPGRADE_DIAMOND } from './names';
 import { updateFacets } from '@scripts/update-facets';

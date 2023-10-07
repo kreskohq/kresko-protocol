@@ -1,10 +1,9 @@
-import { BigNumber } from 'ethers';
 export const ONE_YEAR = 60 * 60 * 24 * 365;
 
 export const getBlockTimestamp = async () => {
   const block = await hre.ethers.provider.getBlockNumber();
   const data = await hre.ethers.provider.getBlock(block);
-  return BigNumber.from(data.timestamp);
+  return data.timestamp;
 };
 
 export const oraclePriceToWad = async (price: Promise<BigNumber>): Promise<BigNumber> =>

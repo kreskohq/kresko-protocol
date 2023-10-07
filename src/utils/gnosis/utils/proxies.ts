@@ -1,4 +1,4 @@
-import { ethers, Contract } from 'ethers';
+import hre from 'hardhat';
 
 export const calculateProxyAddress = async (
   factory: Contract,
@@ -6,15 +6,15 @@ export const calculateProxyAddress = async (
   inititalizer: string,
   nonce: number | string,
 ) => {
-  const deploymentCode = ethers.utils.solidityPack(
+  const deploymentCode = hre.ethers.utils.solidityPack(
     ['bytes', 'uint256'],
     [await factory.proxyCreationCode(), singleton],
   );
-  const salt = ethers.utils.solidityKeccak256(
+  const salt = hre.ethers.utils.solidityKeccak256(
     ['bytes32', 'uint256'],
-    [ethers.utils.solidityKeccak256(['bytes'], [inititalizer]), nonce],
+    [hre.ethers.utils.solidityKeccak256(['bytes'], [inititalizer]), nonce],
   );
-  return ethers.utils.getCreate2Address(factory.address, salt, ethers.utils.keccak256(deploymentCode));
+  return hre.ethers.utils.getCreate2Address(factory.address, salt, hre.ethers.utils.keccak256(deploymentCode));
 };
 
 export const calculateProxyAddressWithCallback = async (
@@ -24,6 +24,6 @@ export const calculateProxyAddressWithCallback = async (
   nonce: number | string,
   callback: string,
 ) => {
-  const saltNonceWithCallback = ethers.utils.solidityKeccak256(['uint256', 'address'], [nonce, callback]);
+  const saltNonceWithCallback = hre.ethers.utils.solidityKeccak256(['uint256', 'address'], [nonce, callback]);
   return calculateProxyAddress(factory, singleton, inititalizer, saltNonceWithCallback);
 };

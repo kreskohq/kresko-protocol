@@ -1,4 +1,4 @@
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
 
 type Args = {
@@ -87,8 +87,7 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
   /*                                 DiamondCut                                 */
   /* -------------------------------------------------------------------------- */
 
-  const tx = await Diamond.diamondCut([FacetCut], ...initializer);
-  const receipt = await tx.wait();
+  await Diamond.diamondCut([FacetCut], ...initializer);
 
   // #5.1 Get the on-chain values of facets in the Diamond after the cut.
   const facets = (await Diamond.facets()).map(f => ({
@@ -122,16 +121,8 @@ export async function removeFacet({ name, initializerName, initializerArgs }: Ar
     // #5.6 Save the deployment and Diamond into runtime for later steps.
     hre.Diamond = await hre.getContractOrFork('Kresko');
 
-    logger.success(1, ' facet succesfully removed', 'txHash:', receipt.transactionHash);
-    logger.success(
-      'Facet address: ',
-      Facet.address,
-      'with ',
-      selectorsToRemove.length,
-      ' functions - ',
-      'txHash:',
-      receipt.transactionHash,
-    );
+    logger.success(1, ' facet succesfully removed');
+    logger.success('Facet address: ', Facet.address, 'with ', selectorsToRemove.length, ' functions');
   } else {
     // if facet is still found found
     logger.error(false, 'Facet remove failed @ ', Facet.address);

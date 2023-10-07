@@ -1,11 +1,11 @@
-import { Contract, utils } from 'ethers';
 import { buildContractCall, MetaTransaction, SafeTransaction } from './execution';
+import { toBytes, encodePacked, bytesToString } from 'viem';
 
 const encodeMetaTransaction = (tx: MetaTransaction): string => {
-  const data = utils.arrayify(tx.data);
-  const encoded = utils.solidityPack(
+  const data = toBytes(tx.data);
+  const encoded = encodePacked(
     ['uint8', 'address', 'uint256', 'uint256', 'bytes'],
-    [tx.operation, tx.to, tx.value, data.length, data],
+    [tx.operation, tx.to as any, BigInt(tx.value as any), BigInt(data.length), bytesToString(data) as any],
   );
   return encoded.slice(2);
 };

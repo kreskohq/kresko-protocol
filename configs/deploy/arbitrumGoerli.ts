@@ -13,13 +13,13 @@ import {
 } from '../../src/utils/gnosis/gnosis-safe';
 import { defaultSupplyLimit } from '@utils/test/mocks';
 
-import { ethers } from 'ethers';
 import { toBig } from '@utils/values';
 import {
   CommonInitArgsStruct,
   MinterInitArgsStruct,
   SCDPInitArgsStruct,
 } from 'types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
 export const oracles = {
   ARB: {
@@ -198,8 +198,8 @@ const commonInitAgs = (
   gate?: boolean,
 ): Omit<CommonInitArgsStruct, 'feeRecipient' | 'admin' | 'council' | 'treasury'> => ({
   oracleDecimals: 8,
-  questForKresk: ethers.constants.AddressZero,
-  kreskian: ethers.constants.AddressZero,
+  questForKresk: ZERO_ADDRESS,
+  kreskian: ZERO_ADDRESS,
   phase: !gate ? 3 : 0, // 0 = phase 1, 1 = phase 2, 2 = phase 3, 3 = no gating (subject to change)
   minDebtValue: 10e8,
   oracleDeviationPct: 0.1e4,

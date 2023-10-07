@@ -1,37 +1,29 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // Deployment
-import type { HardhatUserConfig } from 'hardhat/config';
-import { resolve } from 'path';
-import 'tsconfig-paths/register';
 import '@nomicfoundation/hardhat-foundry';
+import type { HardhatUserConfig } from 'hardhat/config';
+import 'tsconfig-paths/register';
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
 /* -------------------------------------------------------------------------- */
 
 import 'hardhat-diamond-abi';
 // note: hardhat-diamond-abi should always be exported before typechain if used together
-import '@typechain/hardhat';
+import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomiclabs/hardhat-ethers';
+import '@typechain/hardhat';
 import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
-import '@nomicfoundation/hardhat-chai-matchers';
-import '@nomiclabs/hardhat-etherscan';
-import '@nomiclabs/hardhat-web3';
-import 'hardhat-contract-sizer';
 import 'hardhat-interface-generator';
-import 'solidity-coverage';
-
-// import "hardhat-preprocessor";
 // import "hardhat-watcher";
-// import "hardhat-gas-reporter";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Dotenv                                   */
 /* -------------------------------------------------------------------------- */
-import { config as dotenvConfig } from 'dotenv';
+import { configDotenv } from 'dotenv';
+configDotenv();
 
-dotenvConfig({ path: resolve(__dirname, './.env') });
 const mnemonic = process.env.MNEMONIC;
 if (!mnemonic) {
   throw new Error('No mnemonic set');
@@ -44,7 +36,7 @@ import 'src/tasks';
 /* -------------------------------------------------------------------------- */
 /*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
-import { compilers, handleForking, networks, users, diamondAbiConfig } from '@config/hardhat';
+import { compilers, diamondAbiConfig, handleForking, networks, users } from '@config/hardhat';
 /* -------------------------------------------------------------------------- */
 /*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
@@ -63,7 +55,7 @@ const config: HardhatUserConfig = {
   networks: handleForking(networks(mnemonic)),
   namedAccounts: users,
   mocha: {
-    reporter: 'mochawesome',
+    // reporter: 'mochawesome',
     timeout: process.env.CI ? 90000 : process.env.FORKING ? 300000 : 30000,
   },
   paths: {
@@ -74,13 +66,7 @@ const config: HardhatUserConfig = {
     deploy: 'src/deploy/',
     deployments: 'deployments/',
   },
-  external: {
-    contracts: [
-      {
-        artifacts: '@kreskolabs/gnosis-safe-contracts/build/artifacts',
-      },
-    ],
-  },
+
   diamondAbi: diamondAbiConfig,
   typechain: {
     outDir: 'types/typechain',
@@ -90,17 +76,6 @@ const config: HardhatUserConfig = {
     discriminateTypes: true,
     tsNocheck: true,
     externalArtifacts: [],
-  },
-  contractSizer: {
-    alphaSort: true,
-    disambiguatePaths: false,
-    runOnCompile: false,
-    except: ['vendor'],
-  },
-  etherscan: {
-    apiKey: {
-      optimisticGoerli: process.env.ETHERSCAN_API_KEY!,
-    },
   },
 };
 

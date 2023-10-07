@@ -1,5 +1,5 @@
 import { commonFacets, getCommonInitializer } from '@config/deploy';
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { addFacets } from '@scripts/add-facets';
 import type { DeployFunction } from 'hardhat-deploy/dist/types';
 

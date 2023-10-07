@@ -1,7 +1,7 @@
 import { DeployFunction, FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
 import { mergeABIs } from 'hardhat-deploy/dist/src/utils';
-import { getLogger } from '@kreskolabs/lib/meta';
 import { diamondFacets } from '@config/deploy';
+import { getLogger } from '@utils/logging';
 
 const logger = getLogger('create-diamond');
 
@@ -48,10 +48,9 @@ const deploy: DeployFunction = async function (hre) {
     log: true,
     args: [deployer, InitialFacets, []],
   });
+  const Loupe = await hre.ethers.getContractAt('DiamondLoupeFacet', deployment.address);
 
-  const Diamond = await hre.getContractOrFork('Kresko');
-
-  deployment.facets = (await Diamond.facets()).map(f => ({
+  deployment.facets = (await Loupe.facets()).map((f: any) => ({
     facetAddress: f.facetAddress,
     functionSelectors: f.functionSelectors,
   }));
@@ -64,10 +63,10 @@ const deploy: DeployFunction = async function (hre) {
   // #4 Using `add-facets.ts` will do this automatically - check #1 why we are not using it here.
 
   // #5 Save the deployment result and the contract instance with full ABI to the runtime to access on later steps.
-  hre.Diamond = Diamond;
+  hre.Diamond = await hre.getContractOrFork('Kresko');
   hre.DiamondDeployment = deployment;
 
-  logger.success('Diamond deployed @', Diamond.address, 'with', deployment.facets.length, 'facets');
+  logger.success('Diamond deployed @', hre.Diamond.address, 'with', deployment.facets?.length, 'facets');
 };
 
 deploy.tags = ['all', 'local', 'protocol-test', 'diamond-init'];

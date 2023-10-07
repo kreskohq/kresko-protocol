@@ -1,5 +1,5 @@
-import { getLogger } from '@kreskolabs/lib/meta';
-import { constants } from 'ethers';
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { getLogger } from '@utils/logging';
 import hre from 'hardhat';
 import { mergeABIs } from 'hardhat-deploy/dist/src/utils';
 import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
@@ -11,7 +11,7 @@ type Args = {
   initializerArgs?: any;
   log?: boolean;
 };
-
+const logger = getLogger('add-facets');
 export async function addFacets({
   names,
   initializerName,
@@ -20,10 +20,7 @@ export async function addFacets({
   log = true,
 }: Args) {
   try {
-    const logger = getLogger('add-facet', log);
-
     logger.log('Adding facets');
-    console.table(names);
     const { deployer } = await hre.getNamedAccounts();
 
     /* -------------------------------------------------------------------------- */
@@ -96,7 +93,7 @@ export async function addFacets({
     /* -------------------------------------------------------------------------- */
 
     // #5.1 Initialize the `diamondCut` initializer argument to do nothing.
-    let initializer: DiamondCutInitializer = [constants.AddressZero, '0x'];
+    let initializer: DiamondCutInitializer = [ZERO_ADDRESS, '0x'];
 
     if (initializerName && FacetCuts.length) {
       // #5.2 If `initializerName` is supplied, try to get the existing deployment
@@ -142,8 +139,7 @@ export async function addFacets({
       /* -------------------------------------------------------------------------- */
       /*                                 DiamondCut                                 */
       /* -------------------------------------------------------------------------- */
-      const tx = await Diamond.diamondCut(FacetCuts, ...initializer);
-      const receipt = await tx.wait(1);
+      await Diamond.diamondCut(FacetCuts, ...initializer);
 
       // #6.1 Get the on-chain values of facets in the Diamond after the cut.
       const facetsAfter = (await Diamond.facets()).map(f => ({
@@ -195,7 +191,7 @@ export async function addFacets({
         hre.DiamondDeployment = DiamondDeployment;
         hre.Diamond = await hre.getContractOrFork('Kresko');
 
-        logger.success(FacetCuts.length, 'facets succesfully added', 'txHash:', receipt.transactionHash);
+        logger.success(FacetCuts.length, 'facets succesfully added');
       }
       return hre.Diamond;
     } else {

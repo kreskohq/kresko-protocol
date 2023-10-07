@@ -2,6 +2,7 @@ import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import type { SCDPInitializer, MinterInitializer, CommonInitializer } from 'types';
 import { assets, testnetConfigs } from './arbitrumGoerli';
 import { envCheck } from '@utils/env';
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
 envCheck();
 
@@ -31,17 +32,17 @@ export const minterFacets = [
   'StateFacet',
 ] as const;
 
-export const peripheryFacets = ['UIDataProviderFacet', 'UIDataProviderFacet2', 'BurnHelperFacet'];
+export const peripheryFacets = ['UIDataProviderFacet', 'UIDataProviderFacet2', 'BurnHelperFacet '];
 
 export const scdpFacets = ['SCDPStateFacet', 'SCDPFacet', 'SCDPConfigFacet', 'SCDPSwapFacet', 'SDIFacet'] as const;
 
 export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
   const users = await hre.getNamedAccounts();
   const Safe = await hre.deployments.getOrNull('GnosisSafeL2');
-  if (!Safe) throw new Error('GnosisSafe not deployed for Minter initialization');
+  if (!Safe && hre.network.live) throw new Error('GnosisSafe not deployed before initialization');
 
-  const multisig = hre.network.live ? users.multisig : Safe.address;
-  const treasury = hre.network.live ? users.treasury : Safe.address;
+  const multisig = hre.network.live ? users.multisig : !Safe ? ZERO_ADDRESS : Safe.address;
+  const treasury = hre.network.live ? users.treasury : !Safe ? ZERO_ADDRESS : Safe.address;
   return { admin: users.admin, multisig, treasury, swapFeeRecipient: users.scdpSwapFeeRecipient };
 };
 

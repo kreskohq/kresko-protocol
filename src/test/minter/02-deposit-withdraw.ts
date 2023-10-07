@@ -9,7 +9,6 @@ import optimized from '@utils/test/helpers/optimizations';
 import Role from '@utils/test/roles';
 import { fromBig, toBig } from '@utils/values';
 import { expect } from 'chai';
-import { BigNumber } from 'ethers';
 import hre from 'hardhat';
 import type {
   CollateralDepositedEventObject,
@@ -345,7 +344,7 @@ describe('Minter - Deposit Withdraw', function () {
           it('should allow withdraws that exceed deposits and only send the user total deposit available', async function () {
             const randomUser = hre.users.userFour;
 
-            await f.Collateral.setBalance!(randomUser, BigNumber.from(0));
+            await f.Collateral.setBalance!(randomUser, toBig(0));
             await f.Collateral.setBalance!(randomUser, toBig(1000));
             await f.Collateral.contract
               .connect(randomUser)

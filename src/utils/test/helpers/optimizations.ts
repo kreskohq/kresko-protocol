@@ -1,6 +1,5 @@
 import { MockContract } from '@defi-wonderland/smock';
 import { toBig } from '@utils/values';
-import { BigNumber } from 'ethers';
 import hre from 'hardhat';
 
 const keccak256 = hre.ethers.utils.keccak256;
@@ -9,7 +8,7 @@ const hexStripZeros = hre.ethers.utils.hexStripZeros;
 const getStorageAt = hre.ethers.provider.getStorageAt;
 
 function increaseHexBy(hex: string, index: number) {
-  return BigNumber.from(hex).add(index).toHexString();
+  return toBig(hex, 0).add(index).toHexString();
 }
 
 async function getMappingArray(slot: string, key: string) {
@@ -94,9 +93,9 @@ export async function getAccountCollateralAmount<T extends Omit<TestKrAsset, 'de
       address,
       assetAddress,
     );
-    return BigNumber.from(hexStripZeros(data));
+    return toBig(hexStripZeros(data), 0);
   } catch {
-    return BigNumber.from(0);
+    return toBig(0);
   }
 }
 export async function getAccountDebtAmount(address: string, krAsset: TestKrAsset) {
@@ -109,9 +108,9 @@ export async function getAccountDebtAmount(address: string, krAsset: TestKrAsset
       address,
       krAsset.address,
     );
-    return BigNumber.from(hexStripZeros(data));
+    return toBig(hexStripZeros(data), 0);
   } catch {
-    return BigNumber.from(0);
+    return toBig(0);
   }
 }
 
@@ -152,7 +151,7 @@ export async function getMaxLiquidationRatio() {
   // }
 }
 export async function getIsRebased<T extends KreskoAsset | ERC20Upgradeable>(asset: MockContract<T>) {
-  let denominator = BigNumber.from(0);
+  let denominator = toBig(0);
   let isRebased = false;
   let isPositive = false;
 
@@ -162,7 +161,7 @@ export async function getIsRebased<T extends KreskoAsset | ERC20Upgradeable>(ass
   try {
     isPositive = Boolean(Number(await getStorageAt(asset.address, slots.kreskoAssetIsRebased)));
     try {
-      denominator = BigNumber.from(hexStripZeros(await getStorageAt(asset.address, slots.kreskoAssetIsRebased + 1)));
+      denominator = toBig(hexStripZeros(await getStorageAt(asset.address, slots.kreskoAssetIsRebased + 1)), 0);
     } catch {}
     isRebased = denominator.gt(toBig(1));
   } catch {

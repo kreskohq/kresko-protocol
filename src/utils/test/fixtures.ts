@@ -157,7 +157,13 @@ export const diamondFixture = hre.deployments.createFixture<{ facets: Facet[] },
 export const kreskoAssetFixture = hre.deployments.createFixture<
   Awaited<ReturnType<typeof createKrAsset>>,
   { name: string; symbol: AllTokenSymbols }
->(async (hre, opts) => createKrAsset(opts!.symbol, opts!.name));
+>(async (hre, opts) => {
+  const result = await hre.deployments.fixture('diamond-init');
+  if (result.Diamond) {
+    hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'));
+  }
+  return createKrAsset(opts!.symbol, opts!.name);
+});
 
 export type DefaultFixture = {
   users: [SignerWithAddress, Kresko][];

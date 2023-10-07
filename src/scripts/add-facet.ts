@@ -1,6 +1,6 @@
 import hre from 'hardhat';
 import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { mergeABIs } from 'hardhat-deploy/dist/src/utils';
 
 type Args<T> = {
@@ -88,8 +88,7 @@ export async function addFacet<T extends keyof TC>({
   /*                                 DiamondCut                                 */
   /* -------------------------------------------------------------------------- */
 
-  const tx = await Diamond.diamondCut([FacetCut], ...initializer);
-  const receipt = await tx.wait();
+  await Diamond.diamondCut([FacetCut], ...initializer);
 
   // #5.1 Get the on-chain values of facets in the Diamond after the cut.
   const facets = (await Diamond.facets()).map(f => ({
@@ -134,16 +133,8 @@ export async function addFacet<T extends keyof TC>({
     hre.DiamondDeployment = DiamondDeployment;
     hre.Diamond = await hre.getContractOrFork('Kresko');
 
-    logger.success(1, ' facets succesfully added', 'txHash:', receipt.transactionHash);
-    logger.success(
-      'Facet address: ',
-      Facet.address,
-      'with ',
-      Signatures.length,
-      ' functions - ',
-      'txHash:',
-      receipt.transactionHash,
-    );
+    logger.success(1, ' facets succesfully added');
+    logger.success('Facet address: ', Facet.address, 'with ', Signatures.length, ' functions');
     hre.DiamondDeployment = DiamondDeployment;
   }
   return Facet;

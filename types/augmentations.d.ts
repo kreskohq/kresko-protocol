@@ -1,14 +1,11 @@
-import type { FakeContract } from '@defi-wonderland/smock';
-
-import { Fragment, FunctionFragment, JsonFragment } from '@ethersproject/abi';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { checkAddress } from '@scripts/check-address';
+import { Fragment, FunctionFragment, type JsonFragment } from '@ethersproject/abi';
+import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { providers } from 'ethers';
 import { hardhatUsers } from '@config/hardhat';
-import { ABI, DeployOptions, Deployment, Facet } from 'hardhat-deploy/dist/types';
+import type { ABI, DeployOptions, Deployment, Facet } from 'hardhat-deploy/dist/types';
 import 'hardhat/types/config';
 import 'mocha';
-import * as Contracts from './typechain';
+
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
 /* ========================================================================== */
@@ -68,7 +65,6 @@ declare module 'hardhat/types/runtime' {
     /*                              Helper Functions                              */
     /* -------------------------------------------------------------------------- */
 
-    checkAddress: typeof checkAddress;
     getDeploymentOrFork: (deploymentName: string) => Promise<Deployment | null>;
     getContractOrFork: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T]>;
     getContractOrNull: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T] | null>;

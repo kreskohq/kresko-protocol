@@ -9,7 +9,6 @@ import { addMockKreskoAsset, mintKrAsset } from '@utils/test/helpers/krassets';
 import { defaultSupplyLimit, testCollateralConfig } from '@utils/test/mocks';
 import { MaxUint128, RAY, toBig } from '@utils/values';
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
 import { SCDPDepositAssetConfig, SCDPKrAssetConfig } from 'types';
 import {
   AssetStruct,
@@ -1151,7 +1150,7 @@ describe('SCDP', async function () {
       beforeEach(async function () {
         await Promise.all(f.usersArr.map(signer => f.Collateral.setBalance(signer, toBig(1_000_000))));
         await f.KISS.setBalance(swapper, toBig(10_000));
-        await f.KISS.setBalance(depositor, ethers.BigNumber.from(1));
+        await f.KISS.setBalance(depositor, hre.ethers.BigNumber.from(1));
 
         await Promise.all([
           KreskoDepositor.depositSCDP(depositor.address, f.KISS.address, 1),

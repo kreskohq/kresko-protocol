@@ -1,8 +1,8 @@
-import { AssetConfigExtended } from '@config/deploy/arbitrumGoerli';
-import { AllTokenSymbols } from '@config/deploy';
-import { AllUnderlyingIds } from '@utils/redstone';
+import type { AssetConfigExtended } from '@config/deploy/arbitrumGoerli';
+import type { AllTokenSymbols } from '@config/deploy';
+import type { AllUnderlyingIds } from '@utils/redstone';
 import { BigNumber } from 'ethers';
-import { Address } from 'hardhat-deploy/types';
+import type { Address } from 'hardhat-deploy/types';
 import type * as Contracts from './typechain';
 import {
   AssetStruct,

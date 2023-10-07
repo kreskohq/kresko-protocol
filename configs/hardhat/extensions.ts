@@ -2,10 +2,9 @@
 import { signatureFilters } from '@config/deploy';
 import { Fragment } from '@ethersproject/abi';
 import { WrapperBuilder } from '@redstone-finance/evm-connector';
-import { checkAddress } from '@scripts/check-address';
 import { getAddresses, getUsers } from '@utils/hardhat';
 import { extendEnvironment } from 'hardhat/config';
-import { ContractTypes } from 'types';
+import type { ContractTypes } from 'types';
 
 extendEnvironment(async function (hre) {
   // for testing
@@ -22,7 +21,6 @@ extendEnvironment(function (hre) {
   hre.extAssets = [];
   hre.krAssets = [];
   hre.allAssets = [];
-  hre.checkAddress = checkAddress;
   hre.getDeploymentOrFork = async deploymentName => {
     const isFork = !hre.network.live && hre.companionNetworks['live'];
     const deployment = !isFork

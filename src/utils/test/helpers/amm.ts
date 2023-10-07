@@ -1,8 +1,8 @@
 import hre from 'hardhat';
 
-import { time } from '@nomicfoundation/hardhat-network-helpers';
+import { fromBig, toBig } from '@utils/values';
+import { maxUint256 } from 'viem';
 import { getBlockTimestamp } from './calculations';
-import { toBig, fromBig } from '@utils/values';
 
 type AddLiquidityArgs = {
   user: SignerWithAddress;
@@ -20,8 +20,8 @@ type WithdrawLiquidityArgs = {
 
 export const addLiquidity = async (args: AddLiquidityArgs) => {
   const { token0, token1, amount0, amount1, user } = args;
-  await token0.contract.connect(user).approve(hre.UniV2Router.address, hre.ethers.constants.MaxUint256);
-  await token1.contract.connect(user).approve(hre.UniV2Router.address, hre.ethers.constants.MaxUint256);
+  await token0.contract.connect(user).approve(hre.UniV2Router.address, maxUint256);
+  await token1.contract.connect(user).approve(hre.UniV2Router.address, maxUint256);
   const convertA = typeof amount0 === 'string' || typeof amount0 === 'number';
   const convertB = typeof amount1 === 'string' || typeof amount1 === 'number';
 
@@ -33,16 +33,16 @@ export const addLiquidity = async (args: AddLiquidityArgs) => {
     '0',
     '0',
     user.address,
-    +(await getBlockTimestamp()) + 1000,
+    (await getBlockTimestamp()) + 1000,
   );
   return getPair(token0, token1);
 };
 export const withdrawAllLiquidity = async (args: WithdrawLiquidityArgs) => {
   const { token0, token1, user } = args;
-  await token0.contract.connect(user).approve(hre.UniV2Router.address, hre.ethers.constants.MaxUint256);
-  await token1.contract.connect(user).approve(hre.UniV2Router.address, hre.ethers.constants.MaxUint256);
+  await token0.contract.connect(user).approve(hre.UniV2Router.address, maxUint256);
+  await token1.contract.connect(user).approve(hre.UniV2Router.address, maxUint256);
   const pair = await getPair(token0, token1);
-  await pair.approve(hre.UniV2Router.address, hre.ethers.constants.MaxUint256);
+  await pair.approve(hre.UniV2Router.address, maxUint256);
   const tx = await hre.UniV2Router.connect(user).removeLiquidity(
     token0.address,
     token1.address,
@@ -50,7 +50,7 @@ export const withdrawAllLiquidity = async (args: WithdrawLiquidityArgs) => {
     '0',
     '0',
     user.address,
-    +(await getBlockTimestamp()) + 1000,
+    (await getBlockTimestamp()) + 1000,
   );
   await pair.sync();
   return pair;
@@ -137,6 +137,6 @@ export const swap = async (args: SwapArgs) => {
       0,
       route,
       user.address,
-      +(await getBlockTimestamp()) + 1000,
+      (await getBlockTimestamp()) + 1000,
     );
 };

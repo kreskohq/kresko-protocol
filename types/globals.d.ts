@@ -1,5 +1,5 @@
 import type { FakeContract, MockContract } from '@defi-wonderland/smock';
-import {
+import type {
   getBalanceCollateralFunc,
   getBalanceKrAssetFunc,
   setBalanceCollateralFunc,

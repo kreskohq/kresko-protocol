@@ -1,10 +1,10 @@
-import { BigNumber, ethers } from 'ethers';
-import { concat, hexlify, toUtf8Bytes } from 'ethers/lib/utils';
+import { BigNumber } from 'ethers/lib/ethers';
+import { parseUnits, concat, formatUnits, toHex, stringToBytes } from 'viem';
 export const HashZero = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export const MaxUint128 = '340282366920938463463374607431768211455';
 export function formatBytesString(text: string, length: number): string {
   // Get the bytes
-  const bytes = toUtf8Bytes(text);
+  const bytes = stringToBytes(text);
 
   // Check we have room for null-termination
   if (bytes.length > 31) {
@@ -12,16 +12,16 @@ export function formatBytesString(text: string, length: number): string {
   }
 
   // Zero-pad (implicitly null-terminates)
-  return hexlify(concat([bytes, HashZero]).slice(0, length));
+  return toHex(concat([bytes, HashZero]).slice(0, length));
 }
 
 export const toBig = (amount: number | string, decimals: string | number = 18) => {
   const value = typeof amount === 'string' ? amount : amount.toString();
-  return ethers.utils.parseUnits(value, decimals);
+  return BigNumber.from(parseUnits(value, +decimals));
 };
 export const fromBig = (amount: BigNumber | string, decimals: string | number = 18) => {
   const value = typeof amount === 'string' ? amount : amount.toString();
-  return +ethers.utils.formatUnits(value, decimals);
+  return +formatUnits(BigInt(value), +decimals);
 };
 
 export const PERCENTAGE_FACTOR = 10000n;
@@ -102,7 +102,7 @@ Number.prototype.erayToWad = function () {
   return BigNumber.from(rayToWad(BigInt(this.toString())));
 };
 Number.prototype.ebn = function (decimals = 18) {
-  return ethers.utils.parseUnits(this.toString(), decimals);
+  return BigNumber.from(parseUnits(this.toString(), decimals));
 };
 
 BigNumber.prototype.wadMul = function (b: BigNumberish) {
@@ -135,8 +135,8 @@ BigNumber.prototype.rayToWad = function () {
   return BigNumber.from(rayToWad(this.toBigInt()));
 };
 BigNumber.prototype.str = function (decimals = 18) {
-  return ethers.utils.formatUnits(this, decimals);
+  return formatUnits(this.toBigInt(), decimals);
 };
 BigNumber.prototype.num = function (decimals = 18) {
-  return Number(ethers.utils.formatUnits(this, decimals));
+  return Number(formatUnits(this.toBigInt(), decimals));
 };

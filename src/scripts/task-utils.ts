@@ -1,5 +1,4 @@
-import { getLogger } from '@kreskolabs/lib/meta';
-import { BigNumber } from 'ethers';
+import { getLogger } from '@utils/logging';
 import { existsSync, mkdirSync, rmSync } from 'fs';
 import path from 'path';
 
@@ -52,7 +51,7 @@ export const logContext = async (...extras: any[]) => {
   const gasPriceProvider = hre.ethers.utils.formatUnits(gasPrice, 'gwei');
 
   const diamondDeployCostConfig = hre.ethers.utils.formatEther(
-    BigNumber.from(hre.network.config.gasPrice).mul(1593953),
+    hre.ethers.BigNumber.from(hre.network.config.gasPrice).mul(1593953),
   );
   const diamondDeployCostProvider = hre.ethers.utils.formatEther(gasPrice.mul(1593953));
   const itemsToLog = [

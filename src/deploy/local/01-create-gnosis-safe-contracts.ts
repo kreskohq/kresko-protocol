@@ -1,5 +1,5 @@
 import type { DeployFunction } from 'hardhat-deploy/dist/types';
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { testnetConfigs } from '@config/deploy/arbitrumGoerli';
 
 const logger = getLogger('gnosis-safe-contracts-for-tests');

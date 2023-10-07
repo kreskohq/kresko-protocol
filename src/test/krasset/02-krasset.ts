@@ -1,5 +1,6 @@
+import { createKrAsset } from '@scripts/create-krasset';
 import { expect } from '@test/chai';
-import { kreskoAssetFixture } from '@utils/test/fixtures';
+import { wrapKresko } from '@utils/redstone';
 import { defaultMintAmount } from '@utils/test/mocks';
 import { Role } from '@utils/test/roles';
 import { toBig } from '@utils/values';
@@ -8,7 +9,11 @@ describe('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset;
 
   beforeEach(async function () {
-    ({ KreskoAsset } = await kreskoAssetFixture({ name: 'Ether', symbol: 'krETH' }));
+    const result = await hre.deployments.fixture('diamond-init');
+    if (result.Diamond) {
+      hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'));
+    }
+    KreskoAsset = (await createKrAsset('krETH', 'Ether')).KreskoAsset;
     // Grant minting rights for test deployer
     await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
   });

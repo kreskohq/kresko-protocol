@@ -1,4 +1,5 @@
-import { getLogger } from '@kreskolabs/lib/meta';
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { getLogger } from '@utils/logging';
 import { getNamedEvent } from '@utils/events';
 import type { DeployFunction } from 'hardhat-deploy/dist/types';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
@@ -7,19 +8,18 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const logger = getLogger('multisig');
-  const { ethers, deployments } = hre;
 
   // Multisig signers
-  const { deployer, devTwo, extOne, extTwo, devOne } = await ethers.getNamedSigners();
+  const { deployer, devTwo, extOne, extTwo, devOne } = await hre.ethers.getNamedSigners();
 
   // Get the factory
-  const FactoryDeployment = await deployments.get('GnosisSafeProxyFactory');
-  const Factory = await ethers.getContractAt(FactoryDeployment.abi, FactoryDeployment.address);
+  const FactoryDeployment = await hre.deployments.get('GnosisSafeProxyFactory');
+  const Factory = await hre.ethers.getContractAt(FactoryDeployment.abi, FactoryDeployment.address);
 
   // Local mastercopy
-  const MasterCopyDeployment = await deployments.get('GnosisSafeL2');
+  const MasterCopyDeployment = await hre.deployments.get('GnosisSafeL2');
 
-  const MasterCopy = await ethers.getContractAt(MasterCopyDeployment.abi, MasterCopyDeployment.address);
+  const MasterCopy = await hre.ethers.getContractAt(MasterCopyDeployment.abi, MasterCopyDeployment.address);
   // TODO: bring ReentrancyGuard back into this deployment
   // const ReentrancyGuard = await hre.getContractOrFork("ReentrancyTransactionGuard");
   // Multisig users
@@ -28,12 +28,12 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const creationArgs = [
     safeUsers.map(user => user.address),
     3,
-    ethers.constants.AddressZero,
+    ZERO_ADDRESS,
     '0x',
-    ethers.constants.AddressZero,
-    ethers.constants.AddressZero,
+    ZERO_ADDRESS,
+    ZERO_ADDRESS,
     0,
-    ethers.constants.AddressZero,
+    ZERO_ADDRESS,
   ] as const;
 
   // Encoded params for setup
@@ -46,9 +46,9 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const receipt = await tx.wait();
 
-  const SafeDeployment = await deployments.get('GnosisSafeL2');
-  const SafeProxy = await ethers.getContractAt(SafeDeployment.abi, creationEvent.args.proxy);
-  await deployments.save('GnosisSafeL2', {
+  const SafeDeployment = await hre.deployments.get('GnosisSafeL2');
+  const SafeProxy = await hre.ethers.getContractAt(SafeDeployment.abi, creationEvent.args.proxy);
+  await hre.deployments.save('GnosisSafeL2', {
     abi: SafeDeployment.abi,
     address: creationEvent.args.proxy,
     args: [...creationArgs],

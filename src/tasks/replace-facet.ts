@@ -1,4 +1,4 @@
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { removeFacet } from '@scripts/remove-facet';
 import { task, types } from 'hardhat/config';
 import { TaskArguments } from 'hardhat/types';

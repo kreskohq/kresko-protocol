@@ -1,5 +1,5 @@
 import { TASK_DEPLOY_KISS } from '@tasks';
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { toBig } from '@utils/values';
 import type { DeployFunction } from 'hardhat-deploy/dist/types';
 

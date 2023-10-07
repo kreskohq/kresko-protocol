@@ -1,4 +1,4 @@
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { createKrAsset } from '@scripts/create-krasset';
 import { task } from 'hardhat/config';
 import { TaskArguments } from 'hardhat/types';

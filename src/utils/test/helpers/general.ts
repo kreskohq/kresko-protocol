@@ -1,12 +1,12 @@
 import { WrapperBuilder } from '@redstone-finance/evm-connector';
 import { formatBytesString } from '@utils/values';
 import { defaultRedstoneDataPoints } from '@utils/redstone';
-import { ethers } from 'ethers';
 import { AssetArgs, AssetConfig, OracleType } from 'types';
 import type {
   AssetStruct,
   FeedConfigurationStruct,
 } from 'types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -41,7 +41,7 @@ export const getAssetConfig = async (
     supplyLimit: config.krAssetConfig?.supplyLimit ?? 0,
     closeFee: config.krAssetConfig?.closeFee ?? 0,
     openFee: config.krAssetConfig?.openFee ?? 0,
-    anchor: config.krAssetConfig?.anchor ?? ethers.constants.AddressZero,
+    anchor: config.krAssetConfig?.anchor ?? ZERO_ADDRESS,
     liquidityIndexSCDP: 0,
     decimals: decimals,
     isSCDPCollateral: !!config.scdpDepositConfig || !!config.scdpKrAssetConfig,
@@ -49,7 +49,7 @@ export const getAssetConfig = async (
   };
 
   if (assetStruct.isKrAsset) {
-    if (assetStruct.anchor == ethers.constants.AddressZero || assetStruct.anchor == null) {
+    if (assetStruct.anchor == ZERO_ADDRESS || assetStruct.anchor == null) {
       throw new Error('KrAsset anchor cannot be zero address');
     }
     if (assetStruct.kFactor === 0) {
@@ -78,10 +78,7 @@ export const getAssetConfig = async (
 
   const feedConfig: FeedConfigurationStruct = {
     oracleIds: assetStruct.oracles,
-    feeds:
-      assetStruct.oracles[0] === OracleType.Redstone
-        ? [ethers.constants.AddressZero, config.feed]
-        : [config.feed, ethers.constants.AddressZero],
+    feeds: assetStruct.oracles[0] === OracleType.Redstone ? [ZERO_ADDRESS, config.feed] : [config.feed, ZERO_ADDRESS],
   };
   return { args: config, assetStruct, feedConfig, extendedInfo: { decimals, symbol } };
 };

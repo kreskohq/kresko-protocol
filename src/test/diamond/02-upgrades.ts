@@ -91,8 +91,7 @@ describe('Diamond', () => {
       const correctOwner = hre.addr.userOne;
       const initData = await hre.Diamond.populateTransaction.transferOwnership(correctOwner);
 
-      const tx = await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
-      await tx.wait();
+      await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
 
       // Ensure rest of the functions remain
       const functionsAfterCut = await hre.Diamond.facetFunctionSelectors(facetAddress);
@@ -147,8 +146,7 @@ describe('Diamond', () => {
       const correctOwner = hre.addr.userOne;
       const initData = await hre.Diamond.populateTransaction.transferOwnership(correctOwner);
 
-      const tx = await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
-      await tx.wait();
+      await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
 
       // Ensure function exists and revert is for invalid address instead of missing function
       await expect(wrapContractWithSigner(hre.Diamond, hre.users.nonadmin).acceptOwnership()).to.be.reverted;

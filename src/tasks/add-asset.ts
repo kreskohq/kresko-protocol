@@ -1,4 +1,4 @@
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { getAnchorNameAndSymbol } from '@utils/strings';
 import { getAssetConfig } from '@utils/test/helpers/general';
 import { task, types } from 'hardhat/config';
@@ -7,19 +7,21 @@ import { AssetArgs } from 'types';
 import { TASK_ADD_ASSET } from './names';
 import { testKrAssetConfig } from '@utils/test/mocks';
 import { redstoneMap } from '@utils/redstone';
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 type AddAssetArgs = {
   address: string;
   assetConfig: AssetArgs;
   log: boolean;
 };
+
+const logger = getLogger(TASK_ADD_ASSET);
 task(TASK_ADD_ASSET)
   .addParam('address', 'address of the asset')
   .addParam('assetConfig', 'configuration for the asset', testKrAssetConfig, types.json)
-  .addOptionalParam('log', 'Log outputs', false, types.boolean)
   .setAction(async function (taskArgs: AddAssetArgs, hre) {
-    const { address, log } = taskArgs;
+    const { address } = taskArgs;
     const config = taskArgs.assetConfig;
-    if (!config.feed) {
+    if (!config.feed || config.feed === ZERO_ADDRESS) {
       throw new Error(`Invalid feed address: ${config.feed}, Asset: ${config.symbol}`);
     }
     if (address == hre.ethers.constants.AddressZero) {
@@ -29,8 +31,6 @@ task(TASK_ADD_ASSET)
       throw new Error(`No config supplied, Asset: ${config.symbol}`);
     }
 
-    const logger = getLogger(TASK_ADD_ASSET, log);
-
     if (config.krAssetConfig && config.krAssetConfig.kFactor === 0) {
       throw new Error('Invalid kFactor for ' + config.symbol);
     }
@@ -39,8 +39,6 @@ task(TASK_ADD_ASSET)
     }
     const redstoneId = redstoneMap[config.underlyingId as keyof typeof redstoneMap];
     if (!redstoneId) throw new Error(`RedstoneId not found for ${config.symbol}`);
-
-    hre.checkAddress(config.feed, `Invalid oracle address: ${config.feed}, Kresko Asset: ${config.symbol}`);
 
     const Kresko = await hre.getContractOrFork('Kresko');
     const Asset =

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { task } from 'hardhat/config';
 import { TASK_CREATE_EXPORTS } from '../names';
 

@@ -1,11 +1,10 @@
-import { getLogger } from '@kreskolabs/lib/meta';
-import { ethers } from 'ethers';
+import { getLogger } from '@utils/logging';
 import { writeFileSync } from 'fs';
 import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
 type Args = {
   facetNames: readonly (keyof TC)[];
   initializer?: {
-    contract: ethers.Contract;
+    contract: Contract;
     func: string;
     args?: unknown[];
   };
@@ -13,16 +12,14 @@ type Args = {
   multisig?: boolean;
   log?: boolean;
 };
-
+const logger = getLogger('update-facets');
 /**
  * Update facets on the diamond, will not add new facets but will update existing ones if they have changed
  * @param facetNames contract names to update
  * @param multisig whether just output the transaction params for the multisig
  * @param log whether to log
  */
-export async function updateFacets({ facetNames, multisig = false, log = true, initializer }: Args) {
-  const logger = getLogger('update-facets', log);
-
+export async function updateFacets({ facetNames, multisig = false, initializer }: Args) {
   logger.log(`Updating ${facetNames.length} facets`);
   console.table(facetNames);
 
@@ -71,7 +68,7 @@ export async function updateFacets({ facetNames, multisig = false, log = true, i
     logger.log(`Deploying ${facetName} on ${hre.network.name} network`);
     // Deploy each facet contract
     const [, newFacetSigs, NewFacetDeployment] = await hre.deploy(facetName, {
-      log,
+      log: !process.env.TEST,
       from: deployer.address,
     });
 
@@ -139,8 +136,7 @@ export async function updateFacets({ facetNames, multisig = false, log = true, i
   );
 
   if (!multisig) {
-    const tx = await deployer.sendTransaction(txParams);
-    const receipt = await tx.wait();
+    await deployer.sendTransaction(txParams);
 
     // Get the on-chain values of facets in the Diamond after the cut.
     const facetsAfterOnChain = await Diamond.facets();
@@ -174,7 +170,7 @@ export async function updateFacets({ facetNames, multisig = false, log = true, i
     hre.DiamondDeployment = DiamondDeployment;
     hre.Diamond = await hre.getContractOrFork('Kresko');
 
-    logger.success(facetNames.length, 'facets succesfully updated', 'txHash:', receipt.transactionHash);
+    logger.success(facetNames.length, 'facets succesfully updated');
 
     return {
       facetsAfter: facetsAfterOnChain,

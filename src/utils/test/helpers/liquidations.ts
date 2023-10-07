@@ -1,6 +1,5 @@
 import { wrapKresko } from '@utils/redstone';
 import optimized from '@utils/test/helpers/optimizations';
-import { BigNumber } from 'ethers';
 import hre from 'hardhat';
 import { depositCollateral, depositMockCollateral } from './collaterals';
 import { mintKrAsset } from './krassets';

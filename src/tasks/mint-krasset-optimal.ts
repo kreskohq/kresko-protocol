@@ -1,4 +1,4 @@
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { task, types } from 'hardhat/config';
 import type { TaskArguments } from 'hardhat/types';
 import { TASK_MINT_OPTIMAL } from './names';
@@ -45,14 +45,12 @@ task(TASK_MINT_OPTIMAL, 'Mint KrAsset with optimal KISS collateral')
     if (!allowance.gt(0)) {
       await KISS.approve(Kresko.address, hre.ethers.constants.MaxUint256);
     }
-    let tx = await Kresko.depositCollateral(address, KISS.address, KISSAmount);
-    await tx.wait();
+    await Kresko.depositCollateral(address, KISS.address, KISSAmount);
 
     logger.log(`Deposited ${parsedValue} KISS for minting ${taskArgs.kreskoAsset}`);
 
     try {
-      tx = await Kresko.mintKreskoAsset(address, KrAsset.address, mintAmount);
-      await tx.wait();
+      await Kresko.mintKreskoAsset(address, KrAsset.address, mintAmount);
     } catch (e) {
       logger.error(false, 'Minting failed', e);
     }

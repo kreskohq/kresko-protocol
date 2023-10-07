@@ -1,18 +1,13 @@
 import { task, types } from 'hardhat/config';
 import { TaskArguments } from 'hardhat/types';
 import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
-import { getLogger } from '@kreskolabs/lib/meta';
-import { constants } from 'ethers';
+import { getLogger } from '@utils/logging';
 import { TASK_REMOVE_FUNCTION } from './names';
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
 task(TASK_REMOVE_FUNCTION)
   .addParam('name', 'Artifact/Contract name of the facet')
-  .addOptionalParam(
-    'initAddress',
-    'Address to delegatecall to when adding the facet',
-    constants.AddressZero,
-    types.string,
-  )
+  .addOptionalParam('initAddress', 'Address to delegatecall to when adding the facet', ZERO_ADDRESS, types.string)
   .addOptionalParam('initParams', 'Address to delegatecall to when adding the facet', '0x', types.string)
   .setAction(async function ({ name, initAddress, initParams }: TaskArguments, hre) {
     const logger = getLogger(TASK_REMOVE_FUNCTION);
@@ -33,8 +28,7 @@ task(TASK_REMOVE_FUNCTION)
       functionSelectors: Signatures,
       action: FacetCutAction.Add,
     };
-    const tx = await Diamond.diamondCut([Cut], initAddress, initParams);
-    await tx.wait();
+    await Diamond.diamondCut([Cut], initAddress, initParams);
 
     const facets = (await Diamond.facets()).map(f => ({
       facetAddress: f.facetAddress,

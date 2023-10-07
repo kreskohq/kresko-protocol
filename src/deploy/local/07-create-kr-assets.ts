@@ -1,6 +1,6 @@
 import { testnetConfigs } from '@config/deploy/arbitrumGoerli';
 import type { DeployFunction } from 'hardhat-deploy/types';
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import { createKrAsset } from '@scripts/create-krasset';
 
 const logger = getLogger('Create KrAsset');

@@ -1,4 +1,4 @@
-import { SolcUserConfig } from 'hardhat/types';
+import type { SolcUserConfig } from 'hardhat/types';
 
 const oldCompilerSettings = {
   settings: {

@@ -1,9 +1,9 @@
-import { getLogger } from '@kreskolabs/lib/meta';
-import { constants } from 'ethers';
+import { getLogger } from '@utils/logging';
 import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
 import { task, types } from 'hardhat/config';
 import { TaskArguments } from 'hardhat/types';
 import { TASK_ADD_FACET } from './names';
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
 export type AddFacetParams<T> = {
   initializerName: keyof TC;
@@ -55,7 +55,7 @@ task(TASK_ADD_FACET, 'Add a facet to the diamond')
         }
         initializer = [tx.to, tx.data];
       } else {
-        initializer = [constants.AddressZero, '0x'];
+        initializer = [ZERO_ADDRESS, '0x'];
         logger.log('Adding facet with no initializer');
       }
     } else {
