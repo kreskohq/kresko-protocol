@@ -4,3 +4,6 @@
 [submodule "lib/kresko-foundry-helpers"]
 	path = lib/kresko-foundry-helpers
 	url = https://github.com/kreskohq/kresko-foundry-helpers
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
