@@ -32,7 +32,17 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
     // Create the underlying rebasing krAsset
     anchorFactory.deploy(krAsset.address),
     // Initialize the underlying krAsset
-    krAsset.initialize(name || symbol, symbol, 18, deployer.address, hre.Diamond.address),
+    krAsset.initialize(
+      name || symbol,
+      symbol,
+      18,
+      deployer.address,
+      hre.Diamond.address,
+      hre.ethers.constants.AddressZero,
+      hre.users.treasury.address,
+      0,
+      0,
+    ),
   ]);
 
   await akrAsset.setVariable('_initialized', 0);

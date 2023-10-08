@@ -12,8 +12,16 @@ const deploy: DeployFunction = async function (hre) {
     const isDeployed = await hre.deployments.getOrNull(krAsset.symbol);
     if (isDeployed != null) continue;
     // Deploy the asset
-    logger.log(`${krAsset.name}.`);
-    await createKrAsset(krAsset.symbol, krAsset.name ? krAsset.name : krAsset.symbol);
+    if (!krAsset.krAssetConfig?.underlyingAddr) throw new Error(`No underlying address for ${krAsset.symbol}`);
+    await createKrAsset(
+      krAsset.symbol,
+      krAsset.name ? krAsset.name : krAsset.symbol,
+      18,
+      krAsset.krAssetConfig.underlyingAddr,
+      hre.users.treasury.address,
+      0,
+      0,
+    );
     logger.log(`Success: ${krAsset.name}.`);
   }
 

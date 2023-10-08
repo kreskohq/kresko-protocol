@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {Fee} from "common/Types.sol";
-import {MinterAccountState} from "minter/Types.sol";
+import {MinterAccountState, MinterFee} from "minter/Types.sol";
 
 interface IAccountStateFacet {
     // ExpectedFeeRuntimeInfo is used for stack size optimization
@@ -147,17 +146,17 @@ interface IAccountStateFacet {
     /**
      * @notice Calculates the expected fee to be taken from a user's deposited collateral assets,
      *         by imitating calcFee without modifying state.
-     * @param _account The account to charge the open fee from.
-     * @param _kreskoAsset The address of the kresko asset being burned.
-     * @param _kreskoAssetAmount The amount of the kresko asset being minted.
-     * @param _feeType The fee type (open, close, etc).
-     * @return assets The collateral types as an array of addresses.
-     * @return amounts The collateral amounts as an array of uint256.
+     * @param _account Account to charge the open fee from.
+     * @param _kreskoAsset Address of the kresko asset being burned.
+     * @param _kreskoAssetAmount Amount of the kresko asset being minted.
+     * @param _feeType Fee type (open or close).
+     * @return assets Collateral types as an array of addresses.
+     * @return amounts Collateral amounts as an array of uint256.
      */
     function previewFee(
         address _account,
         address _kreskoAsset,
         uint256 _kreskoAssetAmount,
-        Fee _feeType
+        MinterFee _feeType
     ) external view returns (address[] memory, uint256[] memory);
 }

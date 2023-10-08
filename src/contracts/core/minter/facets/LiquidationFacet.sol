@@ -20,7 +20,8 @@ import {Constants} from "common/Constants.sol";
 import {ILiquidationFacet} from "minter/interfaces/ILiquidationFacet.sol";
 import {MEvent} from "minter/Events.sol";
 import {ms, MinterState} from "minter/State.sol";
-import {handleMinterCloseFee} from "minter/funcs/Fees.sol";
+import {MinterFee} from "minter/Types.sol";
+import {handleMinterFee} from "minter/funcs/Fees.sol";
 
 using Arrays for address[];
 using WadRay for uint256;
@@ -67,7 +68,7 @@ contract LiquidationFacet is CModifiers, ILiquidationFacet {
         (repayValue, _repayAmount) = krAsset.ensureRepayValue(repayValue, _repayAmount);
 
         /* ------------------------------- Charge fee ------------------------------- */
-        handleMinterCloseFee(_account, krAsset, _repayAmount);
+        handleMinterFee(_account, krAsset, _repayAmount, MinterFee.Close);
 
         /* -------------------------------- Liquidate ------------------------------- */
         ExecutionParams memory params = ExecutionParams(

@@ -122,6 +122,7 @@ export const assets = {
     },
     krAssetConfig: {
       anchor: null,
+      underlyingAddr: ZERO_ADDRESS,
       kFactor: 1.1e4,
       openFee: 0,
       closeFee: 0,
@@ -147,6 +148,7 @@ export const assets = {
     krAssetConfig: {
       anchor: null,
       kFactor: 1.05e4,
+      underlyingAddr: ZERO_ADDRESS,
       openFee: 0,
       closeFee: 0.02e4,
       supplyLimit: defaultSupplyLimit,
@@ -171,6 +173,7 @@ export const assets = {
     krAssetConfig: {
       anchor: null,
       kFactor: 1.05e4,
+      underlyingAddr: ZERO_ADDRESS,
       openFee: 0,
       closeFee: 0.02e4,
       supplyLimit: defaultSupplyLimit,

@@ -3,9 +3,8 @@
 pragma solidity >=0.8.19;
 
 contract WETH9 {
-    string public name;
-    string public symbol;
-    uint8 public decimals = 18;
+    string public name = "WETH";
+    string public symbol = "Wrapped Ether";
 
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event Transfer(address indexed src, address indexed dst, uint256 wad);
@@ -14,6 +13,10 @@ contract WETH9 {
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
+
+    function decimals() public view returns (uint8) {
+        return 18;
+    }
 
     function deposit() public payable virtual {
         balanceOf[msg.sender] += msg.value;

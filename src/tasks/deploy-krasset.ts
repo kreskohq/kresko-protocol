@@ -3,6 +3,7 @@ import { createKrAsset } from '@scripts/create-krasset';
 import { task } from 'hardhat/config';
 import { TaskArguments } from 'hardhat/types';
 import { TASK_DEPLOY_KRASSET } from './names';
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
 const logger = getLogger(TASK_DEPLOY_KRASSET);
 
@@ -12,6 +13,6 @@ task(TASK_DEPLOY_KRASSET)
   .setAction(async function (taskArgs: TaskArguments) {
     const { name, symbol } = taskArgs;
     logger.log('Deploying krAsset', name, symbol);
-    const asset = await createKrAsset(name, symbol);
+    const asset = await createKrAsset(name, symbol, 18, ZERO_ADDRESS, hre.users.treasury.address, 0, 0);
     logger.success('Deployed krAsset', asset.KreskoAsset.address);
   });

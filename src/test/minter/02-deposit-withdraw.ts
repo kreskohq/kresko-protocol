@@ -756,7 +756,6 @@ describe('Minter - Deposit Withdraw', function () {
       this.slow(1500);
       beforeEach(async function () {
         await Withdrawer.mintKreskoAsset(withdrawer.address, f.KrAssetCollateral.address, mintAmount);
-
         // Deposit all debt on tests
         this.krAssetCollateralAmount = await optimized.getAccountDebtAmount(withdrawer.address, f.KrAssetCollateral);
       });
@@ -930,7 +929,7 @@ describe('Minter - Deposit Withdraw', function () {
           await Withdrawer.depositCollateral(withdrawer.address, f.KrAssetCollateral.address, firstDepositAmount);
 
           // Get deposits before
-          const depositsFirst = await optimized.getAccountCollateralAmount(
+          const depositsFirst = await hre.Diamond.getAccountCollateralAmount(
             withdrawer.address,
             f.KrAssetCollateral.address,
           );
@@ -982,7 +981,7 @@ describe('Minter - Deposit Withdraw', function () {
           await Withdrawer.depositCollateral(withdrawer.address, f.KrAssetCollateral.address, firstDepositAmount);
 
           // Get deposits before
-          const depositsFirst = await optimized.getAccountCollateralAmount(
+          const depositsFirst = await hre.Diamond.getAccountCollateralAmount(
             withdrawer.address,
             f.KrAssetCollateral.address,
           );

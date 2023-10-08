@@ -20,6 +20,7 @@ import {
 } from './mocks';
 import Role from './roles';
 import { AllTokenSymbols } from '@config/deploy';
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
 type SCDPFixtureParams = {
   krAssets: () => Promise<TestKrAsset>[];
@@ -156,13 +157,14 @@ export const diamondFixture = hre.deployments.createFixture<{ facets: Facet[] },
 
 export const kreskoAssetFixture = hre.deployments.createFixture<
   Awaited<ReturnType<typeof createKrAsset>>,
-  { name: string; symbol: AllTokenSymbols }
+  { name: string; symbol: AllTokenSymbols; underlying?: string }
 >(async (hre, opts) => {
-  const result = await hre.deployments.fixture('diamond-init');
+  const result = await hre.deployments.fixture(['diamond-init', opts?.name!]);
   if (result.Diamond) {
     hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'));
   }
-  return createKrAsset(opts!.symbol, opts!.name);
+  if (!opts) throw new Error('Must supply options');
+  return createKrAsset(opts?.symbol, opts?.name, 18, opts.underlying ?? ZERO_ADDRESS, hre.users.treasury.address, 0, 0);
 });
 
 export type DefaultFixture = {

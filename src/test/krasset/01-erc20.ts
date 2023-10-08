@@ -1,3 +1,4 @@
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 import { expect } from '@test/chai';
 import { kreskoAssetFixture } from '@utils/test/fixtures';
 import Role from '@utils/test/roles';
@@ -6,7 +7,7 @@ describe('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset;
 
   beforeEach(async function () {
-    ({ KreskoAsset } = await kreskoAssetFixture({ name: 'Ether', symbol: 'krETH' }));
+    ({ KreskoAsset } = await kreskoAssetFixture({ name: 'Ether', symbol: 'krETH', underlying: ZERO_ADDRESS }));
     this.owner = hre.users.deployer;
     this.mintAmount = 125;
     await KreskoAsset.grantRole(Role.OPERATOR, this.owner.address);
@@ -55,8 +56,10 @@ describe('KreskoAsset', () => {
 
   describe('#burn', () => {
     beforeEach(async function () {
-      this.mintAmount = 250;
       await KreskoAsset.connect(this.owner).mint(hre.users.userOne.address, this.mintAmount);
+      this.owner = hre.users.deployer;
+      this.mintAmount = 125;
+      await KreskoAsset.grantRole(Role.OPERATOR, this.owner.address);
     });
 
     it("should allow the owner to burn tokens from user's address (without token allowance)", async function () {

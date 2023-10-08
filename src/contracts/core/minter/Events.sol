@@ -147,33 +147,21 @@ library MEvent {
     event KFactorUpdated(address indexed kreskoAsset, uint256 kFactor);
 
     /**
-     * @notice Emitted when an account pays a close fee with a collateral asset upon burning a KreskoAsset.
-     * @dev This can be emitted multiple times for a single KreskoAsset burn.
-     * @param account The address of the account burning the KreskoAsset.
-     * @param paymentCollateralAsset The address of the collateral asset used to pay the close fee.
-     * @param paymentAmount The amount of the payment collateral asset that was paid.
-     * @param paymentValue The USD value of the payment.
+     * @notice Emitted when an account pays an open/close fee with a collateral asset in the Minter.
+     * @dev This can be emitted multiple times for a single asset.
+     * @param account Address of the account paying the fee.
+     * @param paymentCollateralAsset Address of the collateral asset used to pay the fee.
+     * @param feeType Fee type.
+     * @param paymentAmount Amount of ollateral asset that was paid.
+     * @param paymentValue USD value of the payment.
      */
-    event CloseFeePaid(
+    event FeePaid(
         address indexed account,
         address indexed paymentCollateralAsset,
+        uint256 indexed feeType,
         uint256 paymentAmount,
-        uint256 paymentValue
-    );
-
-    /**
-     * @notice Emitted when an account pays an open fee with a collateral asset upon minting a KreskoAsset.
-     * @dev This can be emitted multiple times for a single KreskoAsset mint.
-     * @param account The address of the account minting the KreskoAsset.
-     * @param paymentCollateralAsset The address of the collateral asset used to pay the open fee.
-     * @param paymentAmount The amount of the payment collateral asset that was paid.
-     * @param paymentValue The USD value of the payment.
-     */
-    event OpenFeePaid(
-        address indexed account,
-        address indexed paymentCollateralAsset,
-        uint256 paymentAmount,
-        uint256 paymentValue
+        uint256 paymentValue,
+        uint256 feeValue
     );
 
     /**

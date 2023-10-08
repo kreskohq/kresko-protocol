@@ -5,10 +5,10 @@ import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {CError} from "common/CError.sol";
 import {cs} from "common/State.sol";
-import {Asset, Fee} from "common/Types.sol";
+import {Asset} from "common/Types.sol";
 import {fromWad} from "common/funcs/Math.sol";
 
-import {MinterAccountState} from "minter/Types.sol";
+import {MinterAccountState, MinterFee} from "minter/Types.sol";
 
 import {IAccountStateFacet} from "minter/interfaces/IAccountStateFacet.sol";
 import {ms} from "minter/State.sol";
@@ -141,7 +141,7 @@ contract AccountStateFacet is IAccountStateFacet {
         address _account,
         address _kreskoAsset,
         uint256 _kreskoAssetAmount,
-        Fee _feeType
+        MinterFee _feeType
     ) external view returns (address[] memory, uint256[] memory) {
         if (uint8(_feeType) > 1) {
             revert CError.INVALID_FEE_TYPE(uint8(_feeType), 1);
@@ -151,7 +151,7 @@ contract AccountStateFacet is IAccountStateFacet {
 
         // Calculate the value of the fee according to the value of the krAsset
         uint256 feeValue = asset.uintUSD(_kreskoAssetAmount).percentMul(
-            Fee(_feeType) == Fee.Open ? asset.openFee : asset.closeFee
+            MinterFee(_feeType) == MinterFee.Open ? asset.openFee : asset.closeFee
         );
 
         address[] memory accountCollateralAssets = ms().depositedCollateralAssets[_account];

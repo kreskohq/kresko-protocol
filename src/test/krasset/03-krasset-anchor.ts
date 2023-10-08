@@ -1,3 +1,4 @@
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 import { expect } from '@test/chai';
 import { kreskoAssetFixture } from '@utils/test/fixtures';
 import { defaultMintAmount } from '@utils/test/mocks';
@@ -10,7 +11,11 @@ describe('KreskoAssetAnchor', () => {
   let KreskoAssetAnchor: KreskoAssetAnchor;
 
   beforeEach(async function () {
-    ({ KreskoAsset, KreskoAssetAnchor } = await kreskoAssetFixture({ name: 'Ether', symbol: 'krETH' }));
+    ({ KreskoAsset, KreskoAssetAnchor } = await kreskoAssetFixture({
+      name: 'Kresko Asset',
+      symbol: 'KreskoAsset',
+      underlying: ZERO_ADDRESS,
+    }));
 
     // Grant minting rights for test deployer
     await Promise.all([

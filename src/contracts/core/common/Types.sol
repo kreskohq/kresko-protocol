@@ -234,15 +234,3 @@ enum Action {
     SCDPRepay,
     SCDPLiquidation
 }
-
-/**
- * @dev Fee types
- *
- * Open = 0
- * Close = 1
- */
-
-enum Fee {
-    Open,
-    Close
-}

@@ -109,6 +109,7 @@ export type AssetArgs = {
 export type KrAssetConfig = {
   anchor: string | null;
   anchorSymbol?: string;
+  underlyingAddr?: string;
   kFactor: BigNumberish;
   supplyLimit: BigNumberish;
   closeFee: BigNumberish;

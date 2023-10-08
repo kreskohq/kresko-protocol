@@ -9,9 +9,10 @@ import {Asset, Action} from "common/Types.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {CError} from "common/CError.sol";
 import {IBurnFacet} from "minter/interfaces/IBurnFacet.sol";
+import {MinterFee} from "minter/Types.sol";
 import {ms, MinterState} from "minter/State.sol";
 import {MEvent} from "minter/Events.sol";
-import {handleMinterCloseFee} from "minter/funcs/Fees.sol";
+import {handleMinterFee} from "minter/funcs/Fees.sol";
 
 /**
  * @author Kresko
@@ -51,7 +52,7 @@ contract BurnFacet is CModifiers, IBurnFacet {
         }
 
         // Charge the burn fee from collateral of _account
-        handleMinterCloseFee(_account, asset, _burnAmount);
+        handleMinterFee(_account, asset, _burnAmount, MinterFee.Close);
 
         // Record the burn
         s.kreskoAssetDebt[_account][_kreskoAsset] -= burnKrAsset(_burnAmount, msg.sender, asset.anchor);

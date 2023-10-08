@@ -28,8 +28,22 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerableUpgradeable, IER
      * @param _decimals Decimals for the asset.
      * @param _admin The adminstrator of this contract.
      * @param _kresko The protocol, can perform mint and burn.
+     * @param _underlying The underlying token if available.
+     * @param _feeRecipient Fee recipient for synth wraps.
+     * @param _openFee Synth warp open fee.
+     * @param _closeFee Synth wrap close fee.
      */
-    function initialize(string memory _name, string memory _symbol, uint8 _decimals, address _admin, address _kresko) external;
+    function initialize(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals,
+        address _admin,
+        address _kresko,
+        address _underlying,
+        address _feeRecipient,
+        uint48 _openFee,
+        uint40 _closeFee
+    ) external;
 
     function kresko() external view returns (address);
 
@@ -97,4 +111,79 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerableUpgradeable, IER
      * @param _amount The amount of tokens to burn.
      */
     function burn(address _from, uint256 _amount) external;
+
+    /**
+     * @notice Triggers stopped state.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    function pause() external;
+
+    /**
+     * @notice  Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function unpause() external;
+
+    /**
+     * @notice Deposit underlying tokens to receive equal value of krAsset (-fee).
+     * @param _to The to address.
+     * @param _amount The amount (uint256).
+     */
+    function wrap(address _to, uint256 _amount) external;
+
+    /**
+     * @notice Withdraw kreskoAsset to receive underlying tokens / native (-fee).
+     * @param _amount The amount (uint256).
+     * @param _receiveNative bool whether to receive underlying as native
+     */
+    function unwrap(uint256 _amount, bool _receiveNative) external;
+
+    /**
+     * @notice Sets anchor token address
+     * @dev Has modifiers: onlyRole.
+     * @param _anchor The anchor address.
+     */
+    function setAnchorToken(address _anchor) external;
+
+    /**
+     * @notice Enables depositing native token ETH in case of krETH
+     * @dev Has modifiers: onlyRole.
+     * @param _enabled The enabled (bool).
+     */
+    function enableNativeUnderlying(bool _enabled) external;
+
+    /**
+     * @notice Sets fee recipient address
+     * @dev Has modifiers: onlyRole.
+     * @param _feeRecipient The fee recipient address.
+     */
+    function setFeeRecipient(address _feeRecipient) external;
+
+    /**
+     * @notice Sets deposit fee
+     * @dev Has modifiers: onlyRole.
+     * @param _openFee The open fee (uint48).
+     */
+    function setOpenFee(uint48 _openFee) external;
+
+    /**
+     * @notice Sets withdraw fee
+     * @dev Has modifiers: onlyRole.
+     * @param _closeFee The open fee (uint48).
+     */
+    function setCloseFee(uint40 _closeFee) external;
+
+    /**
+     * @notice Sets underlying token address (and its decimals)
+     * @notice Zero address will disable functionality provided for the underlying.
+     * @dev Has modifiers: onlyRole.
+     * @param _underlying The underlying address.
+     */
+    function setUnderlying(address _underlying) external;
 }

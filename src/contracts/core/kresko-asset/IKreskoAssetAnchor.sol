@@ -36,4 +36,16 @@ interface IKreskoAssetAnchor is
      * @param _version number that must be greater than latest emitted `Initialized` version
      */
     function reinitializeERC20(string memory _name, string memory _symbol, uint8 _version) external;
+
+    /**
+     * @notice Mint Kresko Anchor Asset to Kresko Asset (Only KreskoAsset can call)
+     * @param assets The assets (uint256).
+     */
+    function wrap(uint256 assets) external;
+
+    /**
+     * @notice Burn Kresko Anchor Asset to Kresko Asset (Only KreskoAsset can call)
+     * @param assets The assets (uint256).
+     */
+    function unwrap(uint256 assets) external;
 }

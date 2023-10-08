@@ -5,6 +5,7 @@ import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgrad
 import {IERC165} from "vendor/IERC165.sol";
 
 import {Role} from "common/Types.sol";
+import {CError} from "common/CError.sol";
 
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
@@ -107,6 +108,35 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         shares = super.destroy(_assets, _from);
     }
 
+    /// @inheritdoc IKreskoAssetAnchor
+    function wrap(uint256 assets) external {
+        if (msg.sender != address(asset) && !hasRole(Role.OPERATOR, msg.sender)) {
+            revert CError.INVALID_KRASSET_OPERATOR(msg.sender);
+        }
+
+        uint256 shares = previewIssue(assets);
+        if (shares == 0) {
+            revert CError.ZERO_SHARES_OUT(address(asset), assets);
+        }
+
+        // Mint anchor shares to the asset contract
+        _mint(address(asset), shares);
+    }
+
+    /// @inheritdoc IKreskoAssetAnchor
+    function unwrap(uint256 assets) external {
+        if (msg.sender != address(asset) && !hasRole(Role.OPERATOR, msg.sender)) {
+            revert CError.INVALID_KRASSET_OPERATOR(msg.sender);
+        }
+
+        uint256 shares = previewIssue(assets);
+        if (shares == 0) {
+            revert CError.ZERO_SHARES_OUT(address(asset), assets);
+        }
+        // Burn anchor shares from the asset contract
+        _burn(address(asset), shares);
+    }
+
     /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
     function deposit(uint256, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
         revert("NOT_ALLOWED");
@@ -118,11 +148,6 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         address,
         address
     ) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
-        revert("NOT_ALLOWED");
-    }
-
-    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
-    function mint(uint256, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
         revert("NOT_ALLOWED");
     }
 

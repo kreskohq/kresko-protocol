@@ -13,10 +13,9 @@ import { MaxUint128, fromBig, toBig } from '@utils/values';
 import { expect } from 'chai';
 import { Kresko } from 'types/typechain';
 import {
-  CloseFeePaidEventObject,
+  FeePaidEventObject,
   KreskoAssetBurnedEvent,
   KreskoAssetMintedEventObject,
-  OpenFeePaidEventObject,
 } from 'types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 const INTEREST_RATE_DELTA = toBig('0.000001');
@@ -739,7 +738,7 @@ describe('Minter', function () {
       });
 
       describe('Protocol open fee', () => {
-        it('should charge the protocol open fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event', async function () {
+        it('should charge the protocol open fee with a single collateral asset if the deposit amount is sufficient and emit FeePaid event', async function () {
           const openFee = 0.01e4;
 
           await f.KrAsset.update({
@@ -780,12 +779,13 @@ describe('Minter', function () {
           expect(feeRecipientBalanceIncrease).to.equal(expectedCollateralFeeAmount);
 
           // Ensure the emitted event is as expected.
-          const event = await getInternalEvent<OpenFeePaidEventObject>(tx, hre.Diamond, 'OpenFeePaid');
+          const event = await getInternalEvent<FeePaidEventObject>(tx, hre.Diamond, 'FeePaid');
           expect(event.account).to.equal(user1.address);
           expect(event.paymentCollateralAsset).to.equal(f.Collateral.address);
           expect(event.paymentAmount).to.equal(expectedCollateralFeeAmount);
 
           expect(event.paymentValue).to.equal(expectedFeeValue);
+          expect(event.feeType).to.equal(Fee.OPEN);
 
           // Now verify that calcExpectedFee function returns accurate fee amount
           const [, values] = await hre.Diamond.previewFee(user1.address, f.KrAsset.address, mintAmount, Fee.OPEN);
@@ -793,7 +793,7 @@ describe('Minter', function () {
         });
       });
       describe('Protocol Close Fee', () => {
-        it('should charge the protocol close fee with a single collateral asset if the deposit amount is sufficient and emit CloseFeePaid event', async function () {
+        it('should charge the protocol close fee with a single collateral asset if the deposit amount is sufficient and emit FeePaid event', async function () {
           const burnAmount = toBig(1);
           const burnValue = burnAmount.wadMul(TEN_USD.ebn(8));
           const closeFee = f.KrAsset.config.args.krAssetConfig!.closeFee; // use toBig() to emulate closeFee's 18 decimals on contract
@@ -824,11 +824,12 @@ describe('Minter', function () {
           expect(feeRecipientBalanceIncrease).to.equal(expectedCollateralFeeAmount);
 
           // Ensure the emitted event is as expected.
-          const event = await getInternalEvent<CloseFeePaidEventObject>(tx, hre.Diamond, 'CloseFeePaid');
+          const event = await getInternalEvent<FeePaidEventObject>(tx, hre.Diamond, 'FeePaid');
           expect(event.account).to.equal(user1.address);
           expect(event.paymentCollateralAsset).to.equal(f.Collateral.address);
           expect(event.paymentAmount).to.equal(expectedCollateralFeeAmount);
           expect(event.paymentValue).to.equal(expectedFeeValue);
+          expect(event.feeType).to.equal(Fee.CLOSE);
         });
 
         it('should charge correct protocol close fee after a positive rebase', async function () {
@@ -837,18 +838,19 @@ describe('Minter', function () {
           const expectedFeeAmount = burnAmount.percentMul(f.KrAsset.config.args.krAssetConfig!.closeFee);
           const expectedFeeValue = expectedFeeAmount.wadMul(toBig(TEN_USD, 8));
 
-          const event = await getInternalEvent<CloseFeePaidEventObject>(
+          const event = await getInternalEvent<FeePaidEventObject>(
             await burnKrAsset({
               user: user2,
               asset: f.KrAsset,
               amount: burnAmount,
             }),
             hre.Diamond,
-            'CloseFeePaid',
+            'FeePaid',
           );
 
           expect(event.paymentAmount).to.equal(expectedFeeAmount);
           expect(event.paymentValue).to.equal(expectedFeeValue);
+          expect(event.feeType).to.equal(Fee.CLOSE);
 
           // rebase params
           const denominator = 4;
@@ -862,14 +864,14 @@ describe('Minter', function () {
             asset: f.Collateral,
             amount: toBig(wAmount),
           });
-          const eventAfterRebase = await getInternalEvent<CloseFeePaidEventObject>(
+          const eventAfterRebase = await getInternalEvent<FeePaidEventObject>(
             await burnKrAsset({
               user: user2,
               asset: f.KrAsset,
               amount: burnAmountRebase,
             }),
             hre.Diamond,
-            'CloseFeePaid',
+            'FeePaid',
           );
           expect(eventAfterRebase.paymentCollateralAsset).to.equal(event.paymentCollateralAsset);
           expect(eventAfterRebase.paymentAmount).to.equal(expectedFeeAmount);
@@ -881,18 +883,19 @@ describe('Minter', function () {
           const expectedFeeAmount = burnAmount.percentMul(f.KrAsset.config.args.krAssetConfig!.closeFee);
           const expectedFeeValue = expectedFeeAmount.wadMul(toBig(TEN_USD, 8));
 
-          const event = await getInternalEvent<CloseFeePaidEventObject>(
+          const event = await getInternalEvent<FeePaidEventObject>(
             await burnKrAsset({
               user: user2,
               asset: f.KrAsset,
               amount: burnAmount,
             }),
             hre.Diamond,
-            'CloseFeePaid',
+            'FeePaid',
           );
 
           expect(event.paymentAmount).to.equal(expectedFeeAmount);
           expect(event.paymentValue).to.equal(expectedFeeValue);
+          expect(event.feeType).to.equal(Fee.CLOSE);
 
           // rebase params
           const denominator = 4;
@@ -907,14 +910,14 @@ describe('Minter', function () {
             asset: f.Collateral,
             amount: toBig(wAmount),
           });
-          const eventAfterRebase = await getInternalEvent<CloseFeePaidEventObject>(
+          const eventAfterRebase = await getInternalEvent<FeePaidEventObject>(
             await burnKrAsset({
               user: user2,
               asset: f.KrAsset,
               amount: burnAmountRebase,
             }),
             hre.Diamond,
-            'CloseFeePaid',
+            'FeePaid',
           );
           expect(eventAfterRebase.paymentCollateralAsset).to.equal(event.paymentCollateralAsset);
           expect(eventAfterRebase.paymentAmount).to.equal(expectedFeeAmount);

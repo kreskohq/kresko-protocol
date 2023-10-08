@@ -13,8 +13,9 @@ import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {IMintFacet} from "minter/interfaces/IMintFacet.sol";
 
 import {MEvent} from "minter/Events.sol";
+import {MinterFee} from "minter/Types.sol";
 import {ms, MinterState} from "minter/State.sol";
-import {handleMinterOpenFee} from "minter/funcs/Fees.sol";
+import {handleMinterFee} from "minter/funcs/Fees.sol";
 
 // solhint-disable code-complexity
 
@@ -45,21 +46,21 @@ contract MintFacet is IMintFacet, CModifiers {
             super.ensureNotPaused(_kreskoAsset, Action.Borrow);
         }
         // Enforce krAsset's total supply limit
-        Asset storage krAsset = cs().assets[_kreskoAsset];
+        Asset storage asset = cs().assets[_kreskoAsset];
 
-        if (!krAsset.marketStatus()) revert CError.MARKET_CLOSED(_kreskoAsset, krAsset.underlyingId.toString());
+        if (!asset.marketStatus()) revert CError.MARKET_CLOSED(_kreskoAsset, asset.underlyingId.toString());
 
         uint256 newSupply = IKreskoAsset(_kreskoAsset).totalSupply() + _mintAmount;
-        if (newSupply > krAsset.supplyLimit) revert CError.MAX_SUPPLY_EXCEEDED(_kreskoAsset, newSupply, krAsset.supplyLimit);
+        if (newSupply > asset.supplyLimit) revert CError.MAX_SUPPLY_EXCEEDED(_kreskoAsset, newSupply, asset.supplyLimit);
 
         // If there is a fee for opening a position, handle it
-        if (krAsset.openFee > 0) {
-            handleMinterOpenFee(_account, krAsset, _mintAmount);
+        if (asset.openFee > 0) {
+            handleMinterFee(_account, asset, _mintAmount, MinterFee.Open);
         }
-        uint256 existingDebt = s.accountDebtAmount(_account, _kreskoAsset, krAsset);
+        uint256 existingDebt = s.accountDebtAmount(_account, _kreskoAsset, asset);
 
         // The synthetic asset debt position must be greater than the minimum debt position value
-        krAsset.checkMinDebtValue(_kreskoAsset, existingDebt + _mintAmount);
+        asset.checkMinDebtValue(_kreskoAsset, existingDebt + _mintAmount);
 
         // If this is the first time the account mints this asset, add to its minted assets
         if (existingDebt == 0) {
@@ -68,7 +69,7 @@ contract MintFacet is IMintFacet, CModifiers {
 
         // Record the mint.
         unchecked {
-            s.kreskoAssetDebt[_account][_kreskoAsset] += mintKrAsset(_mintAmount, _account, krAsset.anchor);
+            s.kreskoAssetDebt[_account][_kreskoAsset] += mintKrAsset(_mintAmount, _account, asset.anchor);
         }
 
         // Check if the account has sufficient collateral to back the new debt

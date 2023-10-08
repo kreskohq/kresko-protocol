@@ -11,7 +11,7 @@ describe.skip('Test KreskoAsset with Rebase and sync', () => {
   let KreskoAsset: TestKrAsset;
 
   beforeEach(async function () {
-    KreskoAsset = this.krAssets.find(asset => asset.config.args.symbol === 'krETH')!;
+    KreskoAsset = this.krAssets.find(asset => asset.config.args.symbol === 'KreskoAsset')!;
 
     const KISS = await hre.getContractOrFork('KISS');
     // [hre.UniV2Factory] = await hre.deploy("UniswapV2Factory", {

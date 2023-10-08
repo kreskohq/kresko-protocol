@@ -19,6 +19,7 @@ library CError {
     error COLLATERAL_DOES_NOT_EXIST(address asset);
     error KRASSET_DOES_NOT_EXIST(address asset);
     error SAFETY_COUNCIL_NOT_ALLOWED();
+    error NATIVE_TOKEN_DISABLED();
     error SAFETY_COUNCIL_INVALID_ADDRESS(address);
     error SAFETY_COUNCIL_ALREADY_EXISTS();
     error MULTISIG_NOT_ENOUGH_OWNERS(uint256 owners, uint256 required);
@@ -38,6 +39,7 @@ library CError {
     error NO_PUSH_ORACLE_SET(string underlyingId);
     error INVALID_FEE_TYPE(uint8 invalid, uint8 valid);
     error ZERO_ADDRESS();
+    error WRAP_NOT_SUPPORTED();
     error BURN_AMOUNT_OVERFLOW(uint256 burnAmount, uint256 debtAmount);
     error PAUSED(address who);
     error ZERO_PRICE(string underlyingId);

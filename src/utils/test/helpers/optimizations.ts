@@ -78,40 +78,42 @@ export async function getAccountCollateralAmount<T extends Omit<TestKrAsset, 'de
   address: string,
   asset: string | any,
 ) {
-  try {
-    let assetAddress: string = '';
-    if (typeof asset === 'string') {
-      assetAddress = asset;
-    } else {
-      assetAddress = asset.address;
-      if ((await getIsRebased(asset.contract))[0]) {
-        return await hre.Diamond.getAccountCollateralAmount(address, assetAddress);
-      }
-    }
-    const data = await getNestedMappingItem(
-      increaseHexBy(slots.minter, slots.collateralDeposits),
-      address,
-      assetAddress,
-    );
-    return toBig(hexStripZeros(data), 0);
-  } catch {
-    return toBig(0);
-  }
+  return hre.Diamond.getAccountCollateralAmount(address, typeof asset === 'string' ? asset : asset.address);
+  // try {
+  //   let assetAddress: string = '';
+  //   if (typeof asset === 'string') {
+  //     assetAddress = asset;
+  //   } else {
+  //     assetAddress = asset.address;
+  //     if ((await getIsRebased(asset.contract))[0]) {
+  //       return await hre.Diamond.getAccountCollateralAmount(address, assetAddress);
+  //     }
+  //   }
+  //   const data = await getNestedMappingItem(
+  //     increaseHexBy(slots.minter, slots.collateralDeposits),
+  //     address,
+  //     assetAddress,
+  //   );
+  //   return toBig(hexStripZeros(data), 0);
+  // } catch {
+  //   return toBig(0);
+  // }
 }
 export async function getAccountDebtAmount(address: string, krAsset: TestKrAsset) {
-  try {
-    if ((await getIsRebased(krAsset.contract))[0]) {
-      return await hre.Diamond.getAccountDebtAmount(address, krAsset.address);
-    }
-    const data = await getNestedMappingItem(
-      increaseHexBy(slots.minter, slots.kreskoAssetDebt),
-      address,
-      krAsset.address,
-    );
-    return toBig(hexStripZeros(data), 0);
-  } catch {
-    return toBig(0);
-  }
+  return hre.Diamond.getAccountDebtAmount(address, krAsset.address);
+  // try {
+  //   if ((await getIsRebased(krAsset.contract))[0]) {
+  //     return await hre.Diamond.getAccountDebtAmount(address, krAsset.address);
+  //   }
+  //   const data = await getNestedMappingItem(
+  //     increaseHexBy(slots.minter, slots.kreskoAssetDebt),
+  //     address,
+  //     krAsset.address,
+  //   );
+  //   return toBig(hexStripZeros(data), 0);
+  // } catch {
+  //   return toBig(0);
+  // }
 }
 
 export async function getMinCollateralRatio() {

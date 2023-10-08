@@ -12,7 +12,8 @@ import {IBurnHelperFacet} from "./IBurnHelperFacet.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {MEvent} from "minter/Events.sol";
 import {ms, MinterState} from "minter/State.sol";
-import {handleMinterCloseFee} from "minter/funcs/Fees.sol";
+import {MinterFee} from "minter/Types.sol";
+import {handleMinterFee} from "minter/funcs/Fees.sol";
 
 /**
  * @author Kresko
@@ -39,7 +40,7 @@ contract BurnHelperFacet is IBurnHelperFacet, DSModifiers, CModifiers {
         if (principalDebt == 0) revert CError.ZERO_BURN(_kreskoAsset);
 
         // Charge the burn fee from collateral of _account
-        handleMinterCloseFee(_account, asset, principalDebt);
+        handleMinterFee(_account, asset, principalDebt, MinterFee.Close);
 
         // Record the burn
         s.burn(_kreskoAsset, asset.anchor, principalDebt, _account);

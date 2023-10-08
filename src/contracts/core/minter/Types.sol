@@ -26,3 +26,14 @@ struct MinterParams {
     uint32 liquidationThreshold;
     uint32 maxLiquidationRatio;
 }
+
+/**
+ * @dev Fee types
+ *
+ * Open = 0
+ * Close = 1
+ */
+enum MinterFee {
+    Open,
+    Close
+}

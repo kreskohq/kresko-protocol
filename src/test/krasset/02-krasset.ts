@@ -1,3 +1,4 @@
+import { ZERO_ADDRESS } from '@kreskolabs/lib';
 import { createKrAsset } from '@scripts/create-krasset';
 import { expect } from '@test/chai';
 import { wrapKresko } from '@utils/redstone';
@@ -13,7 +14,7 @@ describe('KreskoAsset', () => {
     if (result.Diamond) {
       hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'));
     }
-    KreskoAsset = (await createKrAsset('krETH', 'Ether')).KreskoAsset;
+    KreskoAsset = (await createKrAsset('KreskoAsset', 'Kresko Asset', 18, ZERO_ADDRESS)).KreskoAsset;
     // Grant minting rights for test deployer
     await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
   });
