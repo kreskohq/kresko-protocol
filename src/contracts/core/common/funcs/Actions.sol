@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {sdi} from "scdp/State.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {Asset} from "common/Types.sol";
+import {CError} from "common/CError.sol";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Actions                                  */
@@ -15,7 +16,7 @@ import {Asset} from "common/Types.sol";
 /// @param _from The account to burn assets from.
 function burnKrAsset(uint256 _burnAmount, address _from, address _anchor) returns (uint256 burned) {
     burned = IKreskoAssetIssuer(_anchor).destroy(_burnAmount, _from);
-    require(burned != 0, "zero-burn");
+    if (burned == 0) revert CError.ZERO_BURN(_anchor);
 }
 
 /// @notice Mint kresko assets with anchor already known.
@@ -24,7 +25,7 @@ function burnKrAsset(uint256 _burnAmount, address _from, address _anchor) return
 /// @param _anchor The anchor token of the minted asset.
 function mintKrAsset(uint256 _amount, address _to, address _anchor) returns (uint256 minted) {
     minted = IKreskoAssetIssuer(_anchor).issue(_amount, _to);
-    require(minted != 0, "zero-mint");
+    if (minted == 0) revert CError.ZERO_MINT(_anchor);
 }
 
 /// @notice Repay SCDP swap debt.

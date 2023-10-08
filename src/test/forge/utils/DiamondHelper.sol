@@ -1,4 +1,4 @@
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {DiamondLoupeFacet} from "diamond/facets/DiamondLoupeFacet.sol";
 import {Vm} from "forge-std/Vm.sol";

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 // solhint-disable-next-line
-import {AccessControlEnumerableUpgradeable, AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import {IAccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import {AccessControlEnumerableUpgradeable, AccessControlUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
+import {IAccessControl} from "@oz/access/IAccessControl.sol";
+import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "vendor/SafeERC20Upgradeable.sol";
 import {Role} from "common/Types.sol";
@@ -161,7 +161,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     function grantRole(
         bytes32 _role,
         address _to
-    ) public override(IKISS, AccessControlUpgradeable, IAccessControlUpgradeable) onlyRole(Role.ADMIN) {
+    ) public override(IKISS, AccessControlUpgradeable, IAccessControl) onlyRole(Role.ADMIN) {
         if (_role == Role.OPERATOR) {
             if (_to.code.length == 0) revert CError.NOT_A_CONTRACT(_to);
         }

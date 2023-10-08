@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
-import {IAccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgradeable.sol";
+import {IAccessControlEnumerable} from "@oz/access/extensions/IAccessControlEnumerable.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {IERC165} from "vendor/IERC165.sol";
 
@@ -9,7 +9,7 @@ interface ISyncable {
     function sync() external;
 }
 
-interface IKreskoAsset is IERC20Permit, IAccessControlEnumerableUpgradeable, IERC165 {
+interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
     /**
      * @notice Rebase information
      * @param positive supply increasing/reducing rebase

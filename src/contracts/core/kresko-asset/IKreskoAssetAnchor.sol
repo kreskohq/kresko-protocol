@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
-import {IAccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgradeable.sol";
+import {IAccessControlEnumerable} from "@oz/access/extensions/IAccessControlEnumerable.sol";
 import {IERC165} from "vendor/IERC165.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 
@@ -9,13 +9,7 @@ import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAsset} from "./IKreskoAsset.sol";
 import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
 
-interface IKreskoAssetAnchor is
-    IKreskoAssetIssuer,
-    IERC4626Upgradeable,
-    IERC20Permit,
-    IAccessControlEnumerableUpgradeable,
-    IERC165
-{
+interface IKreskoAssetAnchor is IKreskoAssetIssuer, IERC4626Upgradeable, IERC20Permit, IAccessControlEnumerable, IERC165 {
     function totalAssets() external view override(IERC4626Upgradeable) returns (uint256);
 
     /**

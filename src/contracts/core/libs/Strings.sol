@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.1 (utils/Strings.sol)
 
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
+import {CError} from "common/CError.sol";
 
 /**
  * @dev String operations.
@@ -65,7 +66,7 @@ library Strings {
             buffer[i] = _HEX_SYMBOLS[value & 0xf];
             value >>= 4;
         }
-        require(value == 0, "Strings: hex length insufficient");
+        if (value != 0) revert CError.STRING_HEX_LENGTH_INSUFFICIENT();
         return string(buffer);
     }
 }

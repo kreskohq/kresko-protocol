@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {AccessControlEnumerableUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
@@ -38,14 +38,14 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         __ERC4626Upgradeable_init(_asset, _name, _symbol);
 
         // Default admin setup
-        _setupRole(Role.DEFAULT_ADMIN, _admin);
-        _setupRole(Role.ADMIN, _admin);
+        _grantRole(Role.DEFAULT_ADMIN, _admin);
+        _grantRole(Role.ADMIN, _admin);
 
-        _setupRole(Role.DEFAULT_ADMIN, msg.sender);
-        _setupRole(Role.ADMIN, msg.sender);
+        _grantRole(Role.DEFAULT_ADMIN, msg.sender);
+        _grantRole(Role.ADMIN, msg.sender);
 
         // Setup the operator, which is the protocol linked to the main asset
-        _setupRole(Role.OPERATOR, asset.kresko());
+        _grantRole(Role.OPERATOR, asset.kresko());
     }
 
     /// @inheritdoc IERC165

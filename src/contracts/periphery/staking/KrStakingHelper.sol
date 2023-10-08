@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {IUniswapV2Factory} from "vendor/uniswap/v2-core/interfaces/IUniswapV2Factory.sol";
 import {IUniswapV2Router02} from "vendor/uniswap/v2-periphery/interfaces/IUniswapV2Router02.sol";

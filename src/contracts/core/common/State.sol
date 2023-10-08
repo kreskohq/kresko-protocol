@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 import {EnumerableSet} from "libs/EnumerableSet.sol";
 import {Asset, SafetyState, RoleData, Action, Oracle, OracleType} from "common/Types.sol";
 

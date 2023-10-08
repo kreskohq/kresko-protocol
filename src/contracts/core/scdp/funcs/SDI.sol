@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {WadRay} from "libs/WadRay.sol";
 import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
@@ -7,6 +7,7 @@ import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 import {usdWad, SDIPrice} from "common/funcs/Prices.sol";
+import {CError} from "common/CError.sol";
 import {SDIState} from "scdp/State.sol";
 
 library SDebtIndex {
@@ -23,9 +24,9 @@ library SDebtIndex {
         address coverAssetAddr,
         uint256 amount
     ) internal returns (uint256 shares, uint256 value) {
-        require(amount > 0, "NO_COVER_RECEIVED");
+        if (amount == 0) revert CError.ZERO_AMOUNT(coverAssetAddr);
         Asset storage asset = cs().assets[coverAssetAddr];
-        require(asset.isSCDPCoverAsset, "NOT_SCDP_COVER_ASSET");
+        if (!asset.isSCDPCoverAsset) revert CError.ASSET_NOT_ENABLED(coverAssetAddr);
 
         value = usdWad(amount, asset.price(), asset.decimals);
         self.totalCover += (shares = valueToSDI(value, 8));

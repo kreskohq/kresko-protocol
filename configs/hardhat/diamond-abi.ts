@@ -6,44 +6,19 @@ interface DiamondAbiUserConfig {
   strict?: boolean;
 }
 
+const cache = new Map<string, boolean>();
 export const diamondAbiConfig: DiamondAbiUserConfig[] = [
   {
     name: 'Kresko',
     include: ['facets/*', 'MEvent', 'SEvent'],
     exclude: ['vendor', 'test/*', 'interfaces/*', 'krasset/*', 'KrStaking', 'periphery/*'],
     strict: false,
-    filter(abiElement, index, abi, fq) {
-      if (abiElement.type === 'error') {
+    filter(abiElement) {
+      if (cache.has(abiElement.name)) {
         return false;
       }
-      if (abiElement.type === 'event') {
-        if (abiElement.name === 'CloseFeePaid' && fq.includes('BurnHelperFacet')) {
-          return false;
-        } else if (abiElement.name === 'RoleGranted' && fq.includes('ConfigurationFacet')) {
-          return false;
-        }
-      }
+      cache.set(abiElement.name, true);
       return true;
     },
   },
 ];
-// subgraph: {
-//     name: "MySubgraph", // Defaults to the name of the root folder of the hardhat project
-//     product: "hosted-service" | "subgraph-studio", // Defaults to 'subgraph-studio'
-//     indexEvents: true | false, // Defaults to false
-//     allowSimpleName: true | false, // Defaults to `false` if product is `hosted-service` and `true` if product is `subgraph-studio`
-// },
-// watcher: {
-//     test: {
-//         tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
-//         files: ["./src/test/**/*"],
-//         verbose: false,
-//     },
-// },
-//
-// gasReporter: {
-//     currency: "USD",
-//     enabled: true,
-//     showMethodSig: true,
-//     src: "./src/contracts",
-// },

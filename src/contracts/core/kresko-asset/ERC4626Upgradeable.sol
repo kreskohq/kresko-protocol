@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
-import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
@@ -19,7 +19,7 @@ import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
 /// Adds issue/destroy functions that are called when KreskoAssets are minted/burned through the protocol.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
 /// @author Kresko (https://www.kresko.fi)
-abstract contract ERC4626Upgradeable is ERC20Upgradeable, IERC4626Upgradeable {
+abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
     using SafeERC20Permit for IKreskoAsset;
     using FixedPointMathLib for uint256;
 

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import {Address} from "@oz/utils/Address.sol";
+import {CError} from "common/CError.sol";
 
 /**
  * @title SafeERC20Permit
@@ -14,7 +15,7 @@ import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Addr
  * which allows you to call the safe operations as `token.safeTransfer(...)`, etc.
  */
 library SafeERC20Permit {
-    using AddressUpgradeable for address;
+    using Address for address;
 
     function safeTransfer(IERC20Permit token, address to, uint256 value) internal {
         _callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
@@ -35,10 +36,9 @@ library SafeERC20Permit {
         // safeApprove should only be called when setting an initial allowance,
         // or when resetting it to zero. To increase and decrease it, use
         // 'safeIncreaseAllowance' and 'safeDecreaseAllowance'
-        require(
-            (value == 0) || (token.allowance(address(this), spender) == 0),
-            "SafeERC20Permit: approve from non-zero to non-zero allowance"
-        );
+        if (value != 0 || token.allowance(address(this), spender) != 0) {
+            revert CError.SAFE_ERC20_PERMIT_APPROVE_NON_ZERO(spender, value, token.allowance(address(this), spender));
+        }
         _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
     }
 
@@ -50,7 +50,7 @@ library SafeERC20Permit {
     function safeDecreaseAllowance(IERC20Permit token, address spender, uint256 value) internal {
         unchecked {
             uint256 oldAllowance = token.allowance(address(this), spender);
-            require(oldAllowance >= value, "SafeERC20Permit: decreased allowance below zero");
+            if (value > oldAllowance) revert CError.SAFE_ERC20_PERMIT_DECREASE_BELOW_ZERO(spender, value, oldAllowance);
             uint256 newAllowance = oldAllowance - value;
             _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
         }
@@ -67,10 +67,10 @@ library SafeERC20Permit {
         // we're implementing it ourselves. We use {Address.functionCall} to perform this call, which verifies that
         // the target address contains contract code and also asserts for success in the low-level call.
 
-        bytes memory returndata = address(token).functionCall(data, "SafeERC20Permit: low-level call failed");
+        bytes memory returndata = address(token).functionCall(data);
         if (returndata.length > 0) {
             // Return data is optional
-            require(abi.decode(returndata, (bool)), "SafeERC20Permit: ERC20 operation did not succeed");
+            if (!abi.decode(returndata, (bool))) revert CError.SAFE_ERC20_PERMIT_ERC20_OPERATION_FAILED(address(token));
         }
     }
 }

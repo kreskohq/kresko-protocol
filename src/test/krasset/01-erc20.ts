@@ -103,11 +103,9 @@ describe('KreskoAsset', () => {
     });
 
     it('should not allow non-operator addresses to burn tokens', async function () {
-      await expect(
-        KreskoAsset.connect(hre.users.userTwo).burn(hre.users.userOne.address, this.mintAmount),
-      ).to.be.revertedWith(
-        `AccessControl: account ${hre.users.userTwo.address.toLowerCase()} is missing role 0x112e48a576fb3a75acc75d9fcf6e0bc670b27b1dbcd2463502e10e68cf57d6fd`,
-      );
+      await expect(KreskoAsset.connect(hre.users.userTwo).burn(hre.users.userOne.address, this.mintAmount))
+        .to.be.revertedWithCustomError(KreskoAsset, 'AccessControlUnauthorizedAccount')
+        .withArgs(hre.users.userTwo.address, Role.OPERATOR);
 
       // Check total supply and user's balances unchanged
       expect(await KreskoAsset.totalSupply()).to.equal(this.mintAmount);

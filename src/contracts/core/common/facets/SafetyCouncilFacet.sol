@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {CError} from "common/CError.sol";
 import {Role, Action, SafetyState, Pause, Asset} from "common/Types.sol";

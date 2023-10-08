@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0;
 
 import {ERC20Upgradeable} from "./ERC20Upgradeable.sol";
+import {CError} from "common/CError.sol";
 
 /// @notice Safe ETH and ERC20 transfer library that gracefully handles missing return values.
 /// @author Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/SafeTransferLib.sol)
@@ -20,8 +21,7 @@ library SafeERC20Upgradeable {
             // Transfer the ETH and store if it succeeded or not.
             success := call(gas(), to, amount, 0, 0, 0, 0)
         }
-
-        require(success, "ETH_TRANSFER_FAILED");
+        if (!success) revert CError.ETH_TRANSFER_FAILED(to, amount);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -53,8 +53,7 @@ library SafeERC20Upgradeable {
                 call(gas(), token, 0, freeMemoryPointer, 100, 0, 32)
             )
         }
-
-        require(success, "TRANSFER_FROM_FAILED");
+        if (!success) revert CError.TRANSFER_FAILED(address(token), from, to, amount);
     }
 
     function safeTransfer(ERC20Upgradeable token, address to, uint256 amount) internal {
@@ -82,7 +81,7 @@ library SafeERC20Upgradeable {
             )
         }
 
-        require(success, "TRANSFER_FAILED");
+        if (!success) revert CError.TRANSFER_FAILED(address(token), msg.sender, to, amount);
     }
 
     function safeApprove(ERC20Upgradeable token, address to, uint256 amount) internal {
@@ -109,7 +108,6 @@ library SafeERC20Upgradeable {
                 call(gas(), token, 0, freeMemoryPointer, 68, 0, 32)
             )
         }
-
-        require(success, "APPROVE_FAILED");
+        if (!success) revert CError.APPROVE_FAILED(address(token), msg.sender, to, amount);
     }
 }

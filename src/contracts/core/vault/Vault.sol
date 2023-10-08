@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 import {ERC20} from "vendor/ERC20.sol";
 import {SafeERC20} from "vendor/SafeERC20.sol";
-import {FixedPointMathLib} from "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {VAssets} from "vault/funcs/Assets.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
 import {VaultAsset} from "vault/Types.sol";
@@ -54,12 +54,12 @@ contract Vault is IVault, ERC20 {
     /* -------------------------------------------------------------------------- */
 
     modifier onlyGovernance() {
-        require(msg.sender == governance, "NOT_GOVERNANCE");
+        if (msg.sender != governance) revert CError.INVALID_SENDER(msg.sender, governance);
         _;
     }
 
     modifier check(address asset) {
-        require(_assets[asset].enabled, "ASSEt_NOT_SUPPORTED");
+        if (!_assets[asset].enabled) revert CError.ASSET_NOT_ENABLED(asset);
         _;
     }
 

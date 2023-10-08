@@ -1,9 +1,6 @@
-// SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
-
-import {RedstoneDefaultsLib} from "@redstone-finance/evm-connector/contracts/core/RedstoneDefaultsLib.sol";
-import {BitmapLib} from "@redstone-finance/evm-connector/contracts/libs/BitmapLib.sol";
-import {SignatureLib} from "@redstone-finance/evm-connector/contracts/libs/SignatureLib.sol";
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.21;
+import {BitmapLib, SignatureLib, RedstoneError, RedstoneDefaultsLib} from "./RedstoneInternals.sol";
 
 // solhint-disable no-empty-blocks
 // solhint-disable avoid-low-level-calls
@@ -14,28 +11,6 @@ function sub(uint256 a, uint256 b) pure returns (uint256) {
 
 function add(uint256 a, uint256 b) pure returns (uint256) {
     return a + b;
-}
-
-/**
- * @title The base contract with helpful constants
- * @author The Redstone Oracles team
- * @dev It mainly contains redstone-related values, which improve readability
- * of other contracts (e.g. CalldataExtractor and RedstoneConsumerBase)
- */
-library RedstoneError {
-    // Error messages
-    error ProxyCalldataFailedWithoutErrMsg2();
-    error ProxyCalldataFailedWithoutErrMsg();
-    error CalldataOverOrUnderFlow();
-    error ProxyCalldataFailedWithCustomError(bytes result);
-    error IncorrectUnsignedMetadataSize();
-    error ProxyCalldataFailedWithStringMessage(string);
-    error InsufficientNumberOfUniqueSigners(uint256 receivedSignersCount, uint256 requiredSignersCount);
-    error EachSignerMustProvideTheSameValue();
-    error EmptyCalldataPointersArr();
-    error InvalidCalldataPointer();
-    error CalldataMustHaveValidPayload();
-    error SignerNotAuthorised(address receivedSigner);
 }
 
 // === Abbreviations ===

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable no-inline-assembly */
 
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
+import {CError} from "common/CError.sol";
 
 library Meta {
     bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
@@ -33,12 +34,14 @@ library Meta {
         }
     }
 
-    function enforceHasContractCode(address _contract, string memory _errorMessage) internal view {
+    function enforceHasContractCode(address _contract) internal view {
         uint256 contractSize;
         /// @solidity memory-safe-assembly
         assembly {
             contractSize := extcodesize(_contract)
         }
-        require(contractSize > 0, _errorMessage);
+        if (contractSize == 0) {
+            revert CError.ADDRESS_HAS_NO_CODE(_contract);
+        }
     }
 }

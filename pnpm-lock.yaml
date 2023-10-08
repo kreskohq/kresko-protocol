@@ -44,15 +44,6 @@ devDependencies:
   '@nomiclabs/hardhat-ethers':
     specifier: ^2.2.3
     version: 2.2.3(ethers@5.7.2)(hardhat@2.17.1)
-  '@openzeppelin/contracts':
-    specifier: ^4.6.0
-    version: 4.9.3
-  '@openzeppelin/contracts-upgradeable':
-    specifier: ^4.6.0
-    version: 4.9.3
-  '@rari-capital/solmate':
-    specifier: ^6.4.0
-    version: 6.4.0
   '@redstone-finance/evm-connector':
     specifier: ^0.0.22
     version: 0.0.22
@@ -905,7 +896,7 @@ packages:
     resolution: {integrity: sha512-tghyZKLHZjcdlDqCA3gNZmLeR0XvOE9U1qoQO9ohyAZT6Pya+H9vkBPcsyXytmYLNgVoin7CKCmweo/R43V+tQ==}
     engines: {node: '>=12.0.0'}
     dependencies:
-      ethereumjs-abi: '@github.com/ethereumjs/ethereumjs-abi/archive/refs/tags/v0.6.8.tar.gz'
+      ethereumjs-abi: 0.6.8
       ethereumjs-util: 6.2.1
       ethjs-util: 0.1.6
       tweetnacl: 1.0.3
@@ -1427,11 +1418,6 @@ packages:
 
   /@openzeppelin/contracts@4.9.3:
     resolution: {integrity: sha512-He3LieZ1pP2TNt5JbkPA4PNT9WC3gOTOlDcFGJW4Le4QKqwmiNJCRt44APfxMxvq7OugU/cqYuPcSBzOw38DAg==}
-    dev: true
-
-  /@rari-capital/solmate@6.4.0:
-    resolution: {integrity: sha512-BXWIHHbG5Zbgrxi0qVYe0Zs+bfx+XgOciVUACjuIApV0KzC0kY8XdO1higusIei/ZKCC+GUKdcdQZflxYPUTKQ==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     dev: true
 
   /@redstone-finance/evm-connector@0.0.22:
@@ -3129,6 +3115,13 @@ packages:
       '@scure/bip39': 1.2.1
     dev: true
 
+  /ethereumjs-abi@0.6.8:
+    resolution: {integrity: sha512-Tx0r/iXI6r+lRsdvkFDlut0N08jWMnKRZ6Gkq+Nmw75lZe4e6o3EkSnkaBP5NF6+m5PTGAr9JP43N3LyeoglsA==}
+    dependencies:
+      bn.js: 4.12.0
+      ethereumjs-util: 6.2.1
+    dev: true
+
   /ethereumjs-util@6.2.1:
     resolution: {integrity: sha512-W2Ktez4L01Vexijrm5EB6w7dg4n/TgpoYU4avuT5T3Vmnw/eCRtiBrJfQYS/DCSvDIOLn2k57GcHdeBcgVxAqw==}
     dependencies:
@@ -3738,7 +3731,7 @@ packages:
       enquirer: 2.4.1
       env-paths: 2.2.1
       ethereum-cryptography: 1.2.0
-      ethereumjs-abi: '@github.com/ethereumjs/ethereumjs-abi/archive/refs/tags/v0.6.8.tar.gz'
+      ethereumjs-abi: 0.6.8
       find-up: 2.1.0
       fp-ts: 1.19.3
       fs-extra: 7.0.1
@@ -6151,13 +6144,4 @@ packages:
       ethers: ^5.7.0
     dependencies:
       ethers: 5.7.2
-    dev: true
-
-  '@github.com/ethereumjs/ethereumjs-abi/archive/refs/tags/v0.6.8.tar.gz':
-    resolution: {registry: https://registry.npmjs.org/, tarball: https://github.com/ethereumjs/ethereumjs-abi/archive/refs/tags/v0.6.8.tar.gz}
-    name: ethereumjs-abi
-    version: 0.6.8
-    dependencies:
-      bn.js: 4.12.0
-      ethereumjs-util: 6.2.1
     dev: true

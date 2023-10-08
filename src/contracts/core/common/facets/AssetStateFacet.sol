@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 import {Redstone} from "libs/Redstone.sol";
 import {EMPTY_BYTES12} from "common/Constants.sol";
 import {CError} from "common/CError.sol";

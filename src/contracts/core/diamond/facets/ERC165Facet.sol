@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {IERC165Facet} from "diamond/interfaces/IERC165Facet.sol";
 import {Role} from "common/Types.sol";

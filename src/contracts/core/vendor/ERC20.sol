@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity >=0.8.0;
+import {CError} from "common/CError.sol";
 
 /// @notice Modern and gas efficient ERC20 + EIP-2612 implementation.
 /// @author Solmate (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
@@ -118,7 +119,7 @@ abstract contract ERC20 {
         bytes32 r,
         bytes32 s
     ) public virtual {
-        require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
+        if (block.timestamp > deadline) revert CError.PERMIT_DEADLINE_EXPIRED(owner, spender, deadline, block.timestamp);
 
         // Unchecked because the only math done is incrementing
         // the owner's nonce which cannot realistically overflow.
@@ -145,7 +146,8 @@ abstract contract ERC20 {
                 s
             );
 
-            require(recoveredAddress != address(0) && recoveredAddress == owner, "INVALID_SIGNER");
+            if (recoveredAddress == address(0) || recoveredAddress != owner)
+                revert CError.INVALID_SIGNER(owner, recoveredAddress);
 
             allowance[recoveredAddress][spender] = value;
         }
