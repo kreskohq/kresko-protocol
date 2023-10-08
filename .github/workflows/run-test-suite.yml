@@ -22,7 +22,7 @@ jobs:
           version: nightly
 
       - name: Install Foundry Dependencies
-        run: foundry install
+        run: forge install
 
       - uses: pnpm/action-setup@v2.2.2
         name: Install pnpm
