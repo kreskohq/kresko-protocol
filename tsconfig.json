@@ -24,14 +24,7 @@
       "@test-utils": ["src/utils/test"]
     }
   },
-  "exclude": [
-    "**/@kreskolabs/lib/**/*.d.ts",
-    "temp",
-    "mochawesome-report",
-    "node_modules/**/*.ts",
-    "cache/**/*",
-    "out"
-  ],
+  "exclude": ["**/@kreskolabs/lib/**/*.d.ts", "temp", "pages", "node_modules/**/*.ts", "cache/**/*", "out"],
   "include": ["hardhat.config.ts", "types", "src", "configs"],
   "ts-node": {
     "files": true,
