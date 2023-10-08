@@ -22,8 +22,8 @@ remappings = [
     "periphery/=src/contracts/periphery/",
     'kresko-asset/=src/contracts/core/kresko-asset/',
     'kresko-helpers/=lib/kresko-foundry-helpers/src/',
-    '@kreskolabs/=node_modules/@kreskolabs/',
-    '@openzeppelin/=node_modules/@openzeppelin/',
+    '@oz-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/',
+    '@oz/=lib/openzeppelin-contracts/contracts/',
 ]
 via_ir = false
 optimizer = true

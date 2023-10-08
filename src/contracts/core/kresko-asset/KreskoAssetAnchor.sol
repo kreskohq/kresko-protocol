@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.19;
 
-import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import {AccessControlEnumerableUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
 
 import {Role} from "common/Types.sol";
@@ -36,9 +36,6 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     function initialize(IKreskoAsset _asset, string memory _name, string memory _symbol, address _admin) external initializer {
         // ERC4626
         __ERC4626Upgradeable_init(_asset, _name, _symbol);
-
-        // This does nothing but doesn't hurt to make sure it's called
-        __AccessControlEnumerable_init();
 
         // Default admin setup
         _setupRole(Role.DEFAULT_ADMIN, _admin);

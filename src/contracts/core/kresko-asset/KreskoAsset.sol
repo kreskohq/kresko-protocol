@@ -2,9 +2,9 @@
 pragma solidity >=0.8.19;
 
 // solhint-disable-next-line
-import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import {AccessControlEnumerableUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
+import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
 import {SafeERC20Upgradeable} from "vendor/SafeERC20Upgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
@@ -72,9 +72,6 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
         // Setup Pausing
         __Pausable_init();
-
-        // This does nothing but doesn't hurt to make sure it's called
-        __AccessControlEnumerable_init();
 
         // Setup the admin
         _setupRole(Role.DEFAULT_ADMIN, msg.sender);

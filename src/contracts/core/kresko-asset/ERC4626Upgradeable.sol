@@ -19,7 +19,7 @@ import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
 /// Adds issue/destroy functions that are called when KreskoAssets are minted/burned through the protocol.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
 /// @author Kresko (https://www.kresko.fi)
-abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
+abstract contract ERC4626Upgradeable is ERC20Upgradeable, IERC4626Upgradeable {
     using SafeERC20Permit for IKreskoAsset;
     using FixedPointMathLib for uint256;
 
