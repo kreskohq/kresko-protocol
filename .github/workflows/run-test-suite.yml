@@ -8,10 +8,10 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "18.18.0"
+          node-version: '18.18.0'
           always-auth: true
           registry-url: https://registry.npmjs.org
-          scope: "@kreskolabs"
+          scope: '@kreskolabs'
 
       - run: git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
       - run: corepack enable
@@ -20,6 +20,9 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
+
+      - name: Install Foundry Dependencies
+        run: foundry install
 
       - uses: pnpm/action-setup@v2.2.2
         name: Install pnpm
