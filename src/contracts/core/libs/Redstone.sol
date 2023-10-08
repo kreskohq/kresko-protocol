@@ -4,11 +4,18 @@ pragma solidity >=0.8.19;
 import {RedstoneDefaultsLib} from "@redstone-finance/evm-connector/contracts/core/RedstoneDefaultsLib.sol";
 import {BitmapLib} from "@redstone-finance/evm-connector/contracts/libs/BitmapLib.sol";
 import {SignatureLib} from "@redstone-finance/evm-connector/contracts/libs/SignatureLib.sol";
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-// import "@redstone-finance/evm-connector/contracts/core/CalldataExtractor.sol";
 // solhint-disable no-empty-blocks
 // solhint-disable avoid-low-level-calls
+
+function sub(uint256 a, uint256 b) pure returns (uint256) {
+    return a - b;
+}
+
+function add(uint256 a, uint256 b) pure returns (uint256) {
+    return a + b;
+}
+
 /**
  * @title The base contract with helpful constants
  * @author The Redstone Oracles team
@@ -63,7 +70,9 @@ uint256 constant DATA_PACKAGE_WITHOUT_DATA_POINTS_AND_SIG_BS = 13; // DATA_POINT
 uint256 constant REDSTONE_MARKER_BS_PLUS_STANDARD_SLOT_BS = 41; // REDSTONE_MARKER_BS + STANDARD_SLOT_BS
 
 library Redstone {
-    using SafeMath for uint256;
+    // using SafeMath for uint256;
+    // inside unchecked these functions are still checked
+    using {sub, add} for uint256;
 
     /**
      * @dev This function can be used in a consumer contract to securely extract an
@@ -244,12 +253,11 @@ library Redstone {
             address signerAddress;
             bytes32 signedHash;
             bytes memory signedMessage;
-            uint256 signedMessageBytesCount;
+            uint256 signedMessageBytesCount = dataPointsCount *
+                (eachDataPointValueByteSize + DATA_POINT_SYMBOL_BS) +
+                DATA_PACKAGE_WITHOUT_DATA_POINTS_AND_SIG_BS; //DATA_POINT_VALUE_BYTE_SIZE_BS + TIMESTAMP_BS + DATA_POINTS_COUNT_BS
 
             unchecked {
-                signedMessageBytesCount =
-                    dataPointsCount.mul(eachDataPointValueByteSize + DATA_POINT_SYMBOL_BS) +
-                    DATA_PACKAGE_WITHOUT_DATA_POINTS_AND_SIG_BS; //DATA_POINT_VALUE_BYTE_SIZE_BS + TIMESTAMP_BS + DATA_POINTS_COUNT_BS
                 uint256 timestampCalldataOffset = msg.data.length.sub(
                     calldataNegativeOffset + TIMESTAMP_NEGATIVE_OFFSET_IN_DATA_PACKAGE_WITH_STANDARD_SLOT_BS
                 );
@@ -461,9 +469,8 @@ library Redstone {
         uint256 dataPointIndex
     ) private pure returns (bytes32 dataPointDataFeedId, uint256 dataPointValue) {
         uint256 negativeOffsetToDataPoints = calldataNegativeOffsetForDataPackage + DATA_PACKAGE_WITHOUT_DATA_POINTS_BS;
-        uint256 dataPointNegativeOffset = negativeOffsetToDataPoints.add(
-            (1 + dataPointIndex).mul((defaultDataPointValueByteSize + DATA_POINT_SYMBOL_BS))
-        );
+        uint256 dataPointNegativeOffset = negativeOffsetToDataPoints +
+            ((1 + dataPointIndex) * ((defaultDataPointValueByteSize + DATA_POINT_SYMBOL_BS)));
         uint256 dataPointCalldataOffset = msg.data.length.sub(dataPointNegativeOffset);
         assembly {
             dataPointDataFeedId := calldataload(dataPointCalldataOffset)
