@@ -13,7 +13,7 @@ deployments/**
 src/contracts/vendor/**/*
 src/utils/**/*
 packages
-pages/
+docs/
 ganache.js
 test/**/*
 

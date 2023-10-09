@@ -7,7 +7,7 @@ bin/**/*
 out
 lib/**/*
 node_modules/
-pages/
+docs/
 ./src/contracts/vendor/
 ./src/contracts/test/
 ./src/contracts/periphery/

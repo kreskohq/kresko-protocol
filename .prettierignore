@@ -15,7 +15,7 @@ types/typechain/
 types/forged/
 deployments/
 src/contracts/vendor/
-pages/
+docs/
 # files
 coverage.json
 .solcover.js
