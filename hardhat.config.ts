@@ -64,11 +64,6 @@ const config: HardhatUserConfig = {
     },
     timeout: process.env.CI ? 45000 : process.env.FORKING ? 300000 : 30000,
   },
-  docgen: {
-    outputDir: 'docs/natspec',
-    pages: 'files',
-    exclude: ['test', 'vendor', 'libs'],
-  },
   paths: {
     artifacts: 'artifacts',
     cache: 'cache',
