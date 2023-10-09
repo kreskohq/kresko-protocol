@@ -1,5 +1,5 @@
 import { price } from '@kreskolabs/lib/ext';
-import { AssetArgs, GnosisSafeDeployment, NetworkConfig, OracleType } from 'src/types';
+import { AssetArgs, GnosisSafeDeployment, NetworkConfig, OracleType } from '@/types';
 import {
   CompatibilityFallbackHandler,
   CreateCall,
@@ -18,7 +18,7 @@ import {
   CommonInitArgsStruct,
   MinterInitArgsStruct,
   SCDPInitArgsStruct,
-} from 'src/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+} from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
 export const oracles = {

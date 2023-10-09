@@ -4,7 +4,7 @@ import { kreskoAssetFixture } from '@utils/test/fixtures';
 import { defaultMintAmount } from '@utils/test/mocks';
 import Role from '@utils/test/roles';
 import { toBig } from '@utils/values';
-import { KreskoAssetAnchor } from 'src/types/typechain';
+import { KreskoAssetAnchor } from '@/types/typechain';
 
 describe('KreskoAssetAnchor', () => {
   let KreskoAsset: KreskoAsset;

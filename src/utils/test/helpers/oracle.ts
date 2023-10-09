@@ -1,5 +1,5 @@
 import { FakeContract, smock } from '@defi-wonderland/smock';
-import { MockOracle } from 'src/types/typechain';
+import { MockOracle } from '@/types/typechain';
 import { TEN_USD } from '../mocks';
 import { toBig } from '@utils/values';
 

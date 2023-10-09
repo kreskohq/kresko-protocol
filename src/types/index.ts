@@ -19,13 +19,6 @@ export type Split<S extends string, D extends string> = string extends S
   : S extends `${infer T}${D}${infer U}`
   ? [T, ...Split<U, D>]
   : [S];
-export type Split2<S extends string, D extends string> = string extends S
-  ? string[]
-  : S extends never
-  ? []
-  : S extends `${infer T}${D}${infer U}`
-  ? [...Split<U, D>]
-  : [S];
 
 export type ExcludeType<T, E> = {
   [K in keyof T]: T[K] extends E ? K : never;

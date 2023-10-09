@@ -14,7 +14,7 @@ import type {
   CollateralDepositedEventObject,
   CollateralWithdrawnEventObject,
   Kresko,
-} from 'src/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+} from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 describe('Minter - Deposit Withdraw', function () {
   let depositor: SignerWithAddress;

@@ -15,6 +15,8 @@
     "esModuleInterop": true,
     "baseUrl": "./",
     "paths": {
+      "@/types": ["src/types"],
+      "@/types/*": ["src/types/*"],
       "@config/*": ["configs/*"],
       "@utils": ["src/utils"],
       "@utils/*": ["src/utils/*"],
@@ -25,7 +27,7 @@
     }
   },
   "exclude": ["**/@kreskolabs/lib/**/*.d.ts", "temp", "docs", "node_modules/**/*.ts", "cache/**/*", "out"],
-  "include": ["hardhat.config.ts", "src/types", "src", "configs"],
+  "include": ["hardhat.config.ts", "src", "configs"],
   "ts-node": {
     "files": true,
     "transpileOnly": true,

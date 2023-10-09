@@ -6,7 +6,7 @@ import { executeContractCallWithSigners } from '@utils/gnosis/utils/execution';
 import Action from '@utils/test/actions';
 import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
 import { expect } from 'chai';
-import { SafetyStateChangeEventObject } from 'src/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import { SafetyStateChangeEventObject } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 describe('Safety Council', () => {
   let f: DefaultFixture;

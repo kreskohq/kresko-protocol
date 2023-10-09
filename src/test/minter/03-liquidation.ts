@@ -6,7 +6,7 @@ import { depositMockCollateral } from '@utils/test/helpers/collaterals';
 import { getLiqAmount, liquidate } from '@utils/test/helpers/liquidations';
 import optimized from '@utils/test/helpers/optimizations';
 import { fromBig, toBig } from '@utils/values';
-import { Kresko, LiquidationOccurredEvent } from 'src/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import { Kresko, LiquidationOccurredEvent } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 const USD_DELTA = toBig(0.1, 9);
 

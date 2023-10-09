@@ -1,7 +1,7 @@
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock';
 import { wrapKresko } from '@utils/redstone';
-import { AssetArgs } from 'src/types';
-import { ERC20Upgradeable__factory, MockOracle } from 'src/types/typechain';
+import { AssetArgs } from '@/types';
+import { ERC20Upgradeable__factory, MockOracle } from '@/types/typechain';
 import { InputArgs, testCollateralConfig } from '../mocks';
 import { getAssetConfig } from './general';
 import optimized from './optimizations';

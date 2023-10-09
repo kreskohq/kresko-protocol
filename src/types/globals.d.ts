@@ -8,7 +8,7 @@ import type {
 import type { BytesLike } from 'ethers';
 import type { DeployResult } from 'hardhat-deploy/types';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
-import type { AssetArgs, AssetConfig, ContractTypes, OracleType } from 'src/types';
+import type { AssetArgs, AssetConfig, ContractTypes, OracleType } from '@/types';
 import type * as Contracts from './typechain';
 import type { MockOracle } from './typechain';
 import type { AssetStruct } from './typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';

@@ -4,7 +4,7 @@ import { Fragment } from '@ethersproject/abi';
 import { WrapperBuilder } from '@redstone-finance/evm-connector';
 import { getAddresses, getUsers } from '@utils/hardhat';
 import { extendEnvironment } from 'hardhat/config';
-import type { ContractTypes } from 'src/types';
+import type { ContractTypes } from '@/types';
 
 extendEnvironment(async function (hre) {
   // for testing

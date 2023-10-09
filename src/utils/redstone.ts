@@ -1,6 +1,6 @@
 import { assets } from '@config/deploy/arbitrumGoerli';
 import { WrapperBuilder } from '@redstone-finance/evm-connector';
-import { Kresko } from 'src/types/typechain';
+import { Kresko } from '@/types/typechain';
 
 export const wrapKresko = (contract: Kresko, signer?: any) =>
   WrapperBuilder.wrap(signer ? contract.connect(signer) : contract).usingSimpleNumericMock({

@@ -74,7 +74,7 @@ const config: HardhatUserConfig = {
   },
   diamondAbi: diamondAbiConfig,
   typechain: {
-    outDir: 'types/typechain',
+    outDir: 'src/types/typechain',
     target: 'ethers-v5',
     alwaysGenerateOverloads: false,
     dontOverrideCompile: false,

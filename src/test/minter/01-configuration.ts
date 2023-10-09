@@ -7,8 +7,8 @@ import { addMockKreskoAsset } from '@utils/test/helpers/krassets';
 import { getFakeOracle } from '@utils/test/helpers/oracle';
 import { testCollateralConfig, testKrAssetConfig, testMinterParams } from '@utils/test/mocks';
 import { fromBig, toBig } from '@utils/values';
-import { KrAssetConfig } from 'src/types';
-import { AssetStruct } from 'src/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import { KrAssetConfig } from '@/types';
+import { AssetStruct } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 describe('Minter - Configuration', function () {
   let f: DefaultFixture;

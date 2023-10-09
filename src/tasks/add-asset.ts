@@ -3,7 +3,7 @@ import { getAnchorNameAndSymbol } from '@utils/strings';
 import { getAssetConfig } from '@utils/test/helpers/general';
 import { task, types } from 'hardhat/config';
 
-import { AssetArgs } from 'src/types';
+import { AssetArgs } from '@/types';
 import { TASK_ADD_ASSET } from './names';
 import { testKrAssetConfig } from '@utils/test/mocks';
 import { redstoneMap } from '@utils/redstone';

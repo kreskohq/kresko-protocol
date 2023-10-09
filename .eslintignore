@@ -7,7 +7,7 @@ dist/
 lib/
 out/**/*
 temp/**/*
-types/**/*
+src/types/**/*
 node_modules/
 deployments/**
 src/contracts/vendor/**/*

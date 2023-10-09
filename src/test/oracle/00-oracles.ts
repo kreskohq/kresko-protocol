@@ -3,7 +3,7 @@ import { defaultRedstoneDataPoints, wrapPrices } from '@utils/redstone';
 import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
 import { testCollateralConfig } from '@utils/test/mocks';
 import { toBig } from '@utils/values';
-import { OracleType } from 'src/types';
+import { OracleType } from '@/types';
 
 describe('Oracles', () => {
   let f: DefaultFixture;

@@ -1,15 +1,15 @@
 import { smock } from '@defi-wonderland/smock';
 import { wrapKresko } from '@utils/redstone';
-import { AssetArgs } from 'src/types';
-import { KreskoAssetAnchor__factory, KreskoAsset__factory } from 'src/types/typechain';
-import { InputArgsSimple, defaultCloseFee, defaultSupplyLimit, testKrAssetConfig } from '../mocks';
+import type { AssetArgs } from '@/types';
+import { KreskoAssetAnchor__factory, KreskoAsset__factory } from '@/types/typechain';
+import { getAnchorNameAndSymbol } from '@utils/strings';
+import { toBig } from '@utils/values';
+import { type InputArgsSimple, defaultCloseFee, defaultSupplyLimit, testKrAssetConfig } from '../mocks';
 import roles from '../roles';
 import { getAssetConfig, wrapContractWithSigner } from './general';
 import optimized from './optimizations';
 import { getFakeOracle, setPrice } from './oracle';
 import { getBalanceKrAssetFunc, setBalanceKrAssetFunc } from './smock';
-import { getAnchorNameAndSymbol } from '@utils/strings';
-import { toBig } from '@utils/values';
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestAsset<KreskoAsset, any>) => {
   const balance = await asset.contract.balanceOf(user.address);

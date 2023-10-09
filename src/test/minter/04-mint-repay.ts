@@ -11,12 +11,12 @@ import { TEN_USD } from '@utils/test/mocks';
 import Role from '@utils/test/roles';
 import { MaxUint128, fromBig, toBig } from '@utils/values';
 import { expect } from 'chai';
-import { Kresko } from 'src/types/typechain';
+import { Kresko } from '@/types/typechain';
 import {
   FeePaidEventObject,
   KreskoAssetBurnedEvent,
   KreskoAssetMintedEventObject,
-} from 'src/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+} from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 const INTEREST_RATE_DELTA = toBig('0.000001');
 const INTEREST_RATE_PRICE_DELTA = toBig('0.0001', 8);
