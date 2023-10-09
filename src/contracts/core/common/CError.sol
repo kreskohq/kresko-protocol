@@ -48,7 +48,7 @@ library CError {
     error ACCESS_CONTROL_NOT_SELF(address who, address self);
     error INVALID_MLR(uint256 invalid, uint256 valid);
     error INVALID_LT(uint256 invalid, uint256 valid);
-    error INVALID_PROTOCOL_FEE(address asset, uint256 invalid, uint256 valid);
+    error INVALID_ASSET_FEE(address asset, uint256 invalid, uint256 valid);
     error INVALID_ORACLE_DEVIATION(uint256 invalid, uint256 valid);
     error INVALID_FEE_RECIPIENT(address invalid);
     error INVALID_LIQ_INCENTIVE(address asset, uint256 invalid, uint256 valid);
@@ -67,6 +67,7 @@ library CError {
     error ZERO_PRICE(string underlyingId);
     error SEQUENCER_DOWN_NO_REDSTONE_AVAILABLE();
     error NEGATIVE_PRICE(address asset, int256 price);
+    error STALE_PRICE(string, uint256 timeFromUpdate, uint256 threshold);
     error PRICE_UNSTABLE(uint256 primaryPrice, uint256 referencePrice);
     error ORACLE_ZERO_ADDRESS(string underlyingId);
     error ASSET_DOES_NOT_EXIST(address asset);
@@ -115,10 +116,10 @@ library CError {
     error ASSET_ALREADY_ENABLED(address asset);
     error ASSET_ALREADY_DISABLED(address asset);
     error INVALID_PRICE(address token, address oracle, int256 price);
-    error INVALID_DEPOSIT(uint256 assetsIn, uint256 sharesOut);
-    error INVALID_WITHDRAW(uint256 sharesIn, uint256 assetsOut);
+    error INVALID_DEPOSIT(address token, uint256 assetsIn, uint256 sharesOut);
+    error INVALID_WITHDRAW(address asset, uint256 sharesIn, uint256 assetsOut);
     error ROUNDING_ERROR(string desc, uint256 sharesIn, uint256 assetsOut);
-    error MAX_DEPOSIT_EXCEEDED(uint256 assetsIn, uint256 maxDeposit);
+    error MAX_DEPOSIT_EXCEEDED(address asset, uint256 assetsIn, uint256 maxDeposit);
     error MAX_SUPPLY_EXCEEDED(address asset, uint256 supply, uint256 maxSupply);
     error COLLATERAL_VALUE_LOW(uint256 value, uint256 minRequiredValue);
     error MINT_VALUE_LOW(address asset, uint256 value, uint256 minRequiredValue);

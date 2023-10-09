@@ -10,6 +10,9 @@ import {IVault} from "vault/interfaces/IVault.sol";
 import {VaultAsset} from "vault/Types.sol";
 import {VEvent} from "vault/Events.sol";
 import {CError} from "common/CError.sol";
+import {Arrays} from "libs/Arrays.sol";
+import {Percents} from "common/Constants.sol";
+import {isSequencerUp} from "common/funcs/Utils.sol";
 
 /**
  * @title Vault - A multiple deposit token vault.
@@ -24,12 +27,14 @@ contract Vault is IVault, ERC20 {
     using FixedPointMathLib for uint256;
     using VAssets for uint256;
     using VAssets for VaultAsset;
+    using Arrays for address[];
 
     uint256 public constant HUNDRED = 1 ether;
 
     /* -------------------------------------------------------------------------- */
     /*                                    State                                   */
     /* -------------------------------------------------------------------------- */
+    address public sequencerUptimeFeed;
     address public governance;
     address public feeRecipient;
     uint8 public oracleDecimals;
@@ -42,11 +47,13 @@ contract Vault is IVault, ERC20 {
         string memory _symbol,
         uint8 _decimals,
         uint8 _oracleDecimals,
-        address _feeRecipient
+        address _feeRecipient,
+        address _sequencerUptimeFeed
     ) ERC20(_name, _symbol, _decimals) {
         governance = msg.sender;
         oracleDecimals = _oracleDecimals;
         feeRecipient = _feeRecipient;
+        sequencerUptimeFeed = _sequencerUptimeFeed;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -58,19 +65,19 @@ contract Vault is IVault, ERC20 {
         _;
     }
 
-    modifier check(address asset) {
-        if (!_assets[asset].enabled) revert CError.ASSET_NOT_ENABLED(asset);
+    modifier check(address assetAddr) {
+        if (!_assets[assetAddr].enabled) revert CError.ASSET_NOT_ENABLED(assetAddr);
         _;
     }
 
     /// @notice checks if the deposit amounts are valid.
     /// (..close enough to modifier)
-    function _checkDeposit(address asset, uint256 assetsIn, uint256 sharesOut) private view {
-        uint256 depositLimit = maxDeposit(asset);
+    function _checkAssetsIn(address assetAddr, uint256 assetsIn, uint256 sharesOut) private view {
+        uint256 depositLimit = maxDeposit(assetAddr);
 
-        if (assetsIn > depositLimit) revert CError.MAX_DEPOSIT_EXCEEDED(assetsIn, depositLimit);
-        else if (sharesOut == 0) revert CError.INVALID_DEPOSIT(assetsIn, sharesOut);
-        else if (assetsIn == 0) revert CError.INVALID_DEPOSIT(assetsIn, sharesOut);
+        if (assetsIn > depositLimit) revert CError.MAX_DEPOSIT_EXCEEDED(assetAddr, assetsIn, depositLimit);
+        else if (sharesOut == 0) revert CError.INVALID_DEPOSIT(assetAddr, assetsIn, sharesOut);
+        else if (assetsIn == 0) revert CError.INVALID_DEPOSIT(assetAddr, assetsIn, sharesOut);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -79,15 +86,15 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function deposit(
-        address asset,
+        address assetAddr,
         uint256 assetsIn,
         address receiver
-    ) public virtual check(asset) returns (uint256 sharesOut, uint256 assetFee) {
-        (sharesOut, assetFee) = previewDeposit(asset, assetsIn);
+    ) public virtual check(assetAddr) returns (uint256 sharesOut, uint256 assetFee) {
+        (sharesOut, assetFee) = previewDeposit(assetAddr, assetsIn);
 
-        _checkDeposit(asset, assetsIn, sharesOut);
+        _checkAssetsIn(assetAddr, assetsIn, sharesOut);
 
-        ERC20 token = ERC20(asset);
+        ERC20 token = ERC20(assetAddr);
 
         token.safeTransferFrom(msg.sender, address(this), assetsIn);
 
@@ -95,20 +102,20 @@ contract Vault is IVault, ERC20 {
 
         _mint(receiver == address(0) ? msg.sender : receiver, sharesOut);
 
-        emit VEvent.Deposit(msg.sender, receiver, asset, assetsIn, sharesOut);
+        emit VEvent.Deposit(msg.sender, receiver, assetAddr, assetsIn, sharesOut);
     }
 
     /// @inheritdoc IVault
     function mint(
-        address asset,
+        address assetAddr,
         uint256 sharesOut,
         address receiver
-    ) public virtual check(asset) returns (uint256 assetsIn, uint256 assetFee) {
-        (assetsIn, assetFee) = previewMint(asset, sharesOut);
+    ) public virtual check(assetAddr) returns (uint256 assetsIn, uint256 assetFee) {
+        (assetsIn, assetFee) = previewMint(assetAddr, sharesOut);
 
-        _checkDeposit(asset, assetsIn, sharesOut);
+        _checkAssetsIn(assetAddr, assetsIn, sharesOut);
 
-        ERC20 token = ERC20(asset);
+        ERC20 token = ERC20(assetAddr);
 
         token.safeTransferFrom(msg.sender, address(this), assetsIn);
 
@@ -116,20 +123,20 @@ contract Vault is IVault, ERC20 {
 
         _mint(receiver == address(0) ? msg.sender : receiver, sharesOut);
 
-        emit VEvent.Deposit(msg.sender, receiver, asset, assetsIn, sharesOut);
+        emit VEvent.Deposit(msg.sender, receiver, assetAddr, assetsIn, sharesOut);
     }
 
     /// @inheritdoc IVault
     function redeem(
-        address asset,
+        address assetAddr,
         uint256 sharesIn,
         address receiver,
         address owner
-    ) public virtual check(asset) returns (uint256 assetsOut, uint256 assetFee) {
-        (assetsOut, assetFee) = previewRedeem(asset, sharesIn);
+    ) public virtual check(assetAddr) returns (uint256 assetsOut, uint256 assetFee) {
+        (assetsOut, assetFee) = previewRedeem(assetAddr, sharesIn);
 
         if (assetsOut == 0) {
-            revert CError.INVALID_WITHDRAW(sharesIn, assetsOut);
+            revert CError.INVALID_WITHDRAW(assetAddr, sharesIn, assetsOut);
         }
 
         if (msg.sender != owner) {
@@ -138,13 +145,13 @@ contract Vault is IVault, ERC20 {
             if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - sharesIn;
         }
 
-        ERC20 token = ERC20(asset);
+        ERC20 token = ERC20(assetAddr);
 
         uint256 balance = token.balanceOf(address(this));
 
         if (assetsOut + assetFee > balance) {
             assetsOut = balance;
-            (sharesIn, assetFee) = previewWithdraw(asset, assetsOut);
+            (sharesIn, assetFee) = previewWithdraw(assetAddr, assetsOut);
             token.safeTransfer(receiver, assetsOut - assetFee);
         } else {
             token.safeTransfer(receiver, assetsOut);
@@ -154,19 +161,19 @@ contract Vault is IVault, ERC20 {
 
         _burn(owner, sharesIn);
 
-        emit VEvent.Withdraw(msg.sender, receiver, asset, owner, assetsOut, sharesIn);
+        emit VEvent.Withdraw(msg.sender, receiver, assetAddr, owner, assetsOut, sharesIn);
     }
 
     /// @inheritdoc IVault
     function withdraw(
-        address asset,
+        address assetAddr,
         uint256 assetsOut,
         address receiver,
         address owner
-    ) public virtual check(asset) returns (uint256 sharesIn, uint256 assetFee) {
-        (sharesIn, assetFee) = previewWithdraw(asset, assetsOut);
+    ) public virtual check(assetAddr) returns (uint256 sharesIn, uint256 assetFee) {
+        (sharesIn, assetFee) = previewWithdraw(assetAddr, assetsOut);
 
-        if (sharesIn == 0) revert CError.INVALID_WITHDRAW(sharesIn, assetsOut);
+        if (sharesIn == 0) revert CError.INVALID_WITHDRAW(assetAddr, sharesIn, assetsOut);
 
         if (msg.sender != owner) {
             uint256 allowed = allowance[owner][msg.sender]; // Saves gas for limited approvals.
@@ -174,7 +181,7 @@ contract Vault is IVault, ERC20 {
             if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - sharesIn;
         }
 
-        ERC20 token = ERC20(asset);
+        ERC20 token = ERC20(assetAddr);
 
         if (assetFee > 0) token.safeTransfer(feeRecipient, assetFee);
 
@@ -182,7 +189,7 @@ contract Vault is IVault, ERC20 {
 
         token.safeTransfer(receiver, assetsOut);
 
-        emit VEvent.Withdraw(msg.sender, receiver, asset, owner, assetsOut, sharesIn);
+        emit VEvent.Withdraw(msg.sender, receiver, assetAddr, owner, assetsOut, sharesIn);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -190,14 +197,14 @@ contract Vault is IVault, ERC20 {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IVault
-    function assets(address asset) public view returns (VaultAsset memory) {
-        return _assets[asset];
+    function assets(address assetAddr) public view returns (VaultAsset memory) {
+        return _assets[assetAddr];
     }
 
     /// @inheritdoc IVault
     function totalAssets() public view virtual returns (uint256 result) {
         for (uint256 i; i < assetList.length; ) {
-            result += _assets[assetList[i]].getDepositValueWad(oracleDecimals);
+            result += _assets[assetList[i]].getDepositValueWad(oracleDecimals, sequencerUptimeFeed);
             unchecked {
                 i++;
             }
@@ -213,71 +220,72 @@ contract Vault is IVault, ERC20 {
     }
 
     /// @inheritdoc IVault
-    function previewDeposit(address asset, uint256 assetsIn) public view virtual returns (uint256 sharesOut, uint256 assetFee) {
+    function previewDeposit(
+        address assetAddr,
+        uint256 assetsIn
+    ) public view virtual returns (uint256 sharesOut, uint256 assetFee) {
         uint256 tSupply = totalSupply();
         uint256 tAssets = totalAssets();
-        if (tSupply == 0) {
-            tSupply = 1e18;
-            tAssets = 1e18;
-        }
-        VaultAsset memory assetInfo = _assets[asset];
-        (assetsIn, assetFee) = _handleDepositFee(assetInfo, assetsIn);
-        uint256 assetValue = assetInfo.usdWad(assetsIn, oracleDecimals);
+        if (tSupply == 0) tSupply = 1e18;
+        if (tAssets == 0) tAssets = 1e18;
+        VaultAsset storage asset = _assets[assetAddr];
+        (assetsIn, assetFee) = asset.handleDepositFee(assetsIn);
+        uint256 assetValue = asset.usdWad(assetsIn, oracleDecimals, sequencerUptimeFeed);
 
         sharesOut = assetValue.mulDivDown(tSupply, tAssets);
     }
 
     /// @inheritdoc IVault
-    function previewMint(address asset, uint256 sharesOut) public view virtual returns (uint256 assetsIn, uint256 assetFee) {
+    function previewMint(
+        address assetAddr,
+        uint256 sharesOut
+    ) public view virtual returns (uint256 assetsIn, uint256 assetFee) {
         uint256 tSupply = totalSupply();
         uint256 tAssets = totalAssets();
 
-        if (tSupply == 0 || tAssets == 0) {
-            tSupply = 1e18;
-            tAssets = 1e18;
-        }
-        VaultAsset memory assetInfo = _assets[asset];
+        if (tSupply == 0) tSupply = 1e18;
+        if (tAssets == 0) tAssets = 1e18;
 
-        (assetsIn, assetFee) = _handleMintFee(
-            assetInfo,
-            assetInfo.getAmount(sharesOut.mulDivUp(tAssets, tSupply), oracleDecimals)
+        VaultAsset storage asset = _assets[assetAddr];
+
+        (assetsIn, assetFee) = asset.handleMintFee(
+            asset.getAmount(sharesOut.mulDivUp(tAssets, tSupply), oracleDecimals, sequencerUptimeFeed)
         );
     }
 
     /// @inheritdoc IVault
-    function previewRedeem(address asset, uint256 sharesIn) public view virtual returns (uint256 assetsOut, uint256 assetFee) {
+    function previewRedeem(
+        address assetAddr,
+        uint256 sharesIn
+    ) public view virtual returns (uint256 assetsOut, uint256 assetFee) {
         uint256 tSupply = totalSupply();
         uint256 tAssets = totalAssets();
 
-        if (tSupply == 0 || tAssets == 0) {
-            tSupply = 1e18;
-            tAssets = 1e18;
-        }
-        VaultAsset memory assetInfo = _assets[asset];
-        (assetsOut, assetFee) = _handleRedeemFee(
-            assetInfo,
-            assetInfo.getAmount(sharesIn.mulDivDown(tAssets, tSupply), oracleDecimals)
+        if (tSupply == 0) tSupply = 1e18;
+        if (tAssets == 0) tAssets = 1e18;
+
+        VaultAsset storage asset = _assets[assetAddr];
+        (assetsOut, assetFee) = asset.handleRedeemFee(
+            asset.getAmount(sharesIn.mulDivDown(tAssets, tSupply), oracleDecimals, sequencerUptimeFeed)
         );
     }
 
     /// @inheritdoc IVault
     function previewWithdraw(
-        address asset,
+        address assetAddr,
         uint256 assetsOut
     ) public view virtual returns (uint256 sharesIn, uint256 assetFee) {
         uint256 tSupply = totalSupply();
         uint256 tAssets = totalAssets();
 
-        if (tSupply == 0 || tAssets == 0) {
-            tSupply = 1e18;
-            tAssets = 1e18;
-        }
+        if (tSupply == 0) tSupply = 1e18;
+        if (tAssets == 0) tAssets = 1e18;
 
-        VaultAsset memory assetInfo = _assets[asset];
+        VaultAsset storage asset = _assets[assetAddr];
 
-        (assetsOut, assetFee) = _handleWithdrawFee(assetInfo, assetsOut);
+        (assetsOut, assetFee) = asset.handleWithdrawFee(assetsOut);
 
-        uint256 assetsValue = assetInfo.usdWad(assetsOut, oracleDecimals);
+        uint256 assetsValue = asset.usdWad(assetsOut, oracleDecimals, sequencerUptimeFeed);
 
         sharesIn = assetsValue.mulDivUp(tSupply, tAssets);
 
@@ -285,87 +293,92 @@ contract Vault is IVault, ERC20 {
     }
 
     /// @inheritdoc IVault
-    function maxRedeem(address asset, address owner) public view virtual returns (uint256 max) {
-        (uint256 assetsOut, uint256 fee) = previewRedeem(asset, balanceOf[owner]);
-        uint256 balance = ERC20(asset).balanceOf(address(this));
+    function maxRedeem(address assetAddr, address owner) public view virtual returns (uint256 max) {
+        (uint256 assetsOut, uint256 fee) = previewRedeem(assetAddr, balanceOf[owner]);
+        uint256 balance = ERC20(assetAddr).balanceOf(address(this));
 
         if (assetsOut + fee > balance) {
             assetsOut = balance;
-            (max, ) = previewWithdraw(asset, assetsOut);
+            (max, ) = previewWithdraw(assetAddr, assetsOut);
         } else {
             return balanceOf[owner];
         }
     }
 
     /// @inheritdoc IVault
-    function maxWithdraw(address asset, address owner) public view returns (uint256 max) {
-        (max, ) = previewRedeem(asset, maxRedeem(asset, owner));
+    function maxWithdraw(address assetAddr, address owner) public view returns (uint256 max) {
+        (max, ) = previewRedeem(assetAddr, maxRedeem(assetAddr, owner));
     }
 
     /// @inheritdoc IVault
-    function maxDeposit(address asset) public view virtual returns (uint256) {
-        return _assets[asset].maxDeposits - _assets[asset].token.balanceOf(address(this));
+    function maxDeposit(address assetAddr) public view virtual returns (uint256) {
+        return _assets[assetAddr].maxDeposits - _assets[assetAddr].token.balanceOf(address(this));
     }
 
     /// @inheritdoc IVault
-    function maxMint(address asset, address user) public view virtual returns (uint256 max) {
-        uint256 balance = ERC20(asset).balanceOf(user);
-        uint256 depositLimit = maxDeposit(asset);
+    function maxMint(address assetAddr, address user) public view virtual returns (uint256 max) {
+        uint256 balance = ERC20(assetAddr).balanceOf(user);
+        uint256 depositLimit = maxDeposit(assetAddr);
         if (balance > depositLimit) {
-            (max, ) = previewDeposit(asset, depositLimit);
+            (max, ) = previewDeposit(assetAddr, depositLimit);
         } else {
-            (max, ) = previewDeposit(asset, balance);
+            (max, ) = previewDeposit(assetAddr, balance);
         }
     }
 
     /* -------------------------------------------------------------------------- */
     /*                                    Admin                                   */
     /* -------------------------------------------------------------------------- */
+    function setSequencerUptimeFeed(address _newFeed) external onlyGovernance {
+        if (_newFeed != address(0)) {
+            assert(isSequencerUp(_newFeed));
+        }
+        sequencerUptimeFeed = _newFeed;
+    }
 
     /// @inheritdoc IVault
     function addAsset(VaultAsset memory config) external onlyGovernance {
-        address token = address(config.token);
+        address tokenAddr = address(config.token);
 
-        if (token == address(0)) revert CError.ZERO_ADDRESS();
-        else if (_assets[token].enabled) revert CError.ASSET_ALREADY_EXISTS(token);
+        if (tokenAddr == address(0)) revert CError.ZERO_ADDRESS();
+        if (address(_assets[tokenAddr].token) != address(0)) revert CError.ASSET_ALREADY_EXISTS(tokenAddr);
+        if (config.depositFee > Percents.HUNDRED)
+            revert CError.INVALID_ASSET_FEE(tokenAddr, config.depositFee, Percents.HUNDRED);
+        if (config.withdrawFee > Percents.HUNDRED)
+            revert CError.INVALID_ASSET_FEE(tokenAddr, config.withdrawFee, Percents.HUNDRED);
 
-        assetList.push(token);
-        _assets[token] = config; // [TODO] Add fees.
+        assetList.push(tokenAddr);
+        _assets[tokenAddr] = config; // [TODO] Add fees.
 
-        uint256 price = config.price();
-        emit VEvent.AssetAdded(token, address(config.oracle), price, config.maxDeposits, block.timestamp);
-
+        uint256 price = _assets[tokenAddr].price(sequencerUptimeFeed);
         if (price == 0) revert CError.ZERO_PRICE(config.token.symbol());
-        else if (config.depositFee > 1e18) revert CError.INVALID_PROTOCOL_FEE(token, config.depositFee, 1e18);
-        else if (config.withdrawFee > 1e18) revert CError.INVALID_PROTOCOL_FEE(token, config.withdrawFee, 1e18);
+        emit VEvent.AssetAdded(
+            tokenAddr,
+            address(config.oracle),
+            config.oracleTimeout,
+            price,
+            config.maxDeposits,
+            block.timestamp
+        );
     }
 
     /// @inheritdoc IVault
     function removeAsset(address asset) external onlyGovernance {
-        for (uint256 i; i < assetList.length; ) {
-            if (assetList[i] == asset) {
-                assetList[i] = assetList[assetList.length - 1];
-                assetList.pop();
-                break;
-            }
-            unchecked {
-                i++;
-            }
-        }
+        assetList.removeExisting(asset);
         delete _assets[asset];
-
         emit VEvent.AssetRemoved(asset, block.timestamp);
     }
 
     /// @inheritdoc IVault
-    function setOracle(address asset, address oracle) external onlyGovernance {
+    function setOracle(address assetAddr, address oracle, uint32 timeout) external onlyGovernance {
         bool deleted = oracle == address(0);
 
-        _assets[asset].oracle = AggregatorV3Interface(oracle);
-        uint256 price = deleted ? 0 : _assets[asset].price();
-        if (price == 0 && !deleted) revert CError.ZERO_PRICE(_assets[asset].token.symbol());
+        _assets[assetAddr].oracle = AggregatorV3Interface(oracle);
+        _assets[assetAddr].oracleTimeout = timeout;
+        uint256 price = deleted ? 0 : _assets[assetAddr].price(sequencerUptimeFeed);
+        if (price == 0 && !deleted) revert CError.ZERO_PRICE(_assets[assetAddr].token.symbol());
 
-        emit VEvent.OracleSet(asset, oracle, price, block.timestamp);
+        emit VEvent.OracleSet(assetAddr, oracle, timeout, price, block.timestamp);
     }
 
     /// @inheritdoc IVault
@@ -374,28 +387,26 @@ contract Vault is IVault, ERC20 {
     }
 
     /// @inheritdoc IVault
-    function setAssetEnabled(address asset, bool isEnabled) external onlyGovernance {
-        _assets[asset].enabled = isEnabled;
-
-        emit VEvent.AssetEnabledStatusChanged(asset, isEnabled, block.timestamp);
+    function setAssetEnabled(address assetAddr, bool isEnabled) external onlyGovernance {
+        _assets[assetAddr].enabled = isEnabled;
+        emit VEvent.AssetEnabledChange(assetAddr, isEnabled, block.timestamp);
     }
 
     /// @inheritdoc IVault
-    function setDepositFee(address asset, uint256 fee) external onlyGovernance {
-        if (fee > HUNDRED) revert CError.INVALID_FEE(fee, HUNDRED);
-
-        _assets[asset].depositFee = fee;
+    function setDepositFee(address assetAddr, uint32 fee) external onlyGovernance {
+        if (fee > Percents.HUNDRED) revert CError.INVALID_ASSET_FEE(assetAddr, fee, Percents.HUNDRED);
+        _assets[assetAddr].depositFee = fee;
     }
 
     /// @inheritdoc IVault
-    function setWithdrawFee(address asset, uint256 fee) external onlyGovernance {
-        if (fee > HUNDRED) revert CError.INVALID_FEE(fee, HUNDRED);
-        _assets[asset].withdrawFee = fee;
+    function setWithdrawFee(address assetAddr, uint32 fee) external onlyGovernance {
+        if (fee > Percents.HUNDRED) revert CError.INVALID_ASSET_FEE(assetAddr, fee, Percents.HUNDRED);
+        _assets[assetAddr].withdrawFee = fee;
     }
 
     /// @inheritdoc IVault
-    function setMaxDeposits(address asset, uint256 maxDeposits) external onlyGovernance {
-        _assets[asset].maxDeposits = maxDeposits;
+    function setMaxDeposits(address assetAddr, uint248 maxDeposits) external onlyGovernance {
+        _assets[assetAddr].maxDeposits = maxDeposits;
     }
 
     /// @inheritdoc IVault
@@ -406,33 +417,5 @@ contract Vault is IVault, ERC20 {
     /// @inheritdoc IVault
     function setFeeRecipient(address _newFeeRecipient) external onlyGovernance {
         feeRecipient = _newFeeRecipient;
-    }
-
-    function _handleMintFee(
-        VaultAsset memory assetInfo,
-        uint256 assetsIn
-    ) internal view virtual returns (uint256 assetsInAfterFee, uint256 assetFee) {
-        (assetsInAfterFee, assetFee) = assetInfo.handleMintFee(assetsIn);
-    }
-
-    function _handleRedeemFee(
-        VaultAsset memory assetInfo,
-        uint256 assetsIn
-    ) internal view virtual returns (uint256 assetsInAfterFee, uint256 assetFee) {
-        (assetsInAfterFee, assetFee) = assetInfo.handleRedeemFee(assetsIn);
-    }
-
-    function _handleDepositFee(
-        VaultAsset memory assetInfo,
-        uint256 assetsIn
-    ) internal view virtual returns (uint256 assetsInAfterFee, uint256 assetFee) {
-        (assetsInAfterFee, assetFee) = assetInfo.handleDepositFee(assetsIn);
-    }
-
-    function _handleWithdrawFee(
-        VaultAsset memory assetInfo,
-        uint256 assetsIn
-    ) internal view virtual returns (uint256 assetsInAfterFee, uint256 assetFee) {
-        (assetsInAfterFee, assetFee) = assetInfo.handleWithdrawFee(assetsIn);
     }
 }

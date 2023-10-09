@@ -162,8 +162,8 @@ interface IVault {
     function maxWithdraw(address asset, address owner) external view returns (uint256 amountOut);
 
     /**
-     * @notice Returns share/USD exchanage rate
-     * @return rate share/USD exchanage rate
+     * @notice Returns the exchange rate of one vault share to USD.
+     * @return rate Exchange rate of one vault share to USD in wad precision.
      */
     function exchangeRate() external view returns (uint256 rate);
 
@@ -210,8 +210,9 @@ interface IVault {
      * @notice Sets a new oracle for a asset
      * @param asset Asset to set the oracle for
      * @param oracle Oracle to set
+     * @param timeout Oracle timeout to set
      */
-    function setOracle(address asset, address oracle) external;
+    function setOracle(address asset, address oracle, uint32 timeout) external;
 
     /**
      * @notice Sets a new oracle decimals
@@ -224,7 +225,7 @@ interface IVault {
      * @param asset Asset to set the max deposits for
      * @param maxDeposits Max deposits to set
      */
-    function setMaxDeposits(address asset, uint256 maxDeposits) external;
+    function setMaxDeposits(address asset, uint248 maxDeposits) external;
 
     /**
      * @notice Sets the enabled status for a asset
@@ -238,14 +239,14 @@ interface IVault {
      * @param asset Asset to set the deposit fee for
      * @param fee Fee to set
      */
-    function setDepositFee(address asset, uint256 fee) external;
+    function setDepositFee(address asset, uint32 fee) external;
 
     /**
      * @notice Sets the withdraw fee for a asset
      * @param asset Asset to set the withdraw fee for
      * @param fee Fee to set
      */
-    function setWithdrawFee(address asset, uint256 fee) external;
+    function setWithdrawFee(address asset, uint32 fee) external;
 
     /* -------------------------------------------------------------------------- */
     /*                                   Errors                                   */

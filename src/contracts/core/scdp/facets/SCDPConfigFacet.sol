@@ -176,11 +176,11 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
         uint16 _protocolFee
     ) external onlyRole(Role.ADMIN) {
         if (_openFee > Percents.TWENTY_FIVE) {
-            revert CError.INVALID_SCDP_FEE(_krAsset, _openFee, Percents.TWENTY_FIVE);
+            revert CError.INVALID_ASSET_FEE(_krAsset, _openFee, Percents.TWENTY_FIVE);
         } else if (_closeFee > Percents.TWENTY_FIVE) {
-            revert CError.INVALID_SCDP_FEE(_krAsset, _closeFee, Percents.TWENTY_FIVE);
+            revert CError.INVALID_ASSET_FEE(_krAsset, _closeFee, Percents.TWENTY_FIVE);
         } else if (_protocolFee > Percents.FIFTY) {
-            revert CError.INVALID_PROTOCOL_FEE(_krAsset, _protocolFee, Percents.FIFTY);
+            revert CError.INVALID_ASSET_FEE(_krAsset, _protocolFee, Percents.FIFTY);
         }
         cs().assets[_krAsset].swapInFeeSCDP = _openFee;
         cs().assets[_krAsset].swapOutFeeSCDP = _closeFee;

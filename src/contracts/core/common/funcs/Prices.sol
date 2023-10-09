@@ -44,7 +44,7 @@ function safePrice(bytes12 _assetId, OracleType[2] memory _oracles, uint256 _ora
     if (prices[0] == 0 && prices[1] == 0) {
         revert CError.ZERO_PRICE(_assetId.toString());
     }
-    if (!isSequencerUp()) {
+    if (!isSequencerUp(cs().sequencerUptimeFeed)) {
         return handleSequencerDown(_oracles, prices);
     }
 

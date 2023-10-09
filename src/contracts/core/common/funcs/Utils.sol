@@ -9,10 +9,10 @@ import {cs} from "common/State.sol";
  * 1 means the sequencer is down, 0 means the sequencer is up.
  * @return bool returns true/false if the sequencer is up/not.
  */
-function isSequencerUp() view returns (bool) {
+function isSequencerUp(address _uptimeFeed) view returns (bool) {
     bool up = true;
-    if (cs().sequencerUptimeFeed != address(0)) {
-        (, int256 answer, uint256 startedAt, , ) = AggregatorV3Interface(cs().sequencerUptimeFeed).latestRoundData();
+    if (_uptimeFeed != address(0)) {
+        (, int256 answer, uint256 startedAt, , ) = AggregatorV3Interface(_uptimeFeed).latestRoundData();
 
         up = answer == 0;
         if (!up) {

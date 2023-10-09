@@ -8,9 +8,11 @@ import {MockOracle} from "mocks/MockOracle.sol";
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 import {MockERC20, USDC, USDT, DAI} from "mocks/MockERC20.sol";
 import {ERC20} from "vendor/ERC20.sol";
+import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 
 // solhint-disable private-vars-leading-underscore
 // solhint-disable contract-name-camelcase
+// solhint-disable max-states-count
 
 contract vKISSTest is Test {
     Vault public vkiss;
@@ -45,7 +47,7 @@ contract vKISSTest is Test {
         vm.startPrank(user0);
 
         // Create a vault
-        vkiss = new Vault("vKISS", "vKISS", 18, 8, feeRecipient);
+        vkiss = new Vault("vKISS", "vKISS", 18, 8, feeRecipient, address(new MockSequencerUptimeFeed()));
 
         // tokens
         usdc = new USDC();
@@ -61,9 +63,15 @@ contract vKISSTest is Test {
         usdtOracle = new MockOracle("USDT/USD", 1e8, 8);
 
         // add assets
-        vkiss.addAsset(VaultAsset(ERC20(usdcAddr), AggregatorV3Interface(address(usdcOracle)), type(uint256).max, 0, 0, true));
-        vkiss.addAsset(VaultAsset(ERC20(daiAddr), AggregatorV3Interface(address(daiOracle)), type(uint256).max, 0, 0, true));
-        vkiss.addAsset(VaultAsset(ERC20(usdtAddr), AggregatorV3Interface(address(usdtOracle)), type(uint256).max, 0, 0, true));
+        vkiss.addAsset(
+            VaultAsset(ERC20(usdcAddr), AggregatorV3Interface(address(usdcOracle)), 80000, 0, 0, type(uint248).max, true)
+        );
+        vkiss.addAsset(
+            VaultAsset(ERC20(daiAddr), AggregatorV3Interface(address(daiOracle)), 80000, 0, 0, type(uint248).max, true)
+        );
+        vkiss.addAsset(
+            VaultAsset(ERC20(usdtAddr), AggregatorV3Interface(address(usdtOracle)), 80000, 0, 0, type(uint248).max, true)
+        );
         vm.stopPrank();
 
         // approvals
@@ -149,7 +157,7 @@ contract vKISSTest is Test {
 
     function testDepositFeePreview() public {
         vm.startPrank(user0);
-        vkiss.setDepositFee(address(usdc), 0.25e18);
+        vkiss.setDepositFee(address(usdc), 0.25e4);
         vm.stopPrank();
 
         (uint256 kissOut, uint256 fee) = vkiss.previewDeposit(address(usdc), 1e18);
@@ -159,7 +167,7 @@ contract vKISSTest is Test {
 
     function testDepositFee() public {
         vm.startPrank(user0);
-        vkiss.setDepositFee(address(usdc), 0.25e18);
+        vkiss.setDepositFee(address(usdc), 0.25e4);
         vm.stopPrank();
 
         usdc.mint(user1, 1e18);
@@ -177,7 +185,7 @@ contract vKISSTest is Test {
 
     function testMintFeePreview() public {
         vm.startPrank(user0);
-        vkiss.setDepositFee(address(usdc), 0.25e18);
+        vkiss.setDepositFee(address(usdc), 0.25e4);
         vm.stopPrank();
 
         (uint256 assetsIn, uint256 fee) = vkiss.previewMint(address(usdc), 1e18);
@@ -187,7 +195,7 @@ contract vKISSTest is Test {
 
     function testMintFee() public {
         vm.startPrank(user0);
-        vkiss.setDepositFee(address(usdc), 0.25e18);
+        vkiss.setDepositFee(address(usdc), 0.25e4);
         vm.stopPrank();
 
         usdc.mint(user1, 1.333333333333333333e18);
@@ -206,7 +214,7 @@ contract vKISSTest is Test {
     function testWithdrawFeePreview() public {
         deposit(user1, usdc, 2e18);
         vm.startPrank(user0);
-        vkiss.setWithdrawFee(address(usdc), 0.25e18);
+        vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
         uint256 expectedFee = 0.333333333333333333e18;
         (uint256 sharesIn, uint256 fee) = vkiss.previewWithdraw(address(usdc), 1e18);
@@ -246,7 +254,7 @@ contract vKISSTest is Test {
 
     function testCannotWithdrawRoundingError() public {
         vm.startPrank(user0);
-        vkiss.setWithdrawFee(address(usdc), 0.25e18);
+        vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
         uint256 expectedFee = 0.333333333333333333e18;
         deposit(user1, usdc, 1e18 + expectedFee);
@@ -259,7 +267,7 @@ contract vKISSTest is Test {
 
     function testCanRedeemRoundingError() public {
         vm.startPrank(user0);
-        vkiss.setWithdrawFee(address(usdc), 0.25e18);
+        vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
         uint256 expectedFee = 0.333333333333333333e18;
         deposit(user1, usdc, 1e18 + expectedFee);
@@ -276,7 +284,7 @@ contract vKISSTest is Test {
         deposit(user1, usdc, 2e18);
 
         vm.startPrank(user0);
-        vkiss.setWithdrawFee(address(usdc), 0.25e18);
+        vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
 
         vm.startPrank(user1);
@@ -295,7 +303,7 @@ contract vKISSTest is Test {
 
     function testRedeemFeePreview() public {
         vm.startPrank(user0);
-        vkiss.setWithdrawFee(address(usdc), 0.25e18);
+        vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
 
         (uint256 assetsOut, uint256 fee) = vkiss.previewRedeem(address(usdc), 1e18);
@@ -307,7 +315,7 @@ contract vKISSTest is Test {
         deposit(user1, usdc, 1e18);
 
         vm.startPrank(user0);
-        vkiss.setWithdrawFee(address(usdc), 0.25e18);
+        vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
 
         vm.startPrank(user1);
@@ -325,8 +333,8 @@ contract vKISSTest is Test {
 
     function testDepositWithdrawFee() public {
         vm.startPrank(user0);
-        vkiss.setWithdrawFee(address(usdc), 0.25e18);
-        vkiss.setDepositFee(address(usdc), 0.25e18);
+        vkiss.setWithdrawFee(address(usdc), 0.25e4);
+        vkiss.setDepositFee(address(usdc), 0.25e4);
         vm.stopPrank();
 
         uint256 kissOut = deposit(user1, usdc, 1e18);
@@ -349,8 +357,8 @@ contract vKISSTest is Test {
 
     function testMintRedeemFee() public {
         vm.startPrank(user0);
-        vkiss.setWithdrawFee(address(usdc), 0.25e18);
-        vkiss.setDepositFee(address(usdc), 0.25e18);
+        vkiss.setWithdrawFee(address(usdc), 0.25e4);
+        vkiss.setDepositFee(address(usdc), 0.25e4);
         usdc.mint(user1, 1.333333333333333333e18);
         vm.stopPrank();
 
@@ -379,8 +387,8 @@ contract vKISSTest is Test {
 
     function testDepositMintPreviewFee() public {
         vm.startPrank(user0);
-        vkiss.setWithdrawFee(address(usdc), 0.25e18);
-        vkiss.setDepositFee(address(usdc), 0.25e18);
+        vkiss.setWithdrawFee(address(usdc), 0.25e4);
+        vkiss.setDepositFee(address(usdc), 0.25e4);
         vm.stopPrank();
         uint256 kissOut = 1e18;
         (uint256 assetsIn, uint256 mintFee) = vkiss.previewMint(address(usdc), kissOut);
@@ -393,8 +401,8 @@ contract vKISSTest is Test {
 
     function testDepositRedeemFee() public {
         vm.startPrank(user0);
-        vkiss.setWithdrawFee(address(usdc), 0.25e18);
-        vkiss.setDepositFee(address(usdc), 0.25e18);
+        vkiss.setWithdrawFee(address(usdc), 0.25e4);
+        vkiss.setDepositFee(address(usdc), 0.25e4);
         usdc.mint(user1, 1.333333333333333333e18);
         vm.stopPrank();
 
@@ -520,9 +528,9 @@ contract vKISSTest is Test {
         deposit(user1, usdt, 1e6);
         deposit(user1, dai, 1e18);
 
-        assertEq(vkiss.maxDeposit(address(usdc)), type(uint256).max - 1e18);
-        assertEq(vkiss.maxDeposit(address(usdt)), type(uint256).max - 1e6);
-        assertEq(vkiss.maxDeposit(address(dai)), type(uint256).max - 1e18);
+        assertEq(vkiss.maxDeposit(address(usdc)), type(uint248).max - 1e18);
+        assertEq(vkiss.maxDeposit(address(usdt)), type(uint248).max - 1e6);
+        assertEq(vkiss.maxDeposit(address(dai)), type(uint248).max - 1e18);
     }
 
     function testMaxMint() public {
@@ -540,7 +548,7 @@ contract vKISSTest is Test {
 
     function testCantDepositOverMaxDeposit() public {
         vm.startPrank(user0);
-        uint256 maxDeposits = 1 ether;
+        uint248 maxDeposits = 1 ether;
         vkiss.setMaxDeposits(address(usdc), maxDeposits);
         uint256 depositAmount = maxDeposits + 1;
         usdc.mint(user1, depositAmount);

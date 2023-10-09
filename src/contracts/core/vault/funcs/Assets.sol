@@ -2,9 +2,11 @@
 pragma solidity >=0.8.21;
 
 import {ERC20} from "vendor/ERC20.sol";
-import {WadRay} from "libs/WadRay.sol";
 import {CError} from "common/CError.sol";
 import {VaultAsset} from "vault/Types.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
+import {isSequencerUp} from "common/funcs/Utils.sol";
+import {Percents} from "common/Constants.sol";
 
 /**
  * @title LibVault
@@ -12,67 +14,76 @@ import {VaultAsset} from "vault/Types.sol";
  * @notice Helper library for KreskoVault
  */
 library VAssets {
-    using WadRay for uint256;
+    using PercentageMath for uint256;
+    using PercentageMath for uint32;
     using VAssets for VaultAsset;
     using VAssets for uint256;
 
     /// @notice get price of an asset from the oracle speficied.
-    function price(VaultAsset memory self) internal view returns (uint256) {
-        (, int256 answer, , , ) = self.oracle.latestRoundData();
-
-        if (answer <= 0) {
-            revert CError.INVALID_PRICE(address(self.token), address(self.oracle), answer);
+    function price(VaultAsset storage self, address _sequencerUptimeFeed) internal view returns (uint256) {
+        if (!isSequencerUp(_sequencerUptimeFeed)) {
+            revert CError.SEQUENCER_DOWN_NO_REDSTONE_AVAILABLE();
         }
-
+        (, int256 answer, , uint256 updatedAt, ) = self.oracle.latestRoundData();
+        if (answer < 0) {
+            revert CError.NEGATIVE_PRICE(address(self.oracle), answer);
+        }
+        if (block.timestamp - updatedAt > self.oracleTimeout) {
+            revert CError.STALE_PRICE(self.token.symbol(), block.timestamp - updatedAt, self.oracleTimeout);
+        }
         return uint256(answer);
     }
 
     /// @notice get price of an asset from the oracle speficied.
     function handleDepositFee(
-        VaultAsset memory self,
+        VaultAsset storage self,
         uint256 assets
-    ) internal pure returns (uint256 assetsWithFee, uint256 fee) {
-        if (self.depositFee == 0) {
+    ) internal view returns (uint256 assetsWithFee, uint256 fee) {
+        uint256 depositFee = self.depositFee;
+        if (depositFee == 0) {
             return (assets, 0);
         }
 
-        fee = (assets * self.depositFee) / 1e18;
+        fee = assets.percentMul(depositFee);
         assetsWithFee = assets - fee;
     }
 
     /// @notice get price of an asset from the oracle speficied.
-    function handleMintFee(VaultAsset memory self, uint256 assets) internal pure returns (uint256 assetsWithFee, uint256 fee) {
-        if (self.depositFee == 0) {
+    function handleMintFee(VaultAsset storage self, uint256 assets) internal view returns (uint256 assetsWithFee, uint256 fee) {
+        uint256 depositFee = self.depositFee;
+        if (depositFee == 0) {
             return (assets, 0);
         }
 
-        assetsWithFee = assets.wadDiv(1e18 - self.depositFee);
+        assetsWithFee = assets.percentDiv(Percents.HUNDRED - depositFee);
         fee = assetsWithFee - assets;
     }
 
     /// @notice get price of an asset from the oracle speficied.
     function handleWithdrawFee(
-        VaultAsset memory self,
+        VaultAsset storage self,
         uint256 assets
-    ) internal pure returns (uint256 assetsWithFee, uint256 fee) {
-        if (self.withdrawFee == 0) {
+    ) internal view returns (uint256 assetsWithFee, uint256 fee) {
+        uint256 withdrawFee = self.withdrawFee;
+        if (withdrawFee == 0) {
             return (assets, 0);
         }
 
-        assetsWithFee = assets.wadDiv(1e18 - self.withdrawFee);
+        assetsWithFee = assets.percentDiv(Percents.HUNDRED - withdrawFee);
         fee = assetsWithFee - assets;
     }
 
     /// @notice get price of an asset from the oracle speficied.
     function handleRedeemFee(
-        VaultAsset memory self,
+        VaultAsset storage self,
         uint256 assets
-    ) internal pure returns (uint256 assetsWithFee, uint256 fee) {
-        if (self.withdrawFee == 0) {
+    ) internal view returns (uint256 assetsWithFee, uint256 fee) {
+        uint256 withdrawFee = self.withdrawFee;
+        if (withdrawFee == 0) {
             return (assets, 0);
         }
 
-        fee = (assets * self.withdrawFee) / 1e18;
+        fee = assets.percentMul(withdrawFee);
         assetsWithFee = assets - fee;
     }
 
@@ -88,41 +99,60 @@ library VAssets {
 
     /// @notice get oracle decimal precision USD value for `amount`.
     /// @param amount amount of tokens to get USD value for.
-    function usdWad(VaultAsset memory self, uint256 amount, uint8 oracleDecimals) internal view returns (uint256) {
-        return (amount * (10 ** (18 - oracleDecimals)) * self.price()) / 10 ** self.token.decimals();
+    function usdWad(
+        VaultAsset storage self,
+        uint256 amount,
+        uint8 oracleDecimals,
+        address _seqFeed
+    ) internal view returns (uint256) {
+        return (amount * (10 ** (18 - oracleDecimals)) * self.price(_seqFeed)) / 10 ** self.token.decimals();
     }
 
     /// @notice get oracle decimal precision USD value for `amount`.
     /// @param amount amount of tokens to get USD value for.
-    function usdRay(VaultAsset memory self, uint256 amount, uint8 oracleDecimals) internal view returns (uint256) {
-        return (amount * (10 ** (27 - oracleDecimals)) * self.price()) / 10 ** self.token.decimals();
+    function usdRay(
+        VaultAsset storage self,
+        uint256 amount,
+        uint8 oracleDecimals,
+        address _seqFeed
+    ) internal view returns (uint256) {
+        return (amount * (10 ** (27 - oracleDecimals)) * self.price(_seqFeed)) / 10 ** self.token.decimals();
     }
 
     /// @notice get oracle decimal precision USD value for `amount`.
     /// @param amount amount of tokens to get USD value for.
-    function usd(VaultAsset memory self, uint256 amount) internal view returns (uint256) {
-        return (amount * self.price()) / 10 ** self.token.decimals();
+    function usd(VaultAsset storage self, uint256 amount, address _seqFeed) internal view returns (uint256) {
+        return (amount * self.price(_seqFeed)) / 10 ** self.token.decimals();
     }
 
     /// @notice get total deposit value of `self` in USD, oracle precision.
-    function getDepositValue(VaultAsset memory self) internal view returns (uint256) {
+    function getDepositValue(VaultAsset storage self, address _seqFeed) internal view returns (uint256) {
         uint256 bal = self.token.balanceOf(address(this));
         if (bal == 0) return 0;
-        return (bal * self.price()) / 10 ** self.token.decimals();
+        return (bal * self.price(_seqFeed)) / 10 ** self.token.decimals();
     }
 
     /// @notice get total deposit value of `self` in USD, oracle precision.
-    function getDepositValueWad(VaultAsset memory self, uint8 oracleDecimals) internal view returns (uint256) {
+    function getDepositValueWad(
+        VaultAsset storage self,
+        uint8 oracleDecimals,
+        address _seqFeed
+    ) internal view returns (uint256) {
         uint256 bal = self.token.balanceOf(address(this));
         if (bal == 0) return 0;
-        return self.getDepositValue().oracleToWad(oracleDecimals);
+        return self.getDepositValue(_seqFeed).oracleToWad(oracleDecimals);
     }
 
     /// @notice get a token amount for `value` USD, oracle precision.
-    function getAmount(VaultAsset memory self, uint256 value, uint8 oracleDecimals) internal view returns (uint256) {
+    function getAmount(
+        VaultAsset storage self,
+        uint256 value,
+        uint8 oracleDecimals,
+        address _seqFeed
+    ) internal view returns (uint256) {
         uint256 valueScaled = (value * 1e18) / 10 ** ((36 - oracleDecimals) - self.token.decimals());
 
-        return valueScaled / self.price();
+        return valueScaled / self.price(_seqFeed);
     }
 
     /// @notice converts wad precision amount `wad` to token decimal precision.

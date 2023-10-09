@@ -16,8 +16,9 @@ import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 struct VaultAsset {
     ERC20 token;
     AggregatorV3Interface oracle;
-    uint256 maxDeposits;
-    uint256 depositFee;
-    uint256 withdrawFee;
+    uint32 oracleTimeout;
+    uint32 depositFee;
+    uint32 withdrawFee;
+    uint248 maxDeposits;
     bool enabled;
 }

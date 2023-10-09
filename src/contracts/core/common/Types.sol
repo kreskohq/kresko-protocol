@@ -44,7 +44,8 @@ struct Oracle {
 enum OracleType {
     Redstone,
     Chainlink,
-    API3
+    API3,
+    Vault
 }
 
 /**
