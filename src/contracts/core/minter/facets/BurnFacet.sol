@@ -2,7 +2,7 @@
 pragma solidity >=0.8.21;
 
 import {Arrays} from "libs/Arrays.sol";
-import {Role} from "common/Types.sol";
+import {Role} from "common/Constants.sol";
 import {burnKrAsset} from "common/funcs/Actions.sol";
 import {cs} from "common/State.sol";
 import {Asset, Action} from "common/Types.sol";

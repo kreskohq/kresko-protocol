@@ -2,7 +2,7 @@
 pragma solidity >=0.8.21;
 
 import {IERC165Facet} from "diamond/interfaces/IERC165Facet.sol";
-import {Role} from "common/Types.sol";
+import {Role} from "common/Constants.sol";
 import {ds, DiamondState} from "diamond/State.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
 import {CModifiers} from "common/Modifiers.sol";

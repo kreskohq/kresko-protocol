@@ -2,14 +2,14 @@
 pragma solidity >=0.8.21;
 
 import {Arrays} from "libs/Arrays.sol";
-import {Role} from "common/Types.sol";
+import {Role} from "common/Constants.sol";
 import {CError} from "common/CError.sol";
-
-import {DSModifiers} from "diamond/Modifiers.sol";
+import {CModifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
 import {Asset, Action} from "common/Types.sol";
+
+import {DSModifiers} from "diamond/Modifiers.sol";
 import {IBurnHelperFacet} from "./IBurnHelperFacet.sol";
-import {CModifiers} from "common/Modifiers.sol";
 import {MEvent} from "minter/Events.sol";
 import {ms, MinterState} from "minter/State.sol";
 import {MinterFee} from "minter/Types.sol";

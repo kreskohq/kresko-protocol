@@ -2,10 +2,9 @@
 pragma solidity >=0.8.21;
 
 import {Strings} from "libs/Strings.sol";
-import {Role} from "common/Types.sol";
 import {SDIPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
-import {EMPTY_BYTES12} from "common/Constants.sol";
+import {EMPTY_BYTES12, Role} from "common/Constants.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {CError} from "common/CError.sol";
 import {Asset} from "common/Types.sol";

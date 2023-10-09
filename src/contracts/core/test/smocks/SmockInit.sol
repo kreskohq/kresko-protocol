@@ -2,7 +2,7 @@
 pragma solidity >=0.8.21;
 
 import {DiamondEvent} from "common/Events.sol";
-import {Role} from "common/Types.sol";
+import {Role} from "common/Constants.sol";
 import {Auth} from "common/Auth.sol";
 import {ds} from "diamond/State.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";

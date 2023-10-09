@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
 
-import {Role} from "common/Types.sol";
 import {CModifiers} from "common/Modifiers.sol";
+import {Role} from "common/Constants.sol";
 import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {ds} from "diamond/State.sol";
 import {FacetCut} from "diamond/Types.sol";

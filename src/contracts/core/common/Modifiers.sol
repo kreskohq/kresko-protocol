@@ -3,7 +3,8 @@ pragma solidity >=0.8.21;
 
 import {CError} from "common/CError.sol";
 import {Auth} from "common/Auth.sol";
-import {NOT_ENTERED, ENTERED, Action} from "common/Types.sol";
+import {NOT_ENTERED, ENTERED} from "common/Constants.sol";
+import {Action} from "common/Types.sol";
 import {cs, gs} from "common/State.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 

@@ -6,11 +6,11 @@ import {Arrays} from "libs/Arrays.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
 import {ds} from "diamond/State.sol";
 
-import {Role, Asset} from "common/Types.sol";
+import {Asset} from "common/Types.sol";
 import {DiamondEvent} from "common/Events.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
-import {Percents} from "common/Constants.sol";
+import {Percents, Role} from "common/Constants.sol";
 import {CError} from "common/CError.sol";
 import {MEvent} from "minter/Events.sol";
 

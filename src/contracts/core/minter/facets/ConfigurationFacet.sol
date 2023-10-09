@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {Role} from "common/Types.sol";
 import {CError} from "common/CError.sol";
 import {DiamondEvent} from "common/Events.sol";
 import {CModifiers} from "common/Modifiers.sol";
-import {Percents} from "common/Constants.sol";
+import {Percents, Role} from "common/Constants.sol";
 import {cs} from "common/State.sol";
 
 import {DSModifiers} from "diamond/Modifiers.sol";

@@ -2,7 +2,7 @@
 pragma solidity >=0.8.21;
 
 import {CError} from "common/CError.sol";
-import {Role} from "common/Types.sol";
+import {Role} from "common/Constants.sol";
 import {mintKrAsset} from "common/funcs/Actions.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";

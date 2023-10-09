@@ -5,8 +5,8 @@ import {CModifiers} from "common/Modifiers.sol";
 import {DSModifiers} from "diamond/Modifiers.sol";
 import {DiamondEvent} from "common/Events.sol";
 
-import {Constants} from "common/Constants.sol";
-import {CommonInitArgs, Role, NOT_ENTERED} from "common/Types.sol";
+import {Constants, Role, NOT_ENTERED} from "common/Constants.sol";
+import {CommonInitArgs} from "common/Types.sol";
 import {ICommonConfigurationFacet} from "common/interfaces/ICommonConfigurationFacet.sol";
 import {IAuthorizationFacet} from "common/interfaces/IAuthorizationFacet.sol";
 import {CError} from "common/CError.sol";

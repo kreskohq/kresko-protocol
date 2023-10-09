@@ -4,7 +4,7 @@ pragma solidity >=0.8.21;
 import {AccessControlEnumerableUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
 
-import {Role} from "common/Types.sol";
+import {Role} from "common/Constants.sol";
 import {CError} from "common/CError.sol";
 
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";

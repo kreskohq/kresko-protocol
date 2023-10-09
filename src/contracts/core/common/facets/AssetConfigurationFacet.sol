@@ -18,8 +18,8 @@ import {ms} from "minter/State.sol";
 import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFacet.sol";
 import {AssetStateFacet} from "common/facets/AssetStateFacet.sol";
 import {CModifiers} from "common/Modifiers.sol";
-import {Percents, EMPTY_BYTES12} from "common/Constants.sol";
-import {Asset, Role, Oracle, OracleType, FeedConfiguration} from "common/Types.sol";
+import {Percents, EMPTY_BYTES12, Role} from "common/Constants.sol";
+import {Asset, Oracle, OracleType, FeedConfiguration} from "common/Types.sol";
 import {CError} from "common/CError.sol";
 import {cs} from "common/State.sol";
 

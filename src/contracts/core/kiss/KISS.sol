@@ -7,7 +7,7 @@ import {IAccessControl} from "@oz/access/IAccessControl.sol";
 import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "vendor/SafeERC20Upgradeable.sol";
-import {Role} from "common/Types.sol";
+import {Role} from "common/Constants.sol";
 import {CError} from "common/CError.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {IERC165} from "vendor/IERC165.sol";

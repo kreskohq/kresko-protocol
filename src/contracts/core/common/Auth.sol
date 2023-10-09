@@ -7,7 +7,7 @@ import {Meta} from "libs/Meta.sol";
 
 import {AuthEvent} from "common/Events.sol";
 import {CError} from "common/CError.sol";
-import {Role} from "common/Types.sol";
+import {Role} from "common/Constants.sol";
 import {cs} from "common/State.sol";
 
 interface IGnosisSafeL2 {

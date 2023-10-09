@@ -5,7 +5,8 @@
 
 pragma solidity ^0.8.0;
 
-import {Auth, Role} from "common/Auth.sol";
+import {Auth} from "common/Auth.sol";
+import {Role} from "common/Constants.sol";
 import {DiamondEvent} from "common/Events.sol";
 import {CError} from "common/CError.sol";
 

@@ -8,10 +8,9 @@ import {SafeERC20Upgradeable} from "vendor/SafeERC20Upgradeable.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {Percents} from "common/Constants.sol";
+import {Percents, Role} from "common/Constants.sol";
 import {CError} from "common/CError.sol";
 import {IKreskoAssetAnchor} from ".//IKreskoAssetAnchor.sol";
-import {Role} from "common/Types.sol";
 import {Rebaser} from "./Rebaser.sol";
 import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
 

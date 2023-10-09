@@ -3,7 +3,7 @@ pragma solidity >=0.8.21;
 
 import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {Role} from "common/Types.sol";
+import {Role} from "common/Constants.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
 import {Asset, Action} from "common/Types.sol";
