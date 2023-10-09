@@ -45,8 +45,8 @@
     "@commitlint/config-conventional": "^12.1.4",
     "@defi-wonderland/smock": "^2.3.5",
     "@ethersproject/abi": "^5.7.0",
-    "@ethersproject/abstract-signer": "^5.7.0",
     "@ethersproject/abstract-provider": "^5",
+    "@ethersproject/abstract-signer": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@kreskolabs/configs": "^12.10.1",
     "@kreskolabs/lib": "^11.9.1",
@@ -102,5 +102,10 @@
     "foundry",
     "smart-contracts",
     "solidity"
-  ]
+  ],
+  "pnpm": {
+    "patchedDependencies": {
+      "@defi-wonderland/smock@2.3.5": "patches/@defi-wonderland__smock@2.3.5.patch"
+    }
+  }
 }
