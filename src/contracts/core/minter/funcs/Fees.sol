@@ -99,7 +99,7 @@ function _calcAndHandleCollateralsArray(
 
     if (_feeValue < depositValue) {
         // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
-        transferAmount = fromWad(_asset.decimals, _feeValue.wadDiv(oraclePrice));
+        transferAmount = fromWad(_feeValue.wadDiv(oraclePrice), _asset.decimals);
         feeValuePaid = _feeValue;
     } else {
         // If the feeValue >= depositValue, the entire deposit should be taken as the fee.

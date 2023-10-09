@@ -62,9 +62,11 @@ export type NetworkConfig = {
 };
 
 export enum OracleType {
+  Empty,
   Redstone,
   Chainlink,
   API3,
+  Vault,
 }
 
 export type SCDPDepositAssetConfig = {

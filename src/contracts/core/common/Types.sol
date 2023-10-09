@@ -17,6 +17,7 @@ struct Oracle {
 
 /// @notice Supported oracle providers.
 enum OracleType {
+    Empty,
     Redstone,
     Chainlink,
     API3,

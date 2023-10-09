@@ -50,6 +50,7 @@ library CError {
     error INVALID_LT(uint256 invalid, uint256 valid);
     error INVALID_ASSET_FEE(address asset, uint256 invalid, uint256 valid);
     error INVALID_ORACLE_DEVIATION(uint256 invalid, uint256 valid);
+    error INVALID_ORACLE_TYPE(uint8 invalid);
     error INVALID_FEE_RECIPIENT(address invalid);
     error INVALID_LIQ_INCENTIVE(address asset, uint256 invalid, uint256 valid);
     error LIQ_AMOUNT_OVERFLOW(uint256 invalid, uint256 valid);
@@ -64,7 +65,7 @@ library CError {
     error WRAP_NOT_SUPPORTED();
     error BURN_AMOUNT_OVERFLOW(uint256 burnAmount, uint256 debtAmount);
     error PAUSED(address who);
-    error ZERO_PRICE(string underlyingId);
+    error ZERO_OR_STALE_PRICE(string underlyingId);
     error SEQUENCER_DOWN_NO_REDSTONE_AVAILABLE();
     error NEGATIVE_PRICE(address asset, int256 price);
     error STALE_PRICE(string, uint256 timeFromUpdate, uint256 threshold);
@@ -72,6 +73,7 @@ library CError {
     error ORACLE_ZERO_ADDRESS(string underlyingId);
     error ASSET_DOES_NOT_EXIST(address asset);
     error ASSET_ALREADY_EXISTS(address asset);
+    error INVALID_SEQUENCER_UPTIME_FEED(address);
     error INVALID_ASSET_ID(address asset);
     error NO_MINTED_ASSETS(address who);
     error NO_COLLATERALS_DEPOSITED(address who);
@@ -80,6 +82,7 @@ library CError {
     error MISSING_PHASE_1_NFT();
     error DIAMOND_FUNCTION_NOT_FOUND(bytes4);
     error RE_ENTRANCY();
+    error INVALID_VAULT_PRICE(string underlyingId);
     error INVALID_API3_PRICE(string underlyingId);
     error INVALID_CL_PRICE(string underlyingId);
     error ARRAY_LENGTH_MISMATCH(string asset, uint256 arr1, uint256 arr2);

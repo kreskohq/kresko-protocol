@@ -178,7 +178,7 @@ contract AccountStateFacet is IAccountStateFacet {
             uint256 transferAmount;
             // If feeValue < depositValue, the entire fee can be charged for this collateral asset.
             if (feeValue < depositValue) {
-                transferAmount = fromWad(collateralAsset.decimals, feeValue.wadDiv(oraclePrice));
+                transferAmount = fromWad(feeValue.wadDiv(oraclePrice), collateralAsset.decimals);
                 feeValuePaid = feeValue;
             } else {
                 transferAmount = depositAmount;

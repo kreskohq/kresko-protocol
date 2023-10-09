@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {VaultAsset} from "vault/Types.sol";
+import {VaultAsset, VaultConfiguration} from "vault/Types.sol";
 
 interface IVault {
     /* -------------------------------------------------------------------------- */
@@ -73,6 +73,12 @@ interface IVault {
     /* -------------------------------------------------------------------------- */
 
     /**
+     * @notice Returns the current vault configuration
+     * @return config Vault configuration struct
+     */
+    function getConfig() external view returns (VaultConfiguration memory config);
+
+    /**
      * @notice Returns the total value of all assets in the shares contract in USD WAD precision.
      */
     function totalAssets() external view returns (uint256 result);
@@ -81,11 +87,6 @@ interface IVault {
      * @notice Assets array used for iterating through the assets in the shares contract
      */
     function assetList(uint256 index) external view returns (address asset);
-
-    /**
-     * @notice Fee recipient address
-     */
-    function feeRecipient() external view returns (address);
 
     /**
      * @notice Returns the asset struct for a given asset
@@ -167,16 +168,6 @@ interface IVault {
      */
     function exchangeRate() external view returns (uint256 rate);
 
-    /**
-     * @notice Returns the oracle decimals used for value calculations.
-     */
-    function oracleDecimals() external view returns (uint8);
-
-    /**
-     * @notice Returns the governance address.
-     */
-    function governance() external view returns (address);
-
     /* -------------------------------------------------------------------------- */
     /*                                    Admin                                   */
     /* -------------------------------------------------------------------------- */
@@ -212,7 +203,7 @@ interface IVault {
      * @param oracle Oracle to set
      * @param timeout Oracle timeout to set
      */
-    function setOracle(address asset, address oracle, uint32 timeout) external;
+    function setOracle(address asset, address oracle, uint24 timeout) external;
 
     /**
      * @notice Sets a new oracle decimals

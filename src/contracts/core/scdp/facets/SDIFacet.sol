@@ -31,7 +31,7 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
     }
 
     function getTotalSDIDebt() external view returns (uint256) {
-        return uint256(sdi().totalDebt);
+        return sdi().totalDebt;
     }
 
     function getEffectiveSDIDebt() external view returns (uint256) {

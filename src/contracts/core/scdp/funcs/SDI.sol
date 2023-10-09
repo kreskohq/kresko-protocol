@@ -6,7 +6,8 @@ import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
-import {usdWad, SDIPrice} from "common/funcs/Prices.sol";
+import {wadUSD} from "common/funcs/Math.sol";
+import {SDIPrice} from "common/funcs/Prices.sol";
 import {CError} from "common/CError.sol";
 import {SDIState} from "scdp/State.sol";
 
@@ -28,8 +29,8 @@ library SDebtIndex {
         Asset storage asset = cs().assets[coverAssetAddr];
         if (!asset.isSCDPCoverAsset) revert CError.ASSET_NOT_ENABLED(coverAssetAddr);
 
-        value = usdWad(amount, asset.price(), asset.decimals);
-        self.totalCover += (shares = valueToSDI(value, 8));
+        value = wadUSD(amount, asset.decimals, asset.price(), cs().oracleDecimals);
+        self.totalCover += (shares = valueToSDI(value, cs().oracleDecimals));
 
         IERC20Permit(coverAssetAddr).safeTransferFrom(msg.sender, self.coverRecipient, amount);
     }

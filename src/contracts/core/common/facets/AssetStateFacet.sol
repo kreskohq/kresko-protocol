@@ -4,7 +4,7 @@ import {Redstone} from "libs/Redstone.sol";
 import {EMPTY_BYTES12} from "common/Constants.sol";
 import {CError} from "common/CError.sol";
 import {Asset, OracleType} from "common/Types.sol";
-import {aggregatorV3Price, API3Price} from "common/funcs/Prices.sol";
+import {aggregatorV3Price, API3Price, vaultPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
 import {IAssetStateFacet} from "common/interfaces/IAssetStateFacet.sol";
 
@@ -12,11 +12,6 @@ contract AssetStateFacet is IAssetStateFacet {
     /// @inheritdoc IAssetStateFacet
     function getAsset(address _asset) external view returns (Asset memory) {
         return cs().assets[_asset];
-    }
-
-    /// @inheritdoc IAssetStateFacet
-    function getPrice(address _asset) external view returns (uint256) {
-        return cs().assets[_asset].price();
     }
 
     /// @inheritdoc IAssetStateFacet
@@ -35,7 +30,7 @@ contract AssetStateFacet is IAssetStateFacet {
     }
 
     /// @inheritdoc IAssetStateFacet
-    function getPriceOfAsset(address _asset) external view returns (uint256) {
+    function getPrice(address _asset) external view returns (uint256) {
         if (cs().assets[_asset].underlyingId != EMPTY_BYTES12) {
             return cs().assets[_asset].price();
         }
@@ -43,8 +38,13 @@ contract AssetStateFacet is IAssetStateFacet {
     }
 
     /// @inheritdoc IAssetStateFacet
+    function getVaultPrice(address _vaultAddr) external view returns (uint256) {
+        return vaultPrice(_vaultAddr);
+    }
+
+    /// @inheritdoc IAssetStateFacet
     function getChainlinkPrice(address _feed) external view returns (uint256) {
-        return aggregatorV3Price(_feed);
+        return aggregatorV3Price(_feed, cs().oracleTimeout);
     }
 
     /// @inheritdoc IAssetStateFacet

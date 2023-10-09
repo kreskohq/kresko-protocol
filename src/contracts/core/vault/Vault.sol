@@ -7,7 +7,7 @@ import {SafeERC20} from "vendor/SafeERC20.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {VAssets} from "vault/funcs/Assets.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {VaultAsset} from "vault/Types.sol";
+import {VaultAsset, VaultConfiguration} from "vault/Types.sol";
 import {VEvent} from "vault/Events.sol";
 import {CError} from "common/CError.sol";
 import {Arrays} from "libs/Arrays.sol";
@@ -29,16 +29,10 @@ contract Vault is IVault, ERC20 {
     using VAssets for VaultAsset;
     using Arrays for address[];
 
-    uint256 public constant HUNDRED = 1 ether;
-
     /* -------------------------------------------------------------------------- */
     /*                                    State                                   */
     /* -------------------------------------------------------------------------- */
-    address public sequencerUptimeFeed;
-    address public governance;
-    address public feeRecipient;
-    uint8 public oracleDecimals;
-
+    VaultConfiguration internal _config;
     mapping(address => VaultAsset) internal _assets;
     address[] public assetList;
 
@@ -50,10 +44,11 @@ contract Vault is IVault, ERC20 {
         address _feeRecipient,
         address _sequencerUptimeFeed
     ) ERC20(_name, _symbol, _decimals) {
-        governance = msg.sender;
-        oracleDecimals = _oracleDecimals;
-        feeRecipient = _feeRecipient;
-        sequencerUptimeFeed = _sequencerUptimeFeed;
+        _config.governance = msg.sender;
+        _config.oracleDecimals = _oracleDecimals;
+        _config.feeRecipient = _feeRecipient;
+        _config.sequencerUptimeFeed = _sequencerUptimeFeed;
+        _config.sequencerGracePeriodTime = 3600;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -61,7 +56,7 @@ contract Vault is IVault, ERC20 {
     /* -------------------------------------------------------------------------- */
 
     modifier onlyGovernance() {
-        if (msg.sender != governance) revert CError.INVALID_SENDER(msg.sender, governance);
+        if (msg.sender != _config.governance) revert CError.INVALID_SENDER(msg.sender, _config.governance);
         _;
     }
 
@@ -98,7 +93,7 @@ contract Vault is IVault, ERC20 {
 
         token.safeTransferFrom(msg.sender, address(this), assetsIn);
 
-        if (assetFee > 0) token.safeTransfer(feeRecipient, assetFee);
+        if (assetFee > 0) token.safeTransfer(_config.feeRecipient, assetFee);
 
         _mint(receiver == address(0) ? msg.sender : receiver, sharesOut);
 
@@ -119,7 +114,7 @@ contract Vault is IVault, ERC20 {
 
         token.safeTransferFrom(msg.sender, address(this), assetsIn);
 
-        if (assetFee > 0) token.safeTransfer(feeRecipient, assetFee);
+        if (assetFee > 0) token.safeTransfer(_config.feeRecipient, assetFee);
 
         _mint(receiver == address(0) ? msg.sender : receiver, sharesOut);
 
@@ -157,7 +152,7 @@ contract Vault is IVault, ERC20 {
             token.safeTransfer(receiver, assetsOut);
         }
 
-        if (assetFee > 0) token.safeTransfer(feeRecipient, assetFee);
+        if (assetFee > 0) token.safeTransfer(_config.feeRecipient, assetFee);
 
         _burn(owner, sharesIn);
 
@@ -183,7 +178,7 @@ contract Vault is IVault, ERC20 {
 
         ERC20 token = ERC20(assetAddr);
 
-        if (assetFee > 0) token.safeTransfer(feeRecipient, assetFee);
+        if (assetFee > 0) token.safeTransfer(_config.feeRecipient, assetFee);
 
         _burn(owner, sharesIn);
 
@@ -195,6 +190,10 @@ contract Vault is IVault, ERC20 {
     /* -------------------------------------------------------------------------- */
     /*                                    Views                                   */
     /* -------------------------------------------------------------------------- */
+    /// @inheritdoc IVault
+    function getConfig() external view returns (VaultConfiguration memory) {
+        return _config;
+    }
 
     /// @inheritdoc IVault
     function assets(address assetAddr) public view returns (VaultAsset memory) {
@@ -204,7 +203,7 @@ contract Vault is IVault, ERC20 {
     /// @inheritdoc IVault
     function totalAssets() public view virtual returns (uint256 result) {
         for (uint256 i; i < assetList.length; ) {
-            result += _assets[assetList[i]].getDepositValueWad(oracleDecimals, sequencerUptimeFeed);
+            result += _assets[assetList[i]].getDepositValueWad(_config);
             unchecked {
                 i++;
             }
@@ -230,9 +229,7 @@ contract Vault is IVault, ERC20 {
         if (tAssets == 0) tAssets = 1e18;
         VaultAsset storage asset = _assets[assetAddr];
         (assetsIn, assetFee) = asset.handleDepositFee(assetsIn);
-        uint256 assetValue = asset.usdWad(assetsIn, oracleDecimals, sequencerUptimeFeed);
-
-        sharesOut = assetValue.mulDivDown(tSupply, tAssets);
+        sharesOut = asset.usdWad(_config, assetsIn).mulDivDown(tSupply, tAssets);
     }
 
     /// @inheritdoc IVault
@@ -248,9 +245,7 @@ contract Vault is IVault, ERC20 {
 
         VaultAsset storage asset = _assets[assetAddr];
 
-        (assetsIn, assetFee) = asset.handleMintFee(
-            asset.getAmount(sharesOut.mulDivUp(tAssets, tSupply), oracleDecimals, sequencerUptimeFeed)
-        );
+        (assetsIn, assetFee) = asset.handleMintFee(asset.getAmount(_config, sharesOut.mulDivUp(tAssets, tSupply)));
     }
 
     /// @inheritdoc IVault
@@ -265,9 +260,7 @@ contract Vault is IVault, ERC20 {
         if (tAssets == 0) tAssets = 1e18;
 
         VaultAsset storage asset = _assets[assetAddr];
-        (assetsOut, assetFee) = asset.handleRedeemFee(
-            asset.getAmount(sharesIn.mulDivDown(tAssets, tSupply), oracleDecimals, sequencerUptimeFeed)
-        );
+        (assetsOut, assetFee) = asset.handleRedeemFee(asset.getAmount(_config, sharesIn.mulDivDown(tAssets, tSupply)));
     }
 
     /// @inheritdoc IVault
@@ -285,9 +278,7 @@ contract Vault is IVault, ERC20 {
 
         (assetsOut, assetFee) = asset.handleWithdrawFee(assetsOut);
 
-        uint256 assetsValue = asset.usdWad(assetsOut, oracleDecimals, sequencerUptimeFeed);
-
-        sharesIn = assetsValue.mulDivUp(tSupply, tAssets);
+        sharesIn = asset.usdWad(_config, assetsOut).mulDivUp(tSupply, tAssets);
 
         if (sharesIn > tSupply) revert CError.ROUNDING_ERROR("Use redeem instead.", sharesIn, tSupply);
     }
@@ -329,35 +320,39 @@ contract Vault is IVault, ERC20 {
     /* -------------------------------------------------------------------------- */
     /*                                    Admin                                   */
     /* -------------------------------------------------------------------------- */
-    function setSequencerUptimeFeed(address _newFeed) external onlyGovernance {
-        if (_newFeed != address(0)) {
-            assert(isSequencerUp(_newFeed));
+    function setSequencerUptimeFeed(address newFeed, uint96 gracePeriod) external onlyGovernance {
+        if (newFeed != address(0)) {
+            if (!isSequencerUp(newFeed, gracePeriod)) revert CError.INVALID_SEQUENCER_UPTIME_FEED(newFeed);
         }
-        sequencerUptimeFeed = _newFeed;
+        _config.sequencerUptimeFeed = newFeed;
+        _config.sequencerGracePeriodTime = gracePeriod;
     }
 
     /// @inheritdoc IVault
-    function addAsset(VaultAsset memory config) external onlyGovernance {
-        address tokenAddr = address(config.token);
+    function addAsset(VaultAsset memory assetConfig) external onlyGovernance {
+        address tokenAddr = address(assetConfig.token);
 
         if (tokenAddr == address(0)) revert CError.ZERO_ADDRESS();
         if (address(_assets[tokenAddr].token) != address(0)) revert CError.ASSET_ALREADY_EXISTS(tokenAddr);
-        if (config.depositFee > Percents.HUNDRED)
-            revert CError.INVALID_ASSET_FEE(tokenAddr, config.depositFee, Percents.HUNDRED);
-        if (config.withdrawFee > Percents.HUNDRED)
-            revert CError.INVALID_ASSET_FEE(tokenAddr, config.withdrawFee, Percents.HUNDRED);
+
+        assetConfig.decimals = assetConfig.token.decimals();
+        if (assetConfig.decimals > 18) revert CError.INVALID_DECIMALS(tokenAddr, assetConfig.decimals);
+        if (assetConfig.depositFee > Percents.HUNDRED)
+            revert CError.INVALID_ASSET_FEE(tokenAddr, assetConfig.depositFee, Percents.HUNDRED);
+        if (assetConfig.withdrawFee > Percents.HUNDRED)
+            revert CError.INVALID_ASSET_FEE(tokenAddr, assetConfig.withdrawFee, Percents.HUNDRED);
 
         assetList.push(tokenAddr);
-        _assets[tokenAddr] = config; // [TODO] Add fees.
+        _assets[tokenAddr] = assetConfig;
 
-        uint256 price = _assets[tokenAddr].price(sequencerUptimeFeed);
-        if (price == 0) revert CError.ZERO_PRICE(config.token.symbol());
+        uint256 price = _assets[tokenAddr].price(_config);
+        if (price == 0) revert CError.ZERO_OR_STALE_PRICE(assetConfig.token.symbol());
         emit VEvent.AssetAdded(
             tokenAddr,
-            address(config.oracle),
-            config.oracleTimeout,
+            address(assetConfig.oracle),
+            assetConfig.oracleTimeout,
             price,
-            config.maxDeposits,
+            assetConfig.maxDeposits,
             block.timestamp
         );
     }
@@ -370,20 +365,20 @@ contract Vault is IVault, ERC20 {
     }
 
     /// @inheritdoc IVault
-    function setOracle(address assetAddr, address oracle, uint32 timeout) external onlyGovernance {
+    function setOracle(address assetAddr, address oracle, uint24 timeout) external onlyGovernance {
         bool deleted = oracle == address(0);
 
         _assets[assetAddr].oracle = AggregatorV3Interface(oracle);
         _assets[assetAddr].oracleTimeout = timeout;
-        uint256 price = deleted ? 0 : _assets[assetAddr].price(sequencerUptimeFeed);
-        if (price == 0 && !deleted) revert CError.ZERO_PRICE(_assets[assetAddr].token.symbol());
+        uint256 price = deleted ? 0 : _assets[assetAddr].price(_config);
+        if (price == 0 && !deleted) revert CError.ZERO_OR_STALE_PRICE(_assets[assetAddr].token.symbol());
 
         emit VEvent.OracleSet(assetAddr, oracle, timeout, price, block.timestamp);
     }
 
     /// @inheritdoc IVault
     function setOracleDecimals(uint8 _oracleDecimals) external onlyGovernance {
-        oracleDecimals = _oracleDecimals;
+        _config.oracleDecimals = _oracleDecimals;
     }
 
     /// @inheritdoc IVault
@@ -411,11 +406,11 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function setGovernance(address _newGovernance) external onlyGovernance {
-        governance = _newGovernance;
+        _config.governance = _newGovernance;
     }
 
     /// @inheritdoc IVault
     function setFeeRecipient(address _newFeeRecipient) external onlyGovernance {
-        feeRecipient = _newFeeRecipient;
+        _config.feeRecipient = _newFeeRecipient;
     }
 }

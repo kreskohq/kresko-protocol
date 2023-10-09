@@ -194,6 +194,8 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
                 setChainLinkFeed(_assetId, _feedConfig.feeds[i]);
             } else if (_feedConfig.oracleIds[i] == OracleType.API3) {
                 setApi3Feed(_assetId, _feedConfig.feeds[i]);
+            } else if (_feedConfig.oracleIds[i] == OracleType.Vault) {
+                setVaultFeed(_assetId, _feedConfig.feeds[i]);
             }
         }
     }
@@ -226,6 +228,18 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
         cs().oracles[_assetId][OracleType.Chainlink] = Oracle(_feedAddr, AssetStateFacet(address(this)).getChainlinkPrice);
         if (AssetStateFacet(address(this)).getChainlinkPrice(_feedAddr) == 0) {
             revert CError.INVALID_CL_PRICE(_assetId.toString());
+        }
+    }
+
+    /// @inheritdoc IAssetConfigurationFacet
+    function setVaultFeed(bytes12 _assetId, address _vaultAddr) public onlyRole(Role.ADMIN) {
+        if (_vaultAddr == address(0)) {
+            revert CError.ORACLE_ZERO_ADDRESS(_assetId.toString());
+        }
+        cs().oracles[_assetId][OracleType.Vault] = Oracle(_vaultAddr, AssetStateFacet(address(this)).getVaultPrice);
+        // reverts internally anyways if the price is 0
+        if (AssetStateFacet(address(this)).getVaultPrice(_vaultAddr) == 0) {
+            revert CError.INVALID_VAULT_PRICE(_assetId.toString());
         }
     }
 

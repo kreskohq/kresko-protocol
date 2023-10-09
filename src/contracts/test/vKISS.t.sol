@@ -48,6 +48,7 @@ contract vKISSTest is Test {
 
         // Create a vault
         vkiss = new Vault("vKISS", "vKISS", 18, 8, feeRecipient, address(new MockSequencerUptimeFeed()));
+        vm.warp(3602);
 
         // tokens
         usdc = new USDC();
@@ -64,13 +65,13 @@ contract vKISSTest is Test {
 
         // add assets
         vkiss.addAsset(
-            VaultAsset(ERC20(usdcAddr), AggregatorV3Interface(address(usdcOracle)), 80000, 0, 0, type(uint248).max, true)
+            VaultAsset(ERC20(usdcAddr), AggregatorV3Interface(address(usdcOracle)), 80000, 0, 0, 0, type(uint248).max, true)
         );
         vkiss.addAsset(
-            VaultAsset(ERC20(daiAddr), AggregatorV3Interface(address(daiOracle)), 80000, 0, 0, type(uint248).max, true)
+            VaultAsset(ERC20(daiAddr), AggregatorV3Interface(address(daiOracle)), 80000, 0, 0, 0, type(uint248).max, true)
         );
         vkiss.addAsset(
-            VaultAsset(ERC20(usdtAddr), AggregatorV3Interface(address(usdtOracle)), 80000, 0, 0, type(uint248).max, true)
+            VaultAsset(ERC20(usdtAddr), AggregatorV3Interface(address(usdtOracle)), 80000, 0, 0, 0, type(uint248).max, true)
         );
         vm.stopPrank();
 
@@ -252,7 +253,7 @@ contract vKISSTest is Test {
         vm.stopPrank();
     }
 
-    function testCannotWithdrawRoundingError() public {
+    function testCanWithdrawRoundingError() public {
         vm.startPrank(user0);
         vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
@@ -260,12 +261,13 @@ contract vKISSTest is Test {
         deposit(user1, usdc, 1e18 + expectedFee);
 
         vm.startPrank(user1);
-        vm.expectRevert();
-        vkiss.withdraw(address(usdc), 1e18, user1, user1);
+        (uint256 sharesIn, uint256 fee) = vkiss.withdraw(address(usdc), 1e18, user1, user1);
         vm.stopPrank();
+        assertEq(sharesIn, 1e18 + expectedFee, "assets in should equal full amount");
+        assertEq(fee, expectedFee, "fee should be equal to percentage");
     }
 
-    function testCanRedeemRoundingError() public {
+    function testCanRedeemRounding() public {
         vm.startPrank(user0);
         vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
@@ -275,8 +277,8 @@ contract vKISSTest is Test {
         vm.startPrank(user1);
         (uint256 assetsOut, uint256 fee) = vkiss.redeem(address(usdc), 1e18 + expectedFee, user1, user1);
         vm.stopPrank();
-        assertLt(fee, expectedFee, "fee should be equal to percentage");
-        assertLt(assetsOut, 1e18, "assets in should be adjusted by fees");
+        assertEq(fee, expectedFee, "fee should be equal to percentage");
+        assertEq(assetsOut, 1e18, "assets in should be adjusted by fees");
     }
 
     function testWithdrawFee() public {

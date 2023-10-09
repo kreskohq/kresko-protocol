@@ -6,7 +6,7 @@ import {CError} from "common/CError.sol";
 import {Redstone} from "libs/Redstone.sol";
 import {Asset, PushPrice} from "common/Types.sol";
 import {toWad} from "common/funcs/Math.sol";
-import {safePrice, pushPrice, oraclePriceToWad, SDIPrice} from "common/funcs/Prices.sol";
+import {safePrice, pushPrice, SDIPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 
@@ -39,13 +39,6 @@ library CAsset {
      */
     function uintUSD(Asset storage self, uint256 _amount) internal view returns (uint256) {
         return self.price().wadMul(_amount);
-    }
-
-    /**
-     * @notice Get the oracle price of an asset in uint256 with 18 decimals
-     */
-    function wadPrice(Asset storage self) private view returns (uint256) {
-        return oraclePriceToWad(self.price(), cs().oracleDecimals);
     }
 
     /**
@@ -97,7 +90,7 @@ library CAsset {
         bool _ignoreFactor
     ) internal view returns (uint256 value) {
         if (_amount == 0) return 0;
-        value = toWad(self.decimals, _amount).wadMul(self.price());
+        value = toWad(_amount, self.decimals).wadMul(self.price());
 
         if (!_ignoreFactor) {
             value = value.percentMul(self.factor);
@@ -118,7 +111,7 @@ library CAsset {
     ) internal view returns (uint256 value, uint256 assetPrice) {
         assetPrice = self.price();
         if (_amount == 0) return (0, assetPrice);
-        value = toWad(self.decimals, _amount).wadMul(assetPrice);
+        value = toWad(_amount, self.decimals).wadMul(assetPrice);
 
         if (!_ignoreFactor) {
             value = value.percentMul(self.factor);

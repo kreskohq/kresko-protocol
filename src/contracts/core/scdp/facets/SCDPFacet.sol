@@ -70,7 +70,7 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
         Asset storage krAsset = cs().assets[_repayAssetAddr];
         Asset storage seizeAsset = cs().assets[_seizeAssetAddr];
 
-        uint256 seizedAmount = krAsset.uintUSD(_repayAmount).wadDiv(seizeAsset.price());
+        uint256 seizedAmount = fromWad(krAsset.uintUSD(_repayAmount).wadDiv(seizeAsset.price()), seizeAsset.decimals);
         if (seizedAmount > repayAssetData.swapDeposits) {
             revert CError.REPAY_TOO_MUCH(seizedAmount, repayAssetData.swapDeposits);
         }
@@ -97,8 +97,8 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
         uint256 seizeAssetPrice = seizeAsset.price();
         uint256 repayAssetPrice = repayAsset.price();
         uint256 seizeAmount = fromWad(
-            seizeAsset.decimals,
-            valueToAmount(repayAsset.liqIncentiveSCDP, seizeAssetPrice, maxLiqValue)
+            valueToAmount(seizeAssetPrice, maxLiqValue, repayAsset.liqIncentiveSCDP),
+            seizeAsset.decimals
         );
         return
             MaxLiqInfo({
@@ -137,8 +137,8 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
         (repayValue, _repayAmount) = krAsset.ensureRepayValue(repayValue, _repayAmount);
 
         uint256 seizedAmount = fromWad(
-            seizeAsset.decimals,
-            valueToAmount(krAsset.liqIncentiveSCDP, seizeAsset.price(), repayValue)
+            valueToAmount(repayValue, seizeAsset.price(), krAsset.liqIncentiveSCDP),
+            seizeAsset.decimals
         );
 
         s.assetData[_repayAssetAddr].debt -= burnSCDP(krAsset, _repayAmount, msg.sender);
@@ -199,16 +199,3 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
         return maxLiquidationValue < _seizeAssetValue ? maxLiquidationValue : _seizeAssetValue;
     }
 }
-
-// function calculateMLV(
-//     Asset storage _repayAsset,
-//     Asset storage _seizeAsset,
-//     uint256 _minCollateralValue,
-//     uint256 _totalCollateralValue,
-//     uint32 _maxLiquidationRatio
-// ) view returns (uint256) {
-//     uint256 surplusPerUSDRepaid = _repayAsset.kFactor.percentMul(_maxLiquidationRatio) -
-//         _repayAsset.liqIncentiveSCDP.percentMul(_seizeAsset.factor);
-
-//     return (_minCollateralValue - _totalCollateralValue).percentDiv(surplusPerUSDRepaid);
-// }

@@ -7,9 +7,11 @@ import {cs} from "common/State.sol";
 /**
  * @notice Checks if the L2 sequencer is up.
  * 1 means the sequencer is down, 0 means the sequencer is up.
+ * @param _uptimeFeed The address of the uptime feed.
+ * @param _gracePeriod The grace period in seconds.
  * @return bool returns true/false if the sequencer is up/not.
  */
-function isSequencerUp(address _uptimeFeed) view returns (bool) {
+function isSequencerUp(address _uptimeFeed, uint256 _gracePeriod) view returns (bool) {
     bool up = true;
     if (_uptimeFeed != address(0)) {
         (, int256 answer, uint256 startedAt, , ) = AggregatorV3Interface(_uptimeFeed).latestRoundData();
@@ -20,7 +22,7 @@ function isSequencerUp(address _uptimeFeed) view returns (bool) {
         }
         // Make sure the grace period has passed after the
         // sequencer is back up.
-        if (block.timestamp - startedAt < cs().sequencerGracePeriodTime) {
+        if (block.timestamp - startedAt < _gracePeriod) {
             return false;
         }
     }

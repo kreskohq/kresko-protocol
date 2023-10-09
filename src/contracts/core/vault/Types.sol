@@ -16,9 +16,26 @@ import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 struct VaultAsset {
     ERC20 token;
     AggregatorV3Interface oracle;
-    uint32 oracleTimeout;
+    uint24 oracleTimeout;
+    uint8 decimals;
     uint32 depositFee;
     uint32 withdrawFee;
     uint248 maxDeposits;
     bool enabled;
+}
+
+/**
+ * @notice Vault configuration struct
+ * @param sequencerUptimeFeed The feed address for the sequencer uptime
+ * @param sequencerGracePeriodTime The grace period time for the sequencer
+ * @param governance The governance address
+ * @param feeRecipient The fee recipient address
+ * @param oracleDecimals The oracle decimals
+ */
+struct VaultConfiguration {
+    address sequencerUptimeFeed;
+    uint96 sequencerGracePeriodTime;
+    address governance;
+    address feeRecipient;
+    uint8 oracleDecimals;
 }

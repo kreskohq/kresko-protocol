@@ -48,13 +48,15 @@ interface IAssetStateFacet {
     function getFeedForAddress(address _assetAddr, OracleType _oracleType) external view returns (address feedAddr);
 
     /**
-     * @notice Gets the deduced price in use from oracles defined for this asset address.
-     * @param _assetAddr The asset address.
-     * @return uint256 The current price.
-     * @custom:signature getPriceOfAsset(address)
-     * @custom:selector 0x0b13a88d
+     * @notice Price getter for Vault based asset.
+     * @notice Reverts if for stale, 0 or negative answers.
+     * @param _vaultAddr IVaultFeed type feed address.
+     * @return uint256 Current price of one vault share.
+     * @custom:signature getVaultPrice(address)
+     * @custom:selector 0xec917bca
      */
-    function getPriceOfAsset(address _assetAddr) external view returns (uint256);
+
+    function getVaultPrice(address _vaultAddr) external view returns (uint256);
 
     /**
      * @notice Price getter for AggregatorV3/Chainlink type feeds.

@@ -74,7 +74,7 @@ contract LiquidationFacet is CModifiers, ILiquidationFacet {
         ExecutionParams memory params = ExecutionParams(
             _account,
             _repayAmount,
-            fromWad(collateral.decimals, valueToAmount(collateral.liqIncentive, collateral.price(), repayValue)),
+            fromWad(valueToAmount(repayValue, collateral.price(), collateral.liqIncentive), collateral.decimals),
             _repayAssetAddr,
             _repayAssetIndex,
             _seizeAssetAddr,
@@ -108,8 +108,8 @@ contract LiquidationFacet is CModifiers, ILiquidationFacet {
         uint256 seizeAssetPrice = seizeAsset.price();
         uint256 repayAssetPrice = repayAsset.price();
         uint256 seizeAmount = fromWad(
-            seizeAsset.decimals,
-            valueToAmount(seizeAsset.liqIncentive, seizeAssetPrice, maxLiqValue)
+            valueToAmount(maxLiqValue, seizeAssetPrice, seizeAsset.liqIncentive),
+            seizeAsset.decimals
         );
         return
             MaxLiqInfo({

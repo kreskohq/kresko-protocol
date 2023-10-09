@@ -61,6 +61,14 @@ interface IAssetConfigurationFacet {
     function setApi3Feeds(bytes12[] calldata _assetIds, address[] calldata _feeds) external;
 
     /**
+     * @notice Set a vault feed for assetId.
+     * @dev Has modifiers: onlyRole.
+     * @param _assetId Asset id to set.
+     * @param _vaultAddr Vault address
+     */
+    function setVaultFeed(bytes12 _assetId, address _vaultAddr) external;
+
+    /**
      * @notice Set chain link feed for an asset.
      * @param _assetId The asset (bytes12).
      * @param _feedAddr The feed address.
