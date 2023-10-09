@@ -1,0 +1,264 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>ICommonStateFacet</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../../../../../../favicon.svg">
+        <link rel="shortcut icon" href="../../../../../../favicon.png">
+        <link rel="stylesheet" href="../../../../../../css/variables.css">
+        <link rel="stylesheet" href="../../../../../../css/general.css">
+        <link rel="stylesheet" href="../../../../../../css/chrome.css">
+        <link rel="stylesheet" href="../../../../../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../../../../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../../../../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../../../../../highlight.css">
+        <link rel="stylesheet" href="../../../../../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../../../../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../../../../book.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../../../../../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item "><a href="../../../../../../index.html">Home</a></li><li class="chapter-item affix "><li class="part-title">src</li><li class="chapter-item expanded "><a href="../../../../../../src/contracts/index.html">❱ contracts</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../../../../src/contracts/core/index.html">❱ core</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../../../../src/contracts/core/common/index.html">❱ common</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/facets/index.html">❱ facets</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/facets/AssetConfigurationFacet.sol/contract.AssetConfigurationFacet.html">AssetConfigurationFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/facets/AssetStateFacet.sol/contract.AssetStateFacet.html">AssetStateFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/facets/AuthorizationFacet.sol/contract.AuthorizationFacet.html">AuthorizationFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/facets/CommonConfigurationFacet.sol/contract.CommonConfigurationFacet.html">CommonConfigurationFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/facets/CommonStateFacet.sol/contract.CommonStateFacet.html">CommonStateFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/facets/SafetyCouncilFacet.sol/contract.SafetyCouncilFacet.html">SafetyCouncilFacet</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/index.html">❱ funcs</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Actions.sol/function.mintKrAsset.html">mintKrAsset</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Actions.sol/function.mintSCDP.html">mintSCDP</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Actions.sol/function.burnSCDP.html">burnSCDP</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Actions.sol/function.burnKrAsset.html">burnKrAsset</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Asset.sol/library.CAsset.html">CAsset</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Helpers.sol/function.collateralAmountToValues.html">collateralAmountToValues</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Helpers.sol/function.debtAmountToValues.html">debtAmountToValues</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Math.sol/function.valueToAmount.html">valueToAmount</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Math.sol/function.fromWad.html">fromWad</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Math.sol/function.toWad.html">toWad</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.aggregatorV3Price.html">aggregatorV3Price</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.pushPrice.html">pushPrice</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.API3PriceWithTimestamp.html">API3PriceWithTimestamp</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.safePrice.html">safePrice</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.usdWad.html">usdWad</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.aggregatorV3PriceWithTimestamp.html">aggregatorV3PriceWithTimestamp</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.divByPrice.html">divByPrice</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.SDIPrice.html">SDIPrice</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.oraclePrice.html">oraclePrice</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.handleSequencerDown.html">handleSequencerDown</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.wadToDecimal.html">wadToDecimal</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.deducePrice.html">deducePrice</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.API3Price.html">API3Price</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Prices.sol/function.oraclePriceToWad.html">oraclePriceToWad</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/funcs/Utils.sol/function.isSequencerUp.html">isSequencerUp</a></li></ol></li><li class="chapter-item expanded "><a href="../../../../../../src/contracts/core/common/interfaces/index.html">❱ interfaces</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/interfaces/IAssetConfigurationFacet.sol/interface.IAssetConfigurationFacet.html">IAssetConfigurationFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/interfaces/IAssetStateFacet.sol/interface.IAssetStateFacet.html">IAssetStateFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/interfaces/IAuthorizationFacet.sol/interface.IAuthorizationFacet.html">IAuthorizationFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/interfaces/ICommonConfigurationFacet.sol/interface.ICommonConfigurationFacet.html">ICommonConfigurationFacet</a></li><li class="chapter-item expanded "><a href="../../../../../../src/contracts/core/common/interfaces/ICommonStateFacet.sol/interface.ICommonStateFacet.html" class="active">ICommonStateFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/interfaces/IERC1155.sol/interface.IERC1155.html">IERC1155</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/interfaces/ISafetyCouncilFacet.sol/interface.ISafetyCouncilFacet.html">ISafetyCouncilFacet</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Auth.sol/interface.IGnosisSafeL2.html">IGnosisSafeL2</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Auth.sol/library.Auth.html">Auth</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/CError.sol/library.CError.html">CError</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Constants.sol/library.Constants.html">Constants</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Constants.sol/library.Percents.html">Percents</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Constants.sol/constants.Constants.html">Constants</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Events.sol/library.DiamondEvent.html">DiamondEvent</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Events.sol/library.StakingEvent.html">StakingEvent</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Events.sol/library.AuthEvent.html">AuthEvent</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Modifiers.sol/contract.CModifiers.html">CModifiers</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/State.sol/struct.CommonState.html">CommonState</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/State.sol/struct.GatingState.html">GatingState</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/State.sol/function.cs.html">cs</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/State.sol/function.gs.html">gs</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/State.sol/constants.State.html">State constants</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/library.Role.html">Role</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.Oracle.html">Oracle</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/enum.OracleType.html">OracleType</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.FeedConfiguration.html">FeedConfiguration</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.Asset.html">Asset</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.RoleData.html">RoleData</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.MaxLiqVars.html">MaxLiqVars</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.MaxLiqInfo.html">MaxLiqInfo</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.PushPrice.html">PushPrice</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.Pause.html">Pause</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.SafetyState.html">SafetyState</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.CommonInitArgs.html">CommonInitArgs</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.SCDPCollateralArgs.html">SCDPCollateralArgs</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/struct.SCDPKrAssetArgs.html">SCDPKrAssetArgs</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/enum.Action.html">Action</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/common/Types.sol/constants.Types.html">Types constants</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/index.html">❱ diamond</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/facets/index.html">❱ facets</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/facets/DiamondCutFacet.sol/contract.DiamondCutFacet.html">DiamondCutFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/facets/DiamondLoupeFacet.sol/contract.DiamondLoupeFacet.html">DiamondLoupeFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/facets/DiamondOwnershipFacet.sol/contract.DiamondOwnershipFacet.html">DiamondOwnershipFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/facets/ERC165Facet.sol/contract.ERC165Facet.html">ERC165Facet</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/funcs/index.html">❱ funcs</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/funcs/Core.sol/library.DCore.html">DCore</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/funcs/Cuts.sol/library.DCuts.html">DCuts</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/funcs/Cuts.sol/function.initializeDiamondCut.html">initializeDiamondCut</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/interfaces/index.html">❱ interfaces</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/interfaces/IDiamondCutFacet.sol/interface.IDiamondCutFacet.html">IDiamondCutFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/interfaces/IDiamondLoupeFacet.sol/interface.IDiamondLoupeFacet.html">IDiamondLoupeFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/interfaces/IDiamondOwnershipFacet.sol/interface.IDiamondOwnershipFacet.html">IDiamondOwnershipFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/interfaces/IERC165Facet.sol/interface.IERC165Facet.html">IERC165Facet</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/Diamond.sol/contract.Diamond.html">Diamond</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/Modifiers.sol/abstract.DSModifiers.html">DSModifiers</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/State.sol/struct.DiamondState.html">DiamondState</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/State.sol/function.ds.html">ds</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/State.sol/constants.State.html">State constants</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/Types.sol/struct.Facet.html">Facet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/Types.sol/struct.FacetAddressAndPosition.html">FacetAddressAndPosition</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/Types.sol/struct.FacetFunctionSelectors.html">FacetFunctionSelectors</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/Types.sol/enum.FacetCutAction.html">FacetCutAction</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/Types.sol/struct.FacetCut.html">FacetCut</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/diamond/Types.sol/struct.Initialization.html">Initialization</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kiss/index.html">❱ kiss</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/kiss/interfaces/index.html">❱ interfaces</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/kiss/interfaces/IKISS.sol/interface.IKISS.html">IKISS</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kiss/KISS.sol/contract.KISS.html">KISS</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kresko-asset/index.html">❱ kresko-asset</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/kresko-asset/ERC4626Upgradeable.sol/abstract.ERC4626Upgradeable.html">ERC4626Upgradeable</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kresko-asset/IERC4626Upgradeable.sol/interface.IERC4626Upgradeable.html">IERC4626Upgradeable</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kresko-asset/IKreskoAsset.sol/interface.ISyncable.html">ISyncable</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kresko-asset/IKreskoAsset.sol/interface.IKreskoAsset.html">IKreskoAsset</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kresko-asset/IKreskoAssetAnchor.sol/interface.IKreskoAssetAnchor.html">IKreskoAssetAnchor</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kresko-asset/IKreskoAssetIssuer.sol/interface.IKreskoAssetIssuer.html">IKreskoAssetIssuer</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kresko-asset/KreskoAsset.sol/contract.KreskoAsset.html">KreskoAsset</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kresko-asset/KreskoAssetAnchor.sol/contract.KreskoAssetAnchor.html">KreskoAssetAnchor</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/kresko-asset/Rebaser.sol/library.Rebaser.html">Rebaser</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/index.html">❱ libs</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/Arrays.sol/library.Arrays.html">Arrays</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/EnumerableSet.sol/library.EnumerableSet.html">EnumerableSet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/Meta.sol/library.Meta.html">Meta</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/PercentageMath.sol/library.PercentageMath.html">PercentageMath</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/Redstone.sol/library.Redstone.html">Redstone</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/Redstone.sol/function.add.html">add</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/Redstone.sol/function.sub.html">sub</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/Redstone.sol/constants.Redstone.html">Redstone constants</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/RedstoneInternals.sol/library.NumericArrayLib.html">NumericArrayLib</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/RedstoneInternals.sol/library.RedstoneDefaultsLib.html">RedstoneDefaultsLib</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/RedstoneInternals.sol/library.BitmapLib.html">BitmapLib</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/RedstoneInternals.sol/library.SignatureLib.html">SignatureLib</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/RedstoneInternals.sol/library.RedstoneError.html">RedstoneError</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/Strings.sol/library.Strings.html">Strings</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/libs/WadRay.sol/library.WadRay.html">WadRay</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/index.html">❱ minter</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/facets/index.html">❱ facets</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/facets/AccountStateFacet.sol/contract.AccountStateFacet.html">AccountStateFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/facets/AccountStateFacet.sol/function.accountTotalCollateralValues.html">accountTotalCollateralValues</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/facets/AccountStateFacet.sol/function.accountTotalDebtValues.html">accountTotalDebtValues</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/facets/BurnFacet.sol/contract.BurnFacet.html">BurnFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/facets/ConfigurationFacet.sol/contract.ConfigurationFacet.html">ConfigurationFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/facets/DepositWithdrawFacet.sol/contract.DepositWithdrawFacet.html">DepositWithdrawFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/facets/LiquidationFacet.sol/contract.LiquidationFacet.html">LiquidationFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/facets/MintFacet.sol/contract.MintFacet.html">MintFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/facets/StateFacet.sol/contract.StateFacet.html">StateFacet</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/funcs/index.html">❱ funcs</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/funcs/Accounts.sol/library.MAccounts.html">MAccounts</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/funcs/Core.sol/library.MCore.html">MCore</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/funcs/Fees.sol/function.handleMinterFee.html">handleMinterFee</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/funcs/Fees.sol/function._calcAndHandleCollateralsArray.html">_calcAndHandleCollateralsArray</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/interfaces/index.html">❱ interfaces</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/interfaces/IAccountStateFacet.sol/interface.IAccountStateFacet.html">IAccountStateFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/interfaces/IBurnFacet.sol/interface.IBurnFacet.html">IBurnFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/interfaces/ICollateralReceiver.sol/interface.ICollateralReceiver.html">ICollateralReceiver</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/interfaces/IConfigurationFacet.sol/interface.IConfigurationFacet.html">IConfigurationFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/interfaces/IDepositWithdrawFacet.sol/interface.IDepositWithdrawFacet.html">IDepositWithdrawFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/interfaces/ILiquidationFacet.sol/interface.ILiquidationFacet.html">ILiquidationFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/interfaces/IMintFacet.sol/interface.IMintFacet.html">IMintFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/interfaces/IStateFacet.sol/interface.IStateFacet.html">IStateFacet</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/Events.sol/library.MEvent.html">MEvent</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/State.sol/struct.MinterState.html">MinterState</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/State.sol/function.ms.html">ms</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/State.sol/constants.State.html">State constants</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/Types.sol/struct.MinterAccountState.html">MinterAccountState</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/Types.sol/struct.MinterInitArgs.html">MinterInitArgs</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/Types.sol/struct.MinterParams.html">MinterParams</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/minter/Types.sol/enum.MinterFee.html">MinterFee</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/index.html">❱ scdp</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/facets/index.html">❱ facets</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/facets/SCDPConfigFacet.sol/contract.SCDPConfigFacet.html">SCDPConfigFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/facets/SCDPFacet.sol/contract.SCDPFacet.html">SCDPFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/facets/SCDPStateFacet.sol/contract.SCDPStateFacet.html">SCDPStateFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/facets/SCDPSwapFacet.sol/contract.SCDPSwapFacet.html">SCDPSwapFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/facets/SCDPSwapFacet.sol/function.getSwapFees.html">getSwapFees</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/facets/SDIFacet.sol/contract.SDIFacet.html">SDIFacet</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/funcs/index.html">❱ funcs</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/funcs/Accounts.sol/library.SAccounts.html">SAccounts</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/funcs/Deposits.sol/library.SDeposits.html">SDeposits</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/funcs/Global.sol/library.SGlobal.html">SGlobal</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/funcs/Helpers.sol/function.totalCollateralValuesSCDP.html">totalCollateralValuesSCDP</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/funcs/Helpers.sol/function.totalDebtValuesAtRatioSCDP.html">totalDebtValuesAtRatioSCDP</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/funcs/Helpers.sol/function.accountDepositAmountsAndValues.html">accountDepositAmountsAndValues</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/funcs/Helpers.sol/function.accountTotalDepositValues.html">accountTotalDepositValues</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/funcs/SDI.sol/library.SDebtIndex.html">SDebtIndex</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/funcs/Swap.sol/library.Swap.html">Swap</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/interfaces/index.html">❱ interfaces</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/interfaces/ISCDPConfigFacet.sol/interface.ISCDPConfigFacet.html">ISCDPConfigFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/interfaces/ISCDPFacet.sol/interface.ISCDPFacet.html">ISCDPFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/interfaces/ISCDPStateFacet.sol/interface.ISCDPStateFacet.html">ISCDPStateFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/interfaces/ISCDPSwapFacet.sol/interface.ISCDPSwapFacet.html">ISCDPSwapFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/interfaces/ISDIFacet.sol/interface.ISDIFacet.html">ISDIFacet</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/Events.sol/library.SEvent.html">SEvent</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/SDICoverRecipient.sol/contract.SDICoverRecipient.html">SDICoverRecipient</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/State.sol/struct.SCDPState.html">SCDPState</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/State.sol/struct.SDIState.html">SDIState</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/State.sol/function.sdi.html">sdi</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/State.sol/function.scdp.html">scdp</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/State.sol/constants.State.html">State constants</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/Types.sol/struct.SCDPInitArgs.html">SCDPInitArgs</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/Types.sol/struct.PairSetter.html">PairSetter</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/Types.sol/struct.SCDPAssetData.html">SCDPAssetData</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/Types.sol/struct.GlobalData.html">GlobalData</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/Types.sol/struct.AssetData.html">AssetData</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/Types.sol/struct.UserAssetData.html">UserAssetData</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/scdp/Types.sol/struct.UserData.html">UserData</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/index.html">❱ test</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/mocks/index.html">❱ mocks</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/mocks/MockERC1155.sol/contract.MockERC1155.html">MockERC1155</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/mocks/MockERC20.sol/contract.MockERC20Restricted.html">MockERC20Restricted</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/mocks/MockERC20.sol/contract.MockERC20.html">MockERC20</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/mocks/MockERC20.sol/contract.WETH.html">WETH</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/mocks/MockERC20.sol/contract.USDC.html">USDC</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/mocks/MockERC20.sol/contract.DAI.html">DAI</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/mocks/MockERC20.sol/contract.USDT.html">USDT</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/mocks/MockOracle.sol/contract.MockOracle.html">MockOracle</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/mocks/MockSequencerUptimeFeed.sol/contract.MockSequencerUptimeFeed.html">MockSequencerUptimeFeed</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/redstone/index.html">❱ redstone</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/redstone/CalldataExtractor.sol/contract.CalldataExtractor.html">CalldataExtractor</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/redstone/ProxyConnector.sol/contract.ProxyConnector.html">ProxyConnector</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/redstone/RedstoneConstants.sol/contract.RedstoneConstants.html">RedstoneConstants</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/index.html">❱ smocks</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/ISmockFacet.sol/interface.ISmockFacet.html">ISmockFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/SmockCollateralReceiver.sol/contract.SmockCollateralReceiver.html">SmockCollateralReceiver</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/SmockFacet.sol/contract.SmockFacet.html">SmockFacet</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/SmockFacet.sol/constants.SmockFacet.html">SmockFacet constants</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/SmockFacet2.sol/contract.SmockFacet2.html">SmockFacet2</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/SmockInit.sol/contract.SmockInit.html">SmockInit</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/SmockStorage.sol/library.Errors.html">Errors</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/SmockStorage.sol/struct.SmockState.html">SmockState</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/SmockStorage.sol/struct.SmockState2.html">SmockState2</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/test/smocks/SmockStorage.sol/library.SmockStorage.html">SmockStorage</a></li></ol></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vault/index.html">❱ vault</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/vault/funcs/index.html">❱ funcs</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/vault/funcs/Assets.sol/library.VAssets.html">VAssets</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vault/interfaces/index.html">❱ interfaces</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/vault/interfaces/IVault.sol/interface.IVault.html">IVault</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vault/interfaces/IVaultExtender.sol/interface.IVaultExtender.html">IVaultExtender</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vault/Events.sol/library.VEvent.html">VEvent</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vault/Types.sol/struct.VaultAsset.html">VaultAsset</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vault/Vault.sol/contract.Vault.html">Vault</a></li></ol></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/index.html">❱ vendor</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/AggregatorV3Interface.sol/interface.AggregatorV3Interface.html">AggregatorV3Interface</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/ERC20.sol/abstract.ERC20.html">ERC20</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/ERC20Upgradeable.sol/contract.ERC20Upgradeable.html">ERC20Upgradeable</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/IERC165.sol/interface.IERC165.html">IERC165</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/IERC20Permit.sol/interface.IERC20Permit.html">IERC20Permit</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/IProxy.sol/interface.IProxy.html">IProxy</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/SafeERC20.sol/library.SafeERC20.html">SafeERC20</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/SafeERC20Permit.sol/library.SafeERC20Permit.html">SafeERC20Permit</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/SafeERC20Upgradeable.sol/library.SafeERC20Upgradeable.html">SafeERC20Upgradeable</a></li><li class="chapter-item "><a href="../../../../../../src/contracts/core/vendor/WETH9.sol/contract.WETH9.html">WETH9</a></li></ol></li></ol></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="../../../../../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/kreskohq/kresko-protocol" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="icommonstatefacet"><a class="header" href="#icommonstatefacet">ICommonStateFacet</a></h1>
+<p><a href="https://github.com/kreskohq/kresko-protocol/blob/2a9ac966f1d702321849a1d52c8341cc32e05cab/src/contracts/core/common/interfaces/ICommonStateFacet.sol">Git Source</a></p>
+<h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
+<h3 id="domainseparator"><a class="header" href="#domainseparator">domainSeparator</a></h3>
+<p>The EIP-712 typehash for the contract's domain.</p>
+<pre><code class="language-solidity">function domainSeparator() external view returns (bytes32);
+</code></pre>
+<h3 id="getstorageversion"><a class="header" href="#getstorageversion">getStorageVersion</a></h3>
+<p>amount of times the storage has been upgraded</p>
+<pre><code class="language-solidity">function getStorageVersion() external view returns (uint96);
+</code></pre>
+<h3 id="getfeerecipient"><a class="header" href="#getfeerecipient">getFeeRecipient</a></h3>
+<p>The recipient of protocol fees.</p>
+<pre><code class="language-solidity">function getFeeRecipient() external view returns (address);
+</code></pre>
+<h3 id="getextoracledecimals"><a class="header" href="#getextoracledecimals">getExtOracleDecimals</a></h3>
+<p>Offchain oracle decimals</p>
+<pre><code class="language-solidity">function getExtOracleDecimals() external view returns (uint8);
+</code></pre>
+<h3 id="getoracledeviationpct"><a class="header" href="#getoracledeviationpct">getOracleDeviationPct</a></h3>
+<p>max deviation between main oracle and fallback oracle</p>
+<pre><code class="language-solidity">function getOracleDeviationPct() external view returns (uint16);
+</code></pre>
+<h3 id="getmindebtvalue"><a class="header" href="#getmindebtvalue">getMinDebtValue</a></h3>
+<p>The minimum USD value of an individual synthetic asset debt position.</p>
+<pre><code class="language-solidity">function getMinDebtValue() external view returns (uint96);
+</code></pre>
+<h3 id="getsequenceruptimefeed"><a class="header" href="#getsequenceruptimefeed">getSequencerUptimeFeed</a></h3>
+<p>Get the L2 sequencer uptime feed address.</p>
+<pre><code class="language-solidity">function getSequencerUptimeFeed() external view returns (address);
+</code></pre>
+<h3 id="getsequenceruptimefeedgraceperiod"><a class="header" href="#getsequenceruptimefeedgraceperiod">getSequencerUptimeFeedGracePeriod</a></h3>
+<p>Get the L2 sequencer uptime feed grace period</p>
+<pre><code class="language-solidity">function getSequencerUptimeFeedGracePeriod() external view returns (uint32);
+</code></pre>
+<h3 id="getoracletimeout"><a class="header" href="#getoracletimeout">getOracleTimeout</a></h3>
+<p>Get stale timeout treshold for oracle answers.</p>
+<pre><code class="language-solidity">function getOracleTimeout() external view returns (uint32);
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../../../../../src/contracts/core/common/interfaces/ICommonConfigurationFacet.sol/interface.ICommonConfigurationFacet.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../../../../../../src/contracts/core/common/interfaces/IERC1155.sol/interface.IERC1155.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../../../../../src/contracts/core/common/interfaces/ICommonConfigurationFacet.sol/interface.ICommonConfigurationFacet.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../../../../../../src/contracts/core/common/interfaces/IERC1155.sol/interface.IERC1155.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../../../../../elasticlunr.min.js"></script>
+        <script src="../../../../../../mark.min.js"></script>
+        <script src="../../../../../../searcher.js"></script>
+
+        <script src="../../../../../../clipboard.min.js"></script>
+        <script src="../../../../../../highlight.js"></script>
+        <script src="../../../../../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../../../../../solidity.min.js"></script>
+
+
+    </div>
+    </body>
+</html>

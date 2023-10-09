@@ -16,7 +16,6 @@ import '@typechain/hardhat';
 import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
 import 'hardhat-interface-generator';
-import 'solidity-docgen';
 // import "hardhat-watcher";
 
 /* -------------------------------------------------------------------------- */
