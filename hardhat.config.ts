@@ -58,15 +58,15 @@ const config: HardhatUserConfig = {
   mocha: {
     reporter: 'mochawesome',
     reporterOptions: {
-      reportDir: 'pages/test-report',
-      assetsDir: 'pages/test-report/assets',
+      reportDir: 'docs/test-report',
+      assetsDir: 'docs/test-report/assets',
       reportTitle: 'Kresko Protocol Hardhat Test Report',
       reportPageTitle: 'Kresko Protocol Hardhat Test Report',
     },
     timeout: process.env.CI ? 45000 : process.env.FORKING ? 300000 : 30000,
   },
   docgen: {
-    outputDir: 'pages/natspec',
+    outputDir: 'docs/natspec',
     pages: 'files',
     exclude: ['test', 'vendor', 'libs'],
   },
