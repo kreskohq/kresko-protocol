@@ -25,7 +25,6 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
     smock.mock<KreskoAssetAnchor__factory>('KreskoAssetAnchor'),
   ]);
 
-  await krAsset.setVariable('_initialized', 0);
   krAsset.decimals.returns(18);
 
   const [akrAsset] = await Promise.all([
@@ -45,7 +44,6 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
     ),
   ]);
 
-  await akrAsset.setVariable('_initialized', 0);
   const { anchorSymbol, anchorName } = getAnchorNameAndSymbol(symbol, name);
   const [config] = await Promise.all([
     getAssetConfig(krAsset, {

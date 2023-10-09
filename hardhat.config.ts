@@ -16,6 +16,7 @@ import '@typechain/hardhat';
 import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
 import 'hardhat-interface-generator';
+import 'solidity-docgen';
 // import "hardhat-watcher";
 
 /* -------------------------------------------------------------------------- */
@@ -55,8 +56,19 @@ const config: HardhatUserConfig = {
   networks: handleForking(networks(mnemonic)),
   namedAccounts: users,
   mocha: {
-    // reporter: 'mochawesome',
+    reporter: 'mochawesome',
+    reporterOptions: {
+      reportDir: 'pages/test-report',
+      assetsDir: 'pages/test-report/assets',
+      reportTitle: 'Kresko Protocol Hardhat Test Report',
+      reportPageTitle: 'Kresko Protocol Hardhat Test Report',
+    },
     timeout: process.env.CI ? 45000 : process.env.FORKING ? 300000 : 30000,
+  },
+  docgen: {
+    outputDir: 'pages/natspec',
+    pages: 'files',
+    exclude: ['test', 'vendor', 'libs'],
   },
   paths: {
     artifacts: 'artifacts',
@@ -66,7 +78,6 @@ const config: HardhatUserConfig = {
     deploy: 'src/deploy/',
     deployments: 'deployments/',
   },
-
   diamondAbi: diamondAbiConfig,
   typechain: {
     outDir: 'types/typechain',

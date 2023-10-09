@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 // solhint-disable-next-line
-import {AccessControlEnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import {AccessControlEnumerableUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
+import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
 import {SafeERC20Upgradeable} from "vendor/SafeERC20Upgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
@@ -73,18 +73,15 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         // Setup Pausing
         __Pausable_init();
 
-        // This does nothing but doesn't hurt to make sure it's called
-        __AccessControlEnumerable_init();
-
         // Setup the admin
-        _setupRole(Role.DEFAULT_ADMIN, msg.sender);
-        _setupRole(Role.ADMIN, msg.sender);
+        _grantRole(Role.DEFAULT_ADMIN, msg.sender);
+        _grantRole(Role.ADMIN, msg.sender);
 
-        _setupRole(Role.DEFAULT_ADMIN, _admin);
-        _setupRole(Role.ADMIN, _admin);
+        _grantRole(Role.DEFAULT_ADMIN, _admin);
+        _grantRole(Role.ADMIN, _admin);
 
         // Setup the protocol
-        _setupRole(Role.OPERATOR, _kresko);
+        _grantRole(Role.OPERATOR, _kresko);
 
         kresko = _kresko;
 
@@ -198,7 +195,10 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     }
 
     /// @inheritdoc IKreskoAsset
-    function transfer(address _to, uint256 _amount) public override(ERC20Upgradeable, IKreskoAsset) returns (bool) {
+    function transfer(
+        address _to,
+        uint256 _amount
+    ) public override(ERC20Upgradeable, IKreskoAsset) whenNotPaused returns (bool) {
         return _transfer(msg.sender, _to, _amount);
     }
 
@@ -207,7 +207,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         address _from,
         address _to,
         uint256 _amount
-    ) public override(ERC20Upgradeable, IKreskoAsset) returns (bool) {
+    ) public override(ERC20Upgradeable, IKreskoAsset) whenNotPaused returns (bool) {
         uint256 allowed = allowance(_from, msg.sender); // Saves gas for unlimited approvals.
 
         if (allowed != type(uint256).max) {
@@ -242,12 +242,12 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     }
 
     /// @inheritdoc IKreskoAsset
-    function mint(address _to, uint256 _amount) external onlyRole(Role.OPERATOR) {
+    function mint(address _to, uint256 _amount) external onlyRole(Role.OPERATOR) whenNotPaused {
         _mint(_to, _amount);
     }
 
     /// @inheritdoc IKreskoAsset
-    function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) {
+    function burn(address _from, uint256 _amount) external onlyRole(Role.OPERATOR) whenNotPaused {
         _burn(_from, _amount);
     }
 
@@ -301,6 +301,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
     receive() external payable {
         if (!nativeUnderlyingEnabled) revert CError.NATIVE_TOKEN_DISABLED();
+        _requireNotPaused();
 
         uint256 amount = msg.value;
         if (amount == 0) revert CError.ZERO_AMOUNT(address(this));
@@ -357,6 +358,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
     /// @dev Internal balances are always unrebased, events emitted are not.
     function _transfer(address _from, address _to, uint256 _amount) internal returns (bool) {
+        _requireNotPaused();
         uint256 bal = balanceOf(_from);
         if (_amount > bal) revert CError.NOT_ENOUGH_BALANCE(_from, _amount, bal);
         uint256 normalizedAmount = _amount.unrebase(_rebaseInfo);

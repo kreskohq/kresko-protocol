@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Initializable} from "@oz-upgradeable/proxy/utils/Initializable.sol";
 import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {CError} from "common/CError.sol";
 
 /* solhint-disable var-name-mixedcase */
 /* solhint-disable not-rely-on-time */
@@ -146,7 +147,7 @@ contract ERC20Upgradeable is Initializable, IERC20Permit {
         bytes32 r,
         bytes32 s
     ) public virtual {
-        require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
+        if (block.timestamp > deadline) revert CError.PERMIT_DEADLINE_EXPIRED(owner, spender, deadline, block.timestamp);
 
         // Unchecked because the only math done is incrementing
         // the owner's nonce which cannot realistically overflow.
@@ -172,8 +173,8 @@ contract ERC20Upgradeable is Initializable, IERC20Permit {
                 r,
                 s
             );
-
-            require(recoveredAddress != address(0) && recoveredAddress == owner, "INVALID_SIGNER");
+            if (recoveredAddress == address(0) || recoveredAddress != owner)
+                revert CError.INVALID_SIGNER(owner, recoveredAddress);
 
             _allowances[recoveredAddress][spender] = value;
         }

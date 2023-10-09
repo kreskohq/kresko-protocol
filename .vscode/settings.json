@@ -48,8 +48,9 @@
     "kiss/=src/contracts/core/kiss/",
     "kresko-helpers/=lib/kresko-foundry-helpers/src/",
     "periphery/=src/contracts/periphery/",
-    "@kreskolabs/=node_modules/@kreskolabs/",
-    "@openzeppelin/=node_modules/@openzeppelin/"
+    "@openzeppelin/=lib/openzeppelin-contracts/",
+    "@oz-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "@oz/=lib/openzeppelin-contracts/contracts/"
   ],
   "solidity.defaultCompiler": "remote",
   "workbench.colorCustomizations": {

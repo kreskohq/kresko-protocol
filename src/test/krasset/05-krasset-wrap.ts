@@ -29,7 +29,10 @@ describe('KreskoAsset', () => {
   describe('Deposit / Wrap', () => {
     it('cannot deposit when paused', async function () {
       await KreskoAsset.connect(hre.users.admin).pause();
-      await expect(KreskoAsset.wrap(hre.addr.devOne, toBig(10))).to.be.revertedWith('Pausable: paused');
+      await expect(KreskoAsset.wrap(hre.addr.devOne, toBig(10))).to.be.revertedWithCustomError(
+        KreskoAsset,
+        'EnforcedPause',
+      );
       await KreskoAsset.connect(hre.users.admin).unpause();
     });
     it('can deposit with token', async function () {
@@ -82,7 +85,7 @@ describe('KreskoAsset', () => {
     });
     it('cannot withdraw when paused', async function () {
       await KreskoAsset.connect(hre.users.admin).pause();
-      await expect(KreskoAsset.unwrap(toBig(1), false)).to.be.revertedWith('Pausable: paused');
+      await expect(KreskoAsset.unwrap(toBig(1), false)).to.be.revertedWithCustomError(KreskoAsset, 'EnforcedPause');
       await KreskoAsset.connect(hre.users.admin).unpause();
     });
     it('can withdraw', async function () {

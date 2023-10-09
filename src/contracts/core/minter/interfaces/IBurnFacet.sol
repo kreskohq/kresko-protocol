@@ -8,7 +8,7 @@ interface IBurnFacet {
      * @param _kreskoAsset The address of the Kresko asset.
      * @param _burnAmount The amount of the Kresko asset to be burned.
      * @param _mintedKreskoAssetIndex The index of the kresko asset in the user's minted assets array.
-     * @notice Only needed if burning all principal debt of a particular collateral asset.
+     * Only needed if burning all principal debt of a particular collateral asset.
      */
     function burnKreskoAsset(
         address _account,

@@ -33,7 +33,7 @@ contract Diamond {
         address facet = ds().selectorToFacetAndPosition[msg.sig].facetAddress;
 
         if (facet == address(0)) {
-            revert CError.DIAMOND_FUNCTION_NOT_FOUND();
+            revert CError.DIAMOND_FUNCTION_NOT_FOUND(msg.sig);
         }
 
         // Execute external function from facet using delegatecall and return any value.

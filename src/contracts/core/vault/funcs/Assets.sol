@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {ERC20} from "vendor/ERC20.sol";
 import {WadRay} from "libs/WadRay.sol";

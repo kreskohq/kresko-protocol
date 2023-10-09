@@ -2,6 +2,7 @@ import type { SolcUserConfig } from 'hardhat/types';
 
 const oldCompilerSettings = {
   settings: {
+    evmVersion: 'paris',
     optimizer: {
       enabled: true,
       runs: 1000,
@@ -16,8 +17,9 @@ const oldCompilerSettings = {
 export const compilers: { compilers: SolcUserConfig[] } = {
   compilers: [
     {
-      version: '0.8.19',
+      version: '0.8.21',
       settings: {
+        evmVersion: 'paris',
         viaIR: false,
         optimizer: {
           enabled: true,

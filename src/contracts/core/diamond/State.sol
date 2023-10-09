@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.19;
+pragma solidity >=0.8.21;
 
 import {DCore} from "diamond/funcs/Core.sol";
 import {DCuts} from "diamond/funcs/Cuts.sol";
