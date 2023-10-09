@@ -1,11 +1,11 @@
 import { WrapperBuilder } from '@redstone-finance/evm-connector';
 import { formatBytesString } from '@utils/values';
 import { defaultRedstoneDataPoints } from '@utils/redstone';
-import { AssetArgs, AssetConfig, OracleType } from 'types';
+import { AssetArgs, AssetConfig, OracleType } from 'src/types';
 import type {
   AssetStruct,
   FeedConfigurationStruct,
-} from 'types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+} from 'src/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
 /* -------------------------------------------------------------------------- */

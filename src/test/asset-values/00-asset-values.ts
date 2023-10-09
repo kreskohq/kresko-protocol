@@ -3,7 +3,7 @@ import { wrapKresko } from '@utils/redstone';
 import { AssetValuesFixture, assetValuesFixture } from '@utils/test/fixtures';
 import optimizations from '@utils/test/helpers/optimizations';
 import { toBig } from '@utils/values';
-import { Kresko } from 'types/typechain';
+import { Kresko } from 'src/types/typechain';
 
 describe('Asset Amounts & Values', function () {
   let f: AssetValuesFixture;

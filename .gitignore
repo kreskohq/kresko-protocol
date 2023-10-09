@@ -13,6 +13,7 @@ artifacts/
 cache/
 build/
 out/
+broadcast/
 node_modules/
 deployments/hardhat
 deployments/localhost

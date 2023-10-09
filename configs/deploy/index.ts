@@ -1,5 +1,5 @@
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
-import type { SCDPInitializer, MinterInitializer, CommonInitializer } from 'types';
+import type { SCDPInitializer, MinterInitializer, CommonInitializer } from 'src/types';
 import { assets, testnetConfigs } from './arbitrumGoerli';
 import { envCheck } from '@utils/env';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';

@@ -9,14 +9,14 @@ import { addMockKreskoAsset, mintKrAsset } from '@utils/test/helpers/krassets';
 import { defaultSupplyLimit, testCollateralConfig } from '@utils/test/mocks';
 import { MaxUint128, RAY, toBig } from '@utils/values';
 import { expect } from 'chai';
-import { SCDPDepositAssetConfig, SCDPKrAssetConfig } from 'types';
+import { SCDPDepositAssetConfig, SCDPKrAssetConfig } from 'src/types';
 import {
   AssetStruct,
   Kresko,
   PairSetterStruct,
   SCDPLiquidationOccuredEvent,
   SwapEvent,
-} from 'types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+} from 'src/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 const scdpKrAssetConfig: SCDPKrAssetConfig = {
   swapInFeeSCDP: 0.015e4,

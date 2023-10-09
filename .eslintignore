@@ -16,6 +16,7 @@ packages
 docs/
 ganache.js
 test/**/*
+ecosystem.config.js
 
 # files
 .solcover.js

@@ -1,5 +1,5 @@
 import { MaxUint128, toBig } from '@utils/values';
-import { AssetArgs, OracleType } from 'types';
+import { AssetArgs, OracleType } from 'src/types';
 
 export type InputArgs = {
   user: SignerWithAddress;

@@ -8,18 +8,18 @@
     "name": "Kresko Labs",
     "url": "https://kresko.fi"
   },
-  "types": "globals.d.ts",
+  "types": "./types/globals.d.ts",
   "engines": {
     "node": ">=18.17.0"
   },
   "packageManager": "pnpm@8.6.0",
   "scripts": {
+    "localnet:kill": "pm2 stop all && pm2 flush network && pm2 flush deploys && pm2 kill",
+    "localnet": "pm2 start utils/ecosystem.config.js",
     "clean": "hardhat clean && forge clean",
     "recompile": "hardhat clean && hardhat compile",
-    "compile": "TS_NODE_TRANSPILE_ONLY=1 hardhat compile",
-    "compile:forge": "forge build && typechain --input-dir forge/artifacts './forge/artifacts/**/*.json' --out-dir types/forged --target=ethers-v5 --always-generate-overloads --discriminate-types",
+    "compile": "hardhat compile",
     "deploy": "hardhat deploy",
-    "coverage": "HARDHAT_DEPLOY_FIXTURE=true CI=true hardhat coverage",
     "test": "TEST=true hardhat test --deploy-fixture",
     "test:ci": "TEST=true CI=true hardhat test --deploy-fixture",
     "typechain": "hardhat typechain",
@@ -32,7 +32,6 @@
     "postinstall": "husky install",
     "c:publish": "cd packages/contracts && pnpm build && pnpm publish --no-git-checks",
     "c:export": "hardhat export --export-all packages/contracts/src/deployments.ts",
-    "subgraph": "hardhat misc:write-subgraph",
     "kr:add-facet": "hardhat facet:add",
     "kr:replace-facet": "hardhat facet:replace",
     "kr:remove-facet": "hardhat facet:remove",

@@ -1,5 +1,5 @@
 import { MockContract } from '@defi-wonderland/smock';
-import { KreskoAssetAnchor } from 'types/typechain';
+import { KreskoAssetAnchor } from 'src/types/typechain';
 import { toBig } from '@utils/values';
 import { getIsRebased, slots } from './optimizations';
 
