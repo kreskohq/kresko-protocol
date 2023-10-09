@@ -46,6 +46,7 @@
     "@defi-wonderland/smock": "^2.3.5",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/abstract-signer": "^5.7.0",
+    "@ethersproject/abstract-provider": "^5",
     "@ethersproject/providers": "^5.7.2",
     "@kreskolabs/configs": "^12.10.1",
     "@kreskolabs/lib": "^11.9.1",
