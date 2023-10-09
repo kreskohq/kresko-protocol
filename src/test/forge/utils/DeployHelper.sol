@@ -259,11 +259,12 @@ abstract contract DeployHelper is RedstoneHelper {
         bool asSCDPDepositAsset
     ) internal returns (KreskoAsset krAsset, KreskoAssetAnchor anchor, MockOracle oracle) {
         krAsset = new KreskoAsset();
-        krAsset.initialize(_symbol, _symbol, 18, admin, address(kresko));
+        krAsset.initialize(_symbol, _symbol, 18, admin, address(kresko), address(0), TREASURY, 0, 0);
         anchor = new KreskoAssetAnchor(IKreskoAsset(krAsset));
         anchor.initialize(IKreskoAsset(krAsset), string.concat("a", _symbol), string.concat("a", _symbol), admin);
 
         krAsset.grantRole(keccak256("kresko.roles.minter.operator"), address(anchor));
+        krAsset.setAnchorToken(address(anchor));
         oracle = new MockOracle(_symbol, price, 8);
         addInternalAsset(
             address(krAsset),
