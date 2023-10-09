@@ -12,7 +12,7 @@ index cfd666cbb5fc449313b42c1240fe32b59ae1632d..519a7ac9bb2084b4f35147f81d043a16
 +const genRanHex = size => "0x"+ crypto.randomBytes(size).toString('hex');
  const makeRandomAddress = () => {
 -    return (0, utils_1.getAddress)((0, web3_utils_1.randomHex)(20));
-+    return (0, utils_1.getAddress)(0, genRanHex(20));
++    return (0, utils_1.getAddress)(genRanHex(20));
  };
  exports.makeRandomAddress = makeRandomAddress;
  //# sourceMappingURL=address-utils.js.map
