@@ -2,7 +2,7 @@
 
 This repository contains the core smart contract code for Kresko protocol, which supports the creation and management of crypto-backed synthetic assets. Prices for synthetic assets are committed on chain by trusted oracles. Kresko uses a proxy system so that contract upgrades are not disruptive to protocol functionality. This is a usage and integration guide that assumes familiarity with the basic economic mechanics as described in the litepaper.
 
-[![run test suite](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml/badge.svg)](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml)
+[![run test suite](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml/badge.svg?branch=develop)](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml?branch=develop)
 
 ## Usage
 
