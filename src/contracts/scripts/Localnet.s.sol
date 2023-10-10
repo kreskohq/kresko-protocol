@@ -26,9 +26,7 @@ struct UserConfig {
     uint256 wethBalance;
 }
 
-contract Localnet is ScriptBase("LOCALNET_MNEMONIC"), DeployHelper {
-    KISS public kiss;
-    Vault public vkiss;
+contract Localnet is ScriptBase("LOCALNET_MNEMONIC"), KreskoDeployment {
     MockERC20 internal usdc;
     MockERC20 internal usdt;
     MockERC20 internal dai;

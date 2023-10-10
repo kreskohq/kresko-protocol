@@ -8,13 +8,13 @@ import {MockOracle} from "mocks/MockOracle.sol";
 import {Strings} from "libs/Strings.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
-import {DeployHelper} from "scripts/utils/DeployHelper.sol";
+import {KreskoDeployment} from "scripts/utils/KreskoDeployment.s.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
-import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
+
 import {Asset} from "common/Types.sol";
 
 // solhint-disable
-contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
+contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoDeployment {
     using LibTest for *;
     using Strings for uint256;
     using PercentageMath for uint256;
@@ -37,17 +37,20 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), DeployHelper {
     string internal kissPrice = "KISS:1:8";
     string internal initialPrices = "USDC:1:8,ETH:2000:8,JPY:1:8,KISS:1:8";
 
-    function setUp() public users(address(111), address(222), address(333)) {
-        vm.startPrank(admin);
-        DeployParams memory params = DeployParams({
+    DeployParams params =
+        DeployParams({
             admin: admin,
-            seqFeed: address(new MockSequencerUptimeFeed()),
+            seqFeed: getMockSeqFeed(),
             minterMcr: 150e2,
             minterLt: 140e2,
             scdpMcr: 200e2,
             scdpLt: 150e2,
             sdiPrecision: 8
         });
+
+    function setUp() public users(address(111), address(222), address(333)) {
+        vm.startPrank(admin);
+
         deployDiamond(params);
         vm.warp(3601);
         (usdc, usdcOracle) = deployAndAddCollateral("USDC", bytes12("USDC"), 18, 1e8, true);
