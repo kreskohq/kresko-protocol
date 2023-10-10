@@ -30,7 +30,7 @@ import {SCDPSwapFacet} from "scdp/facets/SCDPSwapFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {SDIFacet} from "scdp/facets/SDIFacet.sol";
 import {SCDPInitArgs} from "scdp/Types.sol";
-import {IKresko} from "kresko-helpers/core/IKresko.sol";
+import {IKresko} from "periphery/IKresko.sol";
 
 import {KISS} from "kiss/KISS.sol";
 import {Vault} from "vault/Vault.sol";
@@ -56,6 +56,13 @@ abstract contract KreskoForgeBase is
     RedstoneScript("./src/utils/getRedstonePayload.js"),
     FacetScript("./src/utils/selectorsFromArtifact.sh")
 {
+    IKresko internal kresko;
+    KISS internal kiss;
+    Vault internal vkiss;
+
+    address public constant TREASURY = address(0xFEE);
+    address[] internal councilUsers;
+
     struct DeployParams {
         uint16 minterMcr;
         uint16 minterLt;
@@ -66,12 +73,7 @@ abstract contract KreskoForgeBase is
         address seqFeed;
     }
 
-    address public constant TREASURY = address(0xFEE);
-    address[] internal councilUsers;
-    KISS internal kiss;
-    Vault internal vkiss;
-
-    function deployDiamond(DeployParams memory params) internal returns (IKresko kresko) {
+    function deployDiamond(DeployParams memory params) internal returns (IKresko kresko_) {
         FacetCut[] memory facets = new FacetCut[](22);
         Initialization[] memory initializers = new Initialization[](3);
         /* --------------------------------- Diamond -------------------------------- */
@@ -82,14 +84,14 @@ abstract contract KreskoForgeBase is
         initializers[1] = minterFacets(params, facets);
         /* ---------------------------------- SCDP ---------------------------------- */
         initializers[2] = scdpFacets(params, facets);
-        (kresko = IKresko(address(new Diamond(params.admin, facets, initializers))));
-        __current_kresko = address(kresko);
+        (kresko_ = IKresko(address(new Diamond(params.admin, facets, initializers))));
+        __current_kresko = address(kresko_); // @note mandatory
     }
 
     function getCommonInitializer(DeployParams memory params) internal returns (CommonInitArgs memory init) {
         init.admin = params.admin;
         init.treasury = TREASURY;
-        init.council = getMockSafe(admin);
+        init.council = getMockSafe(params.admin);
         init.oracleDecimals = 8;
         init.minDebtValue = 10e8;
         init.oracleDeviationPct = 0.01e4;

@@ -1,3 +1,3 @@
 source .env
 
-anvil -m "$LOCALNET_MNEMONIC"
+anvil -m "$MNEMONIC_LOCALNET"

@@ -50,13 +50,14 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoDeployment {
 
     function setUp() public users(address(111), address(222), address(333)) {
         vm.startPrank(admin);
-
-        deployDiamond(params);
+        kresko = deployDiamond(params);
         vm.warp(3601);
+
         (usdc, usdcOracle) = deployAndAddCollateral("USDC", bytes12("USDC"), 18, 1e8, true);
         (krETH, , ethOracle) = deployAndWhitelistKrAsset("krETH", bytes12("ETH"), params.admin, 2000e8, true, true, false);
         (KISS, , kissOracle) = deployAndWhitelistKrAsset("KISS", bytes12("KISS"), params.admin, 1e8, true, false, false);
         (krJPY, , jpyOracle) = deployAndWhitelistKrAsset("krJPY", bytes12("JPY"), params.admin, 1e8, true, false, false);
+
         enableSwapBothWays(address(usdc), address(krETH), true);
         enableSwapSingleWay(address(krJPY), address(krETH), true);
 

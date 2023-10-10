@@ -48,7 +48,7 @@ contract Vault is IVault, ERC20 {
         _config.oracleDecimals = _oracleDecimals;
         _config.feeRecipient = _feeRecipient;
         _config.sequencerUptimeFeed = _sequencerUptimeFeed;
-        _config.sequencerGracePeriodTime = 3600;
+        _config.sequencerGracePeriodTime = 0;
     }
 
     /* -------------------------------------------------------------------------- */

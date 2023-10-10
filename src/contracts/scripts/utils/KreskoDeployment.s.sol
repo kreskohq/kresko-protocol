@@ -84,6 +84,30 @@ abstract contract KreskoDeployment is KreskoForgeBase {
         kresko.addAsset(asset, config, feeds, true);
     }
 
+    function addKISS(
+        address _kiss,
+        address _vault,
+        bool isCollateral,
+        bool isSCDPKrAsset,
+        bool isSCDPDepositAsset
+    ) internal returns (Asset memory) {
+        OracleType[2] memory oracleTypes = [OracleType.Vault, OracleType.Empty];
+        FeedConfiguration memory feeds = FeedConfiguration(oracleTypes, [_vault, address(0)]);
+
+        Asset memory config = getInternalAssetConfig(
+            bytes12("KISS"),
+            oracleTypes,
+            _kiss,
+            isSCDPDepositAsset,
+            isSCDPKrAsset,
+            isCollateral
+        );
+
+        kresko.addAsset(_kiss, config, feeds, true);
+
+        return config;
+    }
+
     function addInternalAsset(
         address asset,
         address anchor,
@@ -92,10 +116,30 @@ abstract contract KreskoDeployment is KreskoForgeBase {
         bool isCollateral,
         bool isSCDPKrAsset,
         bool isSCDPDepositAsset
-    ) internal {
+    ) internal returns (Asset memory) {
         OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
         FeedConfiguration memory feeds = FeedConfiguration(oracleTypes, [address(0), oracle]);
-        Asset memory config;
+        Asset memory config = getInternalAssetConfig(
+            underlyingId,
+            oracleTypes,
+            anchor,
+            isSCDPDepositAsset,
+            isSCDPKrAsset,
+            isCollateral
+        );
+        kresko.addAsset(asset, config, feeds, true);
+
+        return config;
+    }
+
+    function getInternalAssetConfig(
+        bytes12 underlyingId,
+        OracleType[2] memory oracleTypes,
+        address anchor,
+        bool isSCDPDepositAsset,
+        bool isSCDPKrAsset,
+        bool isCollateral
+    ) internal pure returns (Asset memory config) {
         config.underlyingId = bytes12(underlyingId);
         config.kFactor = 1.2e4;
         config.liqIncentive = 1.1e4;
@@ -125,8 +169,6 @@ abstract contract KreskoDeployment is KreskoForgeBase {
             config.isSCDPDepositAsset = true;
             config.depositLimitSCDP = type(uint128).max;
         }
-
-        kresko.addAsset(asset, config, feeds, true);
     }
 
     function whitelistCollateral(address asset) internal {

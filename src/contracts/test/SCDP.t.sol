@@ -11,6 +11,7 @@ import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
+import {Asset} from "common/Types.sol";
 
 // solhint-disable
 
@@ -58,7 +59,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoDeployment {
     function setUp() public users(address(11), address(22), address(33)) {
         vm.startPrank(admin);
 
-        deployDiamond(params);
+        kresko = deployDiamond(params);
         vm.warp(3602);
         (usdc, usdcOracle) = deployAndAddCollateral("USDC", bytes12("USDC"), 18, 1e8, true);
         (KISS, aKISS, kissOracle) = deployAndWhitelistKrAsset("KISS", bytes12("KISS"), params.admin, 1e8, true, true, true);
