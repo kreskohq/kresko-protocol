@@ -36,9 +36,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         address kresko_,
         address vKISS_
     ) external initializer {
-        // Few sanity checks, we do not want EOA's here
         if (kresko_.code.length == 0) revert CError.NOT_A_CONTRACT(kresko_);
-        if (admin_.code.length == 0) revert CError.NOT_A_CONTRACT(admin_);
 
         // ERC20
         name = name_;

@@ -35,85 +35,71 @@ import {IKresko} from "periphery/IKresko.sol";
 import {KISS} from "kiss/KISS.sol";
 import {Vault} from "vault/Vault.sol";
 
-import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
-import {LibSafe, GnosisSafeL2Mock} from "kresko-helpers/mocks/MockSafe.sol";
-
-abstract contract DeploymentMocks {
-    MockSequencerUptimeFeed internal mockSeqFeed;
-    GnosisSafeL2Mock internal mockSafe;
-
-    function getMockSeqFeed() internal returns (address) {
-        return address((mockSeqFeed = new MockSequencerUptimeFeed()));
-    }
-
-    function getMockSafe(address admin) internal returns (address) {
-        return address((mockSafe = LibSafe.createSafe(admin)));
-    }
-}
-
 abstract contract KreskoForgeBase is
-    DeploymentMocks,
     RedstoneScript("./src/utils/getRedstonePayload.js"),
     FacetScript("./src/utils/selectorsFromArtifact.sh")
 {
+    struct DeployArgs {
+        uint32 minterMcr;
+        uint32 minterLt;
+        uint32 scdpMcr;
+        uint32 scdpLt;
+        uint32 oracleTimeout;
+        uint8 sdiPrecision;
+        uint8 oraclePrecision; // @note deprecated, removed soon
+        address admin;
+        address seqFeed;
+        address council; // needs to be a contraaact
+        address treasury;
+    }
+
+    address internal testAdmin = address(0xABABAB);
+    DeployArgs internal deployArgs;
     IKresko internal kresko;
     KISS internal kiss;
     Vault internal vkiss;
 
-    address public constant TREASURY = address(0xFEE);
+    address public constant TEST_TREASURY = address(0xFEE);
     address[] internal councilUsers;
 
-    struct DeployParams {
-        uint16 minterMcr;
-        uint16 minterLt;
-        uint16 scdpMcr;
-        uint16 scdpLt;
-        uint8 sdiPrecision;
-        address admin;
-        address seqFeed;
-    }
-
-    function deployDiamond(DeployParams memory params) internal returns (IKresko kresko_) {
+    function deployDiamond(DeployArgs memory args) internal returns (IKresko kresko_) {
         FacetCut[] memory facets = new FacetCut[](22);
         Initialization[] memory initializers = new Initialization[](3);
         /* --------------------------------- Diamond -------------------------------- */
         diamondFacets(facets);
         /* --------------------------------- Common --------------------------------- */
-        initializers[0] = commonFacets(params, facets);
+        initializers[0] = commonFacets(args, facets);
         /* --------------------------------- Minter --------------------------------- */
-        initializers[1] = minterFacets(params, facets);
+        initializers[1] = minterFacets(args, facets);
         /* ---------------------------------- SCDP ---------------------------------- */
-        initializers[2] = scdpFacets(params, facets);
-        (kresko_ = IKresko(address(new Diamond(params.admin, facets, initializers))));
+        initializers[2] = scdpFacets(args, facets);
+        (kresko_ = IKresko(address(new Diamond(args.admin, facets, initializers))));
         __current_kresko = address(kresko_); // @note mandatory
     }
 
-    function getCommonInitializer(DeployParams memory params) internal returns (CommonInitArgs memory init) {
-        init.admin = params.admin;
-        init.treasury = TREASURY;
-        init.council = getMockSafe(params.admin);
-        init.oracleDecimals = 8;
+    function getCommonInitializer(DeployArgs memory args) internal pure returns (CommonInitArgs memory init) {
+        init.admin = args.admin;
+        init.council = args.council;
+        init.treasury = args.treasury;
         init.minDebtValue = 10e8;
-        init.oracleDeviationPct = 0.01e4;
-        init.sequencerUptimeFeed = params.seqFeed;
+        init.oracleDeviationPct = 0.05e4;
+        init.oracleDecimals = args.oraclePrecision;
+        init.sequencerUptimeFeed = args.seqFeed;
         init.sequencerGracePeriodTime = 3600;
-        init.oracleTimeout = type(uint32).max;
+        init.oracleTimeout = args.oracleTimeout;
         init.phase = 3;
     }
 
-    function getMinterInitializer(DeployParams memory params) internal pure returns (MinterInitArgs memory init) {
-        init.minCollateralRatio = params.minterMcr;
-        init.liquidationThreshold = params.minterLt;
+    function getMinterInitializer(DeployArgs memory args) internal pure returns (MinterInitArgs memory init) {
+        init.minCollateralRatio = args.minterMcr;
+        init.liquidationThreshold = args.minterLt;
     }
 
-    function getSCDPInitializer(DeployParams memory params) internal pure returns (SCDPInitArgs memory init) {
-        return
-            SCDPInitArgs({
-                swapFeeRecipient: TREASURY,
-                minCollateralRatio: params.scdpMcr,
-                liquidationThreshold: params.scdpLt,
-                sdiPricePrecision: params.sdiPrecision
-            });
+    function getSCDPInitializer(DeployArgs memory args) internal pure returns (SCDPInitArgs memory init) {
+        init.swapFeeRecipient = args.treasury;
+        init.minCollateralRatio = args.scdpMcr;
+        init.liquidationThreshold = args.scdpLt;
+        init.sdiPricePrecision = args.sdiPrecision;
     }
 
     function diamondFacets(FacetCut[] memory facets) internal returns (Initialization memory) {
@@ -141,7 +127,7 @@ abstract contract KreskoForgeBase is
         return Initialization({initContract: address(0), initData: ""});
     }
 
-    function commonFacets(DeployParams memory params, FacetCut[] memory facets) internal returns (Initialization memory) {
+    function commonFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initialization memory) {
         address configurationFacetAddress = address(new CommonConfigurationFacet());
         facets[4] = FacetCut({
             facetAddress: configurationFacetAddress,
@@ -177,11 +163,11 @@ abstract contract KreskoForgeBase is
         return
             Initialization(
                 configurationFacetAddress,
-                abi.encodeWithSelector(CommonConfigurationFacet.initializeCommon.selector, getCommonInitializer(params))
+                abi.encodeWithSelector(CommonConfigurationFacet.initializeCommon.selector, getCommonInitializer(args))
             );
     }
 
-    function minterFacets(DeployParams memory params, FacetCut[] memory facets) internal returns (Initialization memory) {
+    function minterFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initialization memory) {
         address configurationFacetAddress = address(new ConfigurationFacet());
         facets[10] = FacetCut({
             facetAddress: configurationFacetAddress,
@@ -222,11 +208,11 @@ abstract contract KreskoForgeBase is
         return
             Initialization(
                 configurationFacetAddress,
-                abi.encodeWithSelector(ConfigurationFacet.initializeMinter.selector, getMinterInitializer(params))
+                abi.encodeWithSelector(ConfigurationFacet.initializeMinter.selector, getMinterInitializer(args))
             );
     }
 
-    function scdpFacets(DeployParams memory params, FacetCut[] memory facets) internal returns (Initialization memory) {
+    function scdpFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initialization memory) {
         address configurationFacetAddress = address(new SCDPConfigFacet());
 
         facets[17] = FacetCut({
@@ -257,7 +243,7 @@ abstract contract KreskoForgeBase is
         return
             Initialization(
                 configurationFacetAddress,
-                abi.encodeWithSelector(SCDPConfigFacet.initializeSCDP.selector, getSCDPInitializer(params))
+                abi.encodeWithSelector(SCDPConfigFacet.initializeSCDP.selector, getSCDPInitializer(args))
             );
     }
 }
