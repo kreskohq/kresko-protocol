@@ -253,7 +253,7 @@ contract vKISSTest is Test {
         vm.stopPrank();
     }
 
-    function testCanWithdrawRoundingError() public {
+    function testCanWithdrawRounding() public {
         vm.startPrank(user0);
         vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();

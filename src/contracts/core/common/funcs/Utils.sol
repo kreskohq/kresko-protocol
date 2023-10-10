@@ -2,7 +2,6 @@
 pragma solidity >=0.8.21;
 
 import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
-import {cs} from "common/State.sol";
 
 /**
  * @notice Checks if the L2 sequencer is up.
