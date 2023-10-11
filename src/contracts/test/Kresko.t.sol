@@ -16,10 +16,10 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     using Strings for uint256;
     using PercentageMath for uint256;
 
-    MockCollateralDeployResult internal usdc;
-    KreskoAssetDeployResult internal krETH;
-    KreskoAssetDeployResult internal krJPY;
-    KreskoAssetDeployResult internal KISS;
+    MockCollDeploy internal usdc;
+    KrDeployExtended internal krETH;
+    KrDeployExtended internal krJPY;
+    KrDeployExtended internal KISS;
 
     string internal usdcPrice = "USDC:1:8";
     string internal ethPrice = "ETH:2000:8";
@@ -46,32 +46,32 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         kresko = deployDiamond(deployArgs);
         vm.warp(3601);
 
-        usdc = deployAddCollateralWithMocks(
+        usdc = mockCollateral(
             bytes12("USDC"),
             MockConfig({symbol: "USDC", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             fullCollateral
         );
 
-        krETH = deployAddKrAssetWithMocks(
+        krETH = mockKrAsset(
             bytes12("ETH"),
             address(0),
             MockConfig({symbol: "krETH", price: 2000e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            nonScdpDepositableKrAsset,
+            defaultKrAsset,
             deployArgs
         );
 
-        KISS = deployAddKrAssetWithMocks(
+        KISS = mockKrAsset(
             bytes12("KISS"),
             address(0),
             MockConfig({symbol: "KISS", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             defaultKISS,
             deployArgs
         );
-        krJPY = deployAddKrAssetWithMocks(
+        krJPY = mockKrAsset(
             bytes12("JPY"),
             address(0),
             MockConfig({symbol: "krJPY", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            nonScdpDepositableKrAsset,
+            defaultKrAsset,
             deployArgs
         );
 

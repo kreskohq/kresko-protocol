@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
-
+// solhint-disable var-name-mixedcase
+// solhint-disable no-empty-blocks
 import {FeedConfiguration, Asset, OracleType} from "common/Types.sol";
 import {Role} from "common/Constants.sol";
 import {PairSetter} from "scdp/Types.sol";
@@ -13,49 +14,13 @@ import {KreskoForgeBase} from "scripts/utils/KreskoForgeBase.s.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {LibSafe, GnosisSafeL2Mock} from "kresko-helpers/mocks/MockSafe.sol";
 
-interface IKreskoForgeUtilStructs {
-    struct KreskoAssetDeploy {
-        address addr;
-        KreskoAsset krAsset;
-        KreskoAssetAnchor anchor;
-        address underlyingAddr;
-    }
-
-    struct KreskoAssetDeployResult {
-        address addr;
-        address oracleAddr;
-        KreskoAsset krAsset;
-        KreskoAssetAnchor anchor;
-        address underlyingAddr;
-        MockOracle oracle;
-        Asset config;
-    }
-
-    struct MockCollateralDeployResult {
-        address addr;
-        address oracleAddr;
-        MockERC20 asset;
-        MockOracle oracle;
-        Asset config;
-    }
-    struct KISSWhitelistResult {
-        Asset config;
-        address addr;
-        address vaultAddr;
-    }
-    struct AssetIdentity {
-        bool krAsset;
-        bool collateral;
-        bool scdpKrAsset;
-        bool scdpDepositable;
-    }
-}
-
-abstract contract ConfigurationUtils is IKreskoForgeUtilStructs, KreskoForgeBase {
-    AssetIdentity internal minterCollateral =
+abstract contract ConfigurationUtils is KreskoForgeBase {
+    OracleType[2] internal ORACLES_RS_CL = [OracleType.Redstone, OracleType.Chainlink];
+    OracleType[2] internal ORACLES_KISS = [OracleType.Vault, OracleType.Empty];
+    AssetIdentity internal defaultCollateral =
         AssetIdentity({collateral: true, krAsset: false, scdpDepositable: false, scdpKrAsset: false});
 
-    AssetIdentity internal nonScdpDepositableKrAsset =
+    AssetIdentity internal defaultKrAsset =
         AssetIdentity({collateral: true, krAsset: true, scdpDepositable: false, scdpKrAsset: true});
 
     AssetIdentity internal onlySwappableKrAsset =
@@ -78,20 +43,17 @@ abstract contract ConfigurationUtils is IKreskoForgeUtilStructs, KreskoForgeBase
         bool updateFeeds,
         OracleType[2] memory oracles,
         address[2] memory feeds,
-        KreskoAssetDeployResult memory deploy,
+        KrDeployExtended memory deploy,
         AssetIdentity memory identity
-    ) internal returns (KreskoAssetDeployResult memory result) {
-        result.config = _createKrAssetConfig(underlyingId, address(deploy.anchor), oracles, identity);
-        result.krAsset = deploy.krAsset;
-        result.addr = address(deploy.krAsset);
-        result.anchor = deploy.anchor;
-        result.oracle = MockOracle(feeds[0] == address(0) ? feeds[1] : feeds[0]);
-        result.oracleAddr = address(result.oracle);
-        result.underlyingAddr = deploy.underlyingAddr;
-        kresko.addAsset(address(deploy.krAsset), result.config, FeedConfiguration(oracles, feeds), updateFeeds);
+    ) internal returns (KrDeployExtended memory) {
+        deploy.config = _createKrAssetConfig(underlyingId, address(deploy.anchor), oracles, identity);
+        deploy.oracle = MockOracle(feeds[0] == address(0) ? feeds[1] : feeds[0]);
+        deploy.oracleAddr = address(deploy.oracle);
+        kresko.addAsset(address(deploy.krAsset), deploy.config, FeedConfiguration(oracles, feeds), updateFeeds);
+        return deploy;
     }
 
-    function addKrAsset(
+    function _addKrAsset(
         bytes12 underlyingId,
         address assetAddr,
         address anchorAddr,
@@ -104,14 +66,14 @@ abstract contract ConfigurationUtils is IKreskoForgeUtilStructs, KreskoForgeBase
         kresko.addAsset(assetAddr, result, FeedConfiguration(oracles, feeds), updateFeeds);
     }
 
-    function addKrAssetDeployed(
+    function addKrAsset(
         bytes12 underlyingId,
         bool updateFeeds,
         OracleType[2] memory oracles,
         address[2] memory feeds,
-        KreskoAssetDeploy memory deploy,
+        KrDeploy memory deploy,
         AssetIdentity memory identity
-    ) internal returns (KreskoAssetDeployResult memory result) {
+    ) internal returns (KrDeployExtended memory result) {
         result.krAsset = deploy.krAsset;
         result.addr = address(deploy.krAsset);
         result.anchor = deploy.anchor;
@@ -119,31 +81,22 @@ abstract contract ConfigurationUtils is IKreskoForgeUtilStructs, KreskoForgeBase
         result.oracleAddr = address(result.oracle);
         result.underlyingAddr = deploy.underlyingAddr;
 
-        result.config = addKrAsset(
-            underlyingId,
-            address(deploy.krAsset),
-            address(deploy.anchor),
-            updateFeeds,
-            oracles,
-            feeds,
-            identity
-        );
+        result.config = _addKrAsset(underlyingId, result.addr, address(deploy.anchor), updateFeeds, oracles, feeds, identity);
 
         return result;
     }
 
-    function addDeployedCollateral(
+    function addCollateral(
         bytes12 underlyingId,
         address assetAddr,
-        address feedAddr,
         bool updateFeeds,
+        OracleType[2] memory oracles,
+        address[2] memory feeds,
         AssetIdentity memory identity
     ) internal returns (Asset memory config) {
-        OracleType[2] memory oracleTypes = [OracleType.Redstone, OracleType.Chainlink];
-
         config = kresko.getAsset(assetAddr);
         config.underlyingId = underlyingId;
-        config.oracles = oracleTypes;
+        config.oracles = oracles;
         config.factor = 1e4;
 
         if (identity.collateral) {
@@ -156,51 +109,47 @@ abstract contract ConfigurationUtils is IKreskoForgeUtilStructs, KreskoForgeBase
             config.isSCDPCollateral = true;
             config.depositLimitSCDP = type(uint128).max;
         }
-        kresko.addAsset(assetAddr, config, FeedConfiguration(oracleTypes, [address(0), feedAddr]), updateFeeds);
+        kresko.addAsset(assetAddr, config, FeedConfiguration(oracles, feeds), updateFeeds);
     }
 
     function addKISS(
         address kissAddr,
         address vaultAddr,
         AssetIdentity memory identity
-    ) internal returns (KISSWhitelistResult memory result) {
-        OracleType[2] memory oracleTypes = [OracleType.Vault, OracleType.Empty];
-        Asset memory config;
-        config.underlyingId = bytes12("KISS");
-        config.anchor = kissAddr;
-        config.oracles = oracleTypes;
-        config.supplyLimit = type(uint128).max;
+    ) internal returns (KISSConfig memory result) {
+        result.config.underlyingId = bytes12("KISS");
+        result.config.anchor = kissAddr;
+        result.config.oracles = ORACLES_KISS;
+        result.config.supplyLimit = type(uint128).max;
 
-        config.factor = 1e4;
-        config.kFactor = 1e4;
+        result.config.factor = 1e4;
+        result.config.kFactor = 1e4;
 
         if (identity.collateral) {
-            config.isCollateral = true;
-            config.liqIncentive = 1.1e4;
+            result.config.isCollateral = true;
+            result.config.liqIncentive = 1.1e4;
         }
 
         if (identity.krAsset) {
-            config.isKrAsset = true;
-            config.openFee = 0.02e4;
-            config.closeFee = 0.02e4;
+            result.config.isKrAsset = true;
+            result.config.openFee = 0.02e4;
+            result.config.closeFee = 0.02e4;
         }
 
         if (identity.scdpDepositable) {
-            config.isSCDPDepositAsset = true;
-            config.depositLimitSCDP = type(uint128).max;
+            result.config.isSCDPDepositAsset = true;
+            result.config.depositLimitSCDP = type(uint128).max;
         }
 
         if (identity.scdpKrAsset) {
-            config.isSCDPKrAsset = true;
-            config.swapInFeeSCDP = 0.02e4;
-            config.swapOutFeeSCDP = 0.02e4;
-            config.protocolFeeShareSCDP = 0.25e4;
-            config.liqIncentiveSCDP = 1.1e4;
+            result.config.isSCDPKrAsset = true;
+            result.config.swapInFeeSCDP = 0.02e4;
+            result.config.swapOutFeeSCDP = 0.02e4;
+            result.config.protocolFeeShareSCDP = 0.25e4;
+            result.config.liqIncentiveSCDP = 1.1e4;
         }
 
-        kresko.addAsset(kissAddr, config, FeedConfiguration(oracleTypes, [vaultAddr, address(0)]), true);
-
-        result.config = config;
+        kresko.addAsset(kissAddr, result.config, FeedConfiguration(ORACLES_KISS, [vaultAddr, address(0)]), true);
         result.addr = kissAddr;
         result.vaultAddr = vaultAddr;
     }
@@ -211,7 +160,7 @@ abstract contract ConfigurationUtils is IKreskoForgeUtilStructs, KreskoForgeBase
         OracleType[2] memory oracles,
         AssetIdentity memory identity
     ) internal pure returns (Asset memory config) {
-        config.underlyingId = bytes12(underlyingId);
+        config.underlyingId = underlyingId;
         config.anchor = anchor;
         config.oracles = oracles;
 
@@ -262,7 +211,7 @@ abstract contract ConfigurationUtils is IKreskoForgeUtilStructs, KreskoForgeBase
         config.liqIncentive = 1.1e4;
         config.isCollateral = true;
         config.factor = 1e4;
-        config.oracles = [OracleType.Redstone, OracleType.Chainlink];
+        config.oracles = ORACLES_RS_CL;
         kresko.updateAsset(assetAddr, config);
     }
 }
@@ -293,7 +242,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         address underlyingAddr,
         address admin,
         address treasury
-    ) internal returns (KreskoAssetDeploy memory result) {
+    ) internal returns (KrDeploy memory result) {
         result.krAsset = new KreskoAsset();
         result.anchor = new KreskoAssetAnchor(IKreskoAsset(result.krAsset));
 
@@ -313,14 +262,14 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         return result;
     }
 
-    function deployKrAssetWithMocks(
+    function deployKrAssetWithOracle(
         string memory name,
         string memory symbol,
         uint256 price,
         address underlyingAddr,
         DeployArgs memory args
-    ) internal returns (KreskoAssetDeployResult memory result) {
-        KreskoAssetDeploy memory deployment = deployKrAsset(name, symbol, underlyingAddr, args.admin, args.treasury);
+    ) internal returns (KrDeployExtended memory result) {
+        KrDeploy memory deployment = deployKrAsset(name, symbol, underlyingAddr, args.admin, args.treasury);
         result.krAsset = deployment.krAsset;
         result.addr = deployment.addr;
         result.underlyingAddr = deployment.underlyingAddr;
@@ -330,39 +279,40 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         return result;
     }
 
-    function deployAddKrAssetWithMocks(
+    function mockKrAsset(
         bytes12 underlyingId,
         address underlyingAddr,
         MockConfig memory config,
         AssetIdentity memory identity,
         DeployArgs memory args
-    ) internal returns (KreskoAssetDeployResult memory result) {
-        result = deployKrAssetWithMocks(config.symbol, config.symbol, config.price, underlyingAddr, args);
-        result.config = addKrAsset(
+    ) internal returns (KrDeployExtended memory result) {
+        result = deployKrAssetWithOracle(config.symbol, config.symbol, config.price, underlyingAddr, args);
+        result.config = _addKrAsset(
             underlyingId,
-            address(result.krAsset),
+            result.addr,
             address(result.anchor),
             config.updateFeeds,
-            [OracleType.Redstone, OracleType.Chainlink],
-            [address(result.oracle), address(result.oracle)],
+            ORACLES_RS_CL,
+            [address(0), result.oracleAddr],
             identity
         );
     }
 
-    function deployAddCollateralWithMocks(
+    function mockCollateral(
         bytes12 underlyingId,
         MockConfig memory config,
         AssetIdentity memory identity
-    ) internal returns (MockCollateralDeployResult memory result) {
+    ) internal returns (MockCollDeploy memory result) {
         result.asset = deployMockToken(config.symbol, config.symbol, config.tknDecimals, 0);
         result.addr = address(result.asset);
         result.oracle = deployMockOracle(config.symbol, config.price, config.oracleDecimals);
         result.oracleAddr = address(result.oracle);
-        result.config = addDeployedCollateral(
+        result.config = addCollateral(
             underlyingId,
-            address(result.asset),
-            address(result.oracle),
+            result.addr,
             config.updateFeeds,
+            ORACLES_RS_CL,
+            [address(0), result.oracleAddr],
             identity
         );
     }

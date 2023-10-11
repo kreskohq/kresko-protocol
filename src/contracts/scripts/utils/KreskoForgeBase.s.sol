@@ -3,6 +3,7 @@ import {FacetScript} from "kresko-helpers/utils/Diamond.sol";
 import {RedstoneScript} from "kresko-helpers/utils/Redstone.sol";
 import {CommonInitArgs} from "common/Types.sol";
 import {MinterInitArgs} from "minter/Types.sol";
+import {IKreskoForgeTypes} from "./IKreskoForgeTypes.sol";
 import {FacetCut, Initialization, FacetCutAction} from "diamond/Types.sol";
 import {Diamond} from "diamond/Diamond.sol";
 import {DiamondCutFacet} from "diamond/facets/DiamondCutFacet.sol";
@@ -31,28 +32,14 @@ import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {SDIFacet} from "scdp/facets/SDIFacet.sol";
 import {SCDPInitArgs} from "scdp/Types.sol";
 import {IKresko} from "periphery/IKresko.sol";
-
 import {KISS} from "kiss/KISS.sol";
 import {Vault} from "vault/Vault.sol";
 
 abstract contract KreskoForgeBase is
+    IKreskoForgeTypes,
     RedstoneScript("./src/utils/getRedstonePayload.js"),
     FacetScript("./src/utils/selectorsFromArtifact.sh")
 {
-    struct DeployArgs {
-        uint32 minterMcr;
-        uint32 minterLt;
-        uint32 scdpMcr;
-        uint32 scdpLt;
-        uint32 oracleTimeout;
-        uint8 sdiPrecision;
-        uint8 oraclePrecision; // @note deprecated, removed soon
-        address admin;
-        address seqFeed;
-        address council; // needs to be a contraaact
-        address treasury;
-    }
-
     address internal testAdmin = address(0xABABAB);
     DeployArgs internal deployArgs;
     IKresko internal kresko;

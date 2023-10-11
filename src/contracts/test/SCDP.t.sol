@@ -16,11 +16,11 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     using WadRay for uint256;
     using PercentageMath for uint256;
 
-    MockCollateralDeployResult internal usdc;
-    KreskoAssetDeployResult internal KISS;
-    KreskoAssetDeployResult internal krETH;
-    KreskoAssetDeployResult internal krJPY;
-    KreskoAssetDeployResult internal krTSLA;
+    MockCollDeploy internal usdc;
+    KrDeployExtended internal KISS;
+    KrDeployExtended internal krETH;
+    KrDeployExtended internal krJPY;
+    KrDeployExtended internal krTSLA;
 
     string usdcPrice = "USDC:1:8";
     string ethPrice = "ETH:2000:8";
@@ -48,33 +48,33 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         kresko = deployDiamond(deployArgs);
         vm.warp(3601);
 
-        usdc = deployAddCollateralWithMocks(
+        usdc = mockCollateral(
             bytes12("USDC"),
             MockConfig({symbol: "USDC", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             fullCollateral
         );
-        KISS = deployAddKrAssetWithMocks(
+        KISS = mockKrAsset(
             bytes12("KISS"),
             address(0),
             MockConfig({symbol: "KISS", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             fullKrAsset,
             deployArgs
         );
-        krETH = deployAddKrAssetWithMocks(
+        krETH = mockKrAsset(
             bytes12("ETH"),
             address(0),
             MockConfig({symbol: "krETH", price: 2000e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            nonScdpDepositableKrAsset,
+            defaultKrAsset,
             deployArgs
         );
-        krJPY = deployAddKrAssetWithMocks(
+        krJPY = mockKrAsset(
             bytes12("JPY"),
             address(0),
             MockConfig({symbol: "krJPY", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             onlySwappableKrAsset,
             deployArgs
         );
-        krTSLA = deployAddKrAssetWithMocks(
+        krTSLA = mockKrAsset(
             bytes12("TSLA"),
             address(0),
             MockConfig({symbol: "krTSLA", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
