@@ -12,15 +12,20 @@ This repository contains the code for the Kresko Protocol. Kresko Protocol suppo
 
 #### Dependencies
 
-<b>_You need a authorized npm token in .npmrc to install some internal dependencies, this will be lifted later on._</b> <br/>
+Install forge dependencies
 
-Install dependencies with an authorized .npmrc:
+```sh
+forge install
+```
+
+Install node dependencies
+(_Authorized npm token is required in .npmrc for some internal packages. This will be lifted later._)<br/>
 
 ```sh
 pnpm i
 ```
 
-#### Check the setup
+### Compiling
 
 #### Foundry
 
