@@ -12,7 +12,7 @@ import {IERC165} from "vendor/IERC165.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {Percents, Role} from "common/Constants.sol";
 import {CError} from "common/CError.sol";
-import {IKreskoAssetAnchor} from ".//IKreskoAssetAnchor.sol";
+import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
 import {Rebaser} from "./Rebaser.sol";
 import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
 
