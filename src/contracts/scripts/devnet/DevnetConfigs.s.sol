@@ -8,7 +8,7 @@ pragma solidity ^0.8.0;
 
 import {KreskoForgeUtils} from "../utils/KreskoForgeUtils.s.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.sol";
-import {WETH9} from "kresko-lib/vendor/WETH9.sol";
+import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {VaultAsset} from "vault/Types.sol";
 import {ERC20} from "kresko-lib/token/ERC20.sol";
 import {addr, tokens, cl} from "kresko-lib/info/Arbitrum.sol";
