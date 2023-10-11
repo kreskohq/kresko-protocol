@@ -191,13 +191,17 @@ struct SCDPKrAssetArgs {
 /* -------------------------------------------------------------------------- */
 
 /**
- * @dev Protocol user facing actions
- *
+ * @notice Protocol Actions
  * Deposit = 0
  * Withdraw = 1,
  * Repay = 2,
  * Borrow = 3,
  * Liquidate = 4
+ * SCDPDeposit = 5,
+ * SCDPSwap = 6,
+ * SCDPWithdraw = 7,
+ * SCDPRepay = 8,
+ * SCDPLiquidation = 9
  */
 enum Action {
     Deposit,

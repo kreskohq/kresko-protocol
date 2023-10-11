@@ -170,14 +170,14 @@ describe('Minter - Deposit Withdraw', function () {
           .withArgs(f.Collateral.address);
       });
       it('should revert if collateral is not depositable', async function () {
-        const { deployer, devTwo, extOne } = await hre.ethers.getNamedSigners();
+        const { deployer, devOne, extOne } = await hre.ethers.getNamedSigners();
 
         await executeContractCallWithSigners(
           hre.Multisig,
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, true, 0],
-          [deployer, devTwo, extOne],
+          [deployer, devOne, extOne],
         );
 
         const isDepositPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);

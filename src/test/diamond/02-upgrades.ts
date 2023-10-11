@@ -67,7 +67,7 @@ describe('Diamond', () => {
       expect(pendingOwner).to.equal(hre.ethers.constants.AddressZero);
 
       // Transfer to eg. wrong address
-      const wrongOwner = hre.addr.nonadmin;
+      const wrongOwner = hre.addr.notAdmin;
       await hre.Diamond.transferOwnership(wrongOwner);
 
       // Ensure
@@ -108,7 +108,7 @@ describe('Diamond', () => {
       expect(newOwner).to.equal(correctOwner);
 
       // Ensure there is no function to accept the ownership
-      await expect(wrapContractWithSigner(hre.Diamond, hre.users.nonadmin).acceptOwnership()).to.be.reverted;
+      await expect(wrapContractWithSigner(hre.Diamond, hre.users.notAdmin).acceptOwnership()).to.be.reverted;
     });
 
     it('can replace a function', async function () {
@@ -118,7 +118,7 @@ describe('Diamond', () => {
       expect(pendingOwner).to.equal(hre.ethers.constants.AddressZero);
 
       // Transfer to eg. wrong address
-      const wrongOwner = hre.addr.nonadmin;
+      const wrongOwner = hre.addr.notAdmin;
       await hre.Diamond.transferOwnership(wrongOwner);
 
       // Ensure
@@ -149,7 +149,7 @@ describe('Diamond', () => {
       await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!);
 
       // Ensure function exists and revert is for invalid address instead of missing function
-      await expect(wrapContractWithSigner(hre.Diamond, hre.users.nonadmin).acceptOwnership()).to.be.reverted;
+      await expect(wrapContractWithSigner(hre.Diamond, hre.users.notAdmin).acceptOwnership()).to.be.reverted;
       // Ensure one function is contained in the new facet
       const functionsNewFacet = await hre.Diamond.facetFunctionSelectors(NewOwnershipFacet.address);
       expect(functionsNewFacet.length).to.equal(1);

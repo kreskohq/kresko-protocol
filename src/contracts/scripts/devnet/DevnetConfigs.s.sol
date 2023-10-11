@@ -10,7 +10,6 @@ import {KreskoForgeUtils} from "../utils/KreskoForgeUtils.s.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {VaultAsset} from "vault/Types.sol";
-import {ERC20} from "kresko-lib/token/ERC20.sol";
 import {addr, tokens, cl} from "kresko-lib/info/Arbitrum.sol";
 
 abstract contract DevnetBase is ScriptBase, KreskoForgeUtils {
@@ -29,6 +28,7 @@ abstract contract DevnetBase is ScriptBase, KreskoForgeUtils {
                 wethBalance: 100000e18
             })
         );
+
         users.push(TestUserConfig({addr: getAddr(1), idx: 1, daiBalance: 0, usdcBalance: 0, usdtBalance: 0, wethBalance: 0}));
         users.push(
             TestUserConfig({
@@ -40,6 +40,7 @@ abstract contract DevnetBase is ScriptBase, KreskoForgeUtils {
                 wethBalance: 100e18
             })
         );
+
         users.push(defaultTestUser(getAddr(3), 3));
         users.push(defaultTestUser(getAddr(4), 4));
         users.push(defaultTestUser(getAddr(5), 5));
@@ -90,7 +91,7 @@ abstract contract ArbitrumDevnet is DevnetBase {
 
     VaultAsset internal USDT_VAULT_CONFIG =
         VaultAsset({
-            token: ERC20(addr.USDT),
+            token: tokens.USDT,
             oracle: cl.USDT,
             oracleTimeout: 86401,
             decimals: 0,
@@ -102,7 +103,7 @@ abstract contract ArbitrumDevnet is DevnetBase {
 
     VaultAsset internal DAI_VAULT_CONFIG =
         VaultAsset({
-            token: ERC20(addr.DAI),
+            token: tokens.DAI,
             oracle: cl.DAI,
             oracleTimeout: 86401,
             decimals: 0,

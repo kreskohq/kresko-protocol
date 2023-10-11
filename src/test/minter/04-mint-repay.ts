@@ -1,6 +1,5 @@
 import { CError } from '@utils/errors';
 import { getInternalEvent } from '@utils/events';
-import { Error } from '@utils/test/errors';
 import Fee from '@utils/test/fees';
 import { MintRepayFixture, mintRepayFixture } from '@utils/test/fixtures';
 import { fromScaledAmount, toScaledAmount } from '@utils/test/helpers/calculations';
@@ -258,8 +257,9 @@ describe('Minter', function () {
         });
       });
       it.skip('should not allow the minting of kreskoAssets if the market is closed', async function () {
-        await expect(User1.mintKreskoAsset(user1.address, f.KrAsset.address, toBig(1))).to.be.revertedWith(
-          Error.KRASSET_MARKET_CLOSED,
+        await expect(User1.mintKreskoAsset(user1.address, f.KrAsset.address, toBig(1))).to.be.revertedWithCustomError(
+          CError(hre),
+          'MARKET_CLOSED',
         );
 
         // Confirm that the user has no minted krAssets

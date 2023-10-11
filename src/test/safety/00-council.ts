@@ -14,10 +14,10 @@ describe('Safety Council', () => {
   beforeEach(async function () {
     f = await defaultFixture();
     // These are the 5 signers on the SafetyCouncil multisig
-    const { deployer, devTwo, extOne, extTwo, devOne } = await hre.ethers.getNamedSigners();
+    const { deployer, devOne, userOne, extOne, extTwo } = await hre.ethers.getNamedSigners();
     this.deployer = deployer;
     this.devOne = devOne;
-    this.devTwo = devTwo;
+    this.userOne = userOne;
     this.extOne = extOne;
     this.extTwo = extTwo;
   });
@@ -32,7 +32,7 @@ describe('Safety Council', () => {
         hre.Diamond,
         'setSafetyStateSet',
         [true],
-        [this.deployer, this.devTwo, this.extOne],
+        [this.deployer, this.devOne, this.userOne],
       );
 
       const safetyState = await hre.Diamond.safetyStateSet();
@@ -48,7 +48,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.userOne],
         );
 
         const isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
@@ -61,7 +61,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, false, 0],
-          [this.deployer, this.devTwo, this.extOne, this.extTwo],
+          [this.deployer, this.devOne, this.userOne, this.extOne],
         );
 
         const isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
@@ -74,7 +74,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, false, 0],
-          [this.deployer, this.devOne, this.devTwo, this.extOne, this.extTwo],
+          [this.deployer, this.devOne, this.userOne, this.extOne, this.extTwo],
         );
 
         const isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
@@ -104,7 +104,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.userOne],
         );
 
         const isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
@@ -117,7 +117,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.KrAsset.address], Action.REPAY, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.userOne],
         );
 
         const isPaused = await hre.Diamond.assetActionPaused(Action.REPAY.toString(), f.KrAsset.address);
@@ -135,7 +135,7 @@ describe('Safety Council', () => {
             hre.Diamond,
             'toggleAssetsPaused',
             [[randomAddr], Action.DEPOSIT, false, 0],
-            [this.deployer, this.devTwo, this.extOne],
+            [this.deployer, this.devOne, this.userOne],
           ),
         ).to.be.reverted;
 
@@ -153,7 +153,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, true, duration],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.userOne],
         );
 
         const depositSafetyState = await hre.Diamond.safetyStateFor(f.Collateral.address, Action.DEPOSIT);
@@ -171,7 +171,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, true, duration],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.userOne],
         );
 
         const depositSafetyState = await hre.Diamond.safetyStateFor(f.Collateral.address, Action.DEPOSIT);
@@ -212,7 +212,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         let isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
@@ -223,7 +223,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         isPaused = await hre.Diamond.assetActionPaused(Action.DEPOSIT.toString(), f.Collateral.address);
@@ -236,7 +236,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.WITHDRAW, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         let isPaused = await hre.Diamond.assetActionPaused(Action.WITHDRAW.toString(), f.Collateral.address);
@@ -247,7 +247,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.WITHDRAW, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         isPaused = await hre.Diamond.assetActionPaused(Action.WITHDRAW.toString(), f.Collateral.address);
@@ -260,7 +260,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.REPAY, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         let isPaused = await hre.Diamond.assetActionPaused(Action.REPAY.toString(), f.Collateral.address);
@@ -271,7 +271,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.REPAY, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         isPaused = await hre.Diamond.assetActionPaused(Action.REPAY.toString(), f.Collateral.address);
@@ -284,7 +284,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.BORROW, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         let isPaused = await hre.Diamond.assetActionPaused(Action.BORROW.toString(), f.Collateral.address);
@@ -295,7 +295,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.BORROW, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         isPaused = await hre.Diamond.assetActionPaused(Action.BORROW.toString(), f.Collateral.address);
@@ -308,7 +308,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.LIQUIDATION, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         let isPaused = await hre.Diamond.assetActionPaused(Action.LIQUIDATION.toString(), f.Collateral.address);
@@ -319,7 +319,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.LIQUIDATION, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         isPaused = await hre.Diamond.assetActionPaused(Action.LIQUIDATION.toString(), f.Collateral.address);
@@ -334,7 +334,7 @@ describe('Safety Council', () => {
           hre.Diamond,
           'toggleAssetsPaused',
           [[f.Collateral.address], Action.DEPOSIT, false, 0],
-          [this.deployer, this.devTwo, this.extOne],
+          [this.deployer, this.devOne, this.extOne],
         );
 
         const event = await getInternalEvent<SafetyStateChangeEventObject>(tx, hre.Diamond, 'SafetyStateChange');

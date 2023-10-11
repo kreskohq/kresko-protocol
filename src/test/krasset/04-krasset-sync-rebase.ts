@@ -22,22 +22,22 @@ describe.skip('Test KreskoAsset with Rebase and sync', () => {
     // });
 
     await depositMockCollateral({
-      user: hre.users.testUserEight,
+      user: hre.users.userNine,
       asset: this.collaterals.find(c => c.config.args.underlyingId === testCollateralConfig.underlyingId)!,
       amount: toBig(100000),
     });
     await mintKrAsset({
-      user: hre.users.testUserEight,
+      user: hre.users.userNine,
       asset: KreskoAsset,
       amount: toBig(64),
     });
     await mintKrAsset({
-      user: hre.users.testUserEight,
+      user: hre.users.userNine,
       asset: KISS,
       amount: toBig(1000),
     });
     this.pool = await addLiquidity({
-      user: hre.users.testUserEight,
+      user: hre.users.userNine,
       router: hre.UniV2Router,
       token0: KreskoAsset,
       token1: {

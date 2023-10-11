@@ -24,10 +24,7 @@ import 'hardhat-interface-generator';
 import { configDotenv } from 'dotenv';
 configDotenv();
 
-const mnemonic = process.env.MNEMONIC;
-if (!mnemonic) {
-  throw new Error('No mnemonic set');
-}
+const mnemonic = process.env.MNEMONIC || 'test test test test test test test test test test test junk';
 
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */

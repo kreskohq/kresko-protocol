@@ -13,7 +13,7 @@ import {ERC20} from "kresko-lib/token/ERC20.sol";
 import {Devnet, ArbitrumDevnet} from "./DevnetConfigs.s.sol";
 import {addr} from "kresko-lib/info/Arbitrum.sol";
 
-contract WithArbitrum is ArbitrumDevnet("MNEMONIC_LOCALNET") {
+contract WithArbitrum is ArbitrumDevnet("MNEMONIC_DEVNET") {
     function run() external broadcastWithMnemonic(0) {
         config();
         kresko = deployDiamond(deployArgs);
@@ -42,6 +42,7 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_LOCALNET") {
 
     function setupProtocol() internal {
         require(address(vkiss) != addr.ZERO, "setup vault+kiss first before protocol");
+
         /* -------------------------------------------------------------------------- */
         /*                                  Externals                                 */
         /* -------------------------------------------------------------------------- */
@@ -98,7 +99,7 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_LOCALNET") {
     }
 }
 
-contract WithLocal is Devnet("MNEMONIC_LOCALNET") {
+contract WithLocal is Devnet("MNEMONIC_DEVNET") {
     function run() external broadcastWithMnemonic(0) {
         config();
         kresko = deployDiamond(deployArgs);

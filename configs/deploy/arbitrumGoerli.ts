@@ -21,6 +21,12 @@ import {
 } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
+const fetchPrice = async (symbol: string) => {
+  if (!process.env.TWELVEDATA_API_KEY) {
+    return toBig(1, 8);
+  }
+  return toBig(await price.twelvedata(symbol), 8);
+};
 export const oracles = {
   ARB: {
     name: 'ARB/USD',
@@ -51,7 +57,7 @@ export const oracles = {
     name: 'ETHUSD',
     description: 'ETH/USD',
     chainlink: '0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08',
-    price: async () => toBig(await price.twelvedata('ETH/USD'), 8),
+    price: async () => fetchPrice('ETH/USD'),
     marketOpen: async () => {
       return true;
     },
@@ -98,7 +104,7 @@ export const assets = {
     symbol: 'WETH',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig(await price.twelvedata('ETH/USD'), 8),
+    getPrice: async () => fetchPrice('ETH/USD'),
     getMarketOpen: async () => true,
     feed: oracles.ETH.chainlink,
     collateralConfig: {
@@ -142,7 +148,7 @@ export const assets = {
     symbol: 'krBTC',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig(await price.twelvedata('BTC/USD'), 8),
+    getPrice: async () => fetchPrice('BTC/USD'),
     getMarketOpen: async () => true,
     feed: oracles.BTC.chainlink,
     krAssetConfig: {
@@ -165,7 +171,7 @@ export const assets = {
     symbol: 'krETH',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig(await price.twelvedata('ETH/USD'), 8),
+    getPrice: async () => fetchPrice('ETH/USD'),
     getMarketOpen: async () => {
       return true;
     },

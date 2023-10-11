@@ -12,6 +12,8 @@ const deploy: DeployFunction = async function (hre) {
 
   const { deployer } = await hre.getNamedAccounts();
 
+  console.log(deployer);
+
   // if (hre.network.live) {
   //     throw new Error("Trying to use local deployment script on live network.");
   // }

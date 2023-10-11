@@ -50,7 +50,7 @@ describe('KreskoAsset', () => {
 
     it('should not allow admin to mint tokens', async function () {
       await KreskoAsset.renounceRole(Role.OPERATOR, this.owner.address);
-      await expect(KreskoAsset.connect(hre.users.admin).mint(this.owner.address, this.mintAmount)).to.be.reverted;
+      await expect(KreskoAsset.connect(this.owner).mint(this.owner.address, this.mintAmount)).to.be.reverted;
     });
   });
 

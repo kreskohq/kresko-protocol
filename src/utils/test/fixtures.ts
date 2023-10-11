@@ -31,13 +31,21 @@ export type SCDPFixture = {
   reset: () => Promise<void>;
   krAssets: TestKrAsset[];
   collaterals: TestExtAsset[];
-  users: [SignerWithAddress, Kresko][];
   usersArr: SignerWithAddress[];
   KrAsset: TestKrAsset;
   KrAsset2: TestKrAsset;
   KISS: TestKrAsset;
   Collateral: TestExtAsset;
   Collateral8Dec: TestExtAsset;
+
+  swapper: SignerWithAddress;
+  depositor: SignerWithAddress;
+  depositor2: SignerWithAddress;
+  liquidator: SignerWithAddress;
+  KreskoSwapper: typeof hre.Diamond;
+  KreskoDepositor: typeof hre.Diamond;
+  KreskoDepositor2: typeof hre.Diamond;
+  KreskoLiquidator: typeof hre.Diamond;
 };
 
 export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtureParams>(async (hre, params) => {
@@ -52,7 +60,7 @@ export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtur
   ]);
   const [KreskoAsset, KreskoAsset2, KISS] = krAssets;
   const [CollateralAsset, CollateralAsset8Dec] = collaterals;
-  const users = [hre.users.testUserFive, hre.users.testUserSix, hre.users.testUserSeven];
+  const users = [hre.users.userTen, hre.users.userEleven, hre.users.userTwelve];
 
   await hre.Diamond.setFeeAssetSCDP(krAssets[2].address);
   for (const user of users) {
@@ -110,11 +118,6 @@ export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtur
     }
   };
 
-  const KreskoSwapper = wrapKresko(hre.Diamond, users[0]);
-  const KreskoDepositor = wrapKresko(hre.Diamond, users[1]);
-  const KreskoDepositor2 = wrapKresko(hre.Diamond, users[2]);
-  const KreskoLiquidator = wrapKresko(hre.Diamond, hre.users.liquidator);
-
   return {
     reset,
     KrAsset: KreskoAsset,
@@ -125,12 +128,14 @@ export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtur
     collaterals,
     krAssets,
     usersArr: users,
-    users: [
-      [users[0], KreskoSwapper],
-      [users[1], KreskoDepositor],
-      [users[2], KreskoDepositor2],
-      [hre.users.liquidator, KreskoLiquidator],
-    ],
+    swapper: users[0],
+    depositor: users[1],
+    depositor2: users[2],
+    liquidator: hre.users.liquidator,
+    KreskoSwapper: wrapKresko(hre.Diamond, users[0]),
+    KreskoDepositor: wrapKresko(hre.Diamond, users[1]),
+    KreskoDepositor2: wrapKresko(hre.Diamond, users[2]),
+    KreskoLiquidator: wrapKresko(hre.Diamond, hre.users.liquidator),
   };
 });
 
@@ -277,7 +282,7 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
     },
     decimals: 21, // more
   });
-  let user = hre.users.testUserSeven;
+  let user = hre.users.userEight;
   const startingBalance = 100;
   await CollateralAsset.setBalance(user, toBig(startingBalance), hre.Diamond.address);
   await CollateralAsset8Dec.setBalance(user, toBig(startingBalance, 8), hre.Diamond.address);
@@ -520,9 +525,9 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     userDeposits: thousand,
   };
   // liquidator
-  await DefaultCollateral.setBalance(hre.users.testUserSix, rebasingAmounts.liquidatorDeposits, hre.Diamond.address);
+  await DefaultCollateral.setBalance(hre.users.userSeven, rebasingAmounts.liquidatorDeposits, hre.Diamond.address);
   await depositCollateral({
-    user: hre.users.testUserSix,
+    user: hre.users.userSeven,
     asset: DefaultCollateral,
     amount: rebasingAmounts.liquidatorDeposits,
   });
@@ -541,15 +546,15 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     amount: toBig(6666.66666),
   });
   // another user
-  await DefaultCollateral.setBalance(hre.users.testUserEight, rebasingAmounts.liquidatorDeposits, hre.Diamond.address);
+  await DefaultCollateral.setBalance(hre.users.userNine, rebasingAmounts.liquidatorDeposits, hre.Diamond.address);
   await depositCollateral({
-    user: hre.users.testUserEight,
+    user: hre.users.userNine,
     asset: DefaultCollateral,
     amount: rebasingAmounts.liquidatorDeposits,
   });
   DefaultKrAsset.setPrice(krAssetPriceRebasing);
   await mintKrAsset({
-    user: hre.users.testUserEight,
+    user: hre.users.userNine,
     asset: DefaultKrAsset,
     amount: toBig(6666.66666),
   });
@@ -576,10 +581,10 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
       [hre.users.userTwo, wrapKresko(hre.Diamond, hre.users.userTwo)], // acc2
       [hre.users.userThree, wrapKresko(hre.Diamond, hre.users.userThree)], // acc3
       [hre.users.userFour, wrapKresko(hre.Diamond, hre.users.userFour)], // acc4
-      [hre.users.testUserEight, wrapKresko(hre.Diamond, hre.users.testUserEight)], // acc5
+      [hre.users.userNine, wrapKresko(hre.Diamond, hre.users.userNine)], // acc5
       [hre.users.liquidator, wrapKresko(hre.Diamond, hre.users.liquidator)], // liq1
       [hre.users.userFive, wrapKresko(hre.Diamond, hre.users.userFive)], // liq2
-      [hre.users.testUserSix, wrapKresko(hre.Diamond, hre.users.testUserSix)], // liq3
+      [hre.users.userSeven, wrapKresko(hre.Diamond, hre.users.userSeven)], // liq3
     ],
     Collateral: DefaultCollateral,
     KrAsset: DefaultKrAsset,

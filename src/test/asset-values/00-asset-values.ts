@@ -10,7 +10,7 @@ describe('Asset Amounts & Values', function () {
   let User: Kresko;
   beforeEach(async function () {
     f = await assetValuesFixture();
-    f.user = hre.users.testUserSeven;
+    f.user = hre.users.userEight;
     User = wrapKresko(hre.Diamond, f.user);
   });
   describe('#Collateral Deposit Values', async () => {

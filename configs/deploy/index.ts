@@ -39,11 +39,9 @@ export const scdpFacets = ['SCDPStateFacet', 'SCDPFacet', 'SCDPConfigFacet', 'SC
 export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
   const users = await hre.getNamedAccounts();
   const Safe = await hre.deployments.getOrNull('GnosisSafeL2');
-  if (!Safe && hre.network.live) throw new Error('GnosisSafe not deployed before initialization');
 
   const multisig = hre.network.live ? users.multisig : !Safe ? ZERO_ADDRESS : Safe.address;
-  const treasury = hre.network.live ? users.treasury : !Safe ? ZERO_ADDRESS : Safe.address;
-  return { admin: users.admin, multisig, treasury, swapFeeRecipient: users.scdpSwapFeeRecipient };
+  return { admin: users.admin, multisig, treasury: users.treasury, swapFeeRecipient: users.treasury };
 };
 
 export const getMinterInitializer = async (hre: HardhatRuntimeEnvironment): Promise<MinterInitializer> => {
@@ -71,12 +69,12 @@ export const getCommonInitializer = async (hre: HardhatRuntimeEnvironment): Prom
   };
 };
 export const getSCDPInitializer = async (hre: HardhatRuntimeEnvironment): Promise<SCDPInitializer> => {
-  const { swapFeeRecipient } = await getDeploymentUsers(hre);
+  const users = await hre.getNamedAccounts();
   return {
     name: 'SCDPConfigFacet',
     args: {
       ...testnetConfigs[hre.network.name].scdpInitArgs,
-      swapFeeRecipient: swapFeeRecipient,
+      swapFeeRecipient: users.treasury,
     },
   };
 };

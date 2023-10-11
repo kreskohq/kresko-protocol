@@ -2,10 +2,10 @@ import { Fragment, FunctionFragment, type JsonFragment } from '@ethersproject/ab
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { providers } from 'ethers';
 import { hardhatUsers } from '@config/hardhat';
-import type { ABI, DeployOptions, Deployment, Facet } from 'hardhat-deploy/dist/types';
+import type { ABI, DeployOptions, Deployment } from 'hardhat-deploy/dist/types';
 import 'hardhat/types/config';
 import 'mocha';
-import { MockERC20 } from './typechain';
+import type { MockERC20 } from './typechain';
 
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
@@ -13,21 +13,6 @@ import { MockERC20 } from './typechain';
 
 declare module 'mocha' {
   export interface Context {
-    /* -------------------------------------------------------------------------- */
-    /*                               Users / Signers                              */
-    /* -------------------------------------------------------------------------- */
-    signers: {
-      deployer: SignerWithAddress;
-      owner: SignerWithAddress;
-      admin: SignerWithAddress;
-      operator?: SignerWithAddress;
-      userOne: SignerWithAddress;
-      userTwo: SignerWithAddress;
-      userThree?: SignerWithAddress;
-      nonadmin?: SignerWithAddress;
-      liquidator?: SignerWithAddress;
-      treasury?: SignerWithAddress;
-    };
     krAssets: TestAsset<KreskoAsset, 'mock'>[];
     collaterals: TestAsset<MockERC20>[];
   }
