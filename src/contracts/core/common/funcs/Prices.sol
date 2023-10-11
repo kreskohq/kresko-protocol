@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
-import {IProxy} from "vendor/IProxy.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
+import {IAPI3} from "kresko-lib/vendor/IAPI3.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Strings} from "libs/Strings.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
@@ -145,7 +145,7 @@ function vaultPrice(address _vaultAddr) view returns (uint256) {
  * @return uint256 Parsed answer from the feed, 0 if its stale.
  */
 function aggregatorV3Price(address _feedAddr, uint256 _oracleTimeout) view returns (uint256) {
-    (, int256 answer, , uint256 updatedAt, ) = AggregatorV3Interface(_feedAddr).latestRoundData();
+    (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_feedAddr).latestRoundData();
     if (answer < 0) {
         revert CError.NEGATIVE_PRICE(_feedAddr, answer);
     }
@@ -162,7 +162,7 @@ function aggregatorV3Price(address _feedAddr, uint256 _oracleTimeout) view retur
  * @return PushPrice Parsed answer and timestamp.
  */
 function aggregatorV3PriceWithTimestamp(address _feedAddr) view returns (PushPrice memory) {
-    (, int256 answer, , uint256 updatedAt, ) = AggregatorV3Interface(_feedAddr).latestRoundData();
+    (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_feedAddr).latestRoundData();
     if (answer < 0) {
         revert CError.NEGATIVE_PRICE(_feedAddr, answer);
     }
@@ -174,12 +174,12 @@ function aggregatorV3PriceWithTimestamp(address _feedAddr) view returns (PushPri
 }
 
 /**
- * @notice Gets answer from IProxy type feed.
+ * @notice Gets answer from IAPI3 type feed.
  * @param _feedAddr The feed address.
  * @return uint256 Parsed answer from the feed, 0 if its stale.
  */
 function API3Price(address _feedAddr) view returns (uint256) {
-    (int256 answer, uint256 updatedAt) = IProxy(_feedAddr).read();
+    (int256 answer, uint256 updatedAt) = IAPI3(_feedAddr).read();
     if (answer < 0) {
         revert CError.NEGATIVE_PRICE(_feedAddr, answer);
     }
@@ -192,12 +192,12 @@ function API3Price(address _feedAddr) view returns (uint256) {
 }
 
 /**
- * @notice Gets answer from IProxy type feed with timestamp.
+ * @notice Gets answer from IAPI3 type feed with timestamp.
  * @param _feedAddr The feed address.
  * @return PushPrice Parsed answer and timestamp.
  */
 function API3PriceWithTimestamp(address _feedAddr) view returns (PushPrice memory) {
-    (int256 answer, uint256 updatedAt) = IProxy(_feedAddr).read();
+    (int256 answer, uint256 updatedAt) = IAPI3(_feedAddr).read();
     if (answer < 0) {
         revert CError.NEGATIVE_PRICE(_feedAddr, answer);
     }

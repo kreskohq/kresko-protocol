@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 
@@ -20,7 +20,7 @@ import {scdp, sdi, SCDPState} from "scdp/State.sol";
 
 using PercentageMath for uint256;
 using PercentageMath for uint16;
-using SafeERC20Permit for IERC20Permit;
+using SafeTransfer for IERC20;
 using WadRay for uint256;
 
 contract SCDPFacet is ISCDPFacet, CModifiers {
@@ -31,7 +31,7 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
         uint256 _amount
     ) external isSCDPDepositAsset(_collateralAsset) nonReentrant {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        IERC20Permit(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Record the collateral deposit.
         scdp().handleDepositSCDP(_account, _collateralAsset, _amount);
@@ -49,7 +49,7 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
         s.checkCollateralValue(s.minCollateralRatio);
 
         // Send out the collateral.
-        IERC20Permit(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);
+        IERC20(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);
 
         // Emit event.
         emit SEvent.SCDPWithdraw(_account, _collateralAsset, collateralOut, feesOut);
@@ -81,7 +81,7 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
         s.assetData[_seizeAssetAddr].swapDeposits -= seizedAmountInternal;
         s.assetData[_seizeAssetAddr].totalDeposits -= seizedAmountInternal;
 
-        IERC20Permit(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
+        IERC20(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
         // solhint-disable-next-line avoid-tx-origin
         emit SEvent.SCDPRepay(tx.origin, _repayAssetAddr, _repayAmount, _seizeAssetAddr, seizedAmount);
     }
@@ -144,7 +144,7 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
         s.assetData[_repayAssetAddr].debt -= burnSCDP(krAsset, _repayAmount, msg.sender);
         s.handleSeizeSCDP(_seizeAssetAddr, seizeAsset, seizedAmount);
 
-        IERC20Permit(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
+        IERC20(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
 
         emit SEvent.SCDPLiquidationOccured(
             // solhint-disable-next-line avoid-tx-origin

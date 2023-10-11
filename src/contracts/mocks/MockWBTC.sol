@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
 
-import {WETH9} from "vendor/WETH9.sol";
+import {WETH9} from "kresko-lib/vendor/WETH9.sol";
 
 contract MockWBTC is WETH9 {
     mapping(address => bool) public minters;

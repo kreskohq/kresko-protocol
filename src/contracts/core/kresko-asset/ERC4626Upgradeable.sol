@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
 
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
+import {IERC20Permit} from "kresko-lib/token/IERC20Permit.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+import {ERC20Upgradeable} from "kresko-lib/token/ERC20Upgradeable.sol";
+
+import {FixedPointMath} from "libs/FixedPointMath.sol";
 import {CError} from "common/CError.sol";
 
 import {IKreskoAsset} from "./IKreskoAsset.sol";
@@ -20,8 +21,8 @@ import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
 /// @author Kresko (https://www.kresko.fi)
 abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
-    using SafeERC20Permit for IKreskoAsset;
-    using FixedPointMathLib for uint256;
+    using SafeTransfer for IKreskoAsset;
+    using FixedPointMath for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                   Events                                   */

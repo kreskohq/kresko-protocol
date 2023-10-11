@@ -2,8 +2,8 @@
 
 pragma solidity >=0.8.21;
 
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
@@ -25,7 +25,7 @@ import {handleMinterFee} from "minter/funcs/Fees.sol";
 
 using Arrays for address[];
 using WadRay for uint256;
-using SafeERC20Permit for IERC20Permit;
+using SafeTransfer for IERC20;
 using PercentageMath for uint256;
 using PercentageMath for uint16;
 
@@ -54,11 +54,11 @@ contract LiquidationFacet is CModifiers, ILiquidationFacet {
         // No zero repays
         if (_repayAmount == 0) revert CError.ZERO_REPAY(_repayAssetAddr);
         // Borrower cannot liquidate themselves
-        else if (msg.sender == _account) revert CError.SELF_LIQUIDATION();
+        if (msg.sender == _account) revert CError.SELF_LIQUIDATION();
         // krAsset exists
-        else if (!krAsset.isKrAsset) revert CError.KRASSET_DOES_NOT_EXIST(_repayAssetAddr);
+        if (!krAsset.isKrAsset) revert CError.KRASSET_DOES_NOT_EXIST(_repayAssetAddr);
         // Collateral exists
-        else if (!collateral.isCollateral) revert CError.COLLATERAL_DOES_NOT_EXIST(_seizeAssetAddr);
+        if (!collateral.isCollateral) revert CError.COLLATERAL_DOES_NOT_EXIST(_seizeAssetAddr);
         // The obvious
         s.checkAccountLiquidatable(_account);
 
@@ -83,7 +83,7 @@ contract LiquidationFacet is CModifiers, ILiquidationFacet {
         uint256 seizedAmount = _liquidateAssets(collateral, krAsset, params);
 
         // Send liquidator the seized collateral.
-        IERC20Permit(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
+        IERC20(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
 
         emit MEvent.LiquidationOccurred(
             _account,

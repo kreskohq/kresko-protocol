@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {mintSCDP, burnSCDP} from "common/funcs/Actions.sol";
 import {Asset} from "common/Types.sol";
@@ -12,7 +12,7 @@ import {SCDPAssetData} from "scdp/Types.sol";
 
 library Swap {
     using WadRay for uint256;
-    using SafeERC20Permit for IERC20Permit;
+    using SafeTransfer for IERC20;
 
     /**
      * @notice Records the assets received from account in a swap.
@@ -122,7 +122,7 @@ library Swap {
             }
             if (_assetsTo != address(this)) {
                 // 3. Transfer collateral to receiver if it is not this contract.
-                IERC20Permit(_assetOutAddr).safeTransfer(_assetsTo, collateralOut);
+                IERC20(_assetOutAddr).safeTransfer(_assetsTo, collateralOut);
             }
         }
 

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
@@ -15,7 +15,7 @@ import {MinterFee} from "minter/Types.sol";
 import {MEvent} from "minter/Events.sol";
 
 using WadRay for uint256;
-using SafeERC20Permit for IERC20Permit;
+using SafeTransfer for IERC20;
 using PercentageMath for uint256;
 using Arrays for address[];
 
@@ -64,7 +64,7 @@ function handleMinterFee(address _account, Asset storage _krAsset, uint256 _mint
         ms().collateralDeposits[_account][collateralAddr] -= collateral.toNonRebasingAmount(transferAmount);
 
         // Transfer the fee to the feeRecipient.
-        IERC20Permit(collateralAddr).safeTransfer(cs().feeRecipient, transferAmount);
+        IERC20(collateralAddr).safeTransfer(cs().feeRecipient, transferAmount);
 
         emit MEvent.FeePaid(_account, collateralAddr, uint8(_feeType), transferAmount, feeValuePaid, feeValue);
         feeValue = feeValue - feeValuePaid;

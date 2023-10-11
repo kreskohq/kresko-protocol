@@ -18,9 +18,7 @@ library DCore {
     /// @notice Ownership initializer
     /// @notice Only called on the first deployment
     function initialize(DiamondState storage self, address _owner) internal {
-        if (self.initialized) {
-            revert CError.ALREADY_INITIALIZED();
-        }
+        if (self.initialized) revert CError.ALREADY_INITIALIZED();
 
         self.initialized = true;
         self.storageVersion++;
@@ -42,7 +40,7 @@ library DCore {
      */
     function initiateOwnershipTransfer(DiamondState storage self, address _newOwner) internal {
         if (Meta.msgSender() != self.contractOwner) revert CError.NOT_OWNER(Meta.msgSender(), self.contractOwner);
-        else if (_newOwner == address(0)) revert CError.ZERO_ADDRESS();
+        if (_newOwner == address(0)) revert CError.ZERO_ADDRESS();
 
         self.pendingOwner = _newOwner;
 

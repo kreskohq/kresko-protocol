@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
 import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
 import {AssetData, UserData, GlobalData} from "scdp/Types.sol";
 import {scdp, sdi} from "scdp/State.sol";
@@ -244,7 +244,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
                 debtValue: debtValue,
                 debtValueAdjusted: debtValueAdjusted,
                 swapDeposits: isCollateral ? scdp().swapDepositAmount(_asset, asset) : 0,
-                symbol: IERC20Permit(_asset).symbol()
+                symbol: IERC20(_asset).symbol()
             });
     }
 

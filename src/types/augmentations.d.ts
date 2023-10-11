@@ -5,6 +5,7 @@ import { hardhatUsers } from '@config/hardhat';
 import type { ABI, DeployOptions, Deployment, Facet } from 'hardhat-deploy/dist/types';
 import 'hardhat/types/config';
 import 'mocha';
+import { MockERC20 } from './typechain';
 
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
@@ -28,7 +29,7 @@ declare module 'mocha' {
       treasury?: SignerWithAddress;
     };
     krAssets: TestAsset<KreskoAsset, 'mock'>[];
-    collaterals: TestAsset<ERC20Upgradeable>[];
+    collaterals: TestAsset<MockERC20>[];
   }
 }
 export {};
@@ -95,14 +96,14 @@ declare module 'hardhat/types/runtime' {
     /* -------------------------------------------------------------------------- */
 
     krAssets: TestAsset<KreskoAsset, 'mock'>[];
-    extAssets: TestAsset<ERC20Upgradeable, 'mock'>[];
+    extAssets: TestAsset<MockERC20, 'mock'>[];
     facets: { name: string; address: string; functions: number }[];
 
     /* -------------------------------------------------------------------------- */
     /*                             Misc / Deprecating                             */
     /* -------------------------------------------------------------------------- */
 
-    allAssets: TestAsset<ERC20Upgradeable | KreskoAsset, any>[];
+    allAssets: TestAsset<MockERC20 | KreskoAsset, any>[];
 
     DiamondDeployment: Deployment;
     Diamond: TC['Kresko'];

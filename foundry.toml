@@ -23,10 +23,10 @@ remappings = [
     "mocks/=src/contracts/core/test/mocks",
     "periphery/=src/contracts/periphery/",
     'kresko-asset/=src/contracts/core/kresko-asset/',
-    'kresko-helpers/=lib/kresko-foundry-helpers/src/',
-    '@openzeppelin/=lib/openzeppelin-contracts/',
-    '@oz-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/',
-    '@oz/=lib/openzeppelin-contracts/contracts/',
+    'kresko-lib/=lib/kresko-foundry-helpers/src/',
+    '@openzeppelin/=lib/kresko-foundry-helpers/lib/openzeppelin-contracts/',
+    '@oz-upgradeable/=lib/kresko-foundry-helpers/libopenzeppelin-contracts-upgradeable/contracts/',
+    '@oz/=lib/kresko-foundry-helpers/lib/openzeppelin-contracts/contracts/',
 ]
 evm_version = 'paris'
 via_ir = false

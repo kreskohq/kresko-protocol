@@ -7,15 +7,13 @@ pragma solidity ^0.8.0;
 // solhint-disable state-visibility
 
 import {KreskoForgeUtils} from "../utils/KreskoForgeUtils.s.sol";
-import {ScriptBase} from "kresko-helpers/utils/ScriptBase.sol";
-import {WETH9} from "vendor/WETH9.sol";
+import {ScriptBase} from "kresko-lib/utils/ScriptBase.sol";
+import {WETH9} from "kresko-lib/vendor/WETH9.sol";
 import {VaultAsset} from "vault/Types.sol";
-import {ERC20} from "vendor/ERC20.sol";
-import "kresko-helpers/info/Arbitrum.sol" as Arb;
+import {ERC20} from "kresko-lib/token/ERC20.sol";
+import {addr, tokens, cl} from "kresko-lib/info/Arbitrum.sol";
 
 abstract contract DevnetBase is ScriptBase, KreskoForgeUtils {
-    constructor(string memory _mnemonicId) ScriptBase(_mnemonicId) {}
-
     TestUserConfig[] internal users;
     WETH9 internal weth9;
     KISSConfig internal kissConfig;
@@ -46,6 +44,20 @@ abstract contract DevnetBase is ScriptBase, KreskoForgeUtils {
         users.push(defaultTestUser(getAddr(4), 4));
         users.push(defaultTestUser(getAddr(5), 5));
     }
+
+    function defaultTestUser(address who, uint32 i) internal returns (TestUserConfig memory) {
+        return
+            TestUserConfig({
+                addr: who,
+                idx: i,
+                daiBalance: 10000e18,
+                usdcBalance: 1000e18,
+                usdtBalance: 800e6,
+                wethBalance: 2.5e18
+            });
+    }
+
+    constructor(string memory _mnemonicId) ScriptBase(_mnemonicId) {}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -53,23 +65,21 @@ abstract contract DevnetBase is ScriptBase, KreskoForgeUtils {
 /* -------------------------------------------------------------------------- */
 
 abstract contract ArbitrumDevnet is DevnetBase {
-    constructor(string memory _mnemonicId) DevnetBase(_mnemonicId) {}
-
     KrDeployExtended internal krETH;
     KrDeployExtended internal krBTC;
     KrDeployExtended internal krJPY;
 
-    address[2] internal BTC_FEEDS = [address(0), address(Arb.addr.CL_BTC)];
-    address[2] internal DAI_FEEDS = [address(0), address(Address.CL_DAI)];
-    address[2] internal ETH_FEEDS = [address(0), address(Address.CL_ETH)];
-    address[2] internal JPY_FEEDS = [address(0), address(Address.CL_JPY)];
-    address[2] internal USDC_FEEDS = [address(0), address(Address.CL_USDC)];
-    address[2] internal USDT_FEEDS = [address(0), address(Address.CL_USDT)];
+    address[2] internal BTC_FEEDS = [addr.ZERO, addr.CL_BTC];
+    address[2] internal DAI_FEEDS = [addr.ZERO, addr.CL_DAI];
+    address[2] internal ETH_FEEDS = [addr.ZERO, addr.CL_ETH];
+    address[2] internal JPY_FEEDS = [addr.ZERO, addr.CL_JPY];
+    address[2] internal USDC_FEEDS = [addr.ZERO, addr.CL_USDC];
+    address[2] internal USDT_FEEDS = [addr.ZERO, addr.CL_USDT];
 
     VaultAsset internal USDC_VAULT_CONFIG =
         VaultAsset({
-            token: ERC20(Address.USDC),
-            oracle: Address.CL_USDC,
+            token: tokens.USDC,
+            oracle: cl.USDC,
             oracleTimeout: 86401,
             decimals: 0,
             depositFee: 0,
@@ -80,8 +90,8 @@ abstract contract ArbitrumDevnet is DevnetBase {
 
     VaultAsset internal USDT_VAULT_CONFIG =
         VaultAsset({
-            token: ERC20(Address.USDT),
-            oracle: Address.CL_USDT,
+            token: ERC20(addr.USDT),
+            oracle: cl.USDT,
             oracleTimeout: 86401,
             decimals: 0,
             depositFee: 0,
@@ -92,8 +102,8 @@ abstract contract ArbitrumDevnet is DevnetBase {
 
     VaultAsset internal DAI_VAULT_CONFIG =
         VaultAsset({
-            token: ERC20(Address.DAI),
-            oracle: Address.CL_DAI,
+            token: ERC20(addr.DAI),
+            oracle: cl.DAI,
             oracleTimeout: 86401,
             decimals: 0,
             depositFee: 0,
@@ -116,7 +126,7 @@ abstract contract ArbitrumDevnet is DevnetBase {
         address treasury = getAddr(10);
         deployArgs = DeployArgs({
             admin: admin_,
-            seqFeed: Address.CL_SEQ,
+            seqFeed: addr.CL_SEQ_UPTIME,
             oracleTimeout: 86401,
             minterMcr: 150e2,
             minterLt: 140e2,
@@ -128,6 +138,8 @@ abstract contract ArbitrumDevnet is DevnetBase {
             treasury: treasury
         });
     }
+
+    constructor(string memory _mnemonicId) DevnetBase(_mnemonicId) {}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -135,8 +147,6 @@ abstract contract ArbitrumDevnet is DevnetBase {
 /* -------------------------------------------------------------------------- */
 
 abstract contract Devnet is DevnetBase {
-    constructor(string memory _mnemonicId) LocalDeployBase(_mnemonicId) {}
-
     // symbol:price:decimals
     string internal daiPrice = "DAI:1:8";
     string internal usdcPrice = "USDC:1:8";
@@ -171,20 +181,6 @@ abstract contract Devnet is DevnetBase {
     KrDeployExtended internal krETH;
     KrDeployExtended internal krBTC;
     KrDeployExtended internal krJPY;
-}
 
-/* -------------------------------------------------------------------------- */
-/*                                    util                                    */
-/* -------------------------------------------------------------------------- */
-
-function defaultTestUser(address who, uint32 i) returns (TestUserConfig memory) {
-    return
-        TestUserConfig({
-            addr: who,
-            idx: i,
-            daiBalance: 10000e18,
-            usdcBalance: 1000e18,
-            usdtBalance: 800e6,
-            wethBalance: 2.5e18
-        });
+    constructor(string memory _mnemonicId) DevnetBase(_mnemonicId) {}
 }

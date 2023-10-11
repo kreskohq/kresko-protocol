@@ -1,6 +1,6 @@
 pragma solidity >=0.8.21;
-import {FacetScript} from "kresko-helpers/utils/Diamond.sol";
-import {RedstoneScript} from "kresko-helpers/utils/Redstone.sol";
+import {FacetScript} from "kresko-lib/utils/Diamond.sol";
+import {RedstoneScript} from "kresko-lib/utils/Redstone.sol";
 import {CommonInitArgs} from "common/Types.sol";
 import {MinterInitArgs} from "minter/Types.sol";
 import {IKreskoForgeTypes} from "./IKreskoForgeTypes.sol";

@@ -13,18 +13,10 @@ library CError {
     error DIAMOND_INCORRECT_FACET_CUT_ACTION();
     error DIAMOND_REMOVE_FUNCTIONS_NONZERO_FACET_ADDRESS(address);
     error DIAMOND_NO_FACET_SELECTORS(address);
-    error ETH_TRANSFER_FAILED(address, uint256);
-    error TRANSFER_FAILED(address, address, address, uint256);
-    error INVALID_SIGNER(address, address);
-    error APPROVE_FAILED(address, address, address, uint256);
-    error PERMIT_DEADLINE_EXPIRED(address, address, uint256, uint256);
-    error SAFE_ERC20_PERMIT_ERC20_OPERATION_FAILED(address);
-    error SAFE_ERC20_PERMIT_APPROVE_NON_ZERO(address, uint256, uint256);
     error DIAMOND_REMOVE_FUNCTION_FACET_IS_ZERO();
     error DIAMOND_REPLACE_FUNCTION_DUPLICATE();
     error STRING_HEX_LENGTH_INSUFFICIENT();
     error ALREADY_INITIALIZED();
-    error SAFE_ERC20_PERMIT_DECREASE_BELOW_ZERO(address, uint256, uint256);
     error INVALID_SENDER(address, address);
     error NOT_OWNER(address who, address owner);
     error NOT_PENDING_OWNER(address who, address pendingOwner);

@@ -8,6 +8,7 @@ import { TASK_ADD_ASSET } from './names';
 import { testKrAssetConfig } from '@utils/test/mocks';
 import { redstoneMap } from '@utils/redstone';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { MockERC20 } from '@/types/typechain';
 type AddAssetArgs = {
   address: string;
   assetConfig: AssetArgs;
@@ -44,7 +45,7 @@ task(TASK_ADD_ASSET)
     const Asset =
       config.krAssetConfig || config.scdpKrAssetConfig
         ? await hre.getContractOrFork('KreskoAsset', config.symbol)
-        : await hre.ethers.getContractAt('ERC20Upgradeable', address);
+        : await hre.ethers.getContractAt('MockERC20', address);
 
     const assetInfo = await Kresko.getAsset(Asset.address);
     const exists = assetInfo.decimals != 0;
@@ -107,14 +108,12 @@ task(TASK_ADD_ASSET)
         hre.krAssets.push(asset as TestAsset<KreskoAsset, any>);
       }
       if (config.collateralConfig?.cFactor) {
-        hre.extAssets.push(asset as TestAsset<ERC20Upgradeable, any>);
+        hre.extAssets.push(asset as TestAsset<MockERC20, any>);
       }
       hre.allAssets.push(asset as TestAsset<typeof Asset>);
     } else {
       hre.krAssets = hre.krAssets.map(c => (c.address === asset.address ? (asset as TestAsset<KreskoAsset, any>) : c));
-      hre.extAssets = hre.extAssets.map(c =>
-        c.address === asset.address ? (asset as TestAsset<ERC20Upgradeable, any>) : c,
-      );
+      hre.extAssets = hre.extAssets.map(c => (c.address === asset.address ? (asset as TestAsset<MockERC20, any>) : c));
       hre.allAssets = hre.allAssets.map(c => (c.address === asset.address ? asset : c));
     }
     return asset;

@@ -12,7 +12,7 @@ import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {KreskoForgeBase} from "scripts/utils/KreskoForgeBase.s.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
-import {LibSafe, GnosisSafeL2Mock} from "kresko-helpers/mocks/MockSafe.sol";
+import {LibSafe, GnosisSafeL2Mock} from "kresko-lib/mocks/MockSafe.sol";
 
 abstract contract ConfigurationUtils is KreskoForgeBase {
     OracleType[2] internal ORACLES_RS_CL = [OracleType.Redstone, OracleType.Chainlink];

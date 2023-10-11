@@ -1,18 +1,22 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
-import {ERC20} from "vendor/ERC20.sol";
-import {SafeERC20} from "vendor/SafeERC20.sol";
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {ERC20} from "kresko-lib/token/ERC20.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+
+import {Arrays} from "libs/Arrays.sol";
+import {FixedPointMath} from "libs/FixedPointMath.sol";
+
+import {CError} from "common/CError.sol";
+import {Percents} from "common/Constants.sol";
+import {isSequencerUp} from "common/funcs/Utils.sol";
+
+import {VEvent} from "vault/Events.sol";
 import {VAssets} from "vault/funcs/Assets.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
 import {VaultAsset, VaultConfiguration} from "vault/Types.sol";
-import {VEvent} from "vault/Events.sol";
-import {CError} from "common/CError.sol";
-import {Arrays} from "libs/Arrays.sol";
-import {Percents} from "common/Constants.sol";
-import {isSequencerUp} from "common/funcs/Utils.sol";
 
 /**
  * @title Vault - A multiple deposit token vault.
@@ -23,8 +27,8 @@ import {isSequencerUp} from "common/funcs/Utils.sol";
  * @notice Price or exchange rate of SHARE/USD is determined by the total value of the underlying tokens in the vault and the share supply.
  */
 contract Vault is IVault, ERC20 {
-    using SafeERC20 for ERC20;
-    using FixedPointMathLib for uint256;
+    using SafeTransfer for IERC20;
+    using FixedPointMath for uint256;
     using VAssets for uint256;
     using VAssets for VaultAsset;
     using Arrays for address[];
@@ -71,8 +75,8 @@ contract Vault is IVault, ERC20 {
         uint256 depositLimit = maxDeposit(assetAddr);
 
         if (assetsIn > depositLimit) revert CError.MAX_DEPOSIT_EXCEEDED(assetAddr, assetsIn, depositLimit);
-        else if (sharesOut == 0) revert CError.INVALID_DEPOSIT(assetAddr, assetsIn, sharesOut);
-        else if (assetsIn == 0) revert CError.INVALID_DEPOSIT(assetAddr, assetsIn, sharesOut);
+        if (sharesOut == 0) revert CError.INVALID_DEPOSIT(assetAddr, assetsIn, sharesOut);
+        if (assetsIn == 0) revert CError.INVALID_DEPOSIT(assetAddr, assetsIn, sharesOut);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -89,7 +93,7 @@ contract Vault is IVault, ERC20 {
 
         _checkAssetsIn(assetAddr, assetsIn, sharesOut);
 
-        ERC20 token = ERC20(assetAddr);
+        IERC20 token = IERC20(assetAddr);
 
         token.safeTransferFrom(msg.sender, address(this), assetsIn);
 
@@ -110,7 +114,7 @@ contract Vault is IVault, ERC20 {
 
         _checkAssetsIn(assetAddr, assetsIn, sharesOut);
 
-        ERC20 token = ERC20(assetAddr);
+        IERC20 token = IERC20(assetAddr);
 
         token.safeTransferFrom(msg.sender, address(this), assetsIn);
 
@@ -130,17 +134,15 @@ contract Vault is IVault, ERC20 {
     ) public virtual check(assetAddr) returns (uint256 assetsOut, uint256 assetFee) {
         (assetsOut, assetFee) = previewRedeem(assetAddr, sharesIn);
 
-        if (assetsOut == 0) {
-            revert CError.INVALID_WITHDRAW(assetAddr, sharesIn, assetsOut);
-        }
+        if (assetsOut == 0) revert CError.INVALID_WITHDRAW(assetAddr, sharesIn, assetsOut);
 
         if (msg.sender != owner) {
-            uint256 allowed = allowance[owner][msg.sender]; // Saves gas for limited approvals.
+            uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
 
-            if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - sharesIn;
+            if (allowed != type(uint256).max) _allowances[owner][msg.sender] = allowed - sharesIn;
         }
 
-        ERC20 token = ERC20(assetAddr);
+        IERC20 token = IERC20(assetAddr);
 
         uint256 balance = token.balanceOf(address(this));
 
@@ -171,12 +173,12 @@ contract Vault is IVault, ERC20 {
         if (sharesIn == 0) revert CError.INVALID_WITHDRAW(assetAddr, sharesIn, assetsOut);
 
         if (msg.sender != owner) {
-            uint256 allowed = allowance[owner][msg.sender]; // Saves gas for limited approvals.
+            uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
 
-            if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - sharesIn;
+            if (allowed != type(uint256).max) _allowances[owner][msg.sender] = allowed - sharesIn;
         }
 
-        ERC20 token = ERC20(assetAddr);
+        IERC20 token = IERC20(assetAddr);
 
         if (assetFee > 0) token.safeTransfer(_config.feeRecipient, assetFee);
 
@@ -285,14 +287,14 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function maxRedeem(address assetAddr, address owner) public view virtual returns (uint256 max) {
-        (uint256 assetsOut, uint256 fee) = previewRedeem(assetAddr, balanceOf[owner]);
-        uint256 balance = ERC20(assetAddr).balanceOf(address(this));
+        (uint256 assetsOut, uint256 fee) = previewRedeem(assetAddr, _balances[owner]);
+        uint256 balance = IERC20(assetAddr).balanceOf(address(this));
 
         if (assetsOut + fee > balance) {
             assetsOut = balance;
             (max, ) = previewWithdraw(assetAddr, assetsOut);
         } else {
-            return balanceOf[owner];
+            return _balances[owner];
         }
     }
 
@@ -308,7 +310,7 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function maxMint(address assetAddr, address user) public view virtual returns (uint256 max) {
-        uint256 balance = ERC20(assetAddr).balanceOf(user);
+        uint256 balance = IERC20(assetAddr).balanceOf(user);
         uint256 depositLimit = maxDeposit(assetAddr);
         if (balance > depositLimit) {
             (max, ) = previewDeposit(assetAddr, depositLimit);
@@ -368,7 +370,7 @@ contract Vault is IVault, ERC20 {
     function setOracle(address assetAddr, address oracle, uint24 timeout) external onlyGovernance {
         bool deleted = oracle == address(0);
 
-        _assets[assetAddr].oracle = AggregatorV3Interface(oracle);
+        _assets[assetAddr].oracle = IAggregatorV3(oracle);
         _assets[assetAddr].oracleTimeout = timeout;
         uint256 price = deleted ? 0 : _assets[assetAddr].price(_config);
         if (price == 0 && !deleted) revert CError.ZERO_OR_STALE_PRICE(_assets[assetAddr].token.symbol());

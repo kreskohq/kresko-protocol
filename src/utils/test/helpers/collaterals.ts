@@ -1,31 +1,28 @@
-import { FakeContract, MockContract, smock } from '@defi-wonderland/smock';
-import { wrapKresko } from '@utils/redstone';
 import { AssetArgs } from '@/types';
-import { ERC20Upgradeable__factory, MockOracle } from '@/types/typechain';
+import { MockERC20, MockERC20__factory, MockOracle } from '@/types/typechain';
+import { FakeContract, MockContract, smock } from '@defi-wonderland/smock';
+import { envCheck } from '@utils/env';
+import { wrapKresko } from '@utils/redstone';
+import { toBig } from '@utils/values';
 import { InputArgs, testCollateralConfig } from '../mocks';
 import { getAssetConfig } from './general';
 import optimized from './optimizations';
 import { getFakeOracle, setPrice } from './oracle';
 import { getBalanceCollateralFunc, setBalanceCollateralFunc } from './smock';
-import { envCheck } from '@utils/env';
-import { toBig } from '@utils/values';
 
 envCheck();
 
-export const addMockExtAsset = async (args = testCollateralConfig): Promise<TestAsset<ERC20Upgradeable, 'mock'>> => {
+export const addMockExtAsset = async (args = testCollateralConfig): Promise<TestAsset<MockERC20, 'mock'>> => {
   const { deployer } = await hre.ethers.getNamedSigners();
   const { name, price, symbol, decimals } = args;
-  const [fakeFeed, contract]: [FakeContract<MockOracle>, MockContract<ERC20Upgradeable>] = await Promise.all([
+  const [fakeFeed, contract]: [FakeContract<MockOracle>, MockContract<MockERC20>] = await Promise.all([
     getFakeOracle(price),
-    (await smock.mock<ERC20Upgradeable__factory>('ERC20Upgradeable')).deploy(),
+    (await smock.mock<MockERC20__factory>('MockERC20')).deploy(name ?? symbol, symbol, decimals ?? 18, 0), //shh
   ]);
 
-  contract.name.returns(name);
-  contract.symbol.returns(symbol);
-  contract.decimals.returns(decimals);
   const config = await getAssetConfig(contract, { ...args, feed: fakeFeed.address });
   await wrapKresko(hre.Diamond, deployer).addAsset(contract.address, config.assetStruct, config.feedConfig, true);
-  const asset: TestAsset<ERC20Upgradeable, 'mock'> = {
+  const asset: TestAsset<MockERC20, 'mock'> = {
     underlyingId: args.underlyingId,
     anchor: null,
     address: contract.address,

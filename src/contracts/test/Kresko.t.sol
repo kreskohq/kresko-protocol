@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {console} from "forge-std/Test.sol";
-import {LibTest} from "kresko-helpers/utils/LibTest.sol";
-import {TestBase} from "kresko-helpers/utils/TestBase.sol";
+import {LibTest} from "kresko-lib/utils/LibTest.sol";
+import {TestBase} from "kresko-lib/utils/TestBase.sol";
 import {Strings} from "libs/Strings.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";

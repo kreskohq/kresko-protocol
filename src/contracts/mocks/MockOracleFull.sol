@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
 
-import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
+import {IAggregatorV3} from "vendor/IAggregatorV3.sol";
 
-contract MockAggregatorV3 is AggregatorV3Interface {
+contract MockAggregatorV3 is IAggregatorV3 {
     // Transmission records the answer from the transmit transaction at
     // time timestamp
     struct Transmission {

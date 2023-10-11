@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
+import {ERC20} from "kresko-lib/token/ERC20.sol";
 import {Test} from "forge-std/Test.sol";
 import {VaultAsset} from "vault/Types.sol";
 import {Vault} from "vault/Vault.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
-import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 import {MockERC20, USDC, USDT, DAI} from "mocks/MockERC20.sol";
-import {ERC20} from "vendor/ERC20.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 
 // solhint-disable private-vars-leading-underscore
@@ -65,13 +65,11 @@ contract vKISSTest is Test {
 
         // add assets
         vkiss.addAsset(
-            VaultAsset(ERC20(usdcAddr), AggregatorV3Interface(address(usdcOracle)), 80000, 0, 0, 0, type(uint248).max, true)
+            VaultAsset(ERC20(usdcAddr), IAggregatorV3(address(usdcOracle)), 80000, 0, 0, 0, type(uint248).max, true)
         );
+        vkiss.addAsset(VaultAsset(ERC20(daiAddr), IAggregatorV3(address(daiOracle)), 80000, 0, 0, 0, type(uint248).max, true));
         vkiss.addAsset(
-            VaultAsset(ERC20(daiAddr), AggregatorV3Interface(address(daiOracle)), 80000, 0, 0, 0, type(uint248).max, true)
-        );
-        vkiss.addAsset(
-            VaultAsset(ERC20(usdtAddr), AggregatorV3Interface(address(usdtOracle)), 80000, 0, 0, 0, type(uint248).max, true)
+            VaultAsset(ERC20(usdtAddr), IAggregatorV3(address(usdtOracle)), 80000, 0, 0, 0, type(uint248).max, true)
         );
         vm.stopPrank();
 

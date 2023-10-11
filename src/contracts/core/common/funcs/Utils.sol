@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 
 /**
  * @notice Checks if the L2 sequencer is up.
@@ -13,7 +13,7 @@ import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
 function isSequencerUp(address _uptimeFeed, uint256 _gracePeriod) view returns (bool) {
     bool up = true;
     if (_uptimeFeed != address(0)) {
-        (, int256 answer, uint256 startedAt, , ) = AggregatorV3Interface(_uptimeFeed).latestRoundData();
+        (, int256 answer, uint256 startedAt, , ) = IAggregatorV3(_uptimeFeed).latestRoundData();
 
         up = answer == 0;
         if (!up) {

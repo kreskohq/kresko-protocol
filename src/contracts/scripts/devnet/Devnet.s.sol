@@ -4,13 +4,14 @@ pragma solidity ^0.8.13;
 // solhint-disable max-states-count
 // solhint-disable no-global-import
 
-import {WETH9} from "vendor/WETH9.sol";
+import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {Vault} from "vault/Vault.sol";
 import {KISS} from "kiss/KISS.sol";
 import {VaultAsset} from "vault/Types.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
-import {ERC20} from "vendor/ERC20.sol";
+import {ERC20} from "kresko-lib/token/ERC20.sol";
 import {Devnet, ArbitrumDevnet} from "./DevnetConfigs.s.sol";
+import {addr} from "kresko-lib/info/Arbitrum.sol";
 
 contract WithArbitrum is ArbitrumDevnet("MNEMONIC_LOCALNET") {
     function run() external broadcastWithMnemonic(0) {
@@ -22,10 +23,10 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_LOCALNET") {
     }
 
     function setupVault() internal {
-        require(address(kresko) != address(0), "deploy diamond before vault");
-        require(deployArgs.seqFeed != address(0), "deploy sequencer uptime feed before vault");
-        require(deployArgs.admin != address(0), "some admin address should be set");
-        require(deployArgs.treasury != address(0), "some treasury address should be set");
+        require(address(kresko) != addr.ZERO, "deploy diamond before vault");
+        require(deployArgs.seqFeed != addr.ZERO, "deploy sequencer uptime feed before vault");
+        require(deployArgs.admin != addr.ZERO, "some admin address should be set");
+        require(deployArgs.treasury != addr.ZERO, "some treasury address should be set");
 
         vkiss = new Vault("vKISS", "vKISS", 18, 8, deployArgs.treasury, address(deployArgs.seqFeed));
         kiss = new KISS();
@@ -33,25 +34,22 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_LOCALNET") {
     }
 
     function setupVaultAssets() internal {
-        require(DAI_ADDR != address(0), "dai");
-        require(USDC_ADDR != address(0), "usdc");
-        require(USDT_ADDR != address(0), "usdt");
-        require(address(vkiss) != address(0), "setup vault+diamond before these vault assets");
+        require(address(vkiss) != addr.ZERO, "setup vault+diamond before these vault assets");
         vkiss.addAsset(USDC_VAULT_CONFIG);
         vkiss.addAsset(USDT_VAULT_CONFIG);
         vkiss.addAsset(DAI_VAULT_CONFIG);
     }
 
     function setupProtocol() internal {
-        require(address(vkiss) != address(0), "setup vault+kiss first before protocol");
+        require(address(vkiss) != addr.ZERO, "setup vault+kiss first before protocol");
         /* -------------------------------------------------------------------------- */
         /*                                  Externals                                 */
         /* -------------------------------------------------------------------------- */
-        addCollateral(bytes12("ETH"), WETH_ADDR, true, ORACLES_RS_CL, ETH_FEEDS, defaultCollateral);
-        addCollateral(bytes12("BTC"), WBTC_ADDR, true, ORACLES_RS_CL, BTC_FEEDS, defaultCollateral);
-        addCollateral(bytes12("DAI"), DAI_ADDR, true, ORACLES_RS_CL, DAI_FEEDS, defaultCollateral);
-        addCollateral(bytes12("USDC"), USDC_ADDR, true, ORACLES_RS_CL, USDC_FEEDS, defaultCollateral);
-        addCollateral(bytes12("USDT"), USDT_ADDR, true, ORACLES_RS_CL, USDT_FEEDS, defaultCollateral);
+        addCollateral(bytes12("ETH"), addr.WETH, true, ORACLES_RS_CL, ETH_FEEDS, defaultCollateral);
+        addCollateral(bytes12("BTC"), addr.WBTC, true, ORACLES_RS_CL, BTC_FEEDS, defaultCollateral);
+        addCollateral(bytes12("DAI"), addr.DAI, true, ORACLES_RS_CL, DAI_FEEDS, defaultCollateral);
+        addCollateral(bytes12("USDC"), addr.USDC, true, ORACLES_RS_CL, USDC_FEEDS, defaultCollateral);
+        addCollateral(bytes12("USDT"), addr.USDT, true, ORACLES_RS_CL, USDT_FEEDS, defaultCollateral);
 
         /* -------------------------------------------------------------------------- */
         /*                                    KISS                                    */
@@ -68,7 +66,7 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_LOCALNET") {
             false,
             ORACLES_RS_CL,
             ETH_FEEDS,
-            deployKrAsset("Kresko Asset: Ether", "krETH", WETH_ADDR, deployArgs.admin, deployArgs.treasury),
+            deployKrAsset("Kresko Asset: Ether", "krETH", addr.WETH, deployArgs.admin, deployArgs.treasury),
             defaultKrAsset
         );
 
@@ -77,7 +75,7 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_LOCALNET") {
             false,
             ORACLES_RS_CL,
             BTC_FEEDS,
-            deployKrAsset("Kresko Asset: Bitcoin", "krBTC", WBTC_ADDR, deployArgs.admin, deployArgs.treasury),
+            deployKrAsset("Kresko Asset: Bitcoin", "krBTC", addr.WBTC, deployArgs.admin, deployArgs.treasury),
             defaultKrAsset
         );
 
@@ -86,7 +84,7 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_LOCALNET") {
             true,
             ORACLES_RS_CL,
             JPY_FEEDS,
-            deployKrAsset("Kresko Asset: Japanese Yen", "krJPY", address(0), deployArgs.admin, deployArgs.treasury),
+            deployKrAsset("Kresko Asset: Japanese Yen", "krJPY", addr.ZERO, deployArgs.admin, deployArgs.treasury),
             defaultKrAsset
         );
 
@@ -111,10 +109,10 @@ contract WithLocal is Devnet("MNEMONIC_LOCALNET") {
     }
 
     function setupSpecialTokens() internal {
-        require(address(kresko) != address(0), "deploy the diamond before special tokens");
-        require(deployArgs.admin != address(0), "some admin address should be set");
-        require(deployArgs.seqFeed != address(0), "deploy the sequencer uptime feed before special tokens");
-        require(deployArgs.treasury != address(0), "some treasury address is required");
+        require(address(kresko) != addr.ZERO, "deploy the diamond before special tokens");
+        require(deployArgs.admin != addr.ZERO, "some admin address should be set");
+        require(deployArgs.seqFeed != addr.ZERO, "deploy the sequencer uptime feed before special tokens");
+        require(deployArgs.treasury != addr.ZERO, "some treasury address is required");
 
         weth9 = new WETH9();
         vkiss = new Vault("vKISS", "vKISS", 18, 8, deployArgs.treasury, address(deployArgs.seqFeed));
@@ -194,32 +192,32 @@ contract WithLocal is Devnet("MNEMONIC_LOCALNET") {
 
         weth9 = new WETH9();
         MockOracle ethOracle = new MockOracle("ETH", 2000e8, 8);
-        addCollateral(bytes12("ETH"), address(weth9), true, ORACLES_RS_CL, [address(0), address(ethOracle)], defaultCollateral);
+        addCollateral(bytes12("ETH"), address(weth9), true, ORACLES_RS_CL, [addr.ZERO, address(ethOracle)], defaultCollateral);
 
         krETH = addKrAsset(
             bytes12("ETH"),
             false,
             ORACLES_RS_CL,
-            [address(0), address(ethOracle)],
+            [addr.ZERO, address(ethOracle)],
             deployKrAsset("krETH", "krETH", address(weth9), deployArgs.admin, deployArgs.treasury),
             defaultKrAsset
         );
-        KrDeployExtended memory krBTCDeploy = deployKrAssetWithOracle("krBTC", "krBTC", 20000e8, address(0), deployArgs);
+        KrDeployExtended memory krBTCDeploy = deployKrAssetWithOracle("krBTC", "krBTC", 20000e8, addr.ZERO, deployArgs);
         krBTC = addKrAsset(
             bytes12("BTC"),
             true,
             ORACLES_RS_CL,
-            [address(0), krBTCDeploy.oracleAddr],
+            [addr.ZERO, krBTCDeploy.oracleAddr],
             krBTCDeploy,
             defaultKrAsset
         );
 
-        KrDeployExtended memory krJPYDeploy = deployKrAssetWithOracle("krJPY", "krJPY", 1e8, address(0), deployArgs);
+        KrDeployExtended memory krJPYDeploy = deployKrAssetWithOracle("krJPY", "krJPY", 1e8, addr.ZERO, deployArgs);
         krJPY = addKrAsset(
             bytes12("JPY"),
             true,
             ORACLES_RS_CL,
-            [address(0), krJPYDeploy.oracleAddr],
+            [addr.ZERO, krJPYDeploy.oracleAddr],
             krJPYDeploy,
             defaultKrAsset
         );

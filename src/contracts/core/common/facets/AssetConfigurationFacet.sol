@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IERC165} from "vendor/IERC165.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
@@ -38,14 +38,12 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
         FeedConfiguration memory _feedConfig,
         bool _setFeeds
     ) external onlyRole(Role.ADMIN) {
-        if (_assetAddr == address(0)) {
-            revert CError.ZERO_ADDRESS();
-        } else if (cs().assets[_assetAddr].underlyingId != EMPTY_BYTES12) {
-            revert CError.ASSET_ALREADY_EXISTS(_assetAddr);
-        }
+        if (_assetAddr == address(0)) revert CError.ZERO_ADDRESS();
+        if (cs().assets[_assetAddr].underlyingId != EMPTY_BYTES12) revert CError.ASSET_ALREADY_EXISTS(_assetAddr);
+
         string memory underlyingIdStr = _config.underlyingId.toString();
 
-        _config.decimals = IERC20Permit(_assetAddr).decimals();
+        _config.decimals = IERC20(_assetAddr).decimals();
 
         if (_config.isCollateral) {
             _validateMinterCollateral(_assetAddr, _config);
@@ -90,13 +88,9 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
 
     /// @inheritdoc IAssetConfigurationFacet
     function updateAsset(address _assetAddr, Asset memory _config) external onlyRole(Role.ADMIN) {
-        if (_assetAddr == address(0)) {
-            revert CError.ZERO_ADDRESS();
-        } else if (cs().assets[_assetAddr].underlyingId == EMPTY_BYTES12) {
-            revert CError.ASSET_DOES_NOT_EXIST(_assetAddr);
-        } else if (_config.underlyingId == EMPTY_BYTES12) {
-            revert CError.INVALID_ASSET_ID(_assetAddr);
-        }
+        if (_assetAddr == address(0)) revert CError.ZERO_ADDRESS();
+        if (cs().assets[_assetAddr].underlyingId == EMPTY_BYTES12) revert CError.ASSET_DOES_NOT_EXIST(_assetAddr);
+        if (_config.underlyingId == EMPTY_BYTES12) revert CError.INVALID_ASSET_ID(_assetAddr);
 
         Asset storage asset = cs().assets[_assetAddr];
         string memory underlyingIdStr = _config.underlyingId.toString();
@@ -222,9 +216,8 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
 
     /// @inheritdoc IAssetConfigurationFacet
     function setChainLinkFeed(bytes12 _assetId, address _feedAddr) public onlyRole(Role.ADMIN) {
-        if (_feedAddr == address(0)) {
-            revert CError.ORACLE_ZERO_ADDRESS(_assetId.toString());
-        }
+        if (_feedAddr == address(0)) revert CError.ORACLE_ZERO_ADDRESS(_assetId.toString());
+
         cs().oracles[_assetId][OracleType.Chainlink] = Oracle(_feedAddr, AssetStateFacet(address(this)).getChainlinkPrice);
         if (AssetStateFacet(address(this)).getChainlinkPrice(_feedAddr) == 0) {
             revert CError.INVALID_CL_PRICE(_assetId.toString());
@@ -233,9 +226,8 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
 
     /// @inheritdoc IAssetConfigurationFacet
     function setVaultFeed(bytes12 _assetId, address _vaultAddr) public onlyRole(Role.ADMIN) {
-        if (_vaultAddr == address(0)) {
-            revert CError.ORACLE_ZERO_ADDRESS(_assetId.toString());
-        }
+        if (_vaultAddr == address(0)) revert CError.ORACLE_ZERO_ADDRESS(_assetId.toString());
+
         cs().oracles[_assetId][OracleType.Vault] = Oracle(_vaultAddr, AssetStateFacet(address(this)).getVaultPrice);
         // reverts internally anyways if the price is 0
         if (AssetStateFacet(address(this)).getVaultPrice(_vaultAddr) == 0) {
@@ -245,9 +237,8 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
 
     /// @inheritdoc IAssetConfigurationFacet
     function setApi3Feed(bytes12 _assetId, address _feedAddr) public onlyRole(Role.ADMIN) {
-        if (_feedAddr == address(0)) {
-            revert CError.ZERO_ADDRESS();
-        }
+        if (_feedAddr == address(0)) revert CError.ZERO_ADDRESS();
+
         cs().oracles[_assetId][OracleType.API3] = Oracle(_feedAddr, AssetStateFacet(address(this)).getAPI3Price);
 
         if (AssetStateFacet(address(this)).getAPI3Price(_feedAddr) == 0) {
@@ -257,9 +248,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, CModifiers, DSModi
 
     /// @inheritdoc IAssetConfigurationFacet
     function updateOracleOrder(address _assetAddr, OracleType[2] memory _newOracleOrder) external onlyRole(Role.ADMIN) {
-        if (cs().assets[_assetAddr].underlyingId == EMPTY_BYTES12) {
-            revert CError.ASSET_DOES_NOT_EXIST(_assetAddr);
-        }
+        if (cs().assets[_assetAddr].underlyingId == EMPTY_BYTES12) revert CError.ASSET_DOES_NOT_EXIST(_assetAddr);
 
         cs().assets[_assetAddr].oracles = _newOracleOrder;
 

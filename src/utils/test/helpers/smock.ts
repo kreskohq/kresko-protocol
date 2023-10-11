@@ -1,5 +1,5 @@
 import { MockContract } from '@defi-wonderland/smock';
-import { KreskoAssetAnchor } from '@/types/typechain';
+import { KreskoAssetAnchor, MockERC20 } from '@/types/typechain';
 import { toBig } from '@utils/values';
 import { getIsRebased, slots } from './optimizations';
 
@@ -41,7 +41,7 @@ export function setBalanceKrAssetFunc(krAsset: MockContract<KreskoAsset>, akrAss
   };
 }
 
-export function setBalanceCollateralFunc(collateral: MockContract<ERC20Upgradeable>) {
+export function setBalanceCollateralFunc(collateral: MockContract<MockERC20>) {
   return async (user: SignerWithAddress, amount: BigNumber, allowanceFor?: string) => {
     let tSupply = toBig(0);
     try {
@@ -62,7 +62,7 @@ export function setBalanceCollateralFunc(collateral: MockContract<ERC20Upgradeab
   };
 }
 
-export function getBalanceCollateralFunc(collateral: MockContract<ERC20Upgradeable>) {
+export function getBalanceCollateralFunc(collateral: MockContract<MockERC20>) {
   return async (account: string | SignerWithAddress) => {
     let balance = toBig(0);
     try {

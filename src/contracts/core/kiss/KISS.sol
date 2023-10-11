@@ -5,8 +5,9 @@ pragma solidity >=0.8.21;
 import {AccessControlEnumerableUpgradeable, AccessControlUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {IAccessControl} from "@oz/access/IAccessControl.sol";
 import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
-import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
-import {SafeERC20Upgradeable} from "vendor/SafeERC20Upgradeable.sol";
+import {ERC20Upgradeable} from "kresko-lib/token/ERC20Upgradeable.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+
 import {Role} from "common/Constants.sol";
 import {CError} from "common/CError.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
@@ -23,7 +24,7 @@ import {IVault} from "vault/interfaces/IVault.sol";
  * @author Kresko
  */
 contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnumerableUpgradeable {
-    using SafeERC20Upgradeable for ERC20Upgradeable;
+    using SafeTransfer for ERC20Upgradeable;
 
     address public kresko;
     address public vKISS;
@@ -38,10 +39,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     ) external initializer {
         if (kresko_.code.length == 0) revert CError.NOT_A_CONTRACT(kresko_);
 
-        // ERC20
-        name = name_;
-        symbol = symbol_;
-        decimals = dec_;
+        __ERC20Upgradeable_init(name_, symbol_, dec_);
 
         // Setup the admin
         _grantRole(Role.DEFAULT_ADMIN, admin_);

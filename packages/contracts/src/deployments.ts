@@ -2327,7 +2327,7 @@ export const deployments = {
                   type: 'uint256',
                 },
                 {
-                  internalType: 'contract AggregatorV3Interface',
+                  internalType: 'contract IAggregatorV3',
                   name: 'oracle',
                   type: 'address',
                 },
@@ -2382,7 +2382,7 @@ export const deployments = {
                   type: 'uint256',
                 },
                 {
-                  internalType: 'contract AggregatorV3Interface',
+                  internalType: 'contract IAggregatorV3',
                   name: 'oracle',
                   type: 'address',
                 },
@@ -2473,7 +2473,7 @@ export const deployments = {
                   type: 'uint256',
                 },
                 {
-                  internalType: 'contract AggregatorV3Interface',
+                  internalType: 'contract IAggregatorV3',
                   name: 'oracle',
                   type: 'address',
                 },
@@ -2572,7 +2572,7 @@ export const deployments = {
                   type: 'uint256',
                 },
                 {
-                  internalType: 'contract AggregatorV3Interface',
+                  internalType: 'contract IAggregatorV3',
                   name: 'oracle',
                   type: 'address',
                 },
@@ -3454,7 +3454,7 @@ export const deployments = {
                   type: 'uint256',
                 },
                 {
-                  internalType: 'contract AggregatorV3Interface',
+                  internalType: 'contract IAggregatorV3',
                   name: 'oracle',
                   type: 'address',
                 },
@@ -3700,7 +3700,7 @@ export const deployments = {
                   type: 'uint256',
                 },
                 {
-                  internalType: 'contract AggregatorV3Interface',
+                  internalType: 'contract IAggregatorV3',
                   name: 'oracle',
                   type: 'address',
                 },

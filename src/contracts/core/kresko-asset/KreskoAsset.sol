@@ -4,8 +4,10 @@ pragma solidity >=0.8.21;
 // solhint-disable-next-line
 import {AccessControlEnumerableUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
-import {SafeERC20Upgradeable} from "vendor/SafeERC20Upgradeable.sol";
-import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+import {ERC20Upgradeable} from "kresko-lib/token/ERC20Upgradeable.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+
 import {IERC165} from "vendor/IERC165.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {Percents, Role} from "common/Constants.sol";
@@ -22,8 +24,8 @@ import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
  */
 
 contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, PausableUpgradeable, IKreskoAsset {
-    using SafeERC20Upgradeable for ERC20Upgradeable;
-    using SafeERC20Upgradeable for address payable;
+    using SafeTransfer for IERC20;
+    using SafeTransfer for address payable;
     using Rebaser for uint256;
     using PercentageMath for uint256;
 
@@ -100,7 +102,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     function setUnderlying(address _underlyingAddr) public onlyRole(Role.ADMIN) {
         underlying = _underlyingAddr;
         if (_underlyingAddr != address(0)) {
-            underlyingDecimals = ERC20Upgradeable(underlying).decimals();
+            underlyingDecimals = IERC20(underlying).decimals();
         }
     }
 
@@ -146,21 +148,18 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         return _rebaseInfo;
     }
 
-    /// @inheritdoc IKreskoAsset
-    function totalSupply() public view override(ERC20Upgradeable, IKreskoAsset) returns (uint256) {
+    /// @inheritdoc IERC20
+    function totalSupply() public view override(ERC20Upgradeable, IERC20) returns (uint256) {
         return _totalSupply.rebase(_rebaseInfo);
     }
 
-    /// @inheritdoc IKreskoAsset
-    function balanceOf(address _account) public view override(ERC20Upgradeable, IKreskoAsset) returns (uint256) {
+    /// @inheritdoc IERC20
+    function balanceOf(address _account) public view override(ERC20Upgradeable, IERC20) returns (uint256) {
         return _balances[_account].rebase(_rebaseInfo);
     }
 
-    /// @inheritdoc IKreskoAsset
-    function allowance(
-        address _owner,
-        address _account
-    ) public view override(ERC20Upgradeable, IKreskoAsset) returns (uint256) {
+    /// @inheritdoc IERC20
+    function allowance(address _owner, address _account) public view override(ERC20Upgradeable, IERC20) returns (uint256) {
         return _allowances[_owner][_account];
     }
 
@@ -186,27 +185,24 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         __ERC20Upgradeable_init(_name, _symbol, decimals);
     }
 
-    /// @inheritdoc IKreskoAsset
-    function approve(address spender, uint256 amount) public override(ERC20Upgradeable, IKreskoAsset) returns (bool) {
+    /// @inheritdoc IERC20
+    function approve(address spender, uint256 amount) public override(ERC20Upgradeable, IERC20) returns (bool) {
         _allowances[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
         return true;
     }
 
-    /// @inheritdoc IKreskoAsset
-    function transfer(
-        address _to,
-        uint256 _amount
-    ) public override(ERC20Upgradeable, IKreskoAsset) whenNotPaused returns (bool) {
+    /// @inheritdoc IERC20
+    function transfer(address _to, uint256 _amount) public override(ERC20Upgradeable, IERC20) whenNotPaused returns (bool) {
         return _transfer(msg.sender, _to, _amount);
     }
 
-    /// @inheritdoc IKreskoAsset
+    /// @inheritdoc IERC20
     function transferFrom(
         address _from,
         address _to,
         uint256 _amount
-    ) public override(ERC20Upgradeable, IKreskoAsset) whenNotPaused returns (bool) {
+    ) public override(ERC20Upgradeable, IERC20) whenNotPaused returns (bool) {
         uint256 allowed = allowance(_from, msg.sender); // Saves gas for unlimited approvals.
 
         if (allowed != type(uint256).max) {
@@ -256,12 +252,12 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
             revert CError.WRAP_NOT_SUPPORTED();
         }
 
-        ERC20Upgradeable(underlying).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(underlying).safeTransferFrom(msg.sender, address(this), _amount);
 
         if (openFee > 0) {
             uint256 fee = _amount.percentMul(openFee);
             _amount -= fee;
-            ERC20Upgradeable(underlying).safeTransfer(address(feeRecipient), fee);
+            IERC20(underlying).safeTransfer(address(feeRecipient), fee);
         }
 
         _amount = _adjustDecimals(_amount, underlyingDecimals, decimals);
@@ -286,13 +282,13 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
             _amount -= fee;
 
             if (!allowNative) {
-                ERC20Upgradeable(underlying).safeTransfer(feeRecipient, fee);
+                IERC20(underlying).safeTransfer(feeRecipient, fee);
             } else {
                 feeRecipient.safeTransferETH(fee);
             }
         }
         if (!allowNative) {
-            ERC20Upgradeable(underlying).safeTransfer(msg.sender, _amount);
+            IERC20(underlying).safeTransfer(msg.sender, _amount);
         } else {
             payable(msg.sender).safeTransferETH(_amount);
         }

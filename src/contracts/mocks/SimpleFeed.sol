@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity >=0.8.21;
-import {AggregatorV3Interface} from "vendor/AggregatorV3Interface.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 
-contract SimpleFeed is AggregatorV3Interface {
+contract SimpleFeed is IAggregatorV3 {
     uint8 public override decimals = 8;
     string public override description;
     uint256 public override version = 1;

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
 import {Role} from "common/Constants.sol";
 import {CModifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
@@ -19,7 +19,7 @@ import {ms} from "minter/State.sol";
  */
 
 contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
-    using SafeERC20Permit for IERC20Permit;
+    using SafeTransfer for IERC20;
 
     /* -------------------------------------------------------------------------- */
     /*                                 Collateral                                 */
@@ -35,7 +35,7 @@ contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
             super.ensureNotPaused(_collateralAsset, Action.Deposit);
         }
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        IERC20Permit(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
+        IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
 
         // Record the collateral deposit.
         ms().handleDeposit(_account, _collateralAsset, _depositAmount);
@@ -59,7 +59,7 @@ contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
 
         ms().handleWithdrawal(_account, _collateralAsset, asset, _withdrawAmount, collateralAmount, _collateralIndex);
 
-        IERC20Permit(_collateralAsset).safeTransfer(_account, _withdrawAmount);
+        IERC20(_collateralAsset).safeTransfer(_account, _withdrawAmount);
     }
 
     /// @inheritdoc IDepositWithdrawFacet
@@ -91,7 +91,7 @@ contract DepositWithdrawFacet is CModifiers, IDepositWithdrawFacet {
         );
 
         // transfer the withdrawn asset to the caller
-        IERC20Permit(_collateralAsset).safeTransfer(msg.sender, _withdrawAmount);
+        IERC20(_collateralAsset).safeTransfer(msg.sender, _withdrawAmount);
 
         // Executes the callback on the caller after sending them the withdrawn collateral
         ICollateralReceiver(msg.sender).onUncheckedCollateralWithdraw(

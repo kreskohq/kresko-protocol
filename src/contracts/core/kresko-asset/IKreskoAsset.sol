@@ -2,7 +2,8 @@
 pragma solidity >=0.8.21;
 
 import {IAccessControlEnumerable} from "@oz/access/extensions/IAccessControlEnumerable.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {IERC20Permit} from "kresko-lib/token/IERC20Permit.sol";
 import {IERC165} from "vendor/IERC165.sol";
 
 interface ISyncable {
@@ -67,32 +68,6 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
      * @param _version number that must be greater than latest emitted `Initialized` version
      */
     function reinitializeERC20(string memory _name, string memory _symbol, uint8 _version) external;
-
-    /**
-     * @notice Returns the total supply of the token.
-     * @notice This amount is adjusted by rebases.
-     * @inheritdoc IERC20Permit
-     */
-    function totalSupply() external view override(IERC20Permit) returns (uint256);
-
-    /**
-     * @notice Returns the balance of @param _account
-     * @notice This amount is adjusted by rebases.
-     * @inheritdoc IERC20Permit
-     */
-    function balanceOf(address _account) external view override(IERC20Permit) returns (uint256);
-
-    /// @inheritdoc IERC20Permit
-    function allowance(address _owner, address _account) external view override(IERC20Permit) returns (uint256);
-
-    /// @inheritdoc IERC20Permit
-    function approve(address spender, uint256 amount) external override returns (bool);
-
-    /// @inheritdoc IERC20Permit
-    function transfer(address _to, uint256 _amount) external override(IERC20Permit) returns (bool);
-
-    /// @inheritdoc IERC20Permit
-    function transferFrom(address _from, address _to, uint256 _amount) external override(IERC20Permit) returns (bool);
 
     /**
      * @notice Mints tokens to an address.

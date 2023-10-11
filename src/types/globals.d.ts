@@ -19,9 +19,9 @@ declare global {
   /*                              Minter Contracts                              */
   /* -------------------------------------------------------------------------- */
   export type TC = ContractTypes;
-  type TestExtAsset = TestAsset<ERC20Upgradeable, 'mock'>;
+  type TestExtAsset = TestAsset<Contracts.MockERC20, 'mock'>;
   type TestKrAsset = TestAsset<KreskoAsset, 'mock'>;
-  type TestAsset<C extends ERC20Upgradeable | KreskoAsset, T extends 'mock' | undefined = undefined> = {
+  type TestAsset<C extends Contracts.MockERC20 | KreskoAsset, T extends 'mock' | undefined = undefined> = {
     underlyingId: string;
     address: string;
     isKrAsset?: boolean;
