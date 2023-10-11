@@ -49,6 +49,7 @@ declare global {
   };
 
   export type TestTokenSymbols =
+    | 'krSYMBOL'
     | 'USDC'
     | 'TSLA'
     | 'Collateral'

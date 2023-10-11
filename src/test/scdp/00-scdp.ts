@@ -102,7 +102,6 @@ const createAssets = () => [
     marketOpen: true,
   }),
 ];
-
 const createCollaterals = () => [
   addMockExtAsset({
     ...testCollateralConfig,

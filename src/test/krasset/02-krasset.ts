@@ -14,7 +14,7 @@ describe('KreskoAsset', () => {
     if (result.Diamond) {
       hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'));
     }
-    KreskoAsset = (await createKrAsset('KreskoAsset', 'Kresko Asset', 18, ZERO_ADDRESS)).KreskoAsset;
+    KreskoAsset = (await createKrAsset('krSYMBOL', 'Kresko Asset: SYMBOL', 18, ZERO_ADDRESS)).KreskoAsset;
     // Grant minting rights for test deployer
     await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
   });

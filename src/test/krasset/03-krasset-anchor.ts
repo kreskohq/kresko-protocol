@@ -1,22 +1,27 @@
+import { KreskoAssetAnchor } from '@/types/typechain';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { createKrAsset } from '@scripts/create-krasset';
 import { expect } from '@test/chai';
-import { kreskoAssetFixture } from '@utils/test/fixtures';
+import { wrapKresko } from '@utils/redstone';
 import { defaultMintAmount } from '@utils/test/mocks';
 import Role from '@utils/test/roles';
 import { toBig } from '@utils/values';
-import { KreskoAssetAnchor } from '@/types/typechain';
 
 describe('KreskoAssetAnchor', () => {
   let KreskoAsset: KreskoAsset;
   let KreskoAssetAnchor: KreskoAssetAnchor;
 
   beforeEach(async function () {
-    ({ KreskoAsset, KreskoAssetAnchor } = await kreskoAssetFixture({
-      name: 'Kresko Asset',
-      symbol: 'KreskoAsset',
-      underlying: ZERO_ADDRESS,
-    }));
+    const result = await hre.deployments.fixture('diamond-init');
+    if (result.Diamond) {
+      hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'));
+    }
+    const deployments = await createKrAsset('krSYMBOL', 'Kresko Asset: SYMBOL', 18, ZERO_ADDRESS);
+    KreskoAsset = deployments.KreskoAsset;
+    KreskoAssetAnchor = deployments.KreskoAssetAnchor;
 
+    // Grant minting rights for test deployer
+    await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer);
     // Grant minting rights for test deployer
     await Promise.all([
       KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer),
