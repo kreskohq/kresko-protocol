@@ -21,21 +21,15 @@ describe('Minter - Configuration', function () {
   describe('#configuration', () => {
     it('can modify all parameters', async function () {
       const update = testMinterParams(hre.users.treasury.address);
-      await expect(hre.Diamond.updateMinCollateralRatio(update.minCollateralRatio)).to.not.be.reverted;
-      await expect(hre.Diamond.updateLiquidationThreshold(update.liquidationThreshold)).to.not.be.reverted;
-      await expect(hre.Diamond.updateMaxLiquidationRatio(update.MLR)).to.not.be.reverted;
-      await expect(hre.Diamond.updateOracleDeviationPct(0.05e4)).to.not.be.reverted;
-      await expect(hre.Diamond.updateSequencerGracePeriodTime(1000)).to.not.be.reverted;
-      await expect(hre.Diamond.updateExtOracleDecimals(2)).to.not.be.reverted;
-      await expect(hre.Diamond.updateMinDebtValue(20e8)).to.not.be.reverted;
+      await expect(hre.Diamond.setMinCollateralRatioMinter(update.minCollateralRatio)).to.not.be.reverted;
+      await expect(hre.Diamond.setLiquidationThresholdMinter(update.liquidationThreshold)).to.not.be.reverted;
+      await expect(hre.Diamond.setMaxLiquidationRatioMinter(update.maxLiquidationRatio)).to.not.be.reverted;
 
-      const { minCollateralRatio, maxLiquidationRatio, liquidationThreshold } = await hre.Diamond.getMinterParameters();
-      expect(await hre.Diamond.getMinDebtValue()).to.equal(20e8);
-      expect(await hre.Diamond.getExtOracleDecimals()).to.equal(2);
-      expect(await hre.Diamond.getOracleDeviationPct()).to.equal(0.05e4);
-      expect(update.minCollateralRatio).to.equal(minCollateralRatio);
-      expect(update.MLR).to.equal(maxLiquidationRatio);
-      expect(update.liquidationThreshold).to.equal(liquidationThreshold);
+      const params = await hre.Diamond.getParametersMinter();
+
+      expect(update.minCollateralRatio).to.equal(params.minCollateralRatio);
+      expect(update.maxLiquidationRatio).to.equal(params.maxLiquidationRatio);
+      expect(update.liquidationThreshold).to.equal(params.liquidationThreshold);
     });
 
     it('can add a collateral asset', async function () {
@@ -52,58 +46,58 @@ describe('Minter - Configuration', function () {
       const kreskoPriceAnswer = fromBig(await hre.Diamond.getValue(contract.address, toBig(1)), 8);
       const config = testKrAssetConfig.krAssetConfig!;
 
-      expect(values.isKrAsset).to.equal(true);
+      expect(values.isMinterMintable).to.equal(true);
       expect(values.kFactor).to.equal(config.kFactor);
       expect(kreskoPriceAnswer).to.equal(testKrAssetConfig.price);
-      expect(values.supplyLimit).to.equal(config.supplyLimit);
+      expect(values.maxDebtMinter).to.equal(config.maxDebtMinter);
       expect(values.closeFee).to.equal(config.closeFee);
       expect(values.openFee).to.equal(config.openFee);
     });
 
-    it('can update external oracle decimals', async function () {
+    it('can update default oracle precision decimals', async function () {
       const decimals = 8;
-      await hre.Diamond.updateExtOracleDecimals(decimals);
-      expect(await hre.Diamond.getExtOracleDecimals()).to.equal(decimals);
+      await hre.Diamond.setDefaultOraclePrecision(decimals);
+      expect(await hre.Diamond.getDefaultOraclePrecision()).to.equal(decimals);
     });
 
-    it('can update max liquidation ratio', async function () {
-      const currentMLM = await hre.Diamond.getMaxLiquidationRatio();
+    it('can update minter max liquidation ratio', async function () {
+      const currentMLM = await hre.Diamond.getMaxLiquidationRatioMinter();
       const newMLR = 1.42e4;
 
       expect(currentMLM).to.not.eq(newMLR);
 
-      await expect(hre.Diamond.updateMaxLiquidationRatio(newMLR)).to.not.be.reverted;
-      expect(await hre.Diamond.getMaxLiquidationRatio()).to.eq(newMLR);
+      await expect(hre.Diamond.setMaxLiquidationRatioMinter(newMLR)).to.not.be.reverted;
+      expect(await hre.Diamond.getMaxLiquidationRatioMinter()).to.eq(newMLR);
     });
 
-    it('can update oracle deviation pct', async function () {
+    it('can update global oracle deviation pct', async function () {
       const currentDeviationPct = await hre.Diamond.getOracleDeviationPct();
       const newDeviationPct = 0.03e4;
 
       expect(currentDeviationPct).to.not.equal(newDeviationPct);
 
-      await expect(hre.Diamond.updateOracleDeviationPct(newDeviationPct)).to.not.be.reverted;
+      await expect(hre.Diamond.setOracleDeviationPct(newDeviationPct)).to.not.be.reverted;
       expect(await hre.Diamond.getOracleDeviationPct()).to.equal(newDeviationPct);
     });
 
-    it('can update kFactor of a kresko asset separately', async function () {
+    it('can update kFactor of a kresko asset', async function () {
       const oldRatio = (await hre.Diamond.getAsset(f.KrAsset.address)).kFactor;
       const newRatio = 1.2e4;
 
       expect(oldRatio === newRatio).to.be.false;
 
-      await expect(hre.Diamond.updateKFactor(f.KrAsset.address, newRatio)).to.not.be.reverted;
+      await expect(hre.Diamond.setAssetKFactor(f.KrAsset.address, newRatio)).to.not.be.reverted;
       expect((await hre.Diamond.getAsset(f.KrAsset.address)).kFactor === newRatio).to.be.true;
     });
-    it('can update cFactor of a collateral asset separately', async function () {
+    it('can update cFactor of a collateral asset', async function () {
       const oldRatio = (await hre.Diamond.getAsset(f.Collateral.address)).factor;
       const newRatio = 0.9e4;
       expect(oldRatio === newRatio).to.be.false;
-      await expect(hre.Diamond.updateCollateralFactor(f.Collateral.address, newRatio)).to.not.be.reverted;
+      await expect(hre.Diamond.setAssetCFactor(f.Collateral.address, newRatio)).to.not.be.reverted;
       expect((await hre.Diamond.getAsset(f.Collateral.address)).factor === newRatio).to.be.true;
     });
 
-    it('can update values of a kresko asset', async function () {
+    it('can update configuration of an asset', async function () {
       const oracleAnswer = fromBig((await f.KrAsset.priceFeed.latestRoundData())[1], 8);
       const priceOfOne = fromBig(await hre.Diamond.getValue(f.KrAsset.address, toBig(1)), 8);
 
@@ -112,7 +106,7 @@ describe('Minter - Configuration', function () {
 
       const update: KrAssetConfig = {
         kFactor: 1.2e4,
-        supplyLimit: toBig(12000),
+        maxDebtMinter: toBig(12000),
         closeFee: 0.03e4,
         openFee: 0.03e4,
         anchor: f.KrAsset.anchor.address,
@@ -125,7 +119,7 @@ describe('Minter - Configuration', function () {
         krAssetConfig: update,
       });
 
-      await hre.Diamond.updateFeeds(newConfig.assetStruct.underlyingId, newConfig.feedConfig);
+      await hre.Diamond.setFeedsForTicker(newConfig.assetStruct.ticker, newConfig.feedConfig);
       await wrapContractWithSigner(hre.Diamond, hre.users.deployer).updateAsset(
         f.KrAsset.address,
         newConfig.assetStruct,
@@ -135,10 +129,10 @@ describe('Minter - Configuration', function () {
       const updatedOracleAnswer = fromBig((await FakeFeed.latestRoundData())[1], 8);
       const newPriceOfOne = fromBig(await hre.Diamond.getValue(f.KrAsset.address, toBig(1)), 8);
 
-      expect(newValues.isKrAsset).to.equal(true);
-      expect(newValues.isCollateral).to.equal(false);
+      expect(newValues.isMinterMintable).to.equal(true);
+      expect(newValues.isMinterCollateral).to.equal(false);
       expect(newValues.kFactor).to.equal(update.kFactor);
-      expect(newValues.supplyLimit).to.equal(update.supplyLimit);
+      expect(newValues.maxDebtMinter).to.equal(update.maxDebtMinter);
 
       expect(updatedOracleAnswer).to.equal(newPriceOfOne);
       expect(updatedOracleAnswer).to.equal(20);
@@ -146,10 +140,10 @@ describe('Minter - Configuration', function () {
       const update2: AssetStruct = {
         ...(await hre.Diamond.getAsset(f.KrAsset.address)),
         kFactor: 1.75e4,
-        supplyLimit: toBig(12000),
+        maxDebtMinter: toBig(12000),
         closeFee: 0.052e4,
         openFee: 0.052e4,
-        isSCDPKrAsset: true,
+        isSwapMintable: true,
         swapInFeeSCDP: 0.052e4,
         liqIncentiveSCDP: 1.1e4,
         anchor: f.KrAsset.anchor.address,
@@ -158,16 +152,17 @@ describe('Minter - Configuration', function () {
       await hre.Diamond.updateAsset(f.KrAsset.address, update2);
 
       const newValues2 = await hre.Diamond.getAsset(f.KrAsset.address);
-      expect(newValues2.isKrAsset).to.equal(true);
-      expect(newValues2.isSCDPCollateral).to.equal(true);
-      expect(newValues2.isCollateral).to.equal(false);
-      expect(newValues2.isSCDPDepositAsset).to.equal(false);
-      expect(newValues2.isSCDPCoverAsset).to.equal(false);
+      expect(newValues2.isMinterMintable).to.equal(true);
+      expect(newValues2.isSharedOrSwappedCollateral).to.equal(true);
+      expect(newValues2.isSwapMintable).to.equal(true);
+      expect(newValues2.isMinterCollateral).to.equal(false);
+      expect(newValues2.isSharedCollateral).to.equal(false);
+      expect(newValues2.isCoverAsset).to.equal(false);
       expect(newValues2.kFactor).to.equal(update2.kFactor);
       expect(newValues2.openFee).to.equal(update2.closeFee);
       expect(newValues2.closeFee).to.equal(update2.openFee);
       expect(newValues2.swapInFeeSCDP).to.equal(update2.swapInFeeSCDP);
-      expect(newValues2.supplyLimit).to.equal(update2.supplyLimit);
+      expect(newValues2.maxDebtMinter).to.equal(update2.maxDebtMinter);
     });
   });
 });

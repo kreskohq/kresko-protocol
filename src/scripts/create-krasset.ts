@@ -2,13 +2,12 @@ import { Role } from '@utils/test/roles';
 import { AllTokenSymbols, getDeploymentUsers } from '@config/deploy';
 import { getAnchorNameAndSymbol } from '@utils/strings';
 import { KreskoAssetAnchor } from '@/types/typechain';
-import { ZERO_ADDRESS } from '@kreskolabs/lib';
 
 export async function createKrAsset<T extends AllTokenSymbols>(
   symbol: T,
   name: string,
   decimals = 18,
-  underlying: string,
+  underlyingToken: string,
   feeRecipient = hre.users.treasury.address,
   openFee = 0,
   closeFee = 0,
@@ -25,7 +24,7 @@ export async function createKrAsset<T extends AllTokenSymbols>(
     decimals,
     admin,
     Kresko.address,
-    underlying,
+    underlyingToken,
     feeRecipient,
     openFee,
     closeFee,

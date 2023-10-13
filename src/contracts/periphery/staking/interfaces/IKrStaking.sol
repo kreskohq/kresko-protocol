@@ -3,6 +3,21 @@ pragma solidity ^0.8.0;
 
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 
+/**
+ * @author Kresko
+ * @title Events
+ * @notice Staking Event definitions
+ */
+library StakingEvent {
+    event LiquidityAndStakeAdded(address indexed to, uint256 indexed amount, uint256 indexed pid);
+    event LiquidityAndStakeRemoved(address indexed to, uint256 indexed amount, uint256 indexed pid);
+    event Deposit(address indexed user, uint256 indexed pid, uint256 indexed amount);
+    event Withdraw(address indexed user, uint256 indexed pid, uint256 indexed amount);
+    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 indexed amount);
+    event ClaimRewards(address indexed user, address indexed rewardToken, uint256 indexed amount);
+    event ClaimRewardsMulti(address indexed to);
+}
+
 interface IKrStaking {
     struct UserInfo {
         uint256 amount;

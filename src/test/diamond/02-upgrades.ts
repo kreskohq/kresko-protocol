@@ -99,7 +99,7 @@ describe('Diamond', () => {
 
       // Ensure delegatecall did set the correct pending owner with the cut
 
-      const contract = await hre.ethers.getContractAt('AuthEvent', hre.Diamond.address);
+      const contract = await hre.ethers.getContractAt('DSCore', hre.Diamond.address);
 
       const filter = contract.filters.PendingOwnershipTransfer(hre.addr.deployer, correctOwner);
       const [event] = await contract.queryFilter(filter);
@@ -174,7 +174,7 @@ describe('Diamond', () => {
 
       const tx = await SmockInit.populateTransaction.upgradeState();
 
-      await hre.Diamond.upgradeState(tx.to!, tx.data!);
+      await hre.Diamond.executeInitializer(tx.to!, tx.data!);
       expect(await hre.Diamond.initialized()).to.equal(false);
     });
 

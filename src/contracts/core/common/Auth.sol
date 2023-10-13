@@ -5,8 +5,7 @@ import {Strings} from "libs/Strings.sol";
 import {EnumerableSet} from "libs/EnumerableSet.sol";
 import {Meta} from "libs/Meta.sol";
 
-import {AuthEvent} from "common/Events.sol";
-import {CError} from "common/CError.sol";
+import {Errors} from "common/Errors.sol";
 import {Role} from "common/Constants.sol";
 import {cs} from "common/State.sol";
 
@@ -20,9 +19,42 @@ interface IGnosisSafeL2 {
  * @title Shared library for access control
  * @author Kresko
  */
-
 library Auth {
     using EnumerableSet for EnumerableSet.AddressSet;
+    /* -------------------------------------------------------------------------- */
+    /*                                   Events                                   */
+    /* -------------------------------------------------------------------------- */
+
+    /**
+     * @dev Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole`
+     *
+     * `ADMIN_ROLE` is the starting admin for all roles, despite
+     * {RoleAdminChanged} not being emitted signaling this.
+     *
+     * _Available since v3.1._
+     */
+    event RoleAdminChanged(bytes32 indexed role, bytes32 indexed previousAdminRole, bytes32 indexed newAdminRole);
+
+    /**
+     * @dev Emitted when `account` is granted `role`.
+     *
+     * `sender` is the account that originated the contract call, an admin role
+     * bearer except when using {AccessControl-_setupRole}.
+     */
+    event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
+
+    /**
+     * @dev Emitted when `account` is revoked `role`.
+     *
+     * `sender` is the account that originated the contract call:
+     *   - if using `revokeRole`, it is the admin role bearer
+     *   - if using `renounceRole`, it is the role bearer (i.e. `account`)
+     */
+    event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
+
+    /* -------------------------------------------------------------------------- */
+    /*                                Functionality                               */
+    /* -------------------------------------------------------------------------- */
 
     function hasRole(bytes32 role, address account) internal view returns (bool) {
         return cs()._roles[role].members[account];
@@ -33,7 +65,7 @@ library Auth {
     }
 
     /**
-     * @dev Revert with a standard message if `Meta.msgSender` is missing `role`.
+     * @dev Revert with a standard message if `msg.sender` is missing `role`.
      * Overriding this function changes the behavior of the {onlyRole} modifier.
      *
      * Format of the revert message is described in {_checkRole}.
@@ -41,7 +73,7 @@ library Auth {
      * _Available since v4.6._
      */
     function checkRole(bytes32 role) internal view {
-        _checkRole(role, Meta.msgSender());
+        _checkRole(role, msg.sender);
     }
 
     /**
@@ -85,19 +117,19 @@ library Auth {
      *
      */
     function setupSecurityCouncil(address _councilAddress) internal {
-        if (getRoleMemberCount(Role.SAFETY_COUNCIL) != 0) revert CError.SAFETY_COUNCIL_ALREADY_EXISTS();
-        if (!IGnosisSafeL2(_councilAddress).isOwner(msg.sender)) revert CError.SAFETY_COUNCIL_INVALID_ADDRESS(_councilAddress);
+        if (getRoleMemberCount(Role.SAFETY_COUNCIL) != 0) revert Errors.SAFETY_COUNCIL_ALREADY_EXISTS();
+        if (!IGnosisSafeL2(_councilAddress).isOwner(msg.sender)) revert Errors.SAFETY_COUNCIL_INVALID_ADDRESS(_councilAddress);
 
         cs()._roles[Role.SAFETY_COUNCIL].members[_councilAddress] = true;
         cs()._roleMembers[Role.SAFETY_COUNCIL].add(_councilAddress);
 
-        emit AuthEvent.RoleGranted(Role.SAFETY_COUNCIL, _councilAddress, Meta.msgSender());
+        emit RoleGranted(Role.SAFETY_COUNCIL, _councilAddress, msg.sender);
     }
 
     function transferSecurityCouncil(address _newCouncil) internal {
         checkRole(Role.SAFETY_COUNCIL);
         uint256 owners = IGnosisSafeL2(_newCouncil).getOwners().length;
-        if (owners < 5) revert CError.MULTISIG_NOT_ENOUGH_OWNERS(owners, 5);
+        if (owners < 5) revert Errors.MULTISIG_NOT_ENOUGH_OWNERS(owners, 5);
 
         // As this is called by the multisig - just check that it's not an EOA
         cs()._roles[Role.SAFETY_COUNCIL].members[msg.sender] = false;
@@ -151,7 +183,7 @@ library Auth {
      * - the caller must be `account`.
      */
     function _renounceRole(bytes32 role, address account) internal {
-        if (account != Meta.msgSender()) revert CError.ACCESS_CONTROL_NOT_SELF(account, Meta.msgSender());
+        if (account != msg.sender) revert Errors.ACCESS_CONTROL_NOT_SELF(account, msg.sender);
 
         _revokeRole(role, account);
     }
@@ -164,7 +196,7 @@ library Auth {
     function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal {
         bytes32 previousAdminRole = getRoleAdmin(role);
         cs()._roles[role].adminRole = adminRole;
-        emit AuthEvent.RoleAdminChanged(role, previousAdminRole, adminRole);
+        emit RoleAdminChanged(role, previousAdminRole, adminRole);
     }
 
     /**
@@ -178,7 +210,7 @@ library Auth {
         if (!hasRole(role, account)) {
             cs()._roles[role].members[account] = true;
             cs()._roleMembers[role].add(account);
-            emit AuthEvent.RoleGranted(role, account, Meta.msgSender());
+            emit RoleGranted(role, account, msg.sender);
         }
     }
 
@@ -191,7 +223,7 @@ library Auth {
         if (hasRole(role, account)) {
             cs()._roles[role].members[account] = false;
             cs()._roleMembers[role].remove(account);
-            emit AuthEvent.RoleRevoked(role, account, Meta.msgSender());
+            emit RoleRevoked(role, account, Meta.msgSender());
         }
     }
 
@@ -199,7 +231,7 @@ library Auth {
      * @dev Ensure we use the explicit `grantSafetyCouncilRole` function.
      */
     modifier ensureNotSafetyCouncil(bytes32 role) {
-        if (role == Role.SAFETY_COUNCIL) revert CError.SAFETY_COUNCIL_NOT_ALLOWED();
+        if (role == Role.SAFETY_COUNCIL) revert Errors.SAFETY_COUNCIL_NOT_ALLOWED();
         _;
     }
 }

@@ -8,7 +8,7 @@ import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
 import { expect } from 'chai';
 import { SafetyStateChangeEventObject } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
-describe('Safety Council', () => {
+describe.only('Safety Council', () => {
   let f: DefaultFixture;
 
   beforeEach(async function () {

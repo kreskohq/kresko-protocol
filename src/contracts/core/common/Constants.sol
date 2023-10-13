@@ -1,15 +1,71 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-bytes12 constant EMPTY_BYTES12 = bytes12("");
-
 /* -------------------------------------------------------------------------- */
-/*                                 Reentrancy                                 */
+/*                                    Enums                                   */
 /* -------------------------------------------------------------------------- */
+library Enums {
+    /**
+     * @dev Minter Fee Types
+     * Open = 0
+     * Close = 1
+     */
+    enum MinterFee {
+        Open,
+        Close
+    }
+    /**
+     * @dev Swap Fee Types
+     * Open = 0
+     * Close = 1
+     */
+    enum SwapFee {
+        In,
+        Out
+    }
 
-/// @dev Set the initial value to 1, (not hindering possible gas refunds by setting it to 0 on exit).
-uint8 constant NOT_ENTERED = 1;
-uint8 constant ENTERED = 2;
+    /**
+     * @notice Configurable Oracle Types
+     * Empty = 0
+     * Redstone = 1,
+     * Chainlink = 2,
+     * API3 = 3,
+     * Vault = 4
+     */
+    enum OracleType {
+        Empty,
+        Redstone,
+        Chainlink,
+        API3,
+        Vault
+    }
+
+    /**
+     * @notice Protocol Actions
+     * Deposit = 0
+     * Withdraw = 1,
+     * Repay = 2,
+     * Borrow = 3,
+     * Liquidate = 4
+     * SCDPDeposit = 5,
+     * SCDPSwap = 6,
+     * SCDPWithdraw = 7,
+     * SCDPRepay = 8,
+     * SCDPLiquidation = 9
+     */
+    enum Action {
+        Deposit,
+        Withdraw,
+        Repay,
+        Borrow,
+        Liquidation,
+        SCDPDeposit,
+        SCDPSwap,
+        SCDPWithdraw,
+        SCDPRepay,
+        SCDPLiquidation
+    }
+}
 
 /* -------------------------------------------------------------------------- */
 /*                               Access Control                               */
@@ -33,6 +89,13 @@ library Role {
 /* -------------------------------------------------------------------------- */
 
 library Constants {
+    /// @dev Set the initial value to 1, (not hindering possible gas refunds by setting it to 0 on exit).
+    uint8 internal constant NOT_ENTERED = 1;
+    uint8 internal constant ENTERED = 2;
+
+    bytes32 internal constant ZERO_BYTES32 = bytes32("");
+    /// @dev The min oracle decimal precision
+    uint256 internal constant MIN_ORACLE_DECIMALS = 8;
     /// @dev The minimum collateral amount for a kresko asset.
     uint256 internal constant MIN_KRASSET_COLLATERAL_AMOUNT = 1e12;
 
@@ -45,6 +108,7 @@ library Percents {
     uint16 internal constant HUNDRED = 1e4;
     uint16 internal constant TWENTY_FIVE = 0.25e4;
     uint16 internal constant FIFTY = 0.50e4;
+    uint16 internal constant MAX_DEVIATION = TWENTY_FIVE;
 
     uint16 internal constant BASIS_POINT = 1;
     /// @dev The maximum configurable close fee.
@@ -57,7 +121,8 @@ library Percents {
     uint16 internal constant MAX_SCDP_FEE = 0.5e4; // 50%
 
     /// @dev The minimum configurable minimum collateralization ratio.
-    uint16 internal constant MIN_CR = HUNDRED + ONE; // 101%
+    uint16 internal constant MIN_LT = HUNDRED + ONE; // 101%
+    uint16 internal constant MIN_MCR = HUNDRED + ONE + ONE; // 102%
 
     /// @dev The minimum configurable liquidation incentive multiplier.
     /// This means liquidator only receives equal amount of collateral to debt repaid.

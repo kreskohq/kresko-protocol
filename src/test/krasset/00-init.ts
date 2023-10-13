@@ -10,7 +10,7 @@ const { anchorSymbol, anchorName } = getAnchorNameAndSymbol(symbol, name);
 describe('KreskoAsset', function () {
   let f: Awaited<ReturnType<typeof kreskoAssetFixture>>;
   beforeEach(async function () {
-    f = await kreskoAssetFixture({ name, symbol, underlying: ZERO_ADDRESS });
+    f = await kreskoAssetFixture({ name, symbol, underlyingToken: ZERO_ADDRESS });
   });
   describe('KreskoAsset', function () {
     describe('#initialization - anchor', () => {

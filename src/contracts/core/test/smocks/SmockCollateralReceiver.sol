@@ -3,11 +3,11 @@ pragma solidity >=0.8.21;
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {ProxyConnector} from "../redstone/ProxyConnector.sol";
 
-import {IDepositWithdrawFacet} from "minter/interfaces/IDepositWithdrawFacet.sol";
+import {IMinterDepositWithdrawFacet} from "minter/interfaces/IMinterDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "minter/interfaces/ICollateralReceiver.sol";
 
 contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
-    IDepositWithdrawFacet public kresko;
+    IMinterDepositWithdrawFacet public kresko;
     function(address, address, uint256, bytes memory) internal callbackLogic;
 
     address public account;
@@ -23,7 +23,7 @@ contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
     }
 
     constructor(address _kresko) {
-        kresko = IDepositWithdrawFacet(_kresko);
+        kresko = IMinterDepositWithdrawFacet(_kresko);
     }
 
     /* -------------------------------------------------------------------------- */

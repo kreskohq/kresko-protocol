@@ -13,7 +13,7 @@ export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collat
   if (log) {
     const [accountMinimumCollateralValue, accountCollateralValue, ratio, kreskoAssetDebt, collateralPrice] =
       await Promise.all([
-        hre.Diamond.getAccountMinCollateralAtRatio(user.address, optimized.getLiquidationThreshold()),
+        hre.Diamond.getAccountMinCollateralAtRatio(user.address, optimized.getLiquidationThresholdMinter()),
         hre.Diamond.getAccountTotalCollateralValue(user.address),
         hre.Diamond.getAccountCollateralRatio(user.address),
         hre.Diamond.getAccountDebtAmount(user.address, krAsset.address),
@@ -63,7 +63,7 @@ export const liquidate = async (
     if (krAsset.address === collateral.address) {
       await depositMockCollateral({
         user: hre.users.liquidator,
-        asset: hre.extAssets.find(c => c.config.args.underlyingId === 'Collateral2')!,
+        asset: hre.extAssets.find(c => c.config.args.ticker === 'Collateral2')!,
         amount: toBig(100_000),
       });
     } else {
@@ -83,14 +83,14 @@ export const liquidate = async (
     });
   }
 
-  const tx = await wrapKresko(hre.Diamond, hre.users.liquidator).liquidate(
-    user.address,
-    krAsset.address,
-    liquidationAmount,
-    collateral.address,
-    optimized.getAccountMintIndex(user.address, krAsset.address),
-    optimized.getAccountDepositIndex(user.address, collateral.address),
-  );
+  const tx = await wrapKresko(hre.Diamond, hre.users.liquidator).liquidate({
+    account: user.address,
+    repayAssetAddr: krAsset.address,
+    repayAmount: liquidationAmount,
+    seizeAssetAddr: collateral.address,
+    repayAssetIndex: optimized.getAccountMintIndex(user.address, krAsset.address),
+    seizeAssetIndex: optimized.getAccountDepositIndex(user.address, collateral.address),
+  });
 
   const [depositsAfter, debtAfter, decimals] = await Promise.all([
     hre.Diamond.getAccountCollateralAmount(user.address, collateral.address),

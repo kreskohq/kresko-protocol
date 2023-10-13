@@ -1,7 +1,7 @@
 import { MockContract } from '@defi-wonderland/smock';
 import { KreskoAssetAnchor, MockERC20 } from '@/types/typechain';
 import { toBig } from '@utils/values';
-import { getIsRebased, slots } from './optimizations';
+import { getIsRebased } from './optimizations';
 
 export function setBalanceKrAssetFunc(krAsset: MockContract<KreskoAsset>, akrAsset: MockContract<KreskoAssetAnchor>) {
   return async (user: SignerWithAddress, amount: BigNumber, allowanceFor?: string) => {

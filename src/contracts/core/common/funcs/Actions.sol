@@ -1,48 +1,48 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {sdi} from "scdp/State.sol";
+import {sdi} from "scdp/SState.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {Asset} from "common/Types.sol";
-import {CError} from "common/CError.sol";
+import {Errors} from "common/Errors.sol";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Actions                                  */
 /* -------------------------------------------------------------------------- */
 
 /// @notice Burn kresko assets with anchor already known.
-/// @param _anchor The anchor token of the asset being burned.
 /// @param _burnAmount The amount being burned
-/// @param _from The account to burn assets from.
-function burnKrAsset(uint256 _burnAmount, address _from, address _anchor) returns (uint256 burned) {
-    burned = IKreskoAssetIssuer(_anchor).destroy(_burnAmount, _from);
-    if (burned == 0) revert CError.ZERO_BURN(_anchor);
+/// @param _fromAddr The account to burn assets from.
+/// @param _anchorAddr The anchor token of the asset being burned.
+function burnKrAsset(uint256 _burnAmount, address _fromAddr, address _anchorAddr) returns (uint256 burned) {
+    burned = IKreskoAssetIssuer(_anchorAddr).destroy(_burnAmount, _fromAddr);
+    if (burned == 0) revert Errors.ZERO_BURN(Errors.id(_anchorAddr));
 }
 
 /// @notice Mint kresko assets with anchor already known.
-/// @param _amount The asset amount being minted
-/// @param _to The account receiving minted assets.
-/// @param _anchor The anchor token of the minted asset.
-function mintKrAsset(uint256 _amount, address _to, address _anchor) returns (uint256 minted) {
-    minted = IKreskoAssetIssuer(_anchor).issue(_amount, _to);
-    if (minted == 0) revert CError.ZERO_MINT(_anchor);
+/// @param _mintAmount The asset amount being minted
+/// @param _toAddr The account receiving minted assets.
+/// @param _anchorAddr The anchor token of the minted asset.
+function mintKrAsset(uint256 _mintAmount, address _toAddr, address _anchorAddr) returns (uint256 minted) {
+    minted = IKreskoAssetIssuer(_anchorAddr).issue(_mintAmount, _toAddr);
+    if (minted == 0) revert Errors.ZERO_MINT(Errors.id(_anchorAddr));
 }
 
 /// @notice Repay SCDP swap debt.
 /// @param _asset the asset being repaid
 /// @param _burnAmount the asset amount being burned
-/// @param _from the account to burn assets from
-function burnSCDP(Asset storage _asset, uint256 _burnAmount, address _from) returns (uint256 destroyed) {
-    destroyed = burnKrAsset(_burnAmount, _from, _asset.anchor);
+/// @param _fromAddr the account to burn assets from
+function burnSCDP(Asset storage _asset, uint256 _burnAmount, address _fromAddr) returns (uint256 destroyed) {
+    destroyed = burnKrAsset(_burnAmount, _fromAddr, _asset.anchor);
     sdi().totalDebt -= _asset.debtAmountToSDI(destroyed, false);
 }
 
 /// @notice Mint kresko assets from SCDP swap.
 /// @param _asset the asset requested
-/// @param _amount the asset amount requested
-/// @param _to the account to mint the assets to
-function mintSCDP(Asset storage _asset, uint256 _amount, address _to) returns (uint256 issued) {
-    issued = mintKrAsset(_amount, _to, _asset.anchor);
+/// @param _mintAmount the asset amount requested
+/// @param _toAddr the account to mint the assets to
+function mintSCDP(Asset storage _asset, uint256 _mintAmount, address _toAddr) returns (uint256 issued) {
+    issued = mintKrAsset(_mintAmount, _toAddr, _asset.anchor);
     unchecked {
         sdi().totalDebt += _asset.debtAmountToSDI(issued, false);
     }

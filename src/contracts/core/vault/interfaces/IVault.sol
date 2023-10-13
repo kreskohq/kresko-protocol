@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {VaultAsset, VaultConfiguration} from "vault/Types.sol";
+import {VaultAsset, VaultConfiguration} from "vault/VTypes.sol";
 
 interface IVault {
     /* -------------------------------------------------------------------------- */

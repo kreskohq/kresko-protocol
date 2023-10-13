@@ -1,14 +1,133 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {CError} from "common/CError.sol";
+import {Errors} from "common/Errors.sol";
 import {Auth} from "common/Auth.sol";
-import {NOT_ENTERED, ENTERED} from "common/Constants.sol";
-import {Action} from "common/Types.sol";
-import {cs, gs} from "common/State.sol";
+import {Constants, Enums} from "common/Constants.sol";
+import {Asset} from "common/Types.sol";
+import {cs, gs, CommonState} from "common/State.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 
-contract CModifiers {
+import {scdp} from "scdp/SState.sol";
+
+library LibModifiers {
+    /// @dev Simple check for the enabled flag
+    /// @param _assetAddr The address of the asset.
+    /// @param _action The action to this is called from.
+    /// @return asset The asset struct.
+    function onlyUnpaused(
+        CommonState storage self,
+        address _assetAddr,
+        Enums.Action _action
+    ) internal view returns (Asset storage asset) {
+        if (self.safetyStateSet && self.safetyState[_assetAddr][_action].pause.enabled) {
+            revert Errors.ASSET_PAUSED_FOR_THIS_ACTION(Errors.id(_assetAddr), uint8(_action));
+        }
+        return self.assets[_assetAddr];
+    }
+
+    function onlyExistingAsset(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
+        asset = self.assets[_assetAddr];
+        if (!asset.exists()) {
+            revert Errors.ASSET_DOES_NOT_EXIST(Errors.id(_assetAddr));
+        }
+    }
+
+    /**
+     * @notice Reverts if address is not a minter collateral asset.
+     * @param _assetAddr The address of the asset.
+     * @return asset The asset struct.
+     */
+    function onlyMinterCollateral(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
+        asset = self.assets[_assetAddr];
+        if (!asset.isMinterCollateral) {
+            revert Errors.ASSET_NOT_COLLATERAL(Errors.id(_assetAddr));
+        }
+    }
+
+    function onlyMinterCollateral(
+        CommonState storage self,
+        address _assetAddr,
+        Enums.Action _action
+    ) internal view returns (Asset storage asset) {
+        asset = onlyUnpaused(self, _assetAddr, _action);
+        if (!asset.isMinterCollateral) {
+            revert Errors.ASSET_NOT_COLLATERAL(Errors.id(_assetAddr));
+        }
+    }
+
+    /**
+     * @notice Reverts if address is not a Kresko Asset.
+     * @param _assetAddr The address of the asset.
+     * @return asset The asset struct.
+     */
+    function onlyMinterMintable(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
+        asset = self.assets[_assetAddr];
+        if (!asset.isMinterMintable) {
+            revert Errors.ASSET_NOT_MINTER_KRASSET(Errors.id(_assetAddr));
+        }
+    }
+
+    function onlyMinterMintable(
+        CommonState storage self,
+        address _assetAddr,
+        Enums.Action _action
+    ) internal view returns (Asset storage asset) {
+        asset = onlyUnpaused(self, _assetAddr, _action);
+        if (!asset.isMinterMintable) {
+            revert Errors.ASSET_NOT_MINTER_KRASSET(Errors.id(_assetAddr));
+        }
+    }
+
+    /**
+     * @notice Reverts if address is not depositable to SCDP.
+     * @param _assetAddr The address of the asset.
+     * @return asset The asset struct.
+     */
+    function onlySharedCollateral(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
+        asset = self.assets[_assetAddr];
+        if (!asset.isSharedCollateral) {
+            revert Errors.ASSET_NOT_DEPOSITABLE(Errors.id(_assetAddr));
+        }
+    }
+
+    /**
+     * @notice Reverts if address is not swappable Kresko Asset.
+     * @param _assetAddr The address of the asset.
+     * @return asset The asset struct.
+     */
+    function onlySwapMintable(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
+        asset = self.assets[_assetAddr];
+        if (!asset.isSwapMintable) {
+            revert Errors.ASSET_NOT_SWAPPABLE(Errors.id(_assetAddr));
+        }
+    }
+
+    function onlyActiveSharedCollateral(
+        CommonState storage self,
+        address _assetAddr
+    ) internal view returns (Asset storage asset) {
+        asset = self.assets[_assetAddr];
+        if (asset.liquidityIndexSCDP == 0) {
+            revert Errors.ASSET_DOES_NOT_HAVE_DEPOSITS(Errors.id(_assetAddr));
+        }
+    }
+
+    function onlyCoverAsset(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
+        asset = self.assets[_assetAddr];
+        if (!asset.isCoverAsset) {
+            revert Errors.ASSET_CANNOT_BE_USED_TO_COVER(Errors.id(_assetAddr));
+        }
+    }
+
+    function onlyIncomeAsset(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
+        if (_assetAddr != scdp().feeAsset) revert Errors.NOT_SUPPORTED_YET();
+        asset = onlyActiveSharedCollateral(self, _assetAddr);
+        if (!asset.isSharedCollateral) revert Errors.ASSET_NOT_DEPOSITABLE(Errors.id(_assetAddr));
+    }
+}
+
+contract Modifiers {
     /**
      * @dev Modifier that checks that an account has a specific role. Reverts
      * with a standardized message including the required role.
@@ -36,55 +155,12 @@ contract CModifiers {
     }
 
     modifier nonReentrant() {
-        if (cs().entered == ENTERED) {
-            revert CError.RE_ENTRANCY();
+        if (cs().entered == Constants.ENTERED) {
+            revert Errors.CANNOT_RE_ENTER();
         }
-        cs().entered = ENTERED;
+        cs().entered = Constants.ENTERED;
         _;
-        cs().entered = NOT_ENTERED;
-    }
-
-    /**
-     * @notice Reverts if address is not a collateral asset.
-     * @param _assetAddr The address of the asset.
-     */
-    modifier isCollateral(address _assetAddr) {
-        if (!cs().assets[_assetAddr].isCollateral) {
-            revert CError.COLLATERAL_DOES_NOT_EXIST(_assetAddr);
-        }
-        _;
-    }
-
-    /**
-     * @notice Reverts if address is not a Kresko Asset.
-     * @param _assetAddr The address of the asset.
-     */
-    modifier isKrAsset(address _assetAddr) {
-        if (!cs().assets[_assetAddr].isKrAsset) {
-            revert CError.KRASSET_DOES_NOT_EXIST(_assetAddr);
-        }
-        _;
-    }
-
-    /**
-     * @notice Reverts if address is not a Kresko Asset.
-     * @param _assetAddr The address of the asset.
-     */
-    modifier isSCDPDepositAsset(address _assetAddr) {
-        if (!cs().assets[_assetAddr].isSCDPDepositAsset) {
-            revert CError.INVALID_DEPOSIT_ASSET(_assetAddr);
-        }
-        _;
-    }
-    /**
-     * @notice Reverts if address is not a Kresko Asset.
-     * @param _assetAddr The address of the asset.
-     */
-    modifier isSCDPKrAsset(address _assetAddr) {
-        if (!cs().assets[_assetAddr].isSCDPKrAsset) {
-            revert CError.KRASSET_DOES_NOT_EXIST(_assetAddr);
-        }
-        _;
+        cs().entered = Constants.NOT_ENTERED;
     }
 
     /// @notice Reverts if the caller does not have the required NFT's for the gated phase
@@ -92,26 +168,19 @@ contract CModifiers {
         uint8 phase = gs().phase;
         if (phase <= 2) {
             if (IERC1155(gs().kreskian).balanceOf(msg.sender, 0) == 0) {
-                revert CError.MISSING_PHASE_3_NFT();
+                revert Errors.MISSING_PHASE_3_NFT();
             }
         }
         if (phase == 1) {
             IERC1155 questForKresk = IERC1155(gs().questForKresk);
             if (questForKresk.balanceOf(msg.sender, 2) == 0 && questForKresk.balanceOf(msg.sender, 3) == 0) {
-                revert CError.MISSING_PHASE_2_NFT();
+                revert Errors.MISSING_PHASE_2_NFT();
             }
         } else if (phase == 0) {
             if (IERC1155(gs().questForKresk).balanceOf(msg.sender, 3) > 0) {
-                revert CError.MISSING_PHASE_1_NFT();
+                revert Errors.MISSING_PHASE_1_NFT();
             }
         }
         _;
-    }
-
-    /// @dev Simple check for the enabled flag
-    function ensureNotPaused(address _assetAddr, Action _action) internal view virtual {
-        if (cs().safetyState[_assetAddr][_action].pause.enabled) {
-            revert CError.ACTION_PAUSED_FOR_ASSET();
-        }
     }
 }

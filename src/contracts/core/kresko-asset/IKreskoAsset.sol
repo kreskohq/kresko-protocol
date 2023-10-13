@@ -16,8 +16,26 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
      * @param denominator the denominator for the operator, 1 ether = 1
      */
     struct Rebase {
+        uint248 denominator;
         bool positive;
-        uint256 denominator;
+    }
+
+    /**
+     * @notice Wrapping information for the Kresko Asset
+     * @param underlying If available, this is the corresponding on-chain underlying token.
+     * @param underlyingDecimals Decimals of the underlying token.
+     * @param openFee Possible fee when wrapping from underlying to KrAsset.
+     * @param closeFee Possible fee when wrapping from KrAsset to underlying.
+     * @param nativeUnderlyingEnabled Whether native underlying can be sent used for wrapping.
+     * @param feeRecipient Fee recipient.
+     */
+    struct Wrapping {
+        address underlying;
+        uint8 underlyingDecimals;
+        uint48 openFee;
+        uint40 closeFee;
+        bool nativeUnderlyingEnabled;
+        address payable feeRecipient;
     }
 
     /**
@@ -28,7 +46,7 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
      * @param _decimals Decimals for the asset.
      * @param _admin The adminstrator of this contract.
      * @param _kresko The protocol, can perform mint and burn.
-     * @param _underlying The underlying token if available.
+     * @param _ticker The underlying token if available.
      * @param _feeRecipient Fee recipient for synth wraps.
      * @param _openFee Synth warp open fee.
      * @param _closeFee Synth wrap close fee.
@@ -39,7 +57,7 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
         uint8 _decimals,
         address _admin,
         address _kresko,
-        address _underlying,
+        address _ticker,
         address _feeRecipient,
         uint48 _openFee,
         uint40 _closeFee
@@ -48,6 +66,8 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
     function kresko() external view returns (address);
 
     function rebaseInfo() external view returns (Rebase memory);
+
+    function wrappingInfo() external view returns (Wrapping memory);
 
     function isRebased() external view returns (bool);
 
@@ -58,7 +78,7 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
      * @param _pools UniswapV2Pair address to sync so we wont get rekt by skim() calls.
      * @dev denumerator values 0 and 1 ether will disable the rebase
      */
-    function rebase(uint256 _denominator, bool _positive, address[] calldata _pools) external;
+    function rebase(uint248 _denominator, bool _positive, address[] calldata _pools) external;
 
     /**
      * @notice Updates ERC20 metadata for the token in case eg. a ticker change
@@ -157,7 +177,7 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
      * @notice Sets underlying token address (and its decimals)
      * @notice Zero address will disable functionality provided for the underlying.
      * @dev Has modifiers: onlyRole.
-     * @param _underlying The underlying address.
+     * @param _ticker The underlying address.
      */
-    function setUnderlying(address _underlying) external;
+    function setUnderlying(address _ticker) external;
 }

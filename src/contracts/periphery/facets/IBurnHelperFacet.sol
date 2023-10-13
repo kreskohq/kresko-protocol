@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-interface IBurnHelperFacet {
+interface IMinterBurnHelperFacet {
     /**
      * @notice Attempts to close all debt positions and interest
      * @notice Account must have enough of krAsset balance to burn and enough KISS to cover interest

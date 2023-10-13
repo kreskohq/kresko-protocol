@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
+
 import {EnumerableSet} from "libs/EnumerableSet.sol";
-import {Asset, SafetyState, RoleData, Action, Oracle, OracleType} from "common/Types.sol";
+import {LibModifiers} from "common/Modifiers.sol";
+import {Enums} from "common/Constants.sol";
+import {Asset, SafetyState, RoleData, Oracle} from "common/Types.sol";
+
+using LibModifiers for CommonState global;
 
 struct CommonState {
     /* -------------------------------------------------------------------------- */
@@ -10,9 +15,9 @@ struct CommonState {
     /// @notice asset address -> asset data
     mapping(address => Asset) assets;
     /// @notice asset -> oracle type -> oracle
-    mapping(bytes32 => mapping(OracleType => Oracle)) oracles;
+    mapping(bytes32 => mapping(Enums.OracleType => Oracle)) oracles;
     /// @notice asset -> action -> state
-    mapping(address => mapping(Action => SafetyState)) safetyState;
+    mapping(address => mapping(Enums.Action => SafetyState)) safetyState;
     /// @notice The recipient of protocol fees.
     address feeRecipient;
     /// @notice The minimum USD value of an individual synthetic asset debt position.

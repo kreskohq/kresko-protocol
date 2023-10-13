@@ -7,7 +7,7 @@ describe('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset;
 
   beforeEach(async function () {
-    ({ KreskoAsset } = await kreskoAssetFixture({ name: 'Ether', symbol: 'krETH', underlying: ZERO_ADDRESS }));
+    ({ KreskoAsset } = await kreskoAssetFixture({ name: 'Ether', symbol: 'krETH', underlyingToken: ZERO_ADDRESS }));
     this.owner = hre.users.deployer;
     this.mintAmount = 125;
     await KreskoAsset.grantRole(Role.OPERATOR, this.owner.address);

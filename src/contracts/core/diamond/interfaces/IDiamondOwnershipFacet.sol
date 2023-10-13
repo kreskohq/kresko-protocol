@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.21;
+pragma solidity ^0.8.0;
 
 /// @title Contract Ownership
 interface IDiamondOwnershipFacet {
@@ -19,7 +19,7 @@ interface IDiamondOwnershipFacet {
      * @notice Initiate ownership transfer to a new address
      * @notice caller must be the current contract owner
      * @notice the new owner cannot be address(0)
-     * @notice emits a {AuthEvent.PendingOwnershipTransfer} event
+     * @notice emits a {PendingOwnershipTransfer} event
      * @param _newOwner address that is set as the pending new owner
      */
     function transferOwnership(address _newOwner) external;
@@ -27,7 +27,7 @@ interface IDiamondOwnershipFacet {
     /**
      * @notice Transfer the ownership to the new pending owner
      * @notice caller must be the pending owner
-     * @notice emits a {AuthEvent.OwnershipTransferred} event
+     * @notice emits a {OwnershipTransferred} event
      */
     function acceptOwnership() external;
 

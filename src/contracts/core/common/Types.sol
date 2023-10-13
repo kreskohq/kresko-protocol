@@ -1,27 +1,19 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {CAsset} from "common/funcs/Asset.sol";
+import {Assets} from "common/funcs/Assets.sol";
+import {Enums} from "common/Constants.sol";
 
-using CAsset for Asset global;
+using Assets for Asset global;
 
 /* ========================================================================== */
 /*                                   Structs                                  */
 /* ========================================================================== */
 
-/// @notice Oracle configuration mapped to `Asset.underlyingId`.
+/// @notice Oracle configuration mapped to `Asset.ticker`.
 struct Oracle {
     address feed;
     function(address) external view returns (uint256) priceGetter;
-}
-
-/// @notice Supported oracle providers.
-enum OracleType {
-    Empty,
-    Redstone,
-    Chainlink,
-    API3,
-    Vault
 }
 
 /**
@@ -30,7 +22,7 @@ enum OracleType {
  * @param feeds List of two feed addresses matching to the providers supplied. Redstone will be address(0).
  */
 struct FeedConfiguration {
-    OracleType[2] oracleIds;
+    Enums.OracleType[2] oracleIds;
     address[2] feeds;
 }
 
@@ -38,20 +30,20 @@ struct FeedConfiguration {
  * @title Protocol Asset Configuration
  * @author Kresko
  * @notice All assets in the protocol share this configuration.
- * @notice underlyingId is not unique, eg. krETH and WETH both would use bytes12('ETH')
+ * @notice ticker is not unique, eg. krETH and WETH both would use bytes32('ETH')
  * @dev Percentages use 2 decimals: 1e4 (10000) == 100.00%. See {PercentageMath.sol}.
  * @dev Note that the percentage value for uint16 caps at 655.36%.
  */
 struct Asset {
-    /// @notice Bytes identifier for the underlying, not unique, matches Redstone IDs. eg. bytes12('ETH').
-    /// @notice Packed to 12, so maximum 12 chars.
-    bytes12 underlyingId;
+    /// @notice Reference asset ticker (matching what Redstone uses, eg. bytes32('ETH')).
+    /// @notice NOT unique per asset.
+    bytes32 ticker;
     /// @notice Kresko Asset Anchor address.
     address anchor;
     /// @notice Oracle provider priority for this asset.
     /// @notice Provider at index 0 is the primary price source.
     /// @notice Provider at index 1 is the reference price for deviation check and also the fallback price.
-    OracleType[2] oracles;
+    Enums.OracleType[2] oracles;
     /// @notice Percentage multiplier which decreases collateral asset valuation (if < 100%), mitigating price risk.
     /// @notice Always <= 100% or 1e4.
     uint16 factor;
@@ -67,11 +59,11 @@ struct Asset {
     /// @notice Minter liquidation incentive when asset is the seized collateral in a liquidation.
     uint16 liqIncentive;
     /// @notice Supply limit for Kresko Assets.
-    /// @dev NOTE: uint128
-    uint128 supplyLimit;
+    uint256 maxDebtMinter;
+    /// @notice Supply limit for Kresko Assets mints in SCDP.
+    uint256 maxDebtSCDP;
     /// @notice SCDP deposit limit for the asset.
-    /// @dev NOTE: uint128.
-    uint128 depositLimitSCDP;
+    uint256 depositLimitSCDP;
     /// @notice SCDP liquidity index (RAY precision). Scales the deposits globally:
     /// @notice 1) Increased from fees accrued into deposits.
     /// @notice 2) Decreased from liquidations where swap collateral does not cover value required.
@@ -90,18 +82,18 @@ struct Asset {
     /// @notice Kresko Assets have 18 decimals.
     uint8 decimals;
     /// @notice Asset can be deposited as collateral in the Minter.
-    bool isCollateral;
+    bool isMinterCollateral;
     /// @notice Asset can be minted as debt from the Minter.
-    bool isKrAsset;
-    /// @notice Asset can be deposited as collateral in the SCDP.
-    bool isSCDPDepositAsset;
+    bool isMinterMintable;
+    /// @notice Asset can be deposited by users as collateral in the SCDP.
+    bool isSharedCollateral;
     /// @notice Asset can be minted through swaps in the SCDP.
-    bool isSCDPKrAsset;
+    bool isSwapMintable;
     /// @notice Asset is included in the total collateral value calculation for the SCDP.
     /// @notice KrAssets will be true by default - since they are indirectly deposited through swaps.
-    bool isSCDPCollateral;
+    bool isSharedOrSwappedCollateral;
     /// @notice Asset can be used to cover SCDP debt.
-    bool isSCDPCoverAsset;
+    bool isCoverAsset;
 }
 
 /// @notice The access control role data.
@@ -136,10 +128,14 @@ struct MaxLiqInfo {
     uint256 seizeAssetIndex;
 }
 
-/// @notice Convenience struct for returning push price data
-struct PushPrice {
-    uint256 price;
+/// @notice Convenience struct for checking configurations
+struct RawPrice {
+    int256 answer;
     uint256 timestamp;
+    bool isStale;
+    bool isZero;
+    Enums.OracleType oracle;
+    address feed;
 }
 
 /// @notice Configuration for pausing `Action`
@@ -173,45 +169,15 @@ struct CommonInitArgs {
 }
 
 struct SCDPCollateralArgs {
+    uint256 depositLimit;
     uint128 liquidityIndex; // no need to pack this, it's not used with depositLimit
-    uint128 depositLimit;
     uint8 decimals;
 }
 
 struct SCDPKrAssetArgs {
-    uint128 supplyLimit;
+    uint256 maxDebtMinter;
     uint16 liqIncentive;
     uint16 protocolFee; // Taken from the open+close fee. Goes to protocol.
     uint16 openFee;
     uint16 closeFee;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                    ENUM                                    */
-/* -------------------------------------------------------------------------- */
-
-/**
- * @notice Protocol Actions
- * Deposit = 0
- * Withdraw = 1,
- * Repay = 2,
- * Borrow = 3,
- * Liquidate = 4
- * SCDPDeposit = 5,
- * SCDPSwap = 6,
- * SCDPWithdraw = 7,
- * SCDPRepay = 8,
- * SCDPLiquidation = 9
- */
-enum Action {
-    Deposit,
-    Withdraw,
-    Repay,
-    Borrow,
-    Liquidation,
-    SCDPDeposit,
-    SCDPSwap,
-    SCDPWithdraw,
-    SCDPRepay,
-    SCDPLiquidation
 }

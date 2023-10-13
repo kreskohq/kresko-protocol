@@ -4,11 +4,12 @@ pragma solidity ^0.8.0;
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {ERC20} from "kresko-lib/token/ERC20.sol";
 import {Test} from "forge-std/Test.sol";
-import {VaultAsset} from "vault/Types.sol";
-import {Vault} from "vault/Vault.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import {MockERC20, USDC, USDT, DAI} from "mocks/MockERC20.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
+
+import {VaultAsset} from "vault/VTypes.sol";
+import {Vault} from "vault/Vault.sol";
 
 // solhint-disable private-vars-leading-underscore
 // solhint-disable contract-name-camelcase

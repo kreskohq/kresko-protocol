@@ -2,8 +2,13 @@
 pragma solidity >=0.8.21;
 
 import {ICommonStateFacet} from "common/interfaces/ICommonStateFacet.sol";
-import {ds} from "diamond/State.sol";
+
+import {Redstone} from "libs/Redstone.sol";
+import {ds} from "diamond/DState.sol";
+
+import {Enums} from "common/Constants.sol";
 import {cs} from "common/State.sol";
+import {aggregatorV3Price, API3Price, vaultPrice} from "common/funcs/Prices.sol";
 
 contract CommonStateFacet is ICommonStateFacet {
     /// @inheritdoc ICommonStateFacet
@@ -22,7 +27,7 @@ contract CommonStateFacet is ICommonStateFacet {
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getExtOracleDecimals() external view returns (uint8) {
+    function getDefaultOraclePrecision() external view returns (uint8) {
         return cs().oracleDecimals;
     }
 
@@ -42,12 +47,37 @@ contract CommonStateFacet is ICommonStateFacet {
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getSequencerUptimeFeedGracePeriod() external view returns (uint32) {
+    function getSequencerGracePeriod() external view returns (uint32) {
         return cs().sequencerGracePeriodTime;
     }
 
     /// @inheritdoc ICommonStateFacet
     function getOracleTimeout() external view returns (uint32) {
         return cs().oracleTimeout;
+    }
+
+    /// @inheritdoc ICommonStateFacet
+    function getFeedForId(bytes32 _ticker, Enums.OracleType _oracleType) external view returns (address) {
+        return cs().oracles[_ticker][_oracleType].feed;
+    }
+
+    /// @inheritdoc ICommonStateFacet
+    function redstonePrice(bytes32 _ticker, address) external view returns (uint256) {
+        return Redstone.getPrice(_ticker);
+    }
+
+    /// @inheritdoc ICommonStateFacet
+    function getAPI3Price(address _feedAddr) external view returns (uint256) {
+        return API3Price(_feedAddr, cs().oracleTimeout);
+    }
+
+    /// @inheritdoc ICommonStateFacet
+    function getVaultPrice(address _vaultAddr) external view returns (uint256) {
+        return vaultPrice(_vaultAddr);
+    }
+
+    /// @inheritdoc ICommonStateFacet
+    function getChainlinkPrice(address _feedAddr) external view returns (uint256) {
+        return aggregatorV3Price(_feedAddr, cs().oracleTimeout);
     }
 }

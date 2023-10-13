@@ -8,8 +8,8 @@ import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 import {wadUSD} from "common/funcs/Math.sol";
 import {SDIPrice} from "common/funcs/Prices.sol";
-import {CError} from "common/CError.sol";
-import {SDIState} from "scdp/State.sol";
+import {Errors} from "common/Errors.sol";
+import {SDIState} from "scdp/SState.sol";
 
 library SDebtIndex {
     using SafeTransfer for IERC20;
@@ -22,17 +22,16 @@ library SDebtIndex {
     /// @notice Cover by pulling assets.
     function cover(
         SDIState storage self,
-        address coverAssetAddr,
-        uint256 amount
+        address _assetAddr,
+        uint256 _amount
     ) internal returns (uint256 shares, uint256 value) {
-        if (amount == 0) revert CError.ZERO_AMOUNT(coverAssetAddr);
-        Asset storage asset = cs().assets[coverAssetAddr];
-        if (!asset.isSCDPCoverAsset) revert CError.ASSET_NOT_ENABLED(coverAssetAddr);
+        if (_amount == 0) revert Errors.ZERO_AMOUNT(Errors.id(_assetAddr));
+        Asset storage asset = cs().onlyCoverAsset(_assetAddr);
 
-        value = wadUSD(amount, asset.decimals, asset.price(), cs().oracleDecimals);
+        value = wadUSD(_amount, asset.decimals, asset.price(), cs().oracleDecimals);
         self.totalCover += (shares = valueToSDI(value, cs().oracleDecimals));
 
-        IERC20(coverAssetAddr).safeTransferFrom(msg.sender, self.coverRecipient, amount);
+        IERC20(_assetAddr).safeTransferFrom(msg.sender, self.coverRecipient, _amount);
     }
 
     /// @notice Returns the total effective debt amount of the SCDP.
@@ -84,7 +83,7 @@ library SDebtIndex {
         if (bal == 0) return 0;
 
         Asset storage asset = cs().assets[_assetAddr];
-        if (!asset.isSCDPCoverAsset) return 0;
+        if (!asset.isCoverAsset) return 0;
         return (bal * asset.price()) / 10 ** asset.decimals;
     }
 }

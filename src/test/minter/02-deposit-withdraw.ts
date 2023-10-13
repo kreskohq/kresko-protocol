@@ -1,4 +1,4 @@
-import { CError } from '@utils/errors';
+import { Errors } from '@utils/errors';
 import { getInternalEvent } from '@utils/events';
 import { executeContractCallWithSigners } from '@utils/gnosis/utils/execution';
 import { wrapKresko } from '@utils/redstone';
@@ -52,7 +52,7 @@ describe('Minter - Deposit Withdraw', function () {
 
         await expect(
           User.withdrawCollateral(user.address, f.KrAssetCollateral.address, withdrawAmount, 0),
-        ).to.be.revertedWithCustomError(CError(hre), 'COLLATERAL_VALUE_LOW');
+        ).to.be.revertedWithCustomError(Errors(hre), 'COLLATERAL_VALUE_LOW');
       });
 
       it('reverts deposits of krAsset collateral for less than MIN_KRASSET_COLLATERAL_AMOUNT', async function () {
@@ -60,7 +60,7 @@ describe('Minter - Deposit Withdraw', function () {
         await f.KrAssetCollateral.setBalance(user, collateralAmount, hre.Diamond.address);
         await expect(
           User.depositCollateral(user.address, f.KrAssetCollateral.address, (9e11).toString()),
-        ).to.be.revertedWithCustomError(CError(hre), 'COLLATERAL_VALUE_LOW');
+        ).to.be.revertedWithCustomError(Errors(hre), 'COLLATERAL_VALUE_LOW');
       });
 
       it('should allow an account to deposit whitelisted collateral', async function () {
@@ -160,13 +160,13 @@ describe('Minter - Deposit Withdraw', function () {
             f.initialDeposits,
           ),
         )
-          .to.be.revertedWithCustomError(CError(hre), 'COLLATERAL_DOES_NOT_EXIST')
+          .to.be.revertedWithCustomError(Errors(hre), 'COLLATERAL_DOES_NOT_EXIST')
           .withArgs('0x0000000000000000000000000000000000000001');
       });
 
       it('should revert if depositing an amount of 0', async function () {
         await expect(Depositor.depositCollateral(depositor.address, f.Collateral.address, 0))
-          .to.be.revertedWithCustomError(CError(hre), 'ZERO_DEPOSIT')
+          .to.be.revertedWithCustomError(Errors(hre), 'ZERO_DEPOSIT')
           .withArgs(f.Collateral.address);
       });
       it('should revert if collateral is not depositable', async function () {
@@ -185,7 +185,7 @@ describe('Minter - Deposit Withdraw', function () {
 
         await expect(
           wrapKresko(hre.Diamond, depositor).depositCollateral(depositor.address, f.Collateral.contract.address, 0),
-        ).to.be.revertedWithCustomError(CError(hre), 'ACTION_PAUSED_FOR_ASSET');
+        ).to.be.revertedWithCustomError(Errors(hre), 'ACTION_PAUSED_FOR_ASSET');
       });
     });
 
@@ -296,7 +296,7 @@ describe('Minter - Deposit Withdraw', function () {
             );
             this.initialUserOneDeposited = amountDeposited;
 
-            this.mcr = await optimized.getMinCollateralRatio();
+            this.mcr = await optimized.getMinCollateralRatioMinter();
           });
 
           it('should allow an account to withdraw their deposit if it does not violate the health factor', async function () {
@@ -367,7 +367,7 @@ describe('Minter - Deposit Withdraw', function () {
           it('should revert if withdrawing an amount of 0', async function () {
             const withdrawAmount = 0;
             await expect(Withdrawer.withdrawCollateral(withdrawer.address, f.Collateral.address, 0, withdrawAmount))
-              .to.be.revertedWithCustomError(CError(hre), 'ZERO_AMOUNT')
+              .to.be.revertedWithCustomError(Errors(hre), 'ZERO_AMOUNT')
               .withArgs(f.Collateral.address);
           });
 
@@ -386,7 +386,7 @@ describe('Minter - Deposit Withdraw', function () {
             expect(accountCollateralValue.sub(withdrawnCollateralValue).lt(accountMinCollateralValue)).to.be.true;
 
             await expect(Withdrawer.withdrawCollateral(withdrawer.address, f.Collateral.address, withdrawAmount, 0))
-              .to.be.revertedWithCustomError(CError(hre), 'COLLATERAL_VALUE_LOW')
+              .to.be.revertedWithCustomError(Errors(hre), 'COLLATERAL_VALUE_LOW')
               .withArgs(0, 150000000000);
           });
 
@@ -400,7 +400,7 @@ describe('Minter - Deposit Withdraw', function () {
                 1, // Incorrect index
               ),
             )
-              .to.be.revertedWithCustomError(CError(hre), 'INVALID_ASSET_INDEX')
+              .to.be.revertedWithCustomError(Errors(hre), 'INVALID_ASSET_INDEX')
               .withArgs(f.Collateral.address, 1, 0);
           });
         });

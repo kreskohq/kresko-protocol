@@ -46,11 +46,11 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_DEVNET") {
         /* -------------------------------------------------------------------------- */
         /*                                  Externals                                 */
         /* -------------------------------------------------------------------------- */
-        addCollateral(bytes12("ETH"), addr.WETH, true, ORACLES_RS_CL, ETH_FEEDS, defaultCollateral);
-        addCollateral(bytes12("BTC"), addr.WBTC, true, ORACLES_RS_CL, BTC_FEEDS, defaultCollateral);
-        addCollateral(bytes12("DAI"), addr.DAI, true, ORACLES_RS_CL, DAI_FEEDS, defaultCollateral);
-        addCollateral(bytes12("USDC"), addr.USDC, true, ORACLES_RS_CL, USDC_FEEDS, defaultCollateral);
-        addCollateral(bytes12("USDT"), addr.USDT, true, ORACLES_RS_CL, USDT_FEEDS, defaultCollateral);
+        addCollateral(bytes32("ETH"), addr.WETH, true, ORACLES_RS_CL, ETH_FEEDS, defaultCollateral);
+        addCollateral(bytes32("BTC"), addr.WBTC, true, ORACLES_RS_CL, BTC_FEEDS, defaultCollateral);
+        addCollateral(bytes32("DAI"), addr.DAI, true, ORACLES_RS_CL, DAI_FEEDS, defaultCollateral);
+        addCollateral(bytes32("USDC"), addr.USDC, true, ORACLES_RS_CL, USDC_FEEDS, defaultCollateral);
+        addCollateral(bytes32("USDT"), addr.USDT, true, ORACLES_RS_CL, USDT_FEEDS, defaultCollateral);
 
         /* -------------------------------------------------------------------------- */
         /*                                    KISS                                    */
@@ -63,7 +63,7 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_DEVNET") {
         /* -------------------------------------------------------------------------- */
 
         krETH = addKrAsset(
-            bytes12("ETH"),
+            bytes32("ETH"),
             false,
             ORACLES_RS_CL,
             ETH_FEEDS,
@@ -72,7 +72,7 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_DEVNET") {
         );
 
         krBTC = addKrAsset(
-            bytes12("BTC"),
+            bytes32("BTC"),
             false,
             ORACLES_RS_CL,
             BTC_FEEDS,
@@ -81,7 +81,7 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_DEVNET") {
         );
 
         krJPY = addKrAsset(
-            bytes12("JPY"),
+            bytes32("JPY"),
             true,
             ORACLES_RS_CL,
             JPY_FEEDS,
@@ -100,13 +100,15 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_DEVNET") {
 }
 
 contract WithLocal is Devnet("MNEMONIC_DEVNET") {
-    function run() external broadcastWithMnemonic(0) {
+    function run() external {
+        vm.startPrank(getAddr(0));
         config();
         kresko = deployDiamond(deployArgs);
         mockSeqFeed.setAnswers(0, 0, 0);
         setupSpecialTokens();
         setupProtocol();
         setupVault();
+        vm.stopPrank();
     }
 
     function setupSpecialTokens() internal {
@@ -174,29 +176,29 @@ contract WithLocal is Devnet("MNEMONIC_DEVNET") {
         kissConfig = addKISS(address(kiss), address(vkiss), defaultKISS);
 
         dai = mockCollateral(
-            bytes12("DAI"),
-            MockConfig({symbol: "DAI", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            bytes32("DAI"),
+            MockConfig({symbol: "DAI", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             defaultCollateral
         );
 
         usdc = mockCollateral(
-            bytes12("USDC"),
-            MockConfig({symbol: "USDC", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            bytes32("USDC"),
+            MockConfig({symbol: "USDC", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             defaultCollateral
         );
 
         usdt = mockCollateral(
-            bytes12("USDT"),
-            MockConfig({symbol: "USDT", price: 1e8, updateFeeds: true, tknDecimals: 6, oracleDecimals: 8}),
+            bytes32("USDT"),
+            MockConfig({symbol: "USDT", price: 1e8, setFeeds: true, tknDecimals: 6, oracleDecimals: 8}),
             defaultCollateral
         );
 
         weth9 = new WETH9();
         MockOracle ethOracle = new MockOracle("ETH", 2000e8, 8);
-        addCollateral(bytes12("ETH"), address(weth9), true, ORACLES_RS_CL, [addr.ZERO, address(ethOracle)], defaultCollateral);
+        addCollateral(bytes32("ETH"), address(weth9), true, ORACLES_RS_CL, [addr.ZERO, address(ethOracle)], defaultCollateral);
 
         krETH = addKrAsset(
-            bytes12("ETH"),
+            bytes32("ETH"),
             false,
             ORACLES_RS_CL,
             [addr.ZERO, address(ethOracle)],
@@ -205,7 +207,7 @@ contract WithLocal is Devnet("MNEMONIC_DEVNET") {
         );
         KrDeployExtended memory krBTCDeploy = deployKrAssetWithOracle("krBTC", "krBTC", 20000e8, addr.ZERO, deployArgs);
         krBTC = addKrAsset(
-            bytes12("BTC"),
+            bytes32("BTC"),
             true,
             ORACLES_RS_CL,
             [addr.ZERO, krBTCDeploy.oracleAddr],
@@ -215,7 +217,7 @@ contract WithLocal is Devnet("MNEMONIC_DEVNET") {
 
         KrDeployExtended memory krJPYDeploy = deployKrAssetWithOracle("krJPY", "krJPY", 1e8, addr.ZERO, deployArgs);
         krJPY = addKrAsset(
-            bytes12("JPY"),
+            bytes32("JPY"),
             true,
             ORACLES_RS_CL,
             [addr.ZERO, krJPYDeploy.oracleAddr],

@@ -5,14 +5,14 @@ import { envCheck } from '@utils/env';
 import { wrapKresko } from '@utils/redstone';
 import { toBig } from '@utils/values';
 import { InputArgs, testCollateralConfig } from '../mocks';
-import { getAssetConfig } from './general';
+import { getAssetConfig, updateTestAsset } from './general';
 import optimized from './optimizations';
 import { getFakeOracle, setPrice } from './oracle';
 import { getBalanceCollateralFunc, setBalanceCollateralFunc } from './smock';
 
 envCheck();
 
-export const addMockExtAsset = async (args = testCollateralConfig): Promise<TestAsset<MockERC20, 'mock'>> => {
+export const addMockExtAsset = async (args = testCollateralConfig): Promise<TestExtAsset> => {
   const { deployer } = await hre.ethers.getNamedSigners();
   const { name, price, symbol, decimals } = args;
   const [fakeFeed, contract]: [FakeContract<MockOracle>, MockContract<MockERC20>] = await Promise.all([
@@ -21,21 +21,22 @@ export const addMockExtAsset = async (args = testCollateralConfig): Promise<Test
   ]);
 
   const config = await getAssetConfig(contract, { ...args, feed: fakeFeed.address });
-  await wrapKresko(hre.Diamond, deployer).addAsset(contract.address, config.assetStruct, config.feedConfig, true);
-  const asset: TestAsset<MockERC20, 'mock'> = {
-    underlyingId: args.underlyingId,
+  await wrapKresko(hre.Diamond, deployer).addAsset(contract.address, config.assetStruct, config.feedConfig.feeds);
+  const asset: TestExtAsset = {
+    ticker: args.ticker,
     anchor: null,
     address: contract.address,
     contract: contract,
     assetInfo: () => hre.Diamond.getAsset(contract.address),
     priceFeed: fakeFeed,
     config,
+    errorId: [symbol, contract.address],
     setPrice: price => setPrice(fakeFeed, price),
-    setOracleOrder: order => hre.Diamond.updateOracleOrder(contract.address, order),
-    getPrice: async () => (await fakeFeed.latestRoundData())[1],
     setBalance: setBalanceCollateralFunc(contract),
+    setOracleOrder: order => hre.Diamond.setAssetOracleOrder(contract.address, order),
     balanceOf: getBalanceCollateralFunc(contract),
-    update: update => updateCollateralAsset(contract.address, update),
+    getPrice: async () => (await fakeFeed.latestRoundData())[1],
+    update: update => updateTestAsset(asset, update),
   };
   const found = hre.extAssets.findIndex(c => c.address === asset.address);
   if (found === -1) {
@@ -46,24 +47,6 @@ export const addMockExtAsset = async (args = testCollateralConfig): Promise<Test
     hre.allAssets = hre.allAssets.map(c => (c.address === asset.address ? asset : c));
   }
   return asset;
-};
-
-export const updateCollateralAsset = async (address: string, args: AssetArgs) => {
-  const { deployer } = await hre.ethers.getNamedSigners();
-  const collateral = hre.extAssets.find(c => c.address === address);
-  if (!collateral) throw new Error(`Collateral ${address} not found`);
-  const config = await getAssetConfig(collateral.contract, args);
-  await wrapKresko(hre.Diamond, deployer).updateAsset(collateral!.address, config.assetStruct);
-  collateral.config = config;
-  const found = hre.extAssets.findIndex(c => c.address === collateral.address);
-  if (found === -1) {
-    hre.extAssets.push(collateral);
-    hre.allAssets.push(collateral);
-  } else {
-    hre.extAssets = hre.extAssets.map(c => (c.address === collateral.address ? collateral : c));
-    hre.allAssets = hre.allAssets.map(c => (c.address === collateral.address ? collateral : c));
-  }
-  return collateral;
 };
 
 export const depositMockCollateral = async (args: InputArgs) => {
@@ -109,7 +92,7 @@ export const withdrawCollateral = async (args: InputArgs) => {
 export const getMaxWithdrawal = async (user: string, collateral: any) => {
   const [collateralValue, MCR, collateralPrice] = await Promise.all([
     hre.Diamond.getAccountTotalCollateralValue(user),
-    hre.Diamond.getMinCollateralRatio(),
+    hre.Diamond.getMinCollateralRatioMinter(),
     collateral.getPrice(),
   ]);
 

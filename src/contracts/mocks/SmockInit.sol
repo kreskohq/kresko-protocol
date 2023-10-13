@@ -1,25 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
 
-import {DiamondEvent} from "common/Events.sol";
 import {Role} from "common/Constants.sol";
 import {Auth} from "common/Auth.sol";
-import {ds} from "diamond/State.sol";
-import {DSModifiers} from "diamond/Modifiers.sol";
-import {CModifiers} from "common/Modifiers.sol";
+import {ds} from "diamond/DState.sol";
+import {DSModifiers} from "diamond/DSModifiers.sol";
+import {Modifiers} from "common/Modifiers.sol";
 import {ISmockFacet} from "./interfaces/ISmockFacet.sol";
 import {TEST_OPERATOR_ROLE} from "./SmockFacet.sol";
 import {SmockStorage} from "./SmockStorage.sol";
 
-contract SmockInit is DSModifiers, CModifiers {
-    function initialize(address _operator) external onlyOwner onlyRole(Role.ADMIN) {
+contract SmockInit is DSModifiers, Modifiers {
+    function initialize(address _operator) external onlyDiamondOwner onlyRole(Role.ADMIN) {
         require(msg.sender == ds().contractOwner, "WithStorage: Not owner");
         SmockStorage.initialize(_operator);
 
         Auth.grantRole(TEST_OPERATOR_ROLE, _operator);
 
         ds().supportedInterfaces[type(ISmockFacet).interfaceId] = true;
-        emit DiamondEvent.Initialized(msg.sender, 1);
     }
 
     function getNumber() public pure returns (uint8) {

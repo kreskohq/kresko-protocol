@@ -22,11 +22,9 @@ const deploy: DeployFunction = async function (hre) {
             args: [`${asset.symbol}/USD`, await asset.getPrice(), 8],
           })
         )[0].address;
-
     await hre.run(TASK_ADD_ASSET, {
       address: (await hre.deployments.getOrNull(asset.symbol))?.address,
       assetConfig: { ...asset, feed: oracleAddr },
-      log: true,
     });
   }
 

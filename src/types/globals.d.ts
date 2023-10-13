@@ -21,11 +21,15 @@ declare global {
   export type TC = ContractTypes;
   type TestExtAsset = TestAsset<Contracts.MockERC20, 'mock'>;
   type TestKrAsset = TestAsset<KreskoAsset, 'mock'>;
-  type TestAsset<C extends Contracts.MockERC20 | KreskoAsset, T extends 'mock' | undefined = undefined> = {
-    underlyingId: string;
+  type TestAssetUpdate = Partial<AssetStruct> & { newPrice?: number };
+  type TestAsset<
+    C extends Contracts.MockERC20 | KreskoAsset | Contracts.KISS,
+    T extends 'mock' | undefined = undefined,
+  > = {
+    ticker: string;
     address: string;
-    isKrAsset?: boolean;
-    isCollateral?: boolean;
+    isMinterMintable?: boolean;
+    isMinterCollateral?: boolean;
     isMocked?: boolean;
     contract: T extends 'mock' ? MockContract<C> : C;
     config: AssetConfig;
@@ -39,13 +43,14 @@ declare global {
     setBalance: T extends KreskoAsset
       ? ReturnType<typeof setBalanceKrAssetFunc>
       : ReturnType<typeof setBalanceCollateralFunc>;
+    errorId: [string, string];
     balanceOf: T extends KreskoAsset
       ? ReturnType<typeof getBalanceKrAssetFunc>
       : ReturnType<typeof getBalanceCollateralFunc>;
     setPrice: (price: number) => void;
     setOracleOrder: (order: [OracleType, OracleType]) => Promise<any>;
     getPrice: () => Promise<BigNumber>;
-    update: (update: AssetArgs) => Promise<TestAsset<C, T>>;
+    update: (update: TestAssetUpdate) => Promise<TestAsset<C, T>>;
   };
 
   export type TestTokenSymbols =

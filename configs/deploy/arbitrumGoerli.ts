@@ -82,7 +82,7 @@ export type AssetConfigExtended = AssetArgs & {
 };
 export const assets = {
   DAI: {
-    underlyingId: 'DAI',
+    ticker: 'DAI',
     name: 'Dai',
     symbol: 'DAI',
     decimals: 18,
@@ -99,7 +99,7 @@ export const assets = {
     mintAmount: 1_000_000,
   },
   WETH: {
-    underlyingId: 'ETH',
+    ticker: 'ETH',
     name: 'Wrapped Ether',
     symbol: 'WETH',
     decimals: 18,
@@ -114,7 +114,7 @@ export const assets = {
   },
   // KRASSETS
   KISS: {
-    underlyingId: 'KISS',
+    ticker: 'KISS',
     name: 'Kresko Integrated Stable System',
     symbol: 'KISS',
     decimals: 18,
@@ -132,18 +132,19 @@ export const assets = {
       kFactor: 1.1e4,
       openFee: 0,
       closeFee: 0,
-      supplyLimit: defaultSupplyLimit,
+      maxDebtMinter: defaultSupplyLimit,
     },
     scdpKrAssetConfig: {
       swapInFeeSCDP: 0,
       swapOutFeeSCDP: 0.02e4,
       protocolFeeShareSCDP: 0.005e4,
       liqIncentiveSCDP: 1.05e4,
+      maxDebtSCDP: defaultSupplyLimit,
     },
     mintAmount: 50_000_000,
   },
   krBTC: {
-    underlyingId: 'BTC',
+    ticker: 'BTC',
     name: 'Bitcoin',
     symbol: 'krBTC',
     decimals: 18,
@@ -157,7 +158,7 @@ export const assets = {
       underlyingAddr: ZERO_ADDRESS,
       openFee: 0,
       closeFee: 0.02e4,
-      supplyLimit: defaultSupplyLimit,
+      maxDebtMinter: defaultSupplyLimit,
     },
     collateralConfig: {
       cFactor: 1e4,
@@ -166,7 +167,7 @@ export const assets = {
     mintAmount: 5,
   },
   krETH: {
-    underlyingId: 'ETH',
+    ticker: 'ETH',
     name: 'Ether',
     symbol: 'krETH',
     decimals: 18,
@@ -182,7 +183,7 @@ export const assets = {
       underlyingAddr: ZERO_ADDRESS,
       openFee: 0,
       closeFee: 0.02e4,
-      supplyLimit: defaultSupplyLimit,
+      maxDebtMinter: defaultSupplyLimit,
     },
     collateralConfig: {
       cFactor: 1e4,
@@ -224,7 +225,6 @@ export const minterInitArgs: MinterInitArgsStruct = {
 export const scdpInitArgs: SCDPInitArgsStruct = {
   minCollateralRatio: 5e4,
   liquidationThreshold: 2e4,
-  swapFeeRecipient: '',
   sdiPricePrecision: 8,
 };
 export const testnetConfigs: NetworkConfig = {

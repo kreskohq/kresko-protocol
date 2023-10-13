@@ -2,7 +2,7 @@
 // OpenZeppelin Contracts v4.4.1 (utils/Strings.sol)
 
 pragma solidity >=0.8.21;
-import {CError} from "common/CError.sol";
+import {Errors} from "common/Errors.sol";
 
 /**
  * @dev String operations.
@@ -66,7 +66,7 @@ library Strings {
             buffer[i] = _HEX_SYMBOLS[value & 0xf];
             value >>= 4;
         }
-        if (value != 0) revert CError.STRING_HEX_LENGTH_INSUFFICIENT();
+        if (value != 0) revert Errors.STRING_HEX_LENGTH_INSUFFICIENT();
         return string(buffer);
     }
 }

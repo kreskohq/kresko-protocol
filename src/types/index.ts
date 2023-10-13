@@ -1,6 +1,6 @@
 import type { AssetConfigExtended } from '@config/deploy/arbitrumGoerli';
 import type { AllTokenSymbols } from '@config/deploy';
-import type { AllUnderlyingIds } from '@utils/redstone';
+import type { AllTickers } from '@utils/redstone';
 import { BigNumber } from 'ethers';
 import type { Address } from 'hardhat-deploy/types';
 import type * as Contracts from './typechain';
@@ -85,7 +85,7 @@ export type AssetConfig = {
   extendedInfo: ExtendedInfo;
 };
 export type AssetArgs = {
-  underlyingId: AllUnderlyingIds;
+  ticker: AllTickers;
   getPrice?: () => Promise<BigNumber>;
   getMarketStatus?: () => Promise<boolean>;
   symbol: AllTokenSymbols;
@@ -106,7 +106,7 @@ export type KrAssetConfig = {
   anchorSymbol?: string;
   underlyingAddr?: string;
   kFactor: BigNumberish;
-  supplyLimit: BigNumberish;
+  maxDebtMinter: BigNumberish;
   closeFee: BigNumberish;
   openFee: BigNumberish;
 };
@@ -116,6 +116,7 @@ export type SCDPKrAssetConfig = {
   swapOutFeeSCDP: BigNumberish;
   liqIncentiveSCDP: BigNumberish;
   protocolFeeShareSCDP: BigNumberish;
+  maxDebtSCDP: BigNumberish;
 };
 
 export type CollateralConfig = {
@@ -123,7 +124,7 @@ export type CollateralConfig = {
   liqIncentive: BigNumberish;
 };
 export type MinterInitializer = {
-  name: 'ConfigurationFacet';
+  name: 'MinterConfigurationFacet';
   args: MinterInitArgsStruct;
 };
 export type SCDPInitializer = {

@@ -23,16 +23,14 @@ export const commonFacets = [
 ] as const;
 
 export const minterFacets = [
-  'AccountStateFacet',
-  'BurnFacet',
-  'ConfigurationFacet',
-  'DepositWithdrawFacet',
-  'LiquidationFacet',
-  'MintFacet',
-  'StateFacet',
+  'MinterAccountStateFacet',
+  'MinterBurnFacet',
+  'MinterConfigurationFacet',
+  'MinterDepositWithdrawFacet',
+  'MinterLiquidationFacet',
+  'MinterMintFacet',
+  'MinterStateFacet',
 ] as const;
-
-export const peripheryFacets = ['UIDataProviderFacet', 'UIDataProviderFacet2', 'BurnHelperFacet '];
 
 export const scdpFacets = ['SCDPStateFacet', 'SCDPFacet', 'SCDPConfigFacet', 'SCDPSwapFacet', 'SDIFacet'] as const;
 
@@ -41,12 +39,12 @@ export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
   const Safe = await hre.deployments.getOrNull('GnosisSafeL2');
 
   const multisig = hre.network.live ? users.multisig : !Safe ? ZERO_ADDRESS : Safe.address;
-  return { admin: users.admin, multisig, treasury: users.treasury, swapFeeRecipient: users.treasury };
+  return { admin: users.admin, multisig, treasury: users.treasury };
 };
 
 export const getMinterInitializer = async (hre: HardhatRuntimeEnvironment): Promise<MinterInitializer> => {
   return {
-    name: 'ConfigurationFacet',
+    name: 'MinterConfigurationFacet',
     args: testnetConfigs[hre.network.name].minterInitArgs,
   };
 };
@@ -69,12 +67,8 @@ export const getCommonInitializer = async (hre: HardhatRuntimeEnvironment): Prom
   };
 };
 export const getSCDPInitializer = async (hre: HardhatRuntimeEnvironment): Promise<SCDPInitializer> => {
-  const users = await hre.getNamedAccounts();
   return {
     name: 'SCDPConfigFacet',
-    args: {
-      ...testnetConfigs[hre.network.name].scdpInitArgs,
-      swapFeeRecipient: users.treasury,
-    },
+    args: testnetConfigs[hre.network.name].scdpInitArgs,
   };
 };

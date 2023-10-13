@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import {Meta} from "libs/Meta.sol";
+import {DSCore} from "diamond/DSCore.sol";
+import {ds} from "diamond/DState.sol";
+
+abstract contract DSModifiers {
+    modifier onlyDiamondOwner() {
+        if (Meta.msgSender() != ds().contractOwner) {
+            revert DSCore.NOT_DIAMOND_OWNER(Meta.msgSender(), ds().contractOwner);
+        }
+        _;
+    }
+
+    modifier onlyPendingDiamondOwner() {
+        if (Meta.msgSender() != ds().pendingOwner) {
+            revert DSCore.NOT_PENDING_DIAMOND_OWNER(Meta.msgSender(), ds().pendingOwner);
+        }
+        _;
+    }
+}

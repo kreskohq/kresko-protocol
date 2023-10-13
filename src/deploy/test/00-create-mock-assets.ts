@@ -13,25 +13,25 @@ const func: DeployFunction = async function (hre) {
   await addMockExtAsset();
   await addMockExtAsset({
     ...testCollateralConfig,
-    underlyingId: 'Collateral2',
+    ticker: 'Collateral2',
     symbol: 'Collateral2',
     decimals: 18,
   });
   await addMockExtAsset({
     ...testCollateralConfig,
-    underlyingId: 'Coll8Dec',
+    ticker: 'Coll8Dec',
     symbol: 'Coll8Dec',
     decimals: 8,
   });
   await addMockKreskoAsset();
   await addMockKreskoAsset({
     ...testKrAssetConfig,
-    underlyingId: 'KrAsset2',
+    ticker: 'KrAsset2',
     symbol: 'KrAsset2',
   });
   await addMockKreskoAsset({
     ...testKrAssetConfig,
-    underlyingId: 'KrAsset3',
+    ticker: 'KrAsset3',
     symbol: 'KrAsset3',
     collateralConfig: testCollateralConfig.collateralConfig,
   });

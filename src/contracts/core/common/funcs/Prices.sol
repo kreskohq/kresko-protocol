@@ -3,50 +3,43 @@ pragma solidity >=0.8.21;
 
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {IAPI3} from "kresko-lib/vendor/IAPI3.sol";
+import {IVaultRateConsumer} from "vault/interfaces/IVaultRateConsumer.sol";
+
 import {WadRay} from "libs/WadRay.sol";
 import {Strings} from "libs/Strings.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {isSequencerUp} from "common/funcs/Utils.sol";
-import {PushPrice, Oracle, OracleType} from "common/Types.sol";
-import {Percents} from "common/Constants.sol";
-import {CError} from "common/CError.sol";
 import {Redstone} from "libs/Redstone.sol";
+
+import {Errors} from "common/Errors.sol";
 import {cs} from "common/State.sol";
-import {scdp, sdi} from "scdp/State.sol";
-import {IVaultRateConsumer} from "vault/interfaces/IVaultRateConsumer.sol";
+import {scdp, sdi} from "scdp/SState.sol";
+import {isSequencerUp} from "common/funcs/Utils.sol";
+import {RawPrice, Oracle} from "common/Types.sol";
+import {Percents, Enums} from "common/Constants.sol";
 
 using WadRay for uint256;
 using PercentageMath for uint256;
-using Strings for bytes12;
+using Strings for bytes32;
 
 /* -------------------------------------------------------------------------- */
 /*                                   Getters                                  */
 /* -------------------------------------------------------------------------- */
 
-/// @notice Get the price of SDI in USD, oracle precision.
-function SDIPrice() view returns (uint256) {
-    uint256 totalValue = scdp().totalDebtValueAtRatioSCDP(Percents.HUNDRED, false);
-    if (totalValue == 0) {
-        return 10 ** sdi().sdiPricePrecision;
-    }
-    return totalValue.wadDiv(sdi().totalDebt);
-}
-
 /**
- * @notice Get the oracle price using safety checks for deviation and sequencer uptime
- * @notice reverts if the price deviates more than `_oracleDeviationPct`
- * @param _assetId The asset id
+ * @notice Gets the oracle price using safety checks for deviation and sequencer uptime
+ * @notice Reverts when price deviates more than `_oracleDeviationPct`
+ * @param _ticker Ticker of the price
  * @param _oracles The list of oracle identifiers
  * @param _oracleDeviationPct the deviation percentage
  */
-function safePrice(bytes12 _assetId, OracleType[2] memory _oracles, uint256 _oracleDeviationPct) view returns (uint256) {
-    uint256[2] memory prices = [oraclePrice(_oracles[0], _assetId), oraclePrice(_oracles[1], _assetId)];
+function safePrice(bytes32 _ticker, Enums.OracleType[2] memory _oracles, uint256 _oracleDeviationPct) view returns (uint256) {
+    uint256[2] memory prices = [oraclePrice(_oracles[0], _ticker), oraclePrice(_oracles[1], _ticker)];
     if (prices[0] == 0 && prices[1] == 0) {
-        revert CError.ZERO_OR_STALE_PRICE(_assetId.toString());
+        revert Errors.ZERO_OR_STALE_PRICE(_ticker.toString(), [uint8(_oracles[0]), uint8(_oracles[1])]);
     }
 
-    // OracleType.Vault uses the same check, reverting if the sequencer is down.
-    if (_oracles[0] != OracleType.Vault && !isSequencerUp(cs().sequencerUptimeFeed, cs().sequencerGracePeriodTime)) {
+    // Enums.OracleType.Vault uses the same check, reverting if the sequencer is down.
+    if (_oracles[0] != Enums.OracleType.Vault && !isSequencerUp(cs().sequencerUptimeFeed, cs().sequencerGracePeriodTime)) {
         return handleSequencerDown(_oracles, prices);
     }
 
@@ -56,36 +49,16 @@ function safePrice(bytes12 _assetId, OracleType[2] memory _oracles, uint256 _ora
 /**
  * @notice Call the price getter for the oracle provided and return the price.
  * @param _oracleId The oracle id (uint8).
- * @param _assetId The asset id (bytes12).
+ * @param _ticker Ticker for the asset
  * @return uint256 oracle price.
  * This will return 0 if the oracle is not set.
  */
-function oraclePrice(OracleType _oracleId, bytes12 _assetId) view returns (uint256) {
-    if (_oracleId == OracleType.Empty) return 0;
-    if (_oracleId == OracleType.Redstone) return Redstone.getPrice(_assetId);
+function oraclePrice(Enums.OracleType _oracleId, bytes32 _ticker) view returns (uint256) {
+    if (_oracleId == Enums.OracleType.Empty) return 0;
+    if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker);
 
-    Oracle storage oracle = cs().oracles[_assetId][_oracleId];
+    Oracle storage oracle = cs().oracles[_ticker][_oracleId];
     return oracle.priceGetter(oracle.feed);
-}
-
-/**
- * @notice Return push oracle price.
- * @param _oracles The oracles defined.
- * @param _assetId The asset id (bytes12).
- * @return PushPrice The push oracle price and timestamp.
- */
-function pushPrice(OracleType[2] memory _oracles, bytes12 _assetId) view returns (PushPrice memory) {
-    for (uint8 i; i < _oracles.length; i++) {
-        OracleType oracleType = _oracles[i];
-        Oracle storage oracle = cs().oracles[_assetId][_oracles[i]];
-
-        if (oracleType == OracleType.Chainlink) return aggregatorV3PriceWithTimestamp(oracle.feed);
-        if (oracleType == OracleType.API3) return API3PriceWithTimestamp(oracle.feed);
-        if (oracleType == OracleType.Vault) return PushPrice(vaultPrice(oracle.feed), block.timestamp);
-    }
-
-    // Revert if no push oracle is found
-    revert CError.NO_PUSH_ORACLE_SET(_assetId.toString());
 }
 
 /**
@@ -110,7 +83,7 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
     }
 
     // Revert if price deviates more than `_oracleDeviationPct`
-    revert CError.PRICE_UNSTABLE(_primaryPrice, _referencePrice);
+    revert Errors.PRICE_UNSTABLE(_primaryPrice, _referencePrice, _oracleDeviationPct);
 }
 
 /**
@@ -120,13 +93,13 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
  * @param prices The fetched oracle prices.
  * @return uint256 Usable price of the asset.
  */
-function handleSequencerDown(OracleType[2] memory oracles, uint256[2] memory prices) pure returns (uint256) {
-    if (oracles[0] == OracleType.Redstone && prices[0] != 0) {
+function handleSequencerDown(Enums.OracleType[2] memory oracles, uint256[2] memory prices) pure returns (uint256) {
+    if (oracles[0] == Enums.OracleType.Redstone && prices[0] != 0) {
         return prices[0];
-    } else if (oracles[1] == OracleType.Redstone && prices[1] != 0) {
+    } else if (oracles[1] == Enums.OracleType.Redstone && prices[1] != 0) {
         return prices[1];
     }
-    revert CError.SEQUENCER_DOWN_NO_REDSTONE_AVAILABLE();
+    revert Errors.L2_SEQUENCER_DOWN();
 }
 
 /**
@@ -139,17 +112,27 @@ function vaultPrice(address _vaultAddr) view returns (uint256) {
     return IVaultRateConsumer(_vaultAddr).exchangeRate() / 1e10;
 }
 
+/// @notice Get the price of SDI in USD, oracle precision.
+function SDIPrice() view returns (uint256) {
+    uint256 totalValue = scdp().totalDebtValueAtRatioSCDP(Percents.HUNDRED, false);
+    if (totalValue == 0) {
+        return 10 ** sdi().sdiPricePrecision;
+    }
+    return totalValue.wadDiv(sdi().totalDebt);
+}
+
 /**
  * @notice Gets answer from AggregatorV3 type feed.
  * @param _feedAddr The feed address.
+ * @param _oracleTimeout Staleness threshold.
  * @return uint256 Parsed answer from the feed, 0 if its stale.
  */
 function aggregatorV3Price(address _feedAddr, uint256 _oracleTimeout) view returns (uint256) {
     (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_feedAddr).latestRoundData();
     if (answer < 0) {
-        revert CError.NEGATIVE_PRICE(_feedAddr, answer);
+        revert Errors.NEGATIVE_PRICE(_feedAddr, answer);
     }
-    // returning zero if oracle price is too old so that fallback oracle is used instead.
+    // IMPORTANT: Returning zero when answer is stale, to activate fallback oracle.
     if (block.timestamp - updatedAt > _oracleTimeout) {
         return 0;
     }
@@ -157,54 +140,68 @@ function aggregatorV3Price(address _feedAddr, uint256 _oracleTimeout) view retur
 }
 
 /**
- * @notice Gets answer from AggregatorV3 type feed with timestamp.
- * @param _feedAddr The feed address.
- * @return PushPrice Parsed answer and timestamp.
- */
-function aggregatorV3PriceWithTimestamp(address _feedAddr) view returns (PushPrice memory) {
-    (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_feedAddr).latestRoundData();
-    if (answer < 0) {
-        revert CError.NEGATIVE_PRICE(_feedAddr, answer);
-    }
-    // returning zero if oracle price is too old so that fallback oracle is used instead.
-    if (block.timestamp - updatedAt > cs().oracleTimeout) {
-        return PushPrice(0, updatedAt);
-    }
-    return PushPrice(uint256(answer), updatedAt);
-}
-
-/**
  * @notice Gets answer from IAPI3 type feed.
  * @param _feedAddr The feed address.
+ * @param _oracleTimeout Staleness threshold.
  * @return uint256 Parsed answer from the feed, 0 if its stale.
  */
-function API3Price(address _feedAddr) view returns (uint256) {
+function API3Price(address _feedAddr, uint256 _oracleTimeout) view returns (uint256) {
     (int256 answer, uint256 updatedAt) = IAPI3(_feedAddr).read();
     if (answer < 0) {
-        revert CError.NEGATIVE_PRICE(_feedAddr, answer);
+        revert Errors.NEGATIVE_PRICE(_feedAddr, answer);
     }
-    // returning zero if oracle price is too old so that fallback oracle is used instead.
-    // NOTE: there can be a case where both chainlink and api3 oracles are down, in that case 0 will be returned ???
-    if (block.timestamp - updatedAt > cs().oracleTimeout) {
+    // IMPORTANT: Returning zero when answer is stale, to activate fallback oracle.
+    if (block.timestamp - updatedAt > _oracleTimeout) {
         return 0;
     }
     return uint256(answer / 1e10); // @todo actual decimals
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                    Util                                    */
+/* -------------------------------------------------------------------------- */
+
 /**
- * @notice Gets answer from IAPI3 type feed with timestamp.
+ * @notice Gets raw answer info from AggregatorV3 type feed.
  * @param _feedAddr The feed address.
- * @return PushPrice Parsed answer and timestamp.
+ * @return RawPrice Unparsed answer with metadata.
  */
-function API3PriceWithTimestamp(address _feedAddr) view returns (PushPrice memory) {
+function aggregatorV3RawPrice(address _feedAddr) view returns (RawPrice memory) {
+    (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_feedAddr).latestRoundData();
+    bool isStale = block.timestamp - updatedAt > cs().oracleTimeout;
+    return RawPrice(answer, updatedAt, isStale, answer == 0, Enums.OracleType.Chainlink, _feedAddr);
+}
+
+/**
+ * @notice Gets raw answer info from IAPI3 type feed.
+ * @param _feedAddr The feed address.
+ * @return RawPrice Unparsed answer with metadata.
+ */
+function API3RawPrice(address _feedAddr) view returns (RawPrice memory) {
     (int256 answer, uint256 updatedAt) = IAPI3(_feedAddr).read();
-    if (answer < 0) {
-        revert CError.NEGATIVE_PRICE(_feedAddr, answer);
+    bool isStale = block.timestamp - updatedAt > cs().oracleTimeout;
+    return RawPrice(answer, updatedAt, isStale, answer == 0, Enums.OracleType.API3, _feedAddr);
+}
+
+/**
+ * @notice Return raw answer info from the oracles provided
+ * @param _oracles Oracles to check.
+ * @param _ticker Ticker for the asset.
+ * @return RawPrice Unparsed answer with metadata.
+ */
+function rawPrice(Enums.OracleType[2] memory _oracles, bytes32 _ticker) view returns (RawPrice memory) {
+    for (uint256 i; i < _oracles.length; i++) {
+        Enums.OracleType oracleType = _oracles[i];
+        Oracle storage oracle = cs().oracles[_ticker][_oracles[i]];
+
+        if (oracleType == Enums.OracleType.Chainlink) return aggregatorV3RawPrice(oracle.feed);
+        if (oracleType == Enums.OracleType.API3) return API3RawPrice(oracle.feed);
+        if (oracleType == Enums.OracleType.Vault) {
+            int256 answer = int256(vaultPrice(oracle.feed));
+            return RawPrice(answer, block.timestamp, false, answer == 0, Enums.OracleType.Vault, oracle.feed);
+        }
     }
-    // returning zero if oracle price is too old so that fallback oracle is used instead.
-    // NOTE: there can be a case where both chainlink and api3 oracles are down, in that case 0 will be returned ???
-    if (block.timestamp - updatedAt > cs().oracleTimeout) {
-        return PushPrice(0, updatedAt);
-    }
-    return PushPrice(uint256(answer / 1e10), updatedAt); // @todo actual decimals
+
+    // Revert if no answer is found
+    revert Errors.NO_PUSH_ORACLE_SET(_ticker.toString());
 }

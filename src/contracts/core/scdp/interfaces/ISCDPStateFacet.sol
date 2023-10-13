@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {GlobalData} from "scdp/Types.sol";
+import {GlobalData} from "scdp/STypes.sol";
 
 interface ISCDPStateFacet {
     /**
@@ -98,11 +98,6 @@ interface ISCDPStateFacet {
      * @param _ignoreFactors Ignore factors when calculating debt value.
      */
     function getTotalDebtValueSCDP(bool _ignoreFactors) external view returns (uint256);
-
-    /**
-     * @notice Get the swap fee recipient
-     */
-    function getFeeRecipientSCDP() external view returns (address);
 
     /**
      * @notice Get enabled state of asset

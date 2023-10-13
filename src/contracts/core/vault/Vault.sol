@@ -9,14 +9,14 @@ import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {FixedPointMath} from "libs/FixedPointMath.sol";
 
-import {CError} from "common/CError.sol";
+import {Errors} from "common/Errors.sol";
 import {Percents} from "common/Constants.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
 
-import {VEvent} from "vault/Events.sol";
-import {VAssets} from "vault/funcs/Assets.sol";
+import {VEvent} from "vault/VEvent.sol";
+import {VAssets} from "vault/funcs/VAssets.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {VaultAsset, VaultConfiguration} from "vault/Types.sol";
+import {VaultAsset, VaultConfiguration} from "vault/VTypes.sol";
 
 /**
  * @title Vault - A multiple deposit token vault.
@@ -60,12 +60,12 @@ contract Vault is IVault, ERC20 {
     /* -------------------------------------------------------------------------- */
 
     modifier onlyGovernance() {
-        if (msg.sender != _config.governance) revert CError.INVALID_SENDER(msg.sender, _config.governance);
+        if (msg.sender != _config.governance) revert Errors.INVALID_SENDER(msg.sender, _config.governance);
         _;
     }
 
     modifier check(address assetAddr) {
-        if (!_assets[assetAddr].enabled) revert CError.ASSET_NOT_ENABLED(assetAddr);
+        if (!_assets[assetAddr].enabled) revert Errors.ASSET_NOT_ENABLED(Errors.id(assetAddr));
         _;
     }
 
@@ -74,9 +74,9 @@ contract Vault is IVault, ERC20 {
     function _checkAssetsIn(address assetAddr, uint256 assetsIn, uint256 sharesOut) private view {
         uint256 depositLimit = maxDeposit(assetAddr);
 
-        if (assetsIn > depositLimit) revert CError.MAX_DEPOSIT_EXCEEDED(assetAddr, assetsIn, depositLimit);
-        if (sharesOut == 0) revert CError.INVALID_DEPOSIT(assetAddr, assetsIn, sharesOut);
-        if (assetsIn == 0) revert CError.INVALID_DEPOSIT(assetAddr, assetsIn, sharesOut);
+        if (assetsIn > depositLimit) revert Errors.MAX_DEPOSIT_EXCEEDED(Errors.id(assetAddr), assetsIn, depositLimit);
+        if (sharesOut == 0) revert Errors.INVALID_DEPOSIT(Errors.id(assetAddr), assetsIn, sharesOut);
+        if (assetsIn == 0) revert Errors.INVALID_DEPOSIT(Errors.id(assetAddr), assetsIn, sharesOut);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -134,7 +134,7 @@ contract Vault is IVault, ERC20 {
     ) public virtual check(assetAddr) returns (uint256 assetsOut, uint256 assetFee) {
         (assetsOut, assetFee) = previewRedeem(assetAddr, sharesIn);
 
-        if (assetsOut == 0) revert CError.INVALID_WITHDRAW(assetAddr, sharesIn, assetsOut);
+        if (assetsOut == 0) revert Errors.INVALID_WITHDRAW(Errors.id(assetAddr), sharesIn, assetsOut);
 
         if (msg.sender != owner) {
             uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
@@ -170,7 +170,7 @@ contract Vault is IVault, ERC20 {
     ) public virtual check(assetAddr) returns (uint256 sharesIn, uint256 assetFee) {
         (sharesIn, assetFee) = previewWithdraw(assetAddr, assetsOut);
 
-        if (sharesIn == 0) revert CError.INVALID_WITHDRAW(assetAddr, sharesIn, assetsOut);
+        if (sharesIn == 0) revert Errors.INVALID_WITHDRAW(Errors.id(assetAddr), sharesIn, assetsOut);
 
         if (msg.sender != owner) {
             uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
@@ -282,7 +282,7 @@ contract Vault is IVault, ERC20 {
 
         sharesIn = asset.usdWad(_config, assetsOut).mulDivUp(tSupply, tAssets);
 
-        if (sharesIn > tSupply) revert CError.ROUNDING_ERROR("Use redeem instead.", sharesIn, tSupply);
+        if (sharesIn > tSupply) revert Errors.ROUNDING_ERROR(Errors.id(assetAddr), sharesIn, tSupply);
     }
 
     /// @inheritdoc IVault
@@ -324,7 +324,7 @@ contract Vault is IVault, ERC20 {
     /* -------------------------------------------------------------------------- */
     function setSequencerUptimeFeed(address newFeed, uint96 gracePeriod) external onlyGovernance {
         if (newFeed != address(0)) {
-            if (!isSequencerUp(newFeed, gracePeriod)) revert CError.INVALID_SEQUENCER_UPTIME_FEED(newFeed);
+            if (!isSequencerUp(newFeed, gracePeriod)) revert Errors.INVALID_SEQUENCER_UPTIME_FEED(newFeed);
         }
         _config.sequencerUptimeFeed = newFeed;
         _config.sequencerGracePeriodTime = gracePeriod;
@@ -332,28 +332,26 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function addAsset(VaultAsset memory assetConfig) external onlyGovernance {
-        address tokenAddr = address(assetConfig.token);
+        address assetAddr = address(assetConfig.token);
 
-        if (tokenAddr == address(0)) revert CError.ZERO_ADDRESS();
-        if (address(_assets[tokenAddr].token) != address(0)) revert CError.ASSET_ALREADY_EXISTS(tokenAddr);
+        if (assetAddr == address(0)) revert Errors.ZERO_ADDRESS();
+        if (address(_assets[assetAddr].token) != address(0)) revert Errors.ASSET_ALREADY_EXISTS(Errors.id(assetAddr));
 
         assetConfig.decimals = assetConfig.token.decimals();
-        if (assetConfig.decimals > 18) revert CError.INVALID_DECIMALS(tokenAddr, assetConfig.decimals);
+        if (assetConfig.decimals > 18) revert Errors.INVALID_DECIMALS(Errors.id(assetAddr), assetConfig.decimals);
         if (assetConfig.depositFee > Percents.HUNDRED)
-            revert CError.INVALID_ASSET_FEE(tokenAddr, assetConfig.depositFee, Percents.HUNDRED);
+            revert Errors.INVALID_ASSET_FEE(Errors.id(assetAddr), assetConfig.depositFee, Percents.HUNDRED);
         if (assetConfig.withdrawFee > Percents.HUNDRED)
-            revert CError.INVALID_ASSET_FEE(tokenAddr, assetConfig.withdrawFee, Percents.HUNDRED);
+            revert Errors.INVALID_ASSET_FEE(Errors.id(assetAddr), assetConfig.withdrawFee, Percents.HUNDRED);
 
-        assetList.push(tokenAddr);
-        _assets[tokenAddr] = assetConfig;
+        assetList.push(assetAddr);
+        _assets[assetAddr] = assetConfig;
 
-        uint256 price = _assets[tokenAddr].price(_config);
-        if (price == 0) revert CError.ZERO_OR_STALE_PRICE(assetConfig.token.symbol());
         emit VEvent.AssetAdded(
-            tokenAddr,
+            assetAddr,
             address(assetConfig.oracle),
             assetConfig.oracleTimeout,
-            price,
+            _assets[assetAddr].price(_config),
             assetConfig.maxDeposits,
             block.timestamp
         );
@@ -368,14 +366,9 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function setOracle(address assetAddr, address oracle, uint24 timeout) external onlyGovernance {
-        bool deleted = oracle == address(0);
-
         _assets[assetAddr].oracle = IAggregatorV3(oracle);
         _assets[assetAddr].oracleTimeout = timeout;
-        uint256 price = deleted ? 0 : _assets[assetAddr].price(_config);
-        if (price == 0 && !deleted) revert CError.ZERO_OR_STALE_PRICE(_assets[assetAddr].token.symbol());
-
-        emit VEvent.OracleSet(assetAddr, oracle, timeout, price, block.timestamp);
+        emit VEvent.OracleSet(assetAddr, oracle, timeout, _assets[assetAddr].price(_config), block.timestamp);
     }
 
     /// @inheritdoc IVault
@@ -391,13 +384,13 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function setDepositFee(address assetAddr, uint32 fee) external onlyGovernance {
-        if (fee > Percents.HUNDRED) revert CError.INVALID_ASSET_FEE(assetAddr, fee, Percents.HUNDRED);
+        if (fee > Percents.HUNDRED) revert Errors.INVALID_ASSET_FEE(Errors.id(assetAddr), fee, Percents.HUNDRED);
         _assets[assetAddr].depositFee = fee;
     }
 
     /// @inheritdoc IVault
     function setWithdrawFee(address assetAddr, uint32 fee) external onlyGovernance {
-        if (fee > Percents.HUNDRED) revert CError.INVALID_ASSET_FEE(assetAddr, fee, Percents.HUNDRED);
+        if (fee > Percents.HUNDRED) revert Errors.INVALID_ASSET_FEE(Errors.id(assetAddr), fee, Percents.HUNDRED);
         _assets[assetAddr].withdrawFee = fee;
     }
 

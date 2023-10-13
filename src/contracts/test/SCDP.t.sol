@@ -49,36 +49,36 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         vm.warp(3601);
 
         usdc = mockCollateral(
-            bytes12("USDC"),
-            MockConfig({symbol: "USDC", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            bytes32("USDC"),
+            MockConfig({symbol: "USDC", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             fullCollateral
         );
         KISS = mockKrAsset(
-            bytes12("KISS"),
+            bytes32("KISS"),
             address(0),
-            MockConfig({symbol: "KISS", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            MockConfig({symbol: "KISS", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             fullKrAsset,
             deployArgs
         );
         krETH = mockKrAsset(
-            bytes12("ETH"),
+            bytes32("ETH"),
             address(0),
-            MockConfig({symbol: "krETH", price: 2000e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            MockConfig({symbol: "krETH", price: 2000e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             defaultKrAsset,
             deployArgs
         );
         krJPY = mockKrAsset(
-            bytes12("JPY"),
+            bytes32("JPY"),
             address(0),
-            MockConfig({symbol: "krJPY", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            onlySwappableKrAsset,
+            MockConfig({symbol: "krJPY", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            onlySwapMintable,
             deployArgs
         );
         krTSLA = mockKrAsset(
-            bytes12("TSLA"),
+            bytes32("TSLA"),
             address(0),
-            MockConfig({symbol: "krTSLA", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            onlySwappableKrAsset,
+            MockConfig({symbol: "krTSLA", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            onlySwapMintable,
             deployArgs
         );
         kresko.setFeeAssetSCDP(KISS.addr);
@@ -99,7 +99,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         Asset memory kissConfig = kresko.getAsset(KISS.addr);
         kresko.getAsset(usdc.addr).liquidityIndexSCDP.equals(1e27);
         kissConfig.liquidityIndexSCDP.equals(1e27);
-        kissConfig.isSCDPCoverAsset.equals(true);
+        kissConfig.isCoverAsset.equals(true);
     }
 
     function testDeposit() public {

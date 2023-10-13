@@ -1,22 +1,33 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {CError} from "common/CError.sol";
+import {Errors} from "common/Errors.sol";
+import {Enums} from "common/Constants.sol";
 
 /**
  * @title Library for operations on arrays
  */
 library Arrays {
     using Arrays for address[];
-    struct Item {
-        bool exists;
+
+    struct FindResult {
         uint256 index;
+        bool exists;
     }
 
-    function find(address[] storage _addresses, address _elementToFind) internal view returns (Item memory) {
-        for (uint256 i; i < _addresses.length; ) {
-            if (_addresses[i] == _elementToFind) {
-                return Item(true, i);
+    function empty(address[2] memory _addresses) internal pure returns (bool) {
+        return _addresses[0] == address(0) && _addresses[1] == address(0);
+    }
+
+    function empty(Enums.OracleType[2] memory _oracles) internal pure returns (bool) {
+        return _oracles[0] == Enums.OracleType.Empty && _oracles[1] == Enums.OracleType.Empty;
+    }
+
+    function find(address[] storage _addresses, address _elementToFind) internal pure returns (FindResult memory result) {
+        address[] memory addresses = _addresses;
+        for (uint256 i; i < addresses.length; ) {
+            if (addresses[i] == _elementToFind) {
+                return FindResult(i, true);
             }
             unchecked {
                 ++i;
@@ -31,7 +42,7 @@ library Arrays {
     }
 
     function removeExisting(address[] storage _addresses, address _elementToRemove) internal {
-        Item memory result = _addresses.find(_elementToRemove);
+        FindResult memory result = _addresses.find(_elementToRemove);
         if (result.exists) {
             _addresses.removeAddress(_elementToRemove, result.index);
         }
@@ -46,7 +57,7 @@ library Arrays {
      */
     function removeAddress(address[] storage _addresses, address _elementToRemove, uint256 _elementIndex) internal {
         if (_addresses[_elementIndex] != _elementToRemove)
-            revert CError.INVALID_ASSET_INDEX(_elementToRemove, _elementIndex, _addresses.length);
+            revert Errors.ELEMENT_DOES_NOT_MATCH_PROVIDED_INDEX(Errors.id(_elementToRemove), _elementIndex, _addresses);
 
         uint256 lastIndex = _addresses.length - 1;
         // If the index to remove is not the last one, overwrite the element at the index

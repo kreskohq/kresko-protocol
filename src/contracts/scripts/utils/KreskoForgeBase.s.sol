@@ -2,35 +2,35 @@ pragma solidity >=0.8.21;
 import {FacetScript} from "kresko-lib/utils/Diamond.sol";
 import {RedstoneScript} from "kresko-lib/utils/Redstone.sol";
 import {CommonInitArgs} from "common/Types.sol";
-import {MinterInitArgs} from "minter/Types.sol";
+import {MinterInitArgs} from "minter/MTypes.sol";
 import {IKreskoForgeTypes} from "./IKreskoForgeTypes.sol";
-import {FacetCut, Initialization, FacetCutAction} from "diamond/Types.sol";
+import {FacetCut, Initializer, FacetCutAction} from "diamond/DSTypes.sol";
 import {Diamond} from "diamond/Diamond.sol";
 import {DiamondCutFacet} from "diamond/facets/DiamondCutFacet.sol";
 import {DiamondOwnershipFacet} from "diamond/facets/DiamondOwnershipFacet.sol";
 import {DiamondLoupeFacet} from "diamond/facets/DiamondLoupeFacet.sol";
 import {ERC165Facet} from "diamond/facets/ERC165Facet.sol";
 
-import {MintFacet} from "minter/facets/MintFacet.sol";
-import {BurnFacet} from "minter/facets/BurnFacet.sol";
-import {DepositWithdrawFacet} from "minter/facets/DepositWithdrawFacet.sol";
-import {AccountStateFacet} from "minter/facets/AccountStateFacet.sol";
+import {MinterMintFacet} from "minter/facets/MinterMintFacet.sol";
+import {MinterBurnFacet} from "minter/facets/MinterBurnFacet.sol";
+import {MinterDepositWithdrawFacet} from "minter/facets/MinterDepositWithdrawFacet.sol";
+import {MinterAccountStateFacet} from "minter/facets/MinterAccountStateFacet.sol";
 import {AuthorizationFacet} from "common/facets/AuthorizationFacet.sol";
 import {CommonConfigurationFacet} from "common/facets/CommonConfigurationFacet.sol";
 import {AssetConfigurationFacet} from "common/facets/AssetConfigurationFacet.sol";
 import {CommonStateFacet} from "common/facets/CommonStateFacet.sol";
 import {SafetyCouncilFacet} from "common/facets/SafetyCouncilFacet.sol";
 import {AssetStateFacet} from "common/facets/AssetStateFacet.sol";
-import {StateFacet} from "minter/facets/StateFacet.sol";
-import {LiquidationFacet} from "minter/facets/LiquidationFacet.sol";
-import {ConfigurationFacet} from "minter/facets/ConfigurationFacet.sol";
+import {MinterStateFacet} from "minter/facets/MinterStateFacet.sol";
+import {MinterLiquidationFacet} from "minter/facets/MinterLiquidationFacet.sol";
+import {MinterConfigurationFacet} from "minter/facets/MinterConfigurationFacet.sol";
 
 import {SCDPStateFacet} from "scdp/facets/SCDPStateFacet.sol";
 import {SCDPFacet} from "scdp/facets/SCDPFacet.sol";
 import {SCDPSwapFacet} from "scdp/facets/SCDPSwapFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {SDIFacet} from "scdp/facets/SDIFacet.sol";
-import {SCDPInitArgs} from "scdp/Types.sol";
+import {SCDPInitArgs} from "scdp/STypes.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {KISS} from "kiss/KISS.sol";
 import {Vault} from "vault/Vault.sol";
@@ -51,7 +51,7 @@ abstract contract KreskoForgeBase is
 
     function deployDiamond(DeployArgs memory args) internal returns (IKresko kresko_) {
         FacetCut[] memory facets = new FacetCut[](22);
-        Initialization[] memory initializers = new Initialization[](3);
+        Initializer[] memory initializers = new Initializer[](3);
         /* --------------------------------- Diamond -------------------------------- */
         diamondFacets(facets);
         /* --------------------------------- Common --------------------------------- */
@@ -83,13 +83,12 @@ abstract contract KreskoForgeBase is
     }
 
     function getSCDPInitializer(DeployArgs memory args) internal pure returns (SCDPInitArgs memory init) {
-        init.swapFeeRecipient = args.treasury;
         init.minCollateralRatio = args.scdpMcr;
         init.liquidationThreshold = args.scdpLt;
         init.sdiPricePrecision = args.sdiPrecision;
     }
 
-    function diamondFacets(FacetCut[] memory facets) internal returns (Initialization memory) {
+    function diamondFacets(FacetCut[] memory facets) internal returns (Initializer memory) {
         facets[0] = FacetCut({
             facetAddress: address(new DiamondCutFacet()),
             action: FacetCutAction.Add,
@@ -111,10 +110,10 @@ abstract contract KreskoForgeBase is
             functionSelectors: getSelectorsFromArtifact("ERC165Facet")
         });
 
-        return Initialization({initContract: address(0), initData: ""});
+        return Initializer({initContract: address(0), initData: ""});
     }
 
-    function commonFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initialization memory) {
+    function commonFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initializer memory) {
         address configurationFacetAddress = address(new CommonConfigurationFacet());
         facets[4] = FacetCut({
             facetAddress: configurationFacetAddress,
@@ -148,58 +147,58 @@ abstract contract KreskoForgeBase is
         });
 
         return
-            Initialization(
+            Initializer(
                 configurationFacetAddress,
                 abi.encodeWithSelector(CommonConfigurationFacet.initializeCommon.selector, getCommonInitializer(args))
             );
     }
 
-    function minterFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initialization memory) {
-        address configurationFacetAddress = address(new ConfigurationFacet());
+    function minterFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initializer memory) {
+        address configurationFacetAddress = address(new MinterConfigurationFacet());
         facets[10] = FacetCut({
             facetAddress: configurationFacetAddress,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("ConfigurationFacet")
+            functionSelectors: getSelectorsFromArtifact("MinterConfigurationFacet")
         });
         facets[11] = FacetCut({
-            facetAddress: address(new MintFacet()),
+            facetAddress: address(new MinterMintFacet()),
             action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("MintFacet")
+            functionSelectors: getSelectorsFromArtifact("MinterMintFacet")
         });
         facets[12] = FacetCut({
-            facetAddress: address(new BurnFacet()),
+            facetAddress: address(new MinterBurnFacet()),
             action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("BurnFacet")
+            functionSelectors: getSelectorsFromArtifact("MinterBurnFacet")
         });
         facets[13] = FacetCut({
-            facetAddress: address(new StateFacet()),
+            facetAddress: address(new MinterStateFacet()),
             action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("StateFacet")
+            functionSelectors: getSelectorsFromArtifact("MinterStateFacet")
         });
         facets[14] = FacetCut({
-            facetAddress: address(new DepositWithdrawFacet()),
+            facetAddress: address(new MinterDepositWithdrawFacet()),
             action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("DepositWithdrawFacet")
+            functionSelectors: getSelectorsFromArtifact("MinterDepositWithdrawFacet")
         });
         facets[15] = FacetCut({
-            facetAddress: address(new AccountStateFacet()),
+            facetAddress: address(new MinterAccountStateFacet()),
             action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("AccountStateFacet")
+            functionSelectors: getSelectorsFromArtifact("MinterAccountStateFacet")
         });
         facets[16] = FacetCut({
-            facetAddress: address(new LiquidationFacet()),
+            facetAddress: address(new MinterLiquidationFacet()),
             action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("LiquidationFacet")
+            functionSelectors: getSelectorsFromArtifact("MinterLiquidationFacet")
         });
 
         return
-            Initialization(
+            Initializer(
                 configurationFacetAddress,
-                abi.encodeWithSelector(ConfigurationFacet.initializeMinter.selector, getMinterInitializer(args))
+                abi.encodeWithSelector(MinterConfigurationFacet.initializeMinter.selector, getMinterInitializer(args))
             );
     }
 
-    function scdpFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initialization memory) {
+    function scdpFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initializer memory) {
         address configurationFacetAddress = address(new SCDPConfigFacet());
 
         facets[17] = FacetCut({
@@ -228,7 +227,7 @@ abstract contract KreskoForgeBase is
             functionSelectors: getSelectorsFromArtifact("SDIFacet")
         });
         return
-            Initialization(
+            Initializer(
                 configurationFacetAddress,
                 abi.encodeWithSelector(SCDPConfigFacet.initializeSCDP.selector, getSCDPInitializer(args))
             );

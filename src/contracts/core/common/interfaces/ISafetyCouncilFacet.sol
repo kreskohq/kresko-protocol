@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {Action, SafetyState} from "common/Types.sol";
+import {SafetyState} from "common/Types.sol";
+import {Enums} from "common/Constants.sol";
 
 interface ISafetyCouncilFacet {
     /**
@@ -18,7 +19,7 @@ interface ISafetyCouncilFacet {
      * @param _withDuration Set a duration for this pause - @todo: implement it if required
      * @param _duration Duration for the pause if `_withDuration` is true
      */
-    function toggleAssetsPaused(address[] memory _assets, Action _action, bool _withDuration, uint256 _duration) external;
+    function toggleAssetsPaused(address[] memory _assets, Enums.Action _action, bool _withDuration, uint256 _duration) external;
 
     /**
      * @notice set the safetyStateSet flag
@@ -41,7 +42,7 @@ interface ISafetyCouncilFacet {
      *  Borrow = 3,
      *  Liquidate = 4
      */
-    function safetyStateFor(address _asset, Action _action) external view returns (SafetyState memory);
+    function safetyStateFor(address _asset, Enums.Action _action) external view returns (SafetyState memory);
 
     /**
      * @notice Check if `_asset` has a pause enabled for `_action`
@@ -53,5 +54,5 @@ interface ISafetyCouncilFacet {
      *  Liquidate = 4
      * @return true if `_action` is paused
      */
-    function assetActionPaused(Action _action, address _asset) external view returns (bool);
+    function assetActionPaused(Enums.Action _action, address _asset) external view returns (bool);
 }

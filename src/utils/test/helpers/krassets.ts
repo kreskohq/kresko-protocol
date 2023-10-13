@@ -6,7 +6,7 @@ import { getAnchorNameAndSymbol } from '@utils/strings';
 import { toBig } from '@utils/values';
 import { type InputArgsSimple, defaultCloseFee, defaultSupplyLimit, testKrAssetConfig } from '../mocks';
 import roles from '../roles';
-import { getAssetConfig, wrapContractWithSigner } from './general';
+import { getAssetConfig, updateTestAsset, wrapContractWithSigner } from './general';
 import optimized from './optimizations';
 import { getFakeOracle, setPrice } from './oracle';
 import { getBalanceKrAssetFunc, setBalanceKrAssetFunc } from './smock';
@@ -16,7 +16,10 @@ export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset
   return [balance, balance];
 };
 
-export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<TestAsset<KreskoAsset, 'mock'>> => {
+export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<TestKrAsset> => {
+  if (hre.krAssets.find(c => c.config.args.symbol === args.symbol)) {
+    throw new Error(`Asset with symbol ${args.symbol} already exists`);
+  }
   const deployer = hre.users.deployer;
   const { name, symbol, price, marketOpen } = args;
   const [krAsset, fakeFeed, anchorFactory] = await Promise.all([
@@ -59,56 +62,36 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
 
   // Add the asset to the protocol
   await Promise.all([
-    hre.Diamond.connect(deployer).addAsset(krAsset.address, config.assetStruct, config.feedConfig, true),
+    hre.Diamond.connect(deployer).addAsset(krAsset.address, config.assetStruct, config.feedConfig.feeds),
     krAsset.grantRole(roles.OPERATOR, akrAsset.address),
   ]);
 
-  const asset: TestAsset<KreskoAsset, 'mock'> = {
-    underlyingId: args.underlyingId,
-    isKrAsset: true,
-    isCollateral: !!args.collateralConfig,
+  const asset: TestKrAsset = {
+    ticker: args.ticker,
+    isMinterMintable: true,
+    isMinterCollateral: !!args.collateralConfig,
     address: krAsset.address,
     assetInfo: () => hre.Diamond.getAsset(krAsset.address),
     config,
     contract: krAsset,
     priceFeed: fakeFeed,
     anchor: akrAsset,
+    errorId: [symbol, krAsset.address],
     setPrice: price => setPrice(fakeFeed, price),
     setBalance: setBalanceKrAssetFunc(krAsset, akrAsset),
     balanceOf: getBalanceKrAssetFunc(krAsset),
-    setOracleOrder: order => hre.Diamond.updateOracleOrder(krAsset.address, order),
+    setOracleOrder: order => hre.Diamond.setAssetOracleOrder(krAsset.address, order),
     getPrice: async () => (await fakeFeed.latestRoundData())[1],
-    update: update => updateKrAsset(krAsset.address, update),
+    update: update => updateTestAsset(asset, update),
   };
 
   const found = hre.krAssets.findIndex(c => c.address === asset.address);
   if (found === -1) {
     hre.krAssets.push(asset);
-    hre.allAssets.push(asset);
   } else {
     hre.krAssets = hre.krAssets.map(c => (c.address === asset.address ? asset : c));
-    hre.allAssets = hre.allAssets.map(c => (c.address === asset.address ? asset : c));
   }
   return asset;
-};
-
-export const updateKrAsset = async (address: string, args: AssetArgs) => {
-  const { deployer } = await hre.ethers.getNamedSigners();
-  const krAsset = hre.krAssets.find(c => c.address === address);
-  if (!krAsset) throw new Error(`KrAsset ${address} not found`);
-
-  krAsset.config = await getAssetConfig(krAsset.contract, args);
-  await wrapContractWithSigner(hre.Diamond, deployer).updateAsset(krAsset.address, krAsset.config.assetStruct);
-
-  const found = hre.krAssets.findIndex(c => c.address === krAsset.address);
-  if (found === -1) {
-    hre.krAssets.push(krAsset);
-    hre.allAssets.push(krAsset);
-  } else {
-    hre.krAssets = hre.krAssets.map(c => (c.address === krAsset.address ? krAsset : c));
-    hre.allAssets = hre.allAssets.map(c => (c.address === krAsset.address ? krAsset : c));
-  }
-  return krAsset;
 };
 
 export const mintKrAsset = async (args: InputArgsSimple) => {
@@ -137,7 +120,7 @@ export const leverageKrAsset = async (
 ) => {
   const [krAssetValueBig, mcrBig, collateralValue, collateralToUseInfo, krAssetInfo] = await Promise.all([
     hre.Diamond.getValue(krAsset.address, amount),
-    optimized.getMinCollateralRatio(),
+    optimized.getMinCollateralRatioMinter(),
     hre.Diamond.getValue(collateralToUse.address, toBig(1)),
     hre.Diamond.getAsset(collateralToUse.address),
     hre.Diamond.getAsset(krAsset.address),
@@ -157,24 +140,24 @@ export const leverageKrAsset = async (
   await collateralToUse.setBalance(user, collateralAmount, hre.Diamond.address);
 
   let addPromises: Promise<any>[] = [];
-  if (!collateralToUseInfo.isCollateral) {
-    const config = { ...collateralToUseInfo, isCollateral: true, factor: 1e4, liqIncentive: 1.1e4 };
+  if (!collateralToUseInfo.isMinterCollateral) {
+    const config = { ...collateralToUseInfo, isMinterCollateral: true, factor: 1e4, liqIncentive: 1.1e4 };
     addPromises.push(hre.Diamond.updateAsset(collateralToUse.address, config));
   }
-  if (!krAssetInfo.isKrAsset) {
+  if (!krAssetInfo.isMinterMintable) {
     const config = {
       ...krAssetInfo,
-      isKrAsset: true,
+      isMinterMintable: true,
       kFactor: 1e4,
-      supplyLimit: defaultSupplyLimit,
+      maxDebtMinter: defaultSupplyLimit,
       anchor: krAsset.anchor.address,
       closeFee: defaultCloseFee,
       openFee: 0,
     };
     addPromises.push(hre.Diamond.updateAsset(krAsset.address, config));
   }
-  if (!krAssetInfo.isCollateral) {
-    const config = { ...krAssetInfo, isCollateral: true, factor: 1e4, liqIncentive: 1.1e4 };
+  if (!krAssetInfo.isMinterCollateral) {
+    const config = { ...krAssetInfo, isMinterCollateral: true, factor: 1e4, liqIncentive: 1.1e4 };
     addPromises.push(hre.Diamond.updateAsset(krAsset.address, config));
   }
   await Promise.all(addPromises);
@@ -189,7 +172,7 @@ export const leverageKrAsset = async (
 
   const accountMinCollateralRequired = await hre.Diamond.getAccountMinCollateralAtRatio(
     user.address,
-    optimized.getMinCollateralRatio(),
+    optimized.getMinCollateralRatioMinter(),
   );
   const accountCollateral = await wrapContractWithSigner(
     hre.Diamond,

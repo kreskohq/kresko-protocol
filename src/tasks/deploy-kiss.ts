@@ -51,6 +51,7 @@ task(TASK_DEPLOY_KISS).setAction(async function (_taskArgs: TaskArguments, hre) 
   logger.success(`KISS succesfully deployed @ ${KISSContract.address}`);
 
   // Add to runtime for tests and further scripts
+
   const asset = {
     address: KISSContract.address,
     contract: KISSContract,
@@ -59,30 +60,29 @@ task(TASK_DEPLOY_KISS).setAction(async function (_taskArgs: TaskArguments, hre) 
         name: 'KISS',
         price: 1,
         factor: 1e4,
-        supplyLimit: MaxUint128,
+        maxDebtMinter: MaxUint128,
         marketOpen: true,
         krAssetConfig: testKrAssetConfig.krAssetConfig,
       },
     },
+    errorId: ['KISS', KISSContract.address],
     assetInfo: async () => hre.Diamond.getAsset(KISSContract.address),
     getPrice: async () => toBig(1, 8),
     priceFeed: {} as any,
   };
 
-  const found = hre.krAssets.findIndex(c => c.address === asset.address);
+  // const found = hre.krAssets.findIndex(c => c.address === asset.address);
 
-  if (found === -1) {
-    // @ts-expect-error
-    hre.krAssets.push(asset);
-    // @ts-expect-error
-    hre.allAssets.push(asset);
-  } else {
-    // @ts-expect-error
-    hre.krAssets = hre.krAssets.map(c => (c.address === c.address ? asset : c));
-    // @ts-expect-error
-    hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
-  }
-  return {
-    contract: KISSContract,
-  };
+  // if (found === -1) {
+  //   // @ts-expect-error
+  //   hre.krAssets.push(asset); // @todo add kiss to protocol here.
+  //   // @ts-expect-error
+  //   hre.allAssets.push(asset);
+  // } else {
+  //   // @ts-expect-error
+  //   hre.krAssets = hre.krAssets.map(c => (c.address === c.address ? asset : c));
+  //   // @ts-expect-error
+  //   hre.allAssets = hre.allAssets.map(c => (c.address === asset.address && c.collateral ? asset : c));
+  // }
+  return asset;
 });

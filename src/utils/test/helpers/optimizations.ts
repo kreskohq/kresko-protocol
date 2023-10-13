@@ -116,8 +116,8 @@ export async function getAccountDebtAmount(address: string, krAsset: TestKrAsset
   // }
 }
 
-export async function getMinCollateralRatio() {
-  return hre.Diamond.getMinCollateralRatio();
+export async function getMinCollateralRatioMinter() {
+  return hre.Diamond.getMinCollateralRatioMinter();
   // try {
   //     const data = await getStorageAt(hre.Diamond.address, increaseHexBy(slots.minter, slots.minCollateralRatio));
   //     return BigNumber.from(hexStripZeros(data));
@@ -134,8 +134,8 @@ export async function getMinDebtValue() {
   //     return BigNumber.from(0);
   // }
 }
-export async function getLiquidationThreshold() {
-  return hre.Diamond.getLiquidationThreshold();
+export async function getLiquidationThresholdMinter() {
+  return hre.Diamond.getLiquidationThresholdMinter();
   // try {
   //     const data = await getStorageAt(hre.Diamond.address, increaseHexBy(slots.minter, slots.liquidationThreshold));
   //     return BigNumber.from(hexStripZeros(data));
@@ -143,8 +143,8 @@ export async function getLiquidationThreshold() {
   //     return BigNumber.from(0);
   // }
 }
-export async function getMaxLiquidationRatio() {
-  return hre.Diamond.getMaxLiquidationRatio();
+export async function getMaxLiquidationRatioMinter() {
+  return hre.Diamond.getMaxLiquidationRatioMinter();
   // try {
   //     const data = await getStorageAt(hre.Diamond.address, increaseHexBy(slots.minter, slots.maxLiquidationRatio));
   //     return BigNumber.from(hexStripZeros(data));
@@ -196,10 +196,10 @@ export default {
   getAccountCollateralAssets,
   getAccountDebtAmount,
   getAccountCollateralAmount,
-  getMaxLiquidationRatio,
-  getMinCollateralRatio,
+  getMaxLiquidationRatioMinter,
+  getMinCollateralRatioMinter,
   getMinDebtValue,
-  getLiquidationThreshold,
+  getLiquidationThresholdMinter,
   getAccountDepositIndex,
   getAccountMintIndex,
 };

@@ -32,7 +32,7 @@ describe('Oracles', () => {
       const redstoneCollateralPrice = 20;
 
       const redstoneDiamond = wrapPrices(hre.Diamond, [
-        { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
+        { dataFeedId: testCollateralConfig.ticker, value: redstoneCollateralPrice },
       ]);
 
       expect(await redstoneDiamond.getAccountTotalCollateralValue(user.address)).to.equal(
@@ -50,7 +50,7 @@ describe('Oracles', () => {
       const redstoneCollateralPrice = 11;
 
       const redstoneDiamond = wrapPrices(hre.Diamond, [
-        { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
+        { dataFeedId: testCollateralConfig.ticker, value: redstoneCollateralPrice },
       ]);
 
       expect(await redstoneDiamond.getAccountTotalCollateralValue(user.address)).to.equal(
@@ -65,7 +65,7 @@ describe('Oracles', () => {
 
       const redstoneCollateralPrice = 10;
       const redstoneDiamond = wrapPrices(hre.Diamond, [
-        { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
+        { dataFeedId: testCollateralConfig.ticker, value: redstoneCollateralPrice },
       ]);
 
       // should revert if price deviates more than oracleDeviationPct
@@ -80,7 +80,7 @@ describe('Oracles', () => {
       const redstoneCollateralPrice = 200;
       const redstoneDiamond = wrapPrices(hre.Diamond, [
         ...defaultRedstoneDataPoints.map(p => (p.value === 0 ? { ...p, value: 1 } : p)),
-        { dataFeedId: testCollateralConfig.underlyingId, value: redstoneCollateralPrice },
+        { dataFeedId: testCollateralConfig.ticker, value: redstoneCollateralPrice },
       ]);
       await (await hre.getContractOrFork('MockSequencerUptimeFeed')).setAnswer(1);
       // should return redstone price if sequencer is down

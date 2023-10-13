@@ -3,44 +3,41 @@ pragma solidity >=0.8.21;
 
 import {Arrays} from "libs/Arrays.sol";
 import {Role} from "common/Constants.sol";
-import {CError} from "common/CError.sol";
-import {CModifiers} from "common/Modifiers.sol";
+import {Errors} from "common/Errors.sol";
+import {Modifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
 import {Asset, Action} from "common/Types.sol";
 
-import {DSModifiers} from "diamond/Modifiers.sol";
-import {IBurnHelperFacet} from "./IBurnHelperFacet.sol";
-import {MEvent} from "minter/Events.sol";
-import {ms, MinterState} from "minter/State.sol";
-import {MinterFee} from "minter/Types.sol";
-import {handleMinterFee} from "minter/funcs/Fees.sol";
+import {DSModifiers} from "diamond/DSModifiers.sol";
+import {IMinterBurnHelperFacet} from "./IMinterBurnHelperFacet.sol";
+import {MEvent} from "minter/MEvent.sol";
+import {ms, MinterState} from "minter/MState.sol";
+import {MinterFee} from "minter/MTypes.sol";
+import {handleMinterFee} from "minter/funcs/MFees.sol";
 
 /**
  * @author Kresko
  * @title BurnHelperFacet
- * @notice Helper functions for reducing positions
+ * @notice Helper functions for reducing positions in the Kresko Minter.
  */
 
-contract BurnHelperFacet is IBurnHelperFacet, DSModifiers, CModifiers {
+contract MinterBurnHelperFacet is IMinterBurnHelperFacet, DSModifiers, Modifiers {
     using Arrays for address[];
 
-    /// @inheritdoc IBurnHelperFacet
+    /// @inheritdoc IMinterBurnHelperFacet
     function closeDebtPosition(
         address _account,
         address _kreskoAsset
     ) public nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
-        MinterState storage s = ms();
-        if (cs().safetyStateSet) {
-            super.ensureNotPaused(_kreskoAsset, Action.Repay);
-        }
-        Asset storage asset = cs().assets[_kreskoAsset];
+        Asset storage asset = cs().onlyMinterMintable(_assetAddr, Action.Repay);
 
+        MinterState storage s = ms();
         // Get accounts principal debt
         uint256 principalDebt = s.accountDebtAmount(_account, _kreskoAsset, asset);
-        if (principalDebt == 0) revert CError.ZERO_BURN(_kreskoAsset);
+        if (principalDebt == 0) revert Errors.ZERO_DEBT(_kreskoAsset);
 
         // Charge the burn fee from collateral of _account
-        handleMinterFee(_account, asset, principalDebt, MinterFee.Close);
+        handleMinterFee(asset, _account, principalDebt, MinterFee.Close);
 
         // Record the burn
         s.burn(_kreskoAsset, asset.anchor, principalDebt, _account);
@@ -51,7 +48,7 @@ contract BurnHelperFacet is IBurnHelperFacet, DSModifiers, CModifiers {
         emit MEvent.DebtPositionClosed(_account, _kreskoAsset, principalDebt);
     }
 
-    /// @inheritdoc IBurnHelperFacet
+    /// @inheritdoc IMinterBurnHelperFacet
     function closeAllDebtPositions(address _account) external onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         address[] memory mintedKreskoAssets = ms().accountDebtAssets(_account);
         for (uint256 i; i < mintedKreskoAssets.length; ) {

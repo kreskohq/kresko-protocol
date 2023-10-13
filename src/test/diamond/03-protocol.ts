@@ -43,14 +43,30 @@ describe('Diamond', () => {
       expect(await hre.Diamond.hasRole(Role.SAFETY_COUNCIL, hre.Multisig.address)).to.equal(true);
 
       expect(await hre.Diamond.getFeeRecipient()).to.equal(args.treasury);
-      expect(await hre.Diamond.getMinCollateralRatio()).to.equal(minterArgs.minCollateralRatio);
+      expect(await hre.Diamond.getMinCollateralRatioMinter()).to.equal(minterArgs.minCollateralRatio);
+      expect(await hre.Diamond.getLiquidationThresholdMinter()).to.equal(minterArgs.liquidationThreshold);
+      expect(await hre.Diamond.getMaxLiquidationRatioMinter()).to.equal(
+        Number(minterArgs.liquidationThreshold) + 0.01e4,
+      );
 
-      const scdpParams = await hre.Diamond.getCurrentParametersSCDP();
+      const scdpParams = await hre.Diamond.getParametersSCDP();
       expect(scdpParams.minCollateralRatio).to.equal(scdpArgs.minCollateralRatio);
       expect(scdpParams.liquidationThreshold).to.equal(scdpArgs.liquidationThreshold);
-      expect(scdpParams.swapFeeRecipient).to.equal(scdpArgs.swapFeeRecipient);
       expect(await hre.Diamond.getMinDebtValue()).to.equal(args.minDebtValue);
       expect(await hre.Diamond.getOracleDeviationPct()).to.equal(args.oracleDeviationPct);
+    });
+
+    it('can modify configuration parameters', async function () {
+      await expect(hre.Diamond.setOracleDeviationPct(0.05e4)).to.not.be.reverted;
+      await expect(hre.Diamond.setSequencerGracePeriod(1000)).to.not.be.reverted;
+      await expect(hre.Diamond.setDefaultOraclePrecision(9)).to.not.be.reverted;
+      await expect(hre.Diamond.setOracleTimeout(9)).to.not.be.reverted;
+      await expect(hre.Diamond.setMinDebtValue(20e8)).to.not.be.reverted;
+
+      expect(await hre.Diamond.getMinDebtValue()).to.equal(20e8);
+      expect(await hre.Diamond.getDefaultOraclePrecision()).to.equal(2);
+      expect(await hre.Diamond.getOracleDeviationPct()).to.equal(0.05e4);
+      expect(await hre.Diamond.getSequencerGracePeriod()).to.equal(1000);
     });
   });
 });

@@ -47,30 +47,30 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         vm.warp(3601);
 
         usdc = mockCollateral(
-            bytes12("USDC"),
-            MockConfig({symbol: "USDC", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            bytes32("USDC"),
+            MockConfig({symbol: "USDC", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             fullCollateral
         );
 
         krETH = mockKrAsset(
-            bytes12("ETH"),
+            bytes32("ETH"),
             address(0),
-            MockConfig({symbol: "krETH", price: 2000e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            MockConfig({symbol: "krETH", price: 2000e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             defaultKrAsset,
             deployArgs
         );
 
         KISS = mockKrAsset(
-            bytes12("KISS"),
+            bytes32("KISS"),
             address(0),
-            MockConfig({symbol: "KISS", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            MockConfig({symbol: "KISS", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             defaultKISS,
             deployArgs
         );
         krJPY = mockKrAsset(
-            bytes12("JPY"),
+            bytes32("JPY"),
             address(0),
-            MockConfig({symbol: "krJPY", price: 1e8, updateFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            MockConfig({symbol: "krJPY", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
             defaultKrAsset,
             deployArgs
         );
@@ -85,22 +85,22 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         kresko.owner().equals(deployArgs.admin);
         Asset memory usdcConfig = kresko.getAsset(usdc.addr);
         Asset memory krETHConfig = kresko.getAsset(krETH.addr);
-        kresko.getMinCollateralRatio().equals(150e2);
-        kresko.getCurrentParametersSCDP().minCollateralRatio.equals(200e2);
-        kresko.getCurrentParametersSCDP().liquidationThreshold.equals(150e2);
-        usdcConfig.isSCDPCollateral.equals(true);
-        usdcConfig.isSCDPDepositAsset.equals(true);
+        kresko.getMinCollateralRatioMinter().equals(150e2);
+        kresko.getParametersSCDP().minCollateralRatio.equals(200e2);
+        kresko.getParametersSCDP().liquidationThreshold.equals(150e2);
+        usdcConfig.isSharedOrSwappedCollateral.equals(true);
+        usdcConfig.isSharedCollateral.equals(true);
 
         usdcConfig.decimals.equals(usdc.asset.decimals());
         usdcConfig.depositLimitSCDP.equals(type(uint128).max);
         usdcConfig.liquidityIndexSCDP.equals(1e27);
 
-        krETHConfig.isKrAsset.equals(true);
-        krETHConfig.isSCDPKrAsset.equals(true);
+        krETHConfig.isMinterMintable.equals(true);
+        krETHConfig.isSwapMintable.equals(true);
         krETHConfig.liqIncentiveSCDP.equals(110e2);
         krETHConfig.openFee.equals(2e2);
         krETHConfig.closeFee.equals(2e2);
-        krETHConfig.supplyLimit.equals(type(uint128).max);
+        krETHConfig.maxDebtMinter.equals(type(uint128).max);
         krETHConfig.protocolFeeShareSCDP.equals(25e2);
 
         kresko.getSwapEnabledSCDP(usdc.addr, krETH.addr).equals(true);

@@ -9,7 +9,7 @@ import {ERC20Upgradeable} from "kresko-lib/token/ERC20Upgradeable.sol";
 import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
 
 import {Role} from "common/Constants.sol";
-import {CError} from "common/CError.sol";
+import {Errors} from "common/Errors.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {IERC165} from "vendor/IERC165.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
@@ -37,7 +37,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         address kresko_,
         address vKISS_
     ) external initializer {
-        if (kresko_.code.length == 0) revert CError.NOT_A_CONTRACT(kresko_);
+        if (kresko_.code.length == 0) revert Errors.NOT_A_CONTRACT(kresko_);
 
         __ERC20Upgradeable_init(name_, symbol_, dec_);
 
@@ -56,7 +56,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     }
 
     modifier onlyContract() {
-        if (msg.sender.code.length == 0) revert CError.NOT_A_CONTRACT(msg.sender);
+        if (msg.sender.code.length == 0) revert Errors.NOT_A_CONTRACT(msg.sender);
         _;
     }
 
@@ -159,7 +159,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         address _to
     ) public override(IKISS, AccessControlUpgradeable, IAccessControl) onlyRole(Role.ADMIN) {
         if (_role == Role.OPERATOR) {
-            if (_to.code.length == 0) revert CError.NOT_A_CONTRACT(_to);
+            if (_to.code.length == 0) revert Errors.NOT_A_CONTRACT(_to);
         }
         _grantRole(_role, _to);
     }
@@ -179,7 +179,17 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     }
 
     /// @inheritdoc IKreskoAssetIssuer
+    function convertManyToShares(uint256[] calldata assets) external pure returns (uint256[] calldata shares) {
+        return assets;
+    }
+
+    /// @inheritdoc IKreskoAssetIssuer
     function convertToAssets(uint256 shares) external pure returns (uint256) {
+        return shares;
+    }
+
+    /// @inheritdoc IKreskoAssetIssuer
+    function convertManyToAssets(uint256[] calldata shares) external pure returns (uint256[] calldata assets) {
         return shares;
     }
 
@@ -212,6 +222,6 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
      */
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
         super._beforeTokenTransfer(from, to, amount);
-        if (paused()) revert CError.PAUSED(address(this));
+        if (paused()) revert Errors.PAUSED(address(this));
     }
 }

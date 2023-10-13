@@ -1,4 +1,4 @@
-import { CError } from '@utils/errors';
+import { Errors } from '@utils/errors';
 import { getInternalEvent } from '@utils/events';
 import Fee from '@utils/test/fees';
 import { MintRepayFixture, mintRepayFixture } from '@utils/test/fixtures';
@@ -202,14 +202,14 @@ describe('Minter', function () {
         const mintAmount = currMinimumDebtValue.wadDiv(TEN_USD.ebn(8)).sub(1e9);
 
         await expect(User1.mintKreskoAsset(user1.address, f.KrAsset.address, mintAmount))
-          .to.be.revertedWithCustomError(CError(hre), 'MINT_VALUE_LOW')
+          .to.be.revertedWithCustomError(Errors(hre), 'MINT_VALUE_LOW')
           .withArgs(f.KrAsset.address, 10e8 - 1, currMinimumDebtValue);
       });
 
       it('should not allow users to mint non-whitelisted Kresko assets', async function () {
         // Attempt to mint a non-deployed, non-whitelisted Kresko asset
         await expect(User1.mintKreskoAsset(user1.address, '0x0000000000000000000000000000000000000002', toBig(1)))
-          .to.be.revertedWithCustomError(CError(hre), 'KRASSET_DOES_NOT_EXIST')
+          .to.be.revertedWithCustomError(Errors(hre), 'KRASSET_DOES_NOT_EXIST')
           .withArgs('0x0000000000000000000000000000000000000002');
       });
 
@@ -219,7 +219,7 @@ describe('Minter', function () {
           f.Collateral.address,
         );
 
-        const MCR = await hre.Diamond.getMinCollateralRatio();
+        const MCR = await hre.Diamond.getMinCollateralRatioMinter();
         const mcrAmount = collateralAmountDeposited.percentMul(MCR);
         const mintAmount = mcrAmount.add(1);
         const mintValue = await hre.Diamond.getValue(f.KrAsset.address, mintAmount);
@@ -227,7 +227,7 @@ describe('Minter', function () {
         const userState = await hre.Diamond.getAccountState(user1.address);
 
         await expect(User1.mintKreskoAsset(user1.address, f.KrAsset.address, mintAmount))
-          .to.be.revertedWithCustomError(CError(hre), 'COLLATERAL_VALUE_LOW')
+          .to.be.revertedWithCustomError(Errors(hre), 'COLLATERAL_VALUE_LOW')
           .withArgs(userState.totalCollateralValue, mintValue.percentMul(MCR));
       });
 
@@ -238,27 +238,19 @@ describe('Minter', function () {
         const assetSupplyLimit = toBig(1);
         const mintAmount = toBig(2);
         await f.KrAsset.update({
-          ...f.KrAsset.config.args,
-          krAssetConfig: {
-            ...f.KrAsset.config.args.krAssetConfig!,
-            supplyLimit: assetSupplyLimit,
-          },
+          maxDebtMinter: assetSupplyLimit,
         });
 
         await expect(User1.mintKreskoAsset(user1.address, f.KrAsset.address, mintAmount))
-          .to.be.revertedWithCustomError(CError(hre), 'MAX_SUPPLY_EXCEEDED')
+          .to.be.revertedWithCustomError(Errors(hre), 'MAX_SUPPLY_EXCEEDED')
           .withArgs(f.KrAsset.address, (await f.KrAsset.contract.totalSupply()).add(mintAmount), assetSupplyLimit);
         await f.KrAsset.update({
-          ...f.KrAsset.config.args,
-          krAssetConfig: {
-            ...f.KrAsset.config.args.krAssetConfig!,
-            supplyLimit: assetSupplyLimit,
-          },
+          maxDebtMinter: assetSupplyLimit,
         });
       });
       it.skip('should not allow the minting of kreskoAssets if the market is closed', async function () {
         await expect(User1.mintKreskoAsset(user1.address, f.KrAsset.address, toBig(1))).to.be.revertedWithCustomError(
-          CError(hre),
+          Errors(hre),
           'MARKET_CLOSED',
         );
 
@@ -717,7 +709,7 @@ describe('Minter', function () {
 
         await expect(
           User1.burnKreskoAsset(user1.address, f.KrAsset.address, 0, kreskoAssetIndex),
-        ).to.be.revertedWithCustomError(CError(hre), 'ZERO_BURN');
+        ).to.be.revertedWithCustomError(Errors(hre), 'ZERO_BURN');
       });
 
       it('should not allow untrusted address to burn any kresko assets on behalf of another user', async function () {
@@ -742,12 +734,8 @@ describe('Minter', function () {
           const openFee = 0.01e4;
 
           await f.KrAsset.update({
-            ...f.KrAsset.config.args,
-            krAssetConfig: {
-              ...f.KrAsset.config.args.krAssetConfig!,
-              openFee,
-              supplyLimit: MaxUint128,
-            },
+            openFee,
+            maxDebtMinter: MaxUint128,
           });
           const mintAmount = toBig(1);
           const mintValue = mintAmount.wadMul(TEN_USD.ebn(8));

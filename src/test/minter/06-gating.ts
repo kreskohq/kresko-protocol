@@ -10,7 +10,7 @@ describe('Gating', () => {
     f = await defaultFixture();
     // Set Gating phase to 3
 
-    await hre.Diamond.updatePhase(2);
+    await hre.Diamond.setGatingPhase(2);
 
     // setup collateral for userOne and userTwo
     this.initialBalance = toBig(100000);
@@ -34,7 +34,7 @@ describe('Gating', () => {
       args: [],
       from: hre.users.deployer.address,
     });
-    await hre.Diamond.updateKreskian(this.nft.address);
+    await hre.Diamond.setKreskianCollection(this.nft.address);
   });
 
   it("should not allow to deposit collateral if the user doesn't have required nft's", async function () {
@@ -59,7 +59,7 @@ describe('Gating', () => {
   });
 
   it('After all the phases anyone should be able to deposit collateral', async function () {
-    await hre.Diamond.updatePhase(3);
+    await hre.Diamond.setGatingPhase(3);
 
     // Anyone should be able to deposit collateral
     await expect(

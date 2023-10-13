@@ -23,7 +23,7 @@ describe.skip('Test KreskoAsset with Rebase and sync', () => {
 
     await depositMockCollateral({
       user: hre.users.userNine,
-      asset: this.collaterals.find(c => c.config.args.underlyingId === testCollateralConfig.underlyingId)!,
+      asset: this.collaterals.find(c => c.config.args.ticker === testCollateralConfig.ticker)!,
       amount: toBig(100000),
     });
     await mintKrAsset({

@@ -5,7 +5,7 @@ import { hardhatUsers } from '@config/hardhat';
 import type { ABI, DeployOptions, Deployment } from 'hardhat-deploy/dist/types';
 import 'hardhat/types/config';
 import 'mocha';
-import type { MockERC20 } from './typechain';
+import type { KISS, MockERC20 } from './typechain';
 
 /* ========================================================================== */
 /*                             TEST AUGMENTATIONS                             */
@@ -79,7 +79,7 @@ declare module 'hardhat/types/runtime' {
     /* -------------------------------------------------------------------------- */
     /*                                 Deployment                                 */
     /* -------------------------------------------------------------------------- */
-
+    KISS: TestAsset<KISS, any>;
     krAssets: TestAsset<KreskoAsset, 'mock'>[];
     extAssets: TestAsset<MockERC20, 'mock'>[];
     facets: { name: string; address: string; functions: number }[];

@@ -4,14 +4,15 @@ pragma solidity >=0.8.21;
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
-import {AssetData, UserData, GlobalData} from "scdp/Types.sol";
-import {scdp, sdi} from "scdp/State.sol";
 import {Percents} from "common/Constants.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
+
+import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
+import {AssetData, UserData, GlobalData} from "scdp/STypes.sol";
+import {accountTotalDepositValues, totalCollateralValuesSCDP, totalDebtValuesAtRatioSCDP} from "scdp/funcs/SHelpers.sol";
 import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
-import {accountTotalDepositValues, totalCollateralValuesSCDP, totalDebtValuesAtRatioSCDP} from "scdp/funcs/Helpers.sol";
+import {scdp, sdi} from "scdp/SState.sol";
 
 /**
  * @title SCDPStateFacet
@@ -77,7 +78,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
         uint256 index;
 
         for (uint256 i; i < depositAssets.length; ) {
-            if (cs().assets[depositAssets[i]].isSCDPDepositAsset) {
+            if (cs().assets[depositAssets[i]].isSharedCollateral) {
                 results[index++] = depositAssets[i];
             }
             unchecked {
@@ -151,22 +152,17 @@ contract SCDPStateFacet is ISCDPStateFacet {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc ISCDPStateFacet
-    function getFeeRecipientSCDP() external view returns (address) {
-        return scdp().swapFeeRecipient;
-    }
-
-    /// @inheritdoc ISCDPStateFacet
     function getAssetEnabledSCDP(address _asset) external view returns (bool) {
         return scdp().isEnabled[_asset];
     }
 
     function getDepositEnabledSCDP(address _asset) external view returns (bool) {
-        return cs().assets[_asset].isSCDPDepositAsset;
+        return cs().assets[_asset].isSharedCollateral;
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getSwapEnabledSCDP(address _assetIn, address _assetOut) external view returns (bool) {
-        return scdp().isSwapEnabled[_assetIn][_assetOut];
+        return scdp().isRoute[_assetIn][_assetOut];
     }
 
     function getCollateralRatioSCDP() public view returns (uint256) {
@@ -220,16 +216,16 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     function getAssetInfoSCDP(address _asset) public view returns (AssetData memory results) {
         Asset storage asset = cs().assets[_asset];
-        bool isKrAsset = asset.isSCDPKrAsset;
-        bool isCollateral = asset.isSCDPCollateral;
-        uint256 depositAmount = isCollateral ? scdp().totalDepositAmount(_asset, asset) : 0;
-        uint256 debtAmount = isKrAsset ? asset.toRebasingAmount(scdp().assetData[_asset].debt) : 0;
+        bool isMinterMintable = asset.isSwapMintable;
+        bool isMinterCollateral = asset.isSharedOrSwappedCollateral;
+        uint256 depositAmount = isMinterCollateral ? scdp().totalDepositAmount(_asset, asset) : 0;
+        uint256 debtAmount = isMinterMintable ? asset.toRebasingAmount(scdp().assetData[_asset].debt) : 0;
 
-        (uint256 debtValue, uint256 debtValueAdjusted, uint256 krAssetPrice) = isKrAsset
+        (uint256 debtValue, uint256 debtValueAdjusted, uint256 krAssetPrice) = isMinterMintable
             ? debtAmountToValues(asset, debtAmount)
             : (0, 0, 0);
 
-        (uint256 depositValue, uint256 depositValueAdjusted, uint256 collateralPrice) = isCollateral
+        (uint256 depositValue, uint256 depositValueAdjusted, uint256 collateralPrice) = isMinterCollateral
             ? collateralAmountToValues(asset, depositAmount)
             : (0, 0, 0);
         return
@@ -243,7 +239,7 @@ contract SCDPStateFacet is ISCDPStateFacet {
                 debtAmount: debtAmount,
                 debtValue: debtValue,
                 debtValueAdjusted: debtValueAdjusted,
-                swapDeposits: isCollateral ? scdp().swapDepositAmount(_asset, asset) : 0,
+                swapDeposits: isMinterCollateral ? scdp().swapDepositAmount(_asset, asset) : 0,
                 symbol: IERC20(_asset).symbol()
             });
     }

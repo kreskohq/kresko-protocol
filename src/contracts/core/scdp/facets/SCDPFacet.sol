@@ -6,47 +6,48 @@ import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 
-import {CError} from "common/CError.sol";
+import {Errors} from "common/Errors.sol";
 import {burnSCDP} from "common/funcs/Actions.sol";
 import {fromWad, valueToAmount} from "common/funcs/Math.sol";
-import {CModifiers} from "common/Modifiers.sol";
+import {Modifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
 import {Asset, MaxLiqInfo} from "common/Types.sol";
-import {SEvent} from "scdp/Events.sol";
 
-import {SCDPAssetData} from "scdp/Types.sol";
+import {SEvent} from "scdp/SEvent.sol";
+import {SCDPAssetData} from "scdp/STypes.sol";
 import {ISCDPFacet} from "scdp/interfaces/ISCDPFacet.sol";
-import {scdp, sdi, SCDPState} from "scdp/State.sol";
+import {scdp, sdi, SCDPState} from "scdp/SState.sol";
 
 using PercentageMath for uint256;
 using PercentageMath for uint16;
 using SafeTransfer for IERC20;
 using WadRay for uint256;
 
-contract SCDPFacet is ISCDPFacet, CModifiers {
+contract SCDPFacet is ISCDPFacet, Modifiers {
     /// @inheritdoc ISCDPFacet
-    function depositSCDP(
-        address _account,
-        address _collateralAsset,
-        uint256 _amount
-    ) external isSCDPDepositAsset(_collateralAsset) nonReentrant {
+    function depositSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant gate {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Record the collateral deposit.
-        scdp().handleDepositSCDP(_account, _collateralAsset, _amount);
+        scdp().handleDepositSCDP(cs().onlySharedCollateral(_collateralAsset), _account, _collateralAsset, _amount);
 
         emit SEvent.SCDPDeposit(_account, _collateralAsset, _amount);
     }
 
     /// @inheritdoc ISCDPFacet
-    function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant {
+    function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant gate {
         SCDPState storage s = scdp();
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
-        (uint256 collateralOut, uint256 feesOut) = s.handleWithdrawSCDP(msg.sender, _collateralAsset, _amount);
+        (uint256 collateralOut, uint256 feesOut) = s.handleWithdrawSCDP(
+            cs().onlyActiveSharedCollateral(_collateralAsset),
+            msg.sender,
+            _collateralAsset,
+            _amount
+        );
 
         // ensure that global pool is left with CR over MCR.
-        s.checkCollateralValue(s.minCollateralRatio);
+        s.ensureCollateralRatio(s.minCollateralRatio);
 
         // Send out the collateral.
         IERC20(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);
@@ -56,30 +57,43 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
     }
 
     /// @inheritdoc ISCDPFacet
-    function repaySCDP(address _repayAssetAddr, uint256 _repayAmount, address _seizeAssetAddr) external nonReentrant {
-        if (_repayAmount == 0) {
-            revert CError.ZERO_REPAY(_repayAssetAddr);
-        }
+    function repaySCDP(address _repayAssetAddr, uint256 _repayAmount, address _seizeAssetAddr) external nonReentrant gate {
+        Asset storage repayAsset = cs().onlySwapMintable(_repayAssetAddr);
+        Asset storage seizeAsset = cs().onlySwapMintable(_seizeAssetAddr);
+
         SCDPState storage s = scdp();
         SCDPAssetData storage repayAssetData = s.assetData[_repayAssetAddr];
+        SCDPAssetData storage seizeAssetData = s.assetData[_seizeAssetAddr];
 
         if (_repayAmount > repayAssetData.debt) {
-            revert CError.REPAY_OVERFLOW(_repayAmount, repayAssetData.debt);
+            revert Errors.REPAY_OVERFLOW(
+                Errors.id(_repayAssetAddr),
+                Errors.id(_seizeAssetAddr),
+                _repayAmount,
+                repayAssetData.debt
+            );
         }
 
-        Asset storage krAsset = cs().assets[_repayAssetAddr];
-        Asset storage seizeAsset = cs().assets[_seizeAssetAddr];
+        uint256 seizedAmount = fromWad(repayAsset.uintUSD(_repayAmount).wadDiv(seizeAsset.price()), seizeAsset.decimals);
 
-        uint256 seizedAmount = fromWad(krAsset.uintUSD(_repayAmount).wadDiv(seizeAsset.price()), seizeAsset.decimals);
-        if (seizedAmount > repayAssetData.swapDeposits) {
-            revert CError.REPAY_TOO_MUCH(seizedAmount, repayAssetData.swapDeposits);
+        if (seizedAmount == 0) {
+            revert Errors.ZERO_REPAY(Errors.id(_repayAssetAddr), _repayAmount, seizedAmount);
         }
 
-        repayAssetData.debt -= burnSCDP(krAsset, _repayAmount, msg.sender);
+        if (seizedAmount > seizeAssetData.swapDeposits) {
+            revert Errors.NOT_ENOUGH_SWAP_DEPOSITS_TO_SEIZE(
+                Errors.id(_repayAssetAddr),
+                Errors.id(_seizeAssetAddr),
+                seizedAmount,
+                seizeAssetData.swapDeposits
+            );
+        }
+
+        repayAssetData.debt -= burnSCDP(repayAsset, _repayAmount, msg.sender);
 
         uint128 seizedAmountInternal = uint128(seizeAsset.toNonRebasingAmount(seizedAmount));
-        s.assetData[_seizeAssetAddr].swapDeposits -= seizedAmountInternal;
-        s.assetData[_seizeAssetAddr].totalDeposits -= seizedAmountInternal;
+        seizeAssetData.swapDeposits -= seizedAmountInternal;
+        seizeAssetData.totalDeposits -= seizedAmountInternal;
 
         IERC20(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
         // solhint-disable-next-line avoid-tx-origin
@@ -91,8 +105,8 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
     }
 
     function getMaxLiqValueSCDP(address _repayAssetAddr, address _seizeAssetAddr) external view returns (MaxLiqInfo memory) {
-        Asset storage seizeAsset = cs().assets[_seizeAssetAddr];
-        Asset storage repayAsset = cs().assets[_repayAssetAddr];
+        Asset storage repayAsset = cs().onlySwapMintable(_repayAssetAddr);
+        Asset storage seizeAsset = cs().onlySharedCollateral(_seizeAssetAddr);
         uint256 maxLiqValue = _getMaxLiqValue(repayAsset, seizeAsset, _seizeAssetAddr);
         uint256 seizeAssetPrice = seizeAsset.price();
         uint256 repayAssetPrice = repayAsset.price();
@@ -117,32 +131,33 @@ contract SCDPFacet is ISCDPFacet, CModifiers {
     }
 
     /// @inheritdoc ISCDPFacet
-    function liquidateSCDP(address _repayAssetAddr, uint256 _repayAmount, address _seizeAssetAddr) external nonReentrant {
-        if (_repayAmount == 0) {
-            revert CError.ZERO_REPAY(_repayAssetAddr);
+    function liquidateSCDP(address _repayAssetAddr, uint256 _repayAmount, address _seizeAssetAddr) external nonReentrant gate {
+        SCDPState storage s = scdp();
+        s.ensureLiquidatableSCDP();
+
+        Asset storage repayAsset = cs().onlySwapMintable(_repayAssetAddr);
+        Asset storage seizeAsset = cs().onlyActiveSharedCollateral(_seizeAssetAddr);
+
+        SCDPAssetData storage repayAssetData = s.assetData[_repayAssetAddr];
+        if (_repayAmount > repayAssetData.debt) {
+            revert Errors.LIQUIDATION_AMOUNT_GREATER_THAN_DEBT(Errors.id(_repayAssetAddr), _repayAmount, repayAssetData.debt);
         }
 
-        SCDPState storage s = scdp();
-        SCDPAssetData storage repayAssetData = s.assetData[_repayAssetAddr];
+        uint256 repayValue = _getMaxLiqValue(repayAsset, seizeAsset, _seizeAssetAddr);
 
-        if (_repayAmount > repayAssetData.debt) revert CError.LIQ_AMOUNT_OVERFLOW(_repayAmount, repayAssetData.debt);
-        s.checkLiquidatableSCDP();
-
-        Asset storage krAsset = cs().assets[_repayAssetAddr];
-        Asset storage seizeAsset = cs().assets[_seizeAssetAddr];
-
-        uint256 repayValue = _getMaxLiqValue(krAsset, seizeAsset, _seizeAssetAddr);
-
-        // Possibly clamped values
-        (repayValue, _repayAmount) = krAsset.ensureRepayValue(repayValue, _repayAmount);
+        // Bound to min debt value or max liquidation value
+        (repayValue, _repayAmount) = repayAsset.boundRepayValue(repayValue, _repayAmount);
+        if (repayValue == 0 || _repayAmount == 0) {
+            revert Errors.LIQUIDATION_VALUE_IS_ZERO(Errors.id(_repayAssetAddr), Errors.id(_seizeAssetAddr));
+        }
 
         uint256 seizedAmount = fromWad(
-            valueToAmount(repayValue, seizeAsset.price(), krAsset.liqIncentiveSCDP),
+            valueToAmount(repayValue, seizeAsset.price(), repayAsset.liqIncentiveSCDP),
             seizeAsset.decimals
         );
 
-        s.assetData[_repayAssetAddr].debt -= burnSCDP(krAsset, _repayAmount, msg.sender);
-        s.handleSeizeSCDP(_seizeAssetAddr, seizeAsset, seizedAmount);
+        s.assetData[_repayAssetAddr].debt -= burnSCDP(repayAsset, _repayAmount, msg.sender);
+        s.handleSeizeSCDP(seizeAsset, _seizeAssetAddr, seizedAmount);
 
         IERC20(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
 

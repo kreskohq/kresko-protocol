@@ -5,26 +5,13 @@
 
 pragma solidity ^0.8.0;
 
-import {Auth} from "common/Auth.sol";
-import {Role} from "common/Constants.sol";
-import {DiamondEvent} from "common/Events.sol";
-import {CError} from "common/CError.sol";
-
-import {ds} from "./State.sol";
-import {FacetCut, Initialization} from "./Types.sol";
-import {initializeDiamondCut} from "./funcs/Cuts.sol";
+import {FacetCut, Initializer} from "./DSTypes.sol";
+import {DSCore} from "./DSCore.sol";
+import {ds} from "./DState.sol";
 
 contract Diamond {
-    constructor(address _owner, FacetCut[] memory _diamondCut, Initialization[] memory _initializations) {
-        ds().initialize(_owner);
-        ds().cut(_diamondCut, address(0), "");
-        Auth._grantRole(Role.ADMIN, _owner);
-
-        for (uint256 i = 0; i < _initializations.length; i++) {
-            initializeDiamondCut(_initializations[i].initContract, _initializations[i].initData);
-        }
-
-        emit DiamondEvent.Initialized(_owner, ds().storageVersion);
+    constructor(address owner, FacetCut[] memory facets, Initializer[] memory initializers) {
+        DSCore.create(facets, initializers, owner);
     }
 
     // Find facet for function that is called and execute the
@@ -33,9 +20,7 @@ contract Diamond {
         // get facet from function selectors
         address facet = ds().selectorToFacetAndPosition[msg.sig].facetAddress;
 
-        if (facet == address(0)) {
-            revert CError.DIAMOND_FUNCTION_NOT_FOUND(msg.sig);
-        }
+        if (facet == address(0)) revert DSCore.DIAMOND_FUNCTION_DOES_NOT_EXIST(msg.sig);
 
         // Execute external function from facet using delegatecall and return any value.
         assembly {

@@ -29,7 +29,7 @@ task(TASK_MINT_OPTIMAL, 'Mint KrAsset with optimal KISS collateral')
     const KrAsset = (await hre.getContractOrFork('KreskoAsset', taskArgs.kreskoAsset)).connect(signer);
     const KrAssetInfo = await Kresko.getAsset(KrAsset.address);
 
-    if (!KrAssetInfo.isKrAsset) {
+    if (!KrAssetInfo.isMinterMintable) {
       throw new Error(`Kresko Asset with name ${taskArgs.kreskoAsset} does not exist`);
     }
     const mintAmount = hre.ethers.utils.parseUnits(String(taskArgs.amount), 18);
