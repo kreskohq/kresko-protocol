@@ -2,11 +2,11 @@
 pragma solidity ^0.8.0;
 
 /**
- * @title IVaultFeed
+ * @title IVaultRateProvider
  * @author Kresko
- * @notice Minimal interface to consume exchange rate of a vault share
+ * @notice Minimal exchange rate interface for vaults.
  */
-interface IVaultRateConsumer {
+interface IVaultRateProvider {
     /**
      * @notice Gets the exchange rate of one vault share to USD.
      * @return uint256 The current exchange rate of the vault share in 18 decimals precision.

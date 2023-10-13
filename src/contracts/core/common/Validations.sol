@@ -16,7 +16,7 @@ import {cs} from "common/State.sol";
 import {rawPrice} from "common/funcs/Prices.sol";
 
 import {scdp} from "scdp/SState.sol";
-import {ms} from "minter/MState.sol";
+import {ms, MinterState} from "minter/MState.sol";
 
 // solhint-disable code-complexity
 library Validations {

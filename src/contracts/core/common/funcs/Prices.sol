@@ -3,7 +3,7 @@ pragma solidity >=0.8.21;
 
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {IAPI3} from "kresko-lib/vendor/IAPI3.sol";
-import {IVaultRateConsumer} from "vault/interfaces/IVaultRateConsumer.sol";
+import {IVaultRateProvider} from "vault/interfaces/IVaultRateProvider.sol";
 
 import {WadRay} from "libs/WadRay.sol";
 import {Strings} from "libs/Strings.sol";
@@ -109,7 +109,7 @@ function handleSequencerDown(Enums.OracleType[2] memory oracles, uint256[2] memo
  * @return uint256 The price of the vault share in 8 decimal precision.
  */
 function vaultPrice(address _vaultAddr) view returns (uint256) {
-    return IVaultRateConsumer(_vaultAddr).exchangeRate() / 1e10;
+    return IVaultRateProvider(_vaultAddr).exchangeRate() / 1e10;
 }
 
 /// @notice Get the price of SDI in USD, oracle precision.

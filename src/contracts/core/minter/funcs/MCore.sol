@@ -7,6 +7,7 @@ import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 
 import {Errors} from "common/Errors.sol";
 import {Asset} from "common/Types.sol";
+import {Validations} from "common/Validations.sol";
 
 import {MEvent} from "minter/MEvent.sol";
 import {MinterState} from "minter/MState.sol";
