@@ -36,7 +36,7 @@ library SDeposits {
             self.deposits[_account][_assetAddr] += depositAmount.wadToRay().rayDiv(_asset.liquidityIndexSCDP);
         }
         if (self.userDepositAmount(_assetAddr, _asset) > _asset.depositLimitSCDP) {
-            revert Errors.THIS_EXCEEDS_ASSET_DEPOSIT_LIMIT(
+            revert Errors.EXCEEDS_ASSET_DEPOSIT_LIMIT(
                 Errors.id(_assetAddr),
                 self.userDepositAmount(_assetAddr, _asset),
                 _asset.depositLimitSCDP

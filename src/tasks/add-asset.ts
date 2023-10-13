@@ -3,11 +3,11 @@ import { getAnchorNameAndSymbol } from '@utils/strings';
 import { getAssetConfig } from '@utils/test/helpers/general';
 import { task, types } from 'hardhat/config';
 
-import { AssetArgs } from '@/types';
-import { TASK_ADD_ASSET } from './names';
-import { TickerMap } from '@utils/redstone';
+import type { AssetArgs } from '@/types';
+import type { KISS, MockERC20 } from '@/types/typechain';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
-import { KISS, MockERC20 } from '@/types/typechain';
+import { TickerMap } from '@utils/redstone';
+import { TASK_ADD_ASSET } from './names';
 type AddAssetArgs = {
   address: string;
   assetConfig: AssetArgs;

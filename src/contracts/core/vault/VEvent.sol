@@ -19,26 +19,28 @@ library VEvent {
     /**
      * @notice Emitted when a new oracle is set for an asset
      * @param asset Asset that was updated
-     * @param oracle Oracle that was set
-     * @param timeout Oracle timeout in seconds that was set
-     * @param price Oracle price at the time of setting, 0 if the oracle was removed
+     * @param feed Feed that was set
+     * @param staletime Time in seconds for the feed to be considered stale
+     * @param price Price at the time of setting the feed
      * @param timestamp Timestamp of the update
      */
-    event OracleSet(address indexed asset, address indexed oracle, uint256 timeout, uint256 price, uint256 timestamp);
+    event OracleSet(address indexed asset, address indexed feed, uint256 staletime, uint256 price, uint256 timestamp);
 
     /**
      * @notice Emitted when a new asset is added to the shares contract
-     * @param asset Asset that was added
-     * @param oracle Oracle that was added
-     * @param timeout Oracle timeout used
+     * @param asset Address of the asset
+     * @param feed Price feed of the asset
+     * @param symbol Asset symbol
+     * @param staletime Time in seconds for the feed to be considered stale
      * @param price Price of the asset
      * @param depositLimit Deposit limit of the asset
      * @param timestamp Timestamp of the addition
      */
     event AssetAdded(
         address indexed asset,
-        address indexed oracle,
-        uint256 timeout,
+        address indexed feed,
+        string indexed symbol,
+        uint256 staletime,
         uint256 price,
         uint256 depositLimit,
         uint256 timestamp

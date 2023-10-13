@@ -1,5 +1,5 @@
-import { MaxUint128, toBig } from '@utils/values';
-import { AssetArgs, OracleType } from '@/types';
+import { toBig } from '@utils/values';
+import { type AssetArgs, OracleType } from '@/types';
 import { MAX_U256 } from '@kreskolabs/lib';
 
 export type InputArgs = {
@@ -59,7 +59,7 @@ export const testCollateralConfig: AssetArgs = {
 export const testCommonParams = (feeRecipient: string) => ({
   minDebtValue: toBig(20, 8),
   feeRecipient: feeRecipient,
-  oracleDeviationPct: 0.02e4,
+  maxPriceDeviationPct: 0.02e4,
   phase: 3,
   kreskian: hre.ethers.constants.AddressZero,
   questForKresk: hre.ethers.constants.AddressZero,

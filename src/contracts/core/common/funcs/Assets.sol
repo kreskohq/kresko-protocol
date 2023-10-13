@@ -20,11 +20,11 @@ library Assets {
     /* -------------------------------------------------------------------------- */
 
     function price(Asset storage self) internal view returns (uint256) {
-        return safePrice(self.ticker, self.oracles, cs().oracleDeviationPct);
+        return safePrice(self.ticker, self.oracles, cs().maxPriceDeviationPct);
     }
 
-    function price(Asset storage self, uint256 oracleDeviationPct) internal view returns (uint256) {
-        return safePrice(self.ticker, self.oracles, oracleDeviationPct);
+    function price(Asset storage self, uint256 maxPriceDeviationPct) internal view returns (uint256) {
+        return safePrice(self.ticker, self.oracles, maxPriceDeviationPct);
     }
 
     /**
@@ -177,13 +177,14 @@ library Assets {
     /**
      * @notice Checks min debt value against some amount.
      * @param _asset The asset (Asset).
-     * @param _kreskoAsset The kresko asset address.
+     * @param _krAsset The kresko asset address.
      * @param _debtAmount The debt amount (uint256).
      */
-    function ensureMinDebtValue(Asset storage _asset, address _kreskoAsset, uint256 _debtAmount) internal view {
+    function ensureMinDebtValue(Asset storage _asset, address _krAsset, uint256 _debtAmount) internal view {
         uint256 positionValue = _asset.uintUSD(_debtAmount);
         uint256 minDebtValue = cs().minDebtValue;
-        if (positionValue < minDebtValue) revert Errors.MINT_VALUE_LOW(Errors.id(_kreskoAsset), positionValue, minDebtValue);
+        if (positionValue < minDebtValue)
+            revert Errors.MINT_VALUE_LESS_THAN_MIN_DEBT_VALUE(Errors.id(_krAsset), positionValue, minDebtValue);
     }
 
     /**

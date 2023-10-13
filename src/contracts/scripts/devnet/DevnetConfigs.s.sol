@@ -81,7 +81,7 @@ abstract contract ArbitrumDevnet is DevnetBase {
         VaultAsset({
             token: tokens.USDC,
             oracle: cl.USDC,
-            oracleTimeout: 86401,
+            staleTime: 86401,
             decimals: 0,
             depositFee: 0,
             withdrawFee: 0,
@@ -93,7 +93,7 @@ abstract contract ArbitrumDevnet is DevnetBase {
         VaultAsset({
             token: tokens.USDT,
             oracle: cl.USDT,
-            oracleTimeout: 86401,
+            staleTime: 86401,
             decimals: 0,
             depositFee: 0,
             withdrawFee: 0,
@@ -105,7 +105,7 @@ abstract contract ArbitrumDevnet is DevnetBase {
         VaultAsset({
             token: tokens.DAI,
             oracle: cl.DAI,
-            oracleTimeout: 86401,
+            staleTime: 86401,
             decimals: 0,
             depositFee: 0,
             withdrawFee: 0,
@@ -128,7 +128,7 @@ abstract contract ArbitrumDevnet is DevnetBase {
         deployArgs = DeployArgs({
             admin: admin_,
             seqFeed: addr.CL_SEQ_UPTIME,
-            oracleTimeout: 86401,
+            staleTime: 86401,
             minterMcr: 150e2,
             minterLt: 140e2,
             scdpMcr: 200e2,
@@ -166,7 +166,7 @@ abstract contract Devnet is DevnetBase {
             minterLt: 140e2,
             scdpMcr: 200e2,
             scdpLt: 150e2,
-            oracleTimeout: 86401,
+            staleTime: 86401,
             council: getMockSafe(admin_),
             sdiPrecision: 8,
             oraclePrecision: 8,

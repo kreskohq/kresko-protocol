@@ -69,11 +69,11 @@ abstract contract KreskoForgeBase is
         init.council = args.council;
         init.treasury = args.treasury;
         init.minDebtValue = 10e8;
-        init.oracleDeviationPct = 0.05e4;
+        init.maxPriceDeviationPct = 0.05e4;
         init.oracleDecimals = args.oraclePrecision;
         init.sequencerUptimeFeed = args.seqFeed;
         init.sequencerGracePeriodTime = 3600;
-        init.oracleTimeout = args.oracleTimeout;
+        init.staleTime = args.staleTime;
         init.phase = 3;
     }
 

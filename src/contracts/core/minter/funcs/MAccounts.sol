@@ -47,6 +47,25 @@ library MAccounts {
         return collateralValue < minCollateralValue;
     }
 
+    /**
+     * @notice verifies that the account has enough collateral value
+     * @param _account The address of the account to verify the collateral for.
+     */
+    function checkAccountCollateral(MinterState storage self, address _account) internal view {
+        uint256 collateralValue = self.accountTotalCollateralValue(_account);
+        // Get the account's minimum collateral value.
+        uint256 minCollateralValue = self.accountMinCollateralAtRatio(_account, self.minCollateralRatio);
+
+        if (collateralValue < minCollateralValue) {
+            revert Errors.ACCOUNT_COLLATERAL_VALUE_LESS_THAN_REQUIRED(
+                _account,
+                collateralValue,
+                minCollateralValue,
+                self.minCollateralRatio
+            );
+        }
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                Account Debt                                */
     /* -------------------------------------------------------------------------- */
@@ -91,17 +110,13 @@ library MAccounts {
     /**
      * @notice Gets an index for the Kresko asset the account has minted.
      * @param _account Account to get the minted Kresko assets for.
-     * @param _kreskoAsset Asset address.
+     * @param _krAsset Asset address.
      * @return uint256 Index of the minted asset. Reverts if not found.
      */
-    function accountMintIndex(
-        MinterState storage self,
-        address _account,
-        address _kreskoAsset
-    ) internal view returns (uint256) {
-        Arrays.FindResult memory item = self.mintedKreskoAssets[_account].find(_kreskoAsset);
+    function accountMintIndex(MinterState storage self, address _account, address _krAsset) internal view returns (uint256) {
+        Arrays.FindResult memory item = self.mintedKreskoAssets[_account].find(_krAsset);
         if (!item.exists) {
-            revert Errors.ACCOUNT_KRASSET_NOT_FOUND(_account, Errors.id(_kreskoAsset), self.mintedKreskoAssets[_account]);
+            revert Errors.ACCOUNT_KRASSET_NOT_FOUND(_account, Errors.id(_krAsset), self.mintedKreskoAssets[_account]);
         }
         return item.index;
     }

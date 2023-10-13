@@ -1,6 +1,6 @@
 import { getSCDPInitializer, scdpFacets } from '@config/deploy';
-import { getLogger } from '@utils/logging';
 import { addFacets } from '@scripts/add-facets';
+import { getLogger } from '@utils/logging';
 import type { DeployFunction } from 'hardhat-deploy/dist/types';
 
 const logger = getLogger('init-scdp-facets');

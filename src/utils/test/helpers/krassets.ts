@@ -1,11 +1,10 @@
+import { KreskoAssetAnchor__factory, KreskoAsset__factory } from '@/types/typechain';
 import { smock } from '@defi-wonderland/smock';
 import { wrapKresko } from '@utils/redstone';
-import type { AssetArgs } from '@/types';
-import { KreskoAssetAnchor__factory, KreskoAsset__factory } from '@/types/typechain';
 import { getAnchorNameAndSymbol } from '@utils/strings';
 import { toBig } from '@utils/values';
-import { type InputArgsSimple, defaultCloseFee, defaultSupplyLimit, testKrAssetConfig } from '../mocks';
-import roles from '../roles';
+import { defaultCloseFee, defaultSupplyLimit, testKrAssetConfig, type InputArgsSimple } from '../mocks';
+import { Role } from '../roles';
 import { getAssetConfig, updateTestAsset, wrapContractWithSigner } from './general';
 import optimized from './optimizations';
 import { getFakeOracle, setPrice } from './oracle';
@@ -63,7 +62,7 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
   // Add the asset to the protocol
   await Promise.all([
     hre.Diamond.connect(deployer).addAsset(krAsset.address, config.assetStruct, config.feedConfig.feeds),
-    krAsset.grantRole(roles.OPERATOR, akrAsset.address),
+    krAsset.grantRole(Role.OPERATOR, akrAsset.address),
   ]);
 
   const asset: TestKrAsset = {

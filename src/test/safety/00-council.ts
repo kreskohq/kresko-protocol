@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
+import { Action } from '@/types';
+import type { SafetyStateChangeEventObject } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { getInternalEvent } from '@utils/events';
 import { executeContractCallWithSigners } from '@utils/gnosis/utils/execution';
-import Action from '@utils/test/actions';
-import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
+import { defaultFixture, type DefaultFixture } from '@utils/test/fixtures';
 import { expect } from 'chai';
-import { SafetyStateChangeEventObject } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
-describe.only('Safety Council', () => {
+describe('Safety Council', () => {
   let f: DefaultFixture;
 
   beforeEach(async function () {
@@ -340,8 +340,7 @@ describe.only('Safety Council', () => {
         const event = await getInternalEvent<SafetyStateChangeEventObject>(tx, hre.Diamond, 'SafetyStateChange');
         expect(event.action).to.equal(Action.DEPOSIT);
         expect(event.asset).to.equal(f.Collateral.address);
-        // @ts-ignore
-        expect(event.description.hash!).to.equal(hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes('paused')));
+        expect(event.description).to.equal('paused');
       });
     });
   });

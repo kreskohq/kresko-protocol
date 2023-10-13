@@ -1,5 +1,4 @@
 import { minterFacets } from '@config/deploy';
-
 import { updateFacets } from '@scripts/update-facets';
 import { expect } from '@test/chai';
 import { toBig } from '@utils/values';

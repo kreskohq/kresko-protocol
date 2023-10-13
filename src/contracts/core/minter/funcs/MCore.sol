@@ -16,29 +16,23 @@ library MCore {
     using WadRay for uint256;
 
     /* -------------------------------------------------------------------------- */
-    /*                            Kresko Assets Actions                           */
+    /*                                Mint And Burn                               */
     /* -------------------------------------------------------------------------- */
 
-    function mint(MinterState storage self, address _kreskoAsset, address _anchor, uint256 _amount, address _account) internal {
+    function mint(MinterState storage self, address _krAsset, address _anchor, uint256 _amount, address _account) internal {
         // Increase principal debt
-        self.kreskoAssetDebt[_account][_kreskoAsset] += IKreskoAssetIssuer(_anchor).issue(_amount, _account);
+        self.kreskoAssetDebt[_account][_krAsset] += IKreskoAssetIssuer(_anchor).issue(_amount, _account);
     }
 
     /// @notice Repay user kresko asset debt.
     /// @dev Updates the principal in MinterState
-    /// @param _kreskoAsset the asset being repaid
+    /// @param _krAsset the asset being repaid
     /// @param _anchor the anchor token of the asset being repaid
     /// @param _burnAmount the asset amount being burned
     /// @param _account the account the debt is subtracted from
-    function burn(
-        MinterState storage self,
-        address _kreskoAsset,
-        address _anchor,
-        uint256 _burnAmount,
-        address _account
-    ) internal {
+    function burn(MinterState storage self, address _krAsset, address _anchor, uint256 _burnAmount, address _account) internal {
         // Decrease the principal debt
-        self.kreskoAssetDebt[_account][_kreskoAsset] -= IKreskoAssetIssuer(_anchor).destroy(_burnAmount, msg.sender);
+        self.kreskoAssetDebt[_account][_krAsset] -= IKreskoAssetIssuer(_anchor).destroy(_burnAmount, msg.sender);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -175,19 +169,5 @@ library MCore {
                 _collateralIndex,
                 self.depositedCollateralAssets[_account]
             );
-    }
-
-    /**
-     * @notice verifies that the account has enough collateral value
-     * @param _account The address of the account to verify the collateral for.
-     */
-    function checkAccountCollateral(MinterState storage self, address _account) internal view {
-        uint256 collateralValue = self.accountTotalCollateralValue(_account);
-        // Get the account's minimum collateral value.
-        uint256 minCollateralValue = self.accountMinCollateralAtRatio(_account, self.minCollateralRatio);
-
-        if (collateralValue < minCollateralValue) {
-            revert Errors.ACCOUNT_COLLATERAL_LOW(_account, collateralValue, minCollateralValue);
-        }
     }
 }

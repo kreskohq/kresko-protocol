@@ -1,7 +1,7 @@
-import { task, types } from 'hardhat/config';
-import { TaskArguments } from 'hardhat/types';
-import { TASK_DEPLOY_TOKEN } from './names';
 import { toBig } from '@utils/values';
+import { task, types } from 'hardhat/config';
+import type { TaskArguments } from 'hardhat/types';
+import { TASK_DEPLOY_TOKEN } from './names';
 
 task(TASK_DEPLOY_TOKEN)
   .addParam('name', 'Name of the token')

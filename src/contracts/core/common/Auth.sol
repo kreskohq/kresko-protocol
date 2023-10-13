@@ -117,8 +117,10 @@ library Auth {
      *
      */
     function setupSecurityCouncil(address _councilAddress) internal {
-        if (getRoleMemberCount(Role.SAFETY_COUNCIL) != 0) revert Errors.SAFETY_COUNCIL_ALREADY_EXISTS();
-        if (!IGnosisSafeL2(_councilAddress).isOwner(msg.sender)) revert Errors.SAFETY_COUNCIL_INVALID_ADDRESS(_councilAddress);
+        if (getRoleMemberCount(Role.SAFETY_COUNCIL) != 0)
+            revert Errors.SAFETY_COUNCIL_ALREADY_EXISTS(_councilAddress, getRoleMember(Role.SAFETY_COUNCIL, 0));
+        if (!IGnosisSafeL2(_councilAddress).isOwner(msg.sender))
+            revert Errors.SAFETY_COUNCIL_SETTER_IS_NOT_ITS_OWNER(_councilAddress);
 
         cs()._roles[Role.SAFETY_COUNCIL].members[_councilAddress] = true;
         cs()._roleMembers[Role.SAFETY_COUNCIL].add(_councilAddress);
@@ -129,7 +131,7 @@ library Auth {
     function transferSecurityCouncil(address _newCouncil) internal {
         checkRole(Role.SAFETY_COUNCIL);
         uint256 owners = IGnosisSafeL2(_newCouncil).getOwners().length;
-        if (owners < 5) revert Errors.MULTISIG_NOT_ENOUGH_OWNERS(owners, 5);
+        if (owners < 5) revert Errors.MULTISIG_NOT_ENOUGH_OWNERS(_newCouncil, owners, 5);
 
         // As this is called by the multisig - just check that it's not an EOA
         cs()._roles[Role.SAFETY_COUNCIL].members[msg.sender] = false;

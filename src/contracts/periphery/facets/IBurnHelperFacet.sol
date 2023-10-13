@@ -13,7 +13,7 @@ interface IMinterBurnHelperFacet {
      * @notice Burns all Kresko asset debt and repays interest.
      * @notice Account must have enough of krAsset balance to burn and enough KISS to cover interest
      * @param _account The address to close the position for
-     * @param _kreskoAsset The address of the Kresko asset.
+     * @param _krAsset The address of the Kresko asset.
      */
-    function closeDebtPosition(address _account, address _kreskoAsset) external;
+    function closeDebtPosition(address _account, address _krAsset) external;
 }

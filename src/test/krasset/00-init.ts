@@ -2,7 +2,7 @@ import { ZERO_ADDRESS } from '@kreskolabs/lib';
 import { expect } from '@test/chai';
 import { getAnchorNameAndSymbol } from '@utils/strings';
 import { kreskoAssetFixture } from '@utils/test/fixtures';
-import Role from '@utils/test/roles';
+import { Role } from '@utils/test/roles';
 
 const name = 'Ether';
 const symbol = 'krETH';

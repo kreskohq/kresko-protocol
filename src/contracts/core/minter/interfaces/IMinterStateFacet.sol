@@ -37,14 +37,14 @@ interface IMinterStateFacet {
 
     /**
      * @notice Gets the USD value for a single Kresko asset and amount.
-     * @param _kreskoAsset The address of the Kresko asset.
+     * @param _krAsset The address of the Kresko asset.
      * @param _amount The amount of the Kresko asset to calculate the value for.
      * @return value The unadjusted value for the provided amount of the debt asset.
      * @return adjustedValue The (kFactor) adjusted value for the provided amount of the debt asset.
      * @return price The price of the debt asset.
      */
     function getDebtValueWithPrice(
-        address _kreskoAsset,
+        address _krAsset,
         uint256 _amount
     ) external view returns (uint256 value, uint256 adjustedValue, uint256 price);
 }

@@ -18,7 +18,7 @@ interface IKreskoForgeTypes {
         uint32 minterLt;
         uint32 scdpMcr;
         uint32 scdpLt;
-        uint32 oracleTimeout;
+        uint32 staleTime;
         uint8 sdiPrecision;
         uint8 oraclePrecision; // @note deprecated, removed soon
         address admin;

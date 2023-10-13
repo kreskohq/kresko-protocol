@@ -38,7 +38,7 @@ contract CommonStateFacet is ICommonStateFacet {
 
     /// @inheritdoc ICommonStateFacet
     function getOracleDeviationPct() external view returns (uint16) {
-        return cs().oracleDeviationPct;
+        return cs().maxPriceDeviationPct;
     }
 
     /// @inheritdoc ICommonStateFacet
@@ -53,7 +53,7 @@ contract CommonStateFacet is ICommonStateFacet {
 
     /// @inheritdoc ICommonStateFacet
     function getOracleTimeout() external view returns (uint32) {
-        return cs().oracleTimeout;
+        return cs().staleTime;
     }
 
     /// @inheritdoc ICommonStateFacet
@@ -68,7 +68,7 @@ contract CommonStateFacet is ICommonStateFacet {
 
     /// @inheritdoc ICommonStateFacet
     function getAPI3Price(address _feedAddr) external view returns (uint256) {
-        return API3Price(_feedAddr, cs().oracleTimeout);
+        return API3Price(_feedAddr, cs().staleTime);
     }
 
     /// @inheritdoc ICommonStateFacet
@@ -78,6 +78,6 @@ contract CommonStateFacet is ICommonStateFacet {
 
     /// @inheritdoc ICommonStateFacet
     function getChainlinkPrice(address _feedAddr) external view returns (uint256) {
-        return aggregatorV3Price(_feedAddr, cs().oracleTimeout);
+        return aggregatorV3Price(_feedAddr, cs().staleTime);
     }
 }

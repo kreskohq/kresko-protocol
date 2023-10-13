@@ -1,5 +1,5 @@
-import { MockContract } from '@defi-wonderland/smock';
-import { KreskoAssetAnchor, MockERC20 } from '@/types/typechain';
+import type { MockContract } from '@defi-wonderland/smock';
+import type { KreskoAssetAnchor, MockERC20 } from '@/types/typechain';
 import { toBig } from '@utils/values';
 import { getIsRebased } from './optimizations';
 

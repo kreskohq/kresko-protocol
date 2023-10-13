@@ -1,7 +1,7 @@
-import { getLogger } from '@utils/logging';
 import { removeFacet } from '@scripts/remove-facet';
+import { getLogger } from '@utils/logging';
 import { task, types } from 'hardhat/config';
-import { TaskArguments } from 'hardhat/types';
+import type { TaskArguments } from 'hardhat/types';
 import { TASK_ADD_FACET, TASK_REPLACE_FACET } from './names';
 
 const logger = getLogger(TASK_REPLACE_FACET);

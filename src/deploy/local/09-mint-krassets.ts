@@ -1,6 +1,5 @@
 import { testnetConfigs } from '@config/deploy/arbitrumGoerli';
 import { getLogger } from '@utils/logging';
-
 import { TASK_MINT_OPTIMAL } from '@tasks';
 import { wrapKresko } from '@utils/redstone';
 import { fromBig, toBig } from '@utils/values';

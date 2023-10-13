@@ -1,8 +1,8 @@
 import { testnetConfigs } from '@config/deploy/arbitrumGoerli';
 import type { DeployFunction } from 'hardhat-deploy/dist/types';
-
-import { getLogger } from '@utils/logging';
 import { TASK_DEPLOY_TOKEN } from '@tasks';
+import { getLogger } from '@utils/logging';
+
 const logger = getLogger('deploy-tokens');
 
 const deploy: DeployFunction = async hre => {

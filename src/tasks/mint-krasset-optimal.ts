@@ -1,8 +1,8 @@
 import { getLogger } from '@utils/logging';
+import { fromBig } from '@utils/values';
 import { task, types } from 'hardhat/config';
 import type { TaskArguments } from 'hardhat/types';
 import { TASK_MINT_OPTIMAL } from './names';
-import { fromBig } from '@utils/values';
 
 const logger = getLogger(TASK_MINT_OPTIMAL);
 

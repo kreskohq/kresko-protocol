@@ -24,7 +24,7 @@ library Validations {
     using PercentageMath for uint16;
     using Strings for bytes32;
 
-    function validateOracleDeviationPct(uint16 _deviationPct) internal pure {
+    function validatePriceDeviationPct(uint16 _deviationPct) internal pure {
         if (_deviationPct > Percents.MAX_DEVIATION) {
             revert Errors.INVALID_ORACLE_DEVIATION(_deviationPct, Percents.MAX_DEVIATION);
         }
@@ -187,6 +187,13 @@ library Validations {
         }
     }
 
+    function validateVaultAssetDecimals(address _assetAddr, uint8 _decimals) internal view {
+        if (_decimals == 0) {
+            revert Errors.INVALID_DECIMALS(Errors.id(_assetAddr), _decimals);
+        }
+        if (_decimals > 18) revert Errors.INVALID_DECIMALS(Errors.id(_assetAddr), _decimals);
+    }
+
     function validateUint128(address _assetAddr, uint256 _value) internal view {
         if (_value > type(uint128).max) {
             revert Errors.UINT128_OVERFLOW(Errors.id(_assetAddr), _value, type(uint128).max);
@@ -313,7 +320,7 @@ library Validations {
                 result.feed
             );
         }
-        if (block.timestamp - result.timestamp > cs().oracleTimeout) {
+        if (block.timestamp - result.timestamp > cs().staleTime) {
             revert Errors.RAW_PRICE_STALE(
                 Errors.id(_assetAddr),
                 asset.ticker.toString(),
@@ -321,7 +328,7 @@ library Validations {
                 uint8(result.oracle),
                 result.feed,
                 block.timestamp - result.timestamp,
-                cs().oracleTimeout
+                cs().staleTime
             );
         }
     }

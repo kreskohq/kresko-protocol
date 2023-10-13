@@ -27,25 +27,25 @@ contract MinterBurnHelperFacet is IMinterBurnHelperFacet, DSModifiers, Modifiers
     /// @inheritdoc IMinterBurnHelperFacet
     function closeDebtPosition(
         address _account,
-        address _kreskoAsset
-    ) public nonReentrant kreskoAssetExists(_kreskoAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
-        Asset storage asset = cs().onlyMinterMintable(_assetAddr, Action.Repay);
+        address _krAsset
+    ) public nonReentrant kreskoAssetExists(_krAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
+        Asset storage asset = cs().onlyMinterMintable(_krAsset, Action.Repay);
 
         MinterState storage s = ms();
         // Get accounts principal debt
-        uint256 principalDebt = s.accountDebtAmount(_account, _kreskoAsset, asset);
-        if (principalDebt == 0) revert Errors.ZERO_DEBT(_kreskoAsset);
+        uint256 principalDebt = s.accountDebtAmount(_account, _krAsset, asset);
+        if (principalDebt == 0) revert Errors.ZERO_DEBT(_krAsset);
 
         // Charge the burn fee from collateral of _account
         handleMinterFee(asset, _account, principalDebt, MinterFee.Close);
 
         // Record the burn
-        s.burn(_kreskoAsset, asset.anchor, principalDebt, _account);
+        s.burn(_krAsset, asset.anchor, principalDebt, _account);
 
         // All principal debt of asset is repayed remove it from minted assets array.
-        s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, ms().accountMintIndex(_account, _kreskoAsset));
+        s.mintedKreskoAssets[_account].removeAddress(_krAsset, ms().accountMintIndex(_account, _krAsset));
 
-        emit MEvent.DebtPositionClosed(_account, _kreskoAsset, principalDebt);
+        emit MEvent.DebtPositionClosed(_account, _krAsset, principalDebt);
     }
 
     /// @inheritdoc IMinterBurnHelperFacet

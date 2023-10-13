@@ -132,11 +132,7 @@ library Swap {
                 assetData.debt += mintSCDP(_assetOut, debtIn, _assetsTo);
                 uint256 newTotalDebt = _assetOut.toRebasingAmount(assetData.debt);
                 if (newTotalDebt > _assetOut.maxDebtSCDP) {
-                    revert Errors.THIS_EXCEEDS_ASSET_MINTING_LIMIT(
-                        Errors.id(_assetOutAddr),
-                        newTotalDebt,
-                        _assetOut.maxDebtSCDP
-                    );
+                    revert Errors.EXCEEDS_ASSET_MINTING_LIMIT(Errors.id(_assetOutAddr), newTotalDebt, _assetOut.maxDebtSCDP);
                 }
             }
         }

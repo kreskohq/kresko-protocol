@@ -1,13 +1,3 @@
-import { getSCDPInitializer } from '@config/deploy';
-import { Errors } from '@utils/errors';
-import { getNamedEvent } from '@utils/events';
-import { wrapKresko } from '@utils/redstone';
-import { type SCDPFixture, scdpFixture } from '@utils/test/fixtures';
-import { depositCollateral } from '@utils/test/helpers/collaterals';
-import { wrapContractWithSigner } from '@utils/test/helpers/general';
-import { mintKrAsset } from '@utils/test/helpers/krassets';
-import { RAY, toBig } from '@utils/values';
-import { expect } from 'chai';
 import type {
   AssetStruct,
   Kresko,
@@ -15,14 +5,23 @@ import type {
   SwapEvent,
   SwapRouteSetterStruct,
 } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import { getSCDPInitializer } from '@config/deploy';
+import { Errors } from '@utils/errors';
+import { getNamedEvent } from '@utils/events';
+import { wrapKresko } from '@utils/redstone';
+import { scdpFixture, type SCDPFixture } from '@utils/test/fixtures';
+import { depositCollateral } from '@utils/test/helpers/collaterals';
+import { mintKrAsset } from '@utils/test/helpers/krassets';
+import { RAY, toBig } from '@utils/values';
+import { expect } from 'chai';
 
 const depositAmount = 1000;
 const depositValue = depositAmount.ebn(8);
-const initialDepositValue = toBig(depositAmount, 8);
+const initialDepositValue = depositAmount.ebn(8);
+const depositAmount18Dec = depositAmount.ebn();
+const depositAmount8Dec = depositAmount.ebn(8);
 
 describe('SCDP', async function () {
-  const depositAmount18Dec = toBig(depositAmount);
-  const depositAmount8Dec = toBig(depositAmount, 8);
   let f: SCDPFixture;
   this.slow(5000);
 
@@ -236,7 +235,7 @@ describe('SCDP', async function () {
 
       await Promise.all(
         f.usersArr.map(user => {
-          const User = wrapContractWithSigner(hre.Diamond, user);
+          const User = wrapKresko(hre.Diamond, user);
           return Promise.all([
             User.depositSCDP(user.address, f.Collateral.address, depositAmount18Dec),
             User.depositSCDP(user.address, f.Collateral8Dec.address, depositAmount8Dec),
@@ -431,6 +430,7 @@ describe('SCDP', async function () {
     });
 
     it('should be able to cumulate fees into deposits', async function () {
+      await hre.Diamond.setFeeAssetSCDP(f.Collateral.address);
       const fees = depositAmount18Dec.mul(f.usersArr.length);
       const expectedValueNoFees = toBig(f.CollateralPrice.num(8) * depositAmount, 8);
       const expectedValueFees = expectedValueNoFees.mul(2);

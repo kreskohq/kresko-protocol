@@ -25,7 +25,7 @@ interface ICommonConfigurationFacet {
      * @notice Sets the decimal precision of external oracle
      * @param _oracleDeviationPct Amount of decimals
      */
-    function setOracleDeviationPct(uint16 _oracleDeviationPct) external;
+    function setMaxPriceDeviationPct(uint16 _oracleDeviationPct) external;
 
     /**
      * @notice Sets L2 sequencer uptime feed address
@@ -40,10 +40,10 @@ interface ICommonConfigurationFacet {
     function setSequencerGracePeriod(uint32 _sequencerGracePeriodTime) external;
 
     /**
-     * @notice Sets oracle timeout
-     * @param _oracleTimeout oracle timeout in seconds
+     * @notice Sets the time in seconds until a price is considered stale.
+     * @param _staleTime Time in seconds.
      */
-    function setOracleTimeout(uint32 _oracleTimeout) external;
+    function setStaleTime(uint32 _staleTime) external;
 
     /**
      * @notice Set feeds for a ticker.

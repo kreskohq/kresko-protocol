@@ -47,8 +47,8 @@ contract MinterAccountStateFacet is IMinterAccountStateFacet {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IMinterAccountStateFacet
-    function getAccountMintIndex(address _account, address _kreskoAsset) external view returns (uint256) {
-        return ms().accountMintIndex(_account, _kreskoAsset);
+    function getAccountMintIndex(address _account, address _krAsset) external view returns (uint256) {
+        return ms().accountMintIndex(_account, _krAsset);
     }
 
     /// @inheritdoc IMinterAccountStateFacet
@@ -67,8 +67,8 @@ contract MinterAccountStateFacet is IMinterAccountStateFacet {
     }
 
     /// @inheritdoc IMinterAccountStateFacet
-    function getAccountDebtAmount(address _account, address _asset) external view returns (uint256) {
-        return ms().accountDebtAmount(_account, _asset, cs().assets[_asset]);
+    function getAccountDebtAmount(address _account, address _assetAddr) external view returns (uint256) {
+        return ms().accountDebtAmount(_account, _assetAddr, cs().assets[_assetAddr]);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -81,8 +81,8 @@ contract MinterAccountStateFacet is IMinterAccountStateFacet {
     }
 
     /// @inheritdoc IMinterAccountStateFacet
-    function getAccountCollateralAmount(address _account, address _asset) external view returns (uint256) {
-        return ms().accountCollateralAmount(_account, _asset, cs().assets[_asset]);
+    function getAccountCollateralAmount(address _account, address _assetAddr) external view returns (uint256) {
+        return ms().accountCollateralAmount(_account, _assetAddr, cs().assets[_assetAddr]);
     }
 
     /// @inheritdoc IMinterAccountStateFacet
@@ -103,10 +103,10 @@ contract MinterAccountStateFacet is IMinterAccountStateFacet {
     /// @inheritdoc IMinterAccountStateFacet
     function getAccountCollateralValues(
         address _account,
-        address _asset
+        address _assetAddr
     ) external view returns (uint256 value, uint256 adjustedValue, uint256 price) {
-        Asset storage asset = cs().assets[_asset];
-        return collateralAmountToValues(asset, ms().accountCollateralAmount(_account, _asset, asset));
+        Asset storage asset = cs().assets[_assetAddr];
+        return collateralAmountToValues(asset, ms().accountCollateralAmount(_account, _assetAddr, asset));
     }
 
     /// @inheritdoc IMinterAccountStateFacet
@@ -140,7 +140,7 @@ contract MinterAccountStateFacet is IMinterAccountStateFacet {
     /// @inheritdoc IMinterAccountStateFacet
     function previewFee(
         address _account,
-        address _kreskoAsset,
+        address _krAsset,
         uint256 _kreskoAssetAmount,
         Enums.MinterFee _feeType
     ) external view returns (address[] memory, uint256[] memory) {
@@ -148,7 +148,7 @@ contract MinterAccountStateFacet is IMinterAccountStateFacet {
             revert Errors.INVALID_FEE_TYPE(uint8(_feeType), 1);
         }
 
-        Asset storage asset = cs().assets[_kreskoAsset];
+        Asset storage asset = cs().assets[_krAsset];
 
         // Calculate the value of the fee according to the value of the krAsset
         uint256 feeValue = asset.uintUSD(_kreskoAssetAmount).percentMul(

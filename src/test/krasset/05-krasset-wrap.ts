@@ -1,8 +1,8 @@
+import type { WETH9 } from '@/types/typechain';
 import { expect } from '@test/chai';
 import { kreskoAssetFixture } from '@utils/test/fixtures';
-import Role from '@utils/test/roles';
+import { Role } from '@utils/test/roles';
 import { toBig } from '@utils/values';
-import { WETH9 } from '@/types/typechain';
 
 describe('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset;

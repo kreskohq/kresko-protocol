@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 /* -------------------------------------------------------------------------- */
 library Enums {
     /**
-     * @dev Minter Fee Types
+     * @dev Minter fees for minting and burning.
      * Open = 0
      * Close = 1
      */
@@ -15,7 +15,7 @@ library Enums {
         Close
     }
     /**
-     * @dev Swap Fee Types
+     * @notice Swap fee types for shared collateral debt pool swaps.
      * Open = 0
      * Close = 1
      */
@@ -23,9 +23,8 @@ library Enums {
         In,
         Out
     }
-
     /**
-     * @notice Configurable Oracle Types
+     * @notice Configurable oracle types for assets.
      * Empty = 0
      * Redstone = 1,
      * Chainlink = 2,
@@ -41,7 +40,7 @@ library Enums {
     }
 
     /**
-     * @notice Protocol Actions
+     * @notice Protocol core actions.
      * Deposit = 0
      * Withdraw = 1,
      * Repay = 2,

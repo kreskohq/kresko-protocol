@@ -1,9 +1,9 @@
-import { getLogger } from '@utils/logging';
-import { createKrAsset } from '@scripts/create-krasset';
-import { task } from 'hardhat/config';
-import { TaskArguments } from 'hardhat/types';
-import { TASK_DEPLOY_KRASSET } from './names';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { createKrAsset } from '@scripts/create-krasset';
+import { getLogger } from '@utils/logging';
+import { task } from 'hardhat/config';
+import type { TaskArguments } from 'hardhat/types';
+import { TASK_DEPLOY_KRASSET } from './names';
 
 const logger = getLogger(TASK_DEPLOY_KRASSET);
 

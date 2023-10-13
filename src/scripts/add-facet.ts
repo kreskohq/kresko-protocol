@@ -2,6 +2,7 @@ import hre from 'hardhat';
 import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
 import { getLogger } from '@utils/logging';
 import { mergeABIs } from 'hardhat-deploy/dist/src/utils';
+import { Contract } from 'ethers';
 
 type Args<T> = {
   name: T;

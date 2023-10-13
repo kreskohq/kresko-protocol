@@ -10,12 +10,3 @@ export const getAddresses = async (hre?: HardhatRuntimeEnvironment): Promise<Har
 
   return (await hre!.getNamedAccounts()) as HardhatUsers<string>;
 };
-
-export const randomContractAddress = (hre: HardhatRuntimeEnvironment) => {
-  const pubKey = hre.ethers.Wallet.createRandom().publicKey;
-
-  return hre.ethers.utils.getContractAddress({
-    from: pubKey,
-    nonce: 0,
-  });
-};

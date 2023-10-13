@@ -62,12 +62,12 @@ contract SafetyCouncilFacet is Modifiers, ISafetyCouncilFacet {
     }
 
     /// @inheritdoc ISafetyCouncilFacet
-    function safetyStateFor(address _asset, Enums.Action _action) external view override returns (SafetyState memory) {
-        return cs().safetyState[_asset][_action];
+    function safetyStateFor(address _assetAddr, Enums.Action _action) external view override returns (SafetyState memory) {
+        return cs().safetyState[_assetAddr][_action];
     }
 
     /// @inheritdoc ISafetyCouncilFacet
-    function assetActionPaused(Enums.Action _action, address _asset) external view returns (bool) {
-        return cs().safetyState[_asset][_action].pause.enabled;
+    function assetActionPaused(Enums.Action _action, address _assetAddr) external view returns (bool) {
+        return cs().safetyState[_assetAddr][_action].pause.enabled;
     }
 }

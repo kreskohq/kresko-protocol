@@ -1,4 +1,4 @@
-import { MockContract } from '@defi-wonderland/smock';
+import type { MockContract } from '@defi-wonderland/smock';
 import { toBig } from '@utils/values';
 import hre from 'hardhat';
 

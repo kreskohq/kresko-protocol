@@ -29,10 +29,10 @@ struct CommonState {
     address sequencerUptimeFeed;
     /// @notice grace period of sequencer in seconds
     uint32 sequencerGracePeriodTime;
-    /// @notice timeout for oracle in seconds
-    uint32 oracleTimeout;
-    /// @notice The oracle deviation percentage between the main oracle and fallback oracle.
-    uint16 oracleDeviationPct;
+    /// @notice Time in seconds for a feed to be considered stale
+    uint32 staleTime;
+    /// @notice The max deviation percentage between primary and secondary price.
+    uint16 maxPriceDeviationPct;
     /// @notice Offchain oracle decimals
     uint8 oracleDecimals;
     /// @notice Flag tells if there is a need to perform safety checks on user actions

@@ -81,17 +81,17 @@ interface ISCDPStateFacet {
     function getKreskoAssetsSCDP() external view returns (address[] memory);
 
     /**
-     * @notice Get the collateral debt amount for `_kreskoAsset`
-     * @param _kreskoAsset The KreskoAsset
+     * @notice Get the collateral debt amount for `_krAsset`
+     * @param _krAsset The KreskoAsset
      */
-    function getDebtSCDP(address _kreskoAsset) external view returns (uint256);
+    function getDebtSCDP(address _krAsset) external view returns (uint256);
 
     /**
-     * @notice Get the debt value for `_kreskoAsset`
-     * @param _kreskoAsset The KreskoAsset
+     * @notice Get the debt value for `_krAsset`
+     * @param _krAsset The KreskoAsset
      * @param _ignoreFactors Ignore factors when calculating collateral and debt value.
      */
-    function getDebtValueSCDP(address _kreskoAsset, bool _ignoreFactors) external view returns (uint256);
+    function getDebtValueSCDP(address _krAsset, bool _ignoreFactors) external view returns (uint256);
 
     /**
      * @notice Get the total debt value of krAssets in oracle precision
@@ -102,7 +102,7 @@ interface ISCDPStateFacet {
     /**
      * @notice Get enabled state of asset
      */
-    function getAssetEnabledSCDP(address _asset) external view returns (bool);
+    function getAssetEnabledSCDP(address _assetAddr) external view returns (bool);
 
     /**
      * @notice Get whether swap is enabled from `_assetIn` to `_assetOut`

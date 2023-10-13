@@ -1,8 +1,8 @@
-import type { DeployFunction } from 'hardhat-deploy/types';
 import { getLogger } from '@utils/logging';
 import { addMockExtAsset } from '@utils/test/helpers/collaterals';
 import { addMockKreskoAsset } from '@utils/test/helpers/krassets';
 import { testCollateralConfig, testKrAssetConfig } from '@utils/test/mocks';
+import type { DeployFunction } from 'hardhat-deploy/types';
 
 const func: DeployFunction = async function (hre) {
   const logger = getLogger('mock-assets');

@@ -158,11 +158,11 @@ struct CommonInitArgs {
     address council;
     address treasury;
     uint64 minDebtValue;
-    uint16 oracleDeviationPct;
+    uint16 maxPriceDeviationPct;
     uint8 oracleDecimals;
     address sequencerUptimeFeed;
     uint32 sequencerGracePeriodTime;
-    uint32 oracleTimeout;
+    uint32 staleTime;
     address kreskian;
     address questForKresk;
     uint8 phase;

@@ -34,10 +34,7 @@
     "c:export": "hardhat export --export-all packages/contracts/src/deployments.ts",
     "kr:add-facet": "hardhat facet:add",
     "kr:replace-facet": "hardhat facet:replace",
-    "kr:remove-facet": "hardhat facet:remove",
-    "fork:test": "FORKING=opgoerli hardhat test --grep Forking",
-    "fork:deploy": "FORKING=opgoerli hardhat deploy",
-    "fork:sandbox": "FORKING=opgoerli hardhat deploy --tags sandbox"
+    "kr:remove-facet": "hardhat facet:remove"
   },
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",

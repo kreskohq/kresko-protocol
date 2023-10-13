@@ -1,7 +1,7 @@
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
 import { expect } from '@test/chai';
 import { kreskoAssetFixture } from '@utils/test/fixtures';
-import Role from '@utils/test/roles';
+import { Role } from '@utils/test/roles';
 
 describe('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset;

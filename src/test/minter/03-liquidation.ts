@@ -1,12 +1,12 @@
+import type { LiquidationOccurredEvent } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { expect } from '@test/chai';
 import { Errors } from '@utils/errors';
 import { getNamedEvent } from '@utils/events';
-import { LiquidationFixture, liquidationsFixture } from '@utils/test/fixtures';
+import { liquidationsFixture, type LiquidationFixture } from '@utils/test/fixtures';
 import { depositMockCollateral } from '@utils/test/helpers/collaterals';
 import { getLiqAmount, liquidate } from '@utils/test/helpers/liquidations';
 import optimized from '@utils/test/helpers/optimizations';
 import { fromBig, toBig } from '@utils/values';
-import { LiquidationOccurredEvent } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 const USD_DELTA = toBig(0.1, 9);
 
@@ -18,7 +18,6 @@ describe('Minter - Liquidations', function () {
   this.slow(4000);
   beforeEach(async function () {
     f = await liquidationsFixture();
-
     await f.reset();
   });
 
@@ -214,8 +213,8 @@ describe('Minter - Liquidations', function () {
             seizeAssetIndex: depositedCollateralAssetIndex,
           }),
         )
-          .to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE')
-          .withArgs(16500000000, 15400000000);
+          .to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE_HEALTHY_ACCOUNT')
+          .withArgs(f.user1.address, 16500000000, 15400000000, await hre.Diamond.getLiquidationThresholdMinter());
       });
 
       it('should not allow liquidations if repayment amount is 0', async function () {
@@ -231,8 +230,8 @@ describe('Minter - Liquidations', function () {
             seizeAssetIndex: 0,
           }),
         )
-          .to.be.revertedWithCustomError(Errors(hre), 'ZERO_REPAY')
-          .withArgs(f.KrAsset.address);
+          .to.be.revertedWithCustomError(Errors(hre), 'LIQUIDATION_VALUE_IS_ZERO')
+          .withArgs(f.KrAsset.errorId, f.Collateral.errorId);
       });
 
       it('should clamp liquidations if repay value/amount exceeds debt', async function () {
@@ -349,7 +348,7 @@ describe('Minter - Liquidations', function () {
             repayAssetIndex: 0,
             seizeAssetIndex: 0,
           }),
-        ).to.be.revertedWithCustomError(Errors(hre), 'SELF_LIQUIDATION');
+        ).to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE_SELF');
       });
       it.skip('should error on seize underflow', async function () {
         f.Collateral.setPrice(8);
@@ -366,7 +365,7 @@ describe('Minter - Liquidations', function () {
             repayAssetIndex: optimized.getAccountMintIndex(f.user1.address, f.KrAsset.address),
             seizeAssetIndex: optimized.getAccountDepositIndex(f.user1.address, f.Collateral.address),
           }),
-        ).to.be.revertedWithCustomError(Errors(hre), 'SEIZE_UNDERFLOW');
+        ).to.be.revertedWithCustomError(Errors(hre), 'LIQUIDATION_SEIZED_LESS_THAN_EXPECTED');
       });
     });
     describe('#liquidate - rebasing events', () => {
@@ -404,8 +403,8 @@ describe('Minter - Liquidations', function () {
             seizeAssetIndex: optimized.getAccountDepositIndex(f.user4.address, f.Collateral.address),
           }),
         )
-          .to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE')
-          .withArgs(1000000000000, 933333332400);
+          .to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE_HEALTHY_ACCOUNT')
+          .withArgs(f.user4.address, 1000000000000, 933333332400, await hre.Diamond.getLiquidationThresholdMinter());
       });
 
       it('should not allow liquidation of healthy accounts after a negative rebase', async function () {
@@ -426,8 +425,8 @@ describe('Minter - Liquidations', function () {
             seizeAssetIndex: optimized.getAccountDepositIndex(f.user4.address, f.Collateral.address),
           }),
         )
-          .to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE')
-          .withArgs(1000000000000, 933333332400);
+          .to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE_HEALTHY_ACCOUNT')
+          .withArgs(f.user4.address, 1000000000000, 933333332400, await hre.Diamond.getLiquidationThresholdMinter());
       });
       it('should allow liquidations of unhealthy accounts after a positive rebase', async function () {
         const denominator = 4;

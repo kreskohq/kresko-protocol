@@ -25,21 +25,21 @@ contract MinterBurnFacet is Modifiers, IMinterBurnFacet {
     /// @inheritdoc IMinterBurnFacet
     function burnKreskoAsset(
         address _account,
-        address _kreskoAsset,
+        address _krAsset,
         uint256 _burnAmount,
         uint256 _mintedKreskoAssetIndex
     ) external nonReentrant onlyRoleIf(_account != msg.sender, Role.MANAGER) {
-        if (_burnAmount == 0) revert Errors.ZERO_BURN(Errors.id(_kreskoAsset));
-        Asset storage asset = cs().onlyMinterMintable(_kreskoAsset, Enums.Action.Repay);
+        if (_burnAmount == 0) revert Errors.ZERO_BURN(Errors.id(_krAsset));
+        Asset storage asset = cs().onlyMinterMintable(_krAsset, Enums.Action.Repay);
 
         MinterState storage s = ms();
         // Get accounts principal debt
-        uint256 debtAmount = s.accountDebtAmount(_account, _kreskoAsset, asset);
-        if (debtAmount == 0) revert Errors.ZERO_DEBT(Errors.id(_kreskoAsset));
+        uint256 debtAmount = s.accountDebtAmount(_account, _krAsset, asset);
+        if (debtAmount == 0) revert Errors.ZERO_DEBT(Errors.id(_krAsset));
 
         if (_burnAmount != type(uint256).max) {
             if (_burnAmount > debtAmount) {
-                revert Errors.BURN_AMOUNT_OVERFLOW(Errors.id(_kreskoAsset), _burnAmount, debtAmount);
+                revert Errors.BURN_AMOUNT_OVERFLOW(Errors.id(_krAsset), _burnAmount, debtAmount);
             }
             // Ensure principal left is either 0 or >= minDebtValue
             _burnAmount = asset.checkDust(_burnAmount, debtAmount);
@@ -52,14 +52,14 @@ contract MinterBurnFacet is Modifiers, IMinterBurnFacet {
         handleMinterFee(asset, _account, _burnAmount, Enums.MinterFee.Close);
 
         // Record the burn
-        s.kreskoAssetDebt[_account][_kreskoAsset] -= burnKrAsset(_burnAmount, msg.sender, asset.anchor);
+        s.kreskoAssetDebt[_account][_krAsset] -= burnKrAsset(_burnAmount, msg.sender, asset.anchor);
 
         // If sender repays all scaled debt of asset, remove it from minted assets array.
-        if (s.accountDebtAmount(_account, _kreskoAsset, asset) == 0) {
-            s.mintedKreskoAssets[_account].removeAddress(_kreskoAsset, _mintedKreskoAssetIndex);
+        if (s.accountDebtAmount(_account, _krAsset, asset) == 0) {
+            s.mintedKreskoAssets[_account].removeAddress(_krAsset, _mintedKreskoAssetIndex);
         }
 
         // Emit logs
-        emit MEvent.KreskoAssetBurned(_account, _kreskoAsset, _burnAmount);
+        emit MEvent.KreskoAssetBurned(_account, _krAsset, _burnAmount);
     }
 }

@@ -46,9 +46,9 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         setMinDebtValue(args.minDebtValue);
         setDefaultOraclePrecision(args.oracleDecimals);
         setSequencerUptimeFeed(args.sequencerUptimeFeed);
-        setOracleDeviationPct(args.oracleDeviationPct);
+        setMaxPriceDeviationPct(args.maxPriceDeviationPct);
         setSequencerGracePeriod(args.sequencerGracePeriodTime);
-        setOracleTimeout(args.oracleTimeout);
+        setStaleTime(args.staleTime);
         setGatingPhase(args.phase);
         setKreskianCollection(args.kreskian);
         setQuestForKreskCollection(args.questForKresk);
@@ -77,9 +77,9 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
     }
 
     /// @inheritdoc ICommonConfigurationFacet
-    function setOracleDeviationPct(uint16 _oracleDeviationPct) public onlyRole(Role.ADMIN) {
-        Validations.validateOracleDeviationPct(_oracleDeviationPct);
-        cs().oracleDeviationPct = _oracleDeviationPct;
+    function setMaxPriceDeviationPct(uint16 _oracleDeviationPct) public onlyRole(Role.ADMIN) {
+        Validations.validatePriceDeviationPct(_oracleDeviationPct);
+        cs().maxPriceDeviationPct = _oracleDeviationPct;
     }
 
     /// @inheritdoc ICommonConfigurationFacet
@@ -164,8 +164,8 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
     }
 
     /// @inheritdoc ICommonConfigurationFacet
-    function setOracleTimeout(uint32 _oracleTimeout) public onlyRole(Role.ADMIN) {
-        cs().oracleTimeout = _oracleTimeout;
+    function setStaleTime(uint32 _staleTime) public onlyRole(Role.ADMIN) {
+        cs().staleTime = _staleTime;
     }
 
     /// @inheritdoc ICommonConfigurationFacet

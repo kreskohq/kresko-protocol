@@ -1,9 +1,9 @@
+import { OracleType } from '@/types';
 import { expect } from '@test/chai';
 import { defaultRedstoneDataPoints, wrapPrices } from '@utils/redstone';
-import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
+import { defaultFixture, type DefaultFixture } from '@utils/test/fixtures';
 import { testCollateralConfig } from '@utils/test/mocks';
 import { toBig } from '@utils/values';
-import { OracleType } from '@/types';
 
 describe('Oracles', () => {
   let f: DefaultFixture;
@@ -41,7 +41,7 @@ describe('Oracles', () => {
       );
     });
 
-    it('should get primary price when price +- oracleDeviationPct of reference price ', async function () {
+    it('should get primary price when price +- maxPriceDeviationPct of reference price ', async function () {
       await f.Collateral.setOracleOrder([OracleType.Redstone, OracleType.Chainlink]);
       /// set chainlink price to 12
       f.Collateral.setPrice(12);
@@ -68,7 +68,7 @@ describe('Oracles', () => {
         { dataFeedId: testCollateralConfig.ticker, value: redstoneCollateralPrice },
       ]);
 
-      // should revert if price deviates more than oracleDeviationPct
+      // should revert if price deviates more than maxPriceDeviationPct
       await expect(redstoneDiamond.getAccountTotalCollateralValue(user.address)).to.be.reverted;
       f.Collateral.setPrice(10);
     });

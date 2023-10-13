@@ -1,7 +1,7 @@
 import { expect } from '@test/chai';
 import { diamondFixture } from '@utils/test/fixtures';
 import hre from 'hardhat';
-import { Facet } from 'hardhat-deploy/types';
+import type { Facet } from 'hardhat-deploy/types';
 
 describe('Diamond', () => {
   let f: { facets: Facet[] };

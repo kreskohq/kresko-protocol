@@ -27,8 +27,8 @@ library VAssets {
         if (!isSequencerUp(config.sequencerUptimeFeed, config.sequencerGracePeriodTime)) {
             revert Errors.L2_SEQUENCER_DOWN();
         }
-        answer = aggregatorV3Price(address(self.oracle), self.oracleTimeout);
-        if (answer == 0) revert Errors.ZERO_OR_STALE_VAULT_PRICE(Errors.id(address(self.token)), address(self.oracle), answer);
+        answer = aggregatorV3Price(address(self.feed), self.staleTime);
+        if (answer == 0) revert Errors.ZERO_OR_STALE_VAULT_PRICE(Errors.id(address(self.token)), address(self.feed), answer);
     }
 
     /// @notice Gets the price of an asset from the oracle speficied.

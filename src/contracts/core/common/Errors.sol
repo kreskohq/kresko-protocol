@@ -27,9 +27,9 @@ library Errors {
     error SCDP_ALREADY_INITIALIZED();
     error STRING_HEX_LENGTH_INSUFFICIENT();
     error SAFETY_COUNCIL_NOT_ALLOWED();
-    error SAFETY_COUNCIL_INVALID_ADDRESS(address);
-    error SAFETY_COUNCIL_ALREADY_EXISTS();
-    error MULTISIG_NOT_ENOUGH_OWNERS(uint256 owners, uint256 required);
+    error SAFETY_COUNCIL_SETTER_IS_NOT_ITS_OWNER(address);
+    error SAFETY_COUNCIL_ALREADY_EXISTS(address given, address existing);
+    error MULTISIG_NOT_ENOUGH_OWNERS(address, uint256 owners, uint256 required);
     error ACCESS_CONTROL_NOT_SELF(address who, address self);
     error MARKET_CLOSED(ID, string);
     error SCDP_ASSET_ECONOMY(ID, uint256 seizeReductionPct, ID, uint256 repayIncreasePct);
@@ -38,8 +38,8 @@ library Errors {
     error ASSET_NOT_ENABLED(ID);
     error ASSET_CANNOT_BE_USED_TO_COVER(ID);
     error ASSET_PAUSED_FOR_THIS_ACTION(ID, uint8 action);
-    error ASSET_NOT_COLLATERAL(ID);
-    error ASSET_NOT_MINTER_KRASSET(ID);
+    error ASSET_NOT_MINTER_COLLATERAL(ID);
+    error ASSET_NOT_MINTABLE_FROM_MINTER(ID);
     error ASSET_NOT_SWAPPABLE(ID);
     error ASSET_DOES_NOT_HAVE_DEPOSITS(ID);
     error ASSET_NOT_DEPOSITABLE(ID);
@@ -54,15 +54,13 @@ library Errors {
     error INVALID_CONTRACT_KRASSET(ID krAsset);
     error INVALID_CONTRACT_KRASSET_ANCHOR(ID anchor, ID krAsset);
     error NOT_SWAPPABLE_KRASSET(ID);
-    error INVALID_DEPOSIT_ASSET(ID);
     error IDENTICAL_ASSETS(ID);
-    error NOT_INCOME_ASSET(ID);
     error WITHDRAW_NOT_SUPPORTED();
     error DEPOSIT_NOT_SUPPORTED();
     error REDEEM_NOT_SUPPORTED();
     error NATIVE_TOKEN_DISABLED(ID);
-    error THIS_EXCEEDS_ASSET_DEPOSIT_LIMIT(ID, uint256 deposits, uint256 limit);
-    error THIS_EXCEEDS_ASSET_MINTING_LIMIT(ID, uint256 deposits, uint256 limit);
+    error EXCEEDS_ASSET_DEPOSIT_LIMIT(ID, uint256 deposits, uint256 limit);
+    error EXCEEDS_ASSET_MINTING_LIMIT(ID, uint256 deposits, uint256 limit);
     error UINT128_OVERFLOW(ID, uint256 deposits, uint256 limit);
     error INVALID_SENDER(address, address);
     error INVALID_MIN_DEBT(uint256 invalid, uint256 valid);
@@ -122,31 +120,34 @@ library Errors {
     error CANNOT_RE_ENTER();
     error ARRAY_LENGTH_MISMATCH(string ticker, uint256 arr1, uint256 arr2);
     error COLLATERAL_VALUE_GREATER_THAN_REQUIRED(uint256 collateralValue, uint256 minCollateralValue, uint32 ratio);
+    error ACCOUNT_COLLATERAL_VALUE_LESS_THAN_REQUIRED(
+        address who,
+        uint256 collateralValue,
+        uint256 minCollateralValue,
+        uint32 ratio
+    );
     error COLLATERAL_VALUE_LESS_THAN_REQUIRED(uint256 collateralValue, uint256 minCollateralValue, uint32 ratio);
     error CANNOT_LIQUIDATE_HEALTHY_ACCOUNT(address who, uint256 collateralValue, uint256 minCollateralValue, uint32 ratio);
     error CANNOT_LIQUIDATE_SELF();
     error LIQUIDATION_AMOUNT_GREATER_THAN_DEBT(ID repayAsset, uint256 repayAmount, uint256 availableAmount);
     error LIQUIDATION_SEIZED_LESS_THAN_EXPECTED(ID, uint256, uint256);
-    error LIQUIDATION_VALUE_IS_ZERO(ID, ID);
+    error LIQUIDATION_VALUE_IS_ZERO(ID repayAsset, ID seizeAsset);
     error NOTHING_TO_WITHDRAW(address who, ID, uint256 requested, uint256 principal, uint256 scaled);
     error ACCOUNT_KRASSET_NOT_FOUND(address account, ID, address[] accountCollaterals);
     error ACCOUNT_COLLATERAL_NOT_FOUND(address account, ID, address[] accountCollaterals);
     error ELEMENT_DOES_NOT_MATCH_PROVIDED_INDEX(ID element, uint256 index, address[] elements);
-    error REPAY_OVERFLOW(ID, ID, uint256 invalid, uint256 valid);
-    error INCOME_AMOUNT_IS_ZERO(ID);
-    error NO_LIQUIDITY_TO_GIVE_INCOME_FOR(ID, uint256 userDeposits, uint256 totalDeposits);
-    error NOT_ENOUGH_SWAP_DEPOSITS_TO_SEIZE(ID, ID, uint256 invalid, uint256 valid);
-    error SWAP_ROUTE_NOT_ENABLED(ID, ID);
+    error REPAY_OVERFLOW(ID repayAsset, ID seizeAsset, uint256 invalid, uint256 valid);
+    error INCOME_AMOUNT_IS_ZERO(ID incomeAsset);
+    error NO_LIQUIDITY_TO_GIVE_INCOME_FOR(ID incomeAsset, uint256 userDeposits, uint256 totalDeposits);
+    error NOT_ENOUGH_SWAP_DEPOSITS_TO_SEIZE(ID repayAsset, ID seizeAsset, uint256 invalid, uint256 valid);
+    error SWAP_ROUTE_NOT_ENABLED(ID assetIn, ID assetOut);
     error RECEIVED_LESS_THAN_DESIRED(ID, uint256 invalid, uint256 valid);
     error SWAP_ZERO_AMOUNT_IN(ID tokenIn);
-    error INVALID_DEPOSIT(ID, uint256 assetsIn, uint256 sharesOut);
-    error INVALID_WITHDRAW(ID, uint256 sharesIn, uint256 assetsOut);
-    error ROUNDING_ERROR(ID, uint256 sharesIn, uint256 assetsOut);
-    error MAX_DEPOSIT_EXCEEDED(ID, uint256 assetsIn, uint256 maxDeposit);
-    error OVER_SUPPLY_LIMIT(ID, uint256 supply, uint256 maxSupply);
-    error COLLATERAL_AMOUNT_LOW(ID, uint256 amount, uint256 minAmount);
-    error ACCOUNT_COLLATERAL_LOW(address, uint256 accountCollateralValue, uint256 minAccountCollateralValue);
-    error MINT_VALUE_LOW(ID, uint256 value, uint256 minRequiredValue);
+    error INVALID_WITHDRAW(ID withdrawAsset, uint256 sharesIn, uint256 assetsOut);
+    error ROUNDING_ERROR(ID asset, uint256 sharesIn, uint256 assetsOut);
+    error MAX_DEPOSIT_EXCEEDED(ID asset, uint256 assetsIn, uint256 maxDeposit);
+    error COLLATERAL_AMOUNT_LOW(ID krAssetCollateral, uint256 amount, uint256 minAmount);
+    error MINT_VALUE_LESS_THAN_MIN_DEBT_VALUE(ID, uint256 value, uint256 minRequiredValue);
     error NOT_A_CONTRACT(address who);
     error NO_ALLOWANCE(address spender, address owner, uint256 requested, uint256 allowed);
     error NOT_ENOUGH_BALANCE(address who, uint256 requested, uint256 available);

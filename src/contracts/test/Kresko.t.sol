@@ -37,7 +37,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
             scdpLt: 150e2,
             sdiPrecision: 8,
             oraclePrecision: 8,
-            oracleTimeout: 86401,
+            staleTime: 86401,
             council: getMockSafe(testAdmin),
             treasury: TEST_TREASURY
         });

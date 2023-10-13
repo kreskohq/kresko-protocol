@@ -35,10 +35,10 @@ interface IMinterAccountStateFacet {
     /**
      * @notice Gets an index for the Kresko asset the account has minted.
      * @param _account The account to get the minted Kresko assets for.
-     * @param _kreskoAsset The asset lookup address.
+     * @param _krAsset The asset lookup address.
      * @return index The index of asset in the minted assets array.
      */
-    function getAccountMintIndex(address _account, address _kreskoAsset) external view returns (uint256);
+    function getAccountMintIndex(address _account, address _krAsset) external view returns (uint256);
 
     /**
      * @notice Gets the total Kresko asset debt value in USD for an account.
@@ -58,24 +58,24 @@ interface IMinterAccountStateFacet {
 
     /**
      * @notice Get `_account` debt amount for `_asset`
-     * @param _asset The asset address
+     * @param _assetAddr The asset address
      * @param _account The account to query amount for
-     * @return uint256 Amount of debt for `_asset`
+     * @return uint256 Amount of debt for `_assetAddr`
      */
-    function getAccountDebtAmount(address _account, address _asset) external view returns (uint256);
+    function getAccountDebtAmount(address _account, address _assetAddr) external view returns (uint256);
 
     /**
-     * @notice Get the unadjusted and the adjusted value of collateral deposits of `_asset` for `_account`.
+     * @notice Get the unadjusted and the adjusted value of collateral deposits of `_assetAddr` for `_account`.
      * @notice Adjusted value means it is multiplied by cFactor.
      * @param _account Account to get the collateral values for.
-     * @param _asset Asset to get the collateral values for.
+     * @param _assetAddr Asset to get the collateral values for.
      * @return value Unadjusted value of the collateral deposits.
      * @return valueAdjusted cFactor adjusted value of the collateral deposits.
      * @return price Price for the collateral asset
      */
     function getAccountCollateralValues(
         address _account,
-        address _asset
+        address _assetAddr
     ) external view returns (uint256 value, uint256 valueAdjusted, uint256 price);
 
     /**
@@ -133,18 +133,18 @@ interface IMinterAccountStateFacet {
     function getAccountCollateralAssets(address _account) external view returns (address[] memory);
 
     /**
-     * @notice Get `_account` collateral deposit amount for `_asset`
-     * @param _asset The asset address
+     * @notice Get `_account` collateral deposit amount for `_assetAddr`
+     * @param _assetAddr The asset address
      * @param _account The account to query amount for
-     * @return uint256 Amount of collateral deposited for `_asset`
+     * @return uint256 Amount of collateral deposited for `_assetAddr`
      */
-    function getAccountCollateralAmount(address _account, address _asset) external view returns (uint256);
+    function getAccountCollateralAmount(address _account, address _assetAddr) external view returns (uint256);
 
     /**
      * @notice Calculates the expected fee to be taken from a user's deposited collateral assets,
      *         by imitating calcFee without modifying state.
      * @param _account Account to charge the open fee from.
-     * @param _kreskoAsset Address of the kresko asset being burned.
+     * @param _krAsset Address of the kresko asset being burned.
      * @param _kreskoAssetAmount Amount of the kresko asset being minted.
      * @param _feeType Fee type (open or close).
      * @return assets Collateral types as an array of addresses.
@@ -152,7 +152,7 @@ interface IMinterAccountStateFacet {
      */
     function previewFee(
         address _account,
-        address _kreskoAsset,
+        address _krAsset,
         uint256 _kreskoAssetAmount,
         Enums.MinterFee _feeType
     ) external view returns (address[] memory assets, uint256[] memory amounts);

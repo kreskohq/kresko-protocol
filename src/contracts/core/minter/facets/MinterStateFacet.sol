@@ -41,8 +41,8 @@ contract MinterStateFacet is IMinterStateFacet {
     /*                                   Assets                                   */
     /* -------------------------------------------------------------------------- */
     /// @inheritdoc IMinterStateFacet
-    function getKrAssetExists(address _kreskoAsset) external view returns (bool) {
-        return cs().assets[_kreskoAsset].isMinterMintable;
+    function getKrAssetExists(address _krAsset) external view returns (bool) {
+        return cs().assets[_krAsset].isMinterMintable;
     }
 
     /// @inheritdoc IMinterStateFacet
@@ -60,9 +60,9 @@ contract MinterStateFacet is IMinterStateFacet {
 
     /// @inheritdoc IMinterStateFacet
     function getDebtValueWithPrice(
-        address _kreskoAsset,
+        address _krAsset,
         uint256 _amount
     ) external view returns (uint256 value, uint256 adjustedValue, uint256 price) {
-        return debtAmountToValues(cs().assets[_kreskoAsset], _amount);
+        return debtAmountToValues(cs().assets[_krAsset], _amount);
     }
 }

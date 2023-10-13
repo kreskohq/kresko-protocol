@@ -1,3 +1,4 @@
+import type { AssetConfig, ContractTypes, OracleType } from '@/types';
 import type { FakeContract, MockContract } from '@defi-wonderland/smock';
 import type {
   getBalanceCollateralFunc,
@@ -8,7 +9,6 @@ import type {
 import type { BytesLike } from 'ethers';
 import type { DeployResult } from 'hardhat-deploy/types';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
-import type { AssetArgs, AssetConfig, ContractTypes, OracleType } from '@/types';
 import type * as Contracts from './typechain';
 import type { MockOracle } from './typechain';
 import type { AssetStruct } from './typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
@@ -70,13 +70,10 @@ declare global {
     | 'KrAsset3'
     | 'KrAsset4'
     | 'KrAsset5';
-  type Contract = import('ethers').Contract;
   type GnosisSafeL2 = any;
 
   type KreskoAsset = TC['KreskoAsset'];
-  type KrStaking = any;
   type ERC20Upgradeable = TC['ERC20Upgradeable'];
-  type IERC20 = TC['IERC20Permit'];
   type BigNumberish = import('ethers').BigNumberish;
   type BigNumber = import('ethers').BigNumber;
   /* -------------------------------------------------------------------------- */

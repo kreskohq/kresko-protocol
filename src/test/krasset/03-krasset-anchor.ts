@@ -1,10 +1,10 @@
-import { KreskoAssetAnchor } from '@/types/typechain';
+import type { KreskoAssetAnchor } from '@/types/typechain';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
 import { createKrAsset } from '@scripts/create-krasset';
 import { expect } from '@test/chai';
 import { wrapKresko } from '@utils/redstone';
 import { defaultMintAmount } from '@utils/test/mocks';
-import Role from '@utils/test/roles';
+import { Role } from '@utils/test/roles';
 import { toBig } from '@utils/values';
 
 describe('KreskoAssetAnchor', () => {

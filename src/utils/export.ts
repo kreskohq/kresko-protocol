@@ -1,4 +1,4 @@
-import { TASK_GENERATE_TYPECHAIN, TASK_WRITE_ORACLE_JSON } from '@tasks';
+import { TASK_GENERATE_TYPECHAIN } from '@tasks';
 import { exec } from 'child_process';
 import { subtask } from 'hardhat/config';
 import { getFullyQualifiedName } from 'hardhat/utils/contract-names';

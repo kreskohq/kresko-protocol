@@ -1,7 +1,7 @@
-import { Role } from '@utils/test/roles';
-import { AllTokenSymbols, getDeploymentUsers } from '@config/deploy';
+import type { KreskoAssetAnchor } from '@/types/typechain';
+import { getDeploymentUsers, type AllTokenSymbols } from '@config/deploy';
 import { getAnchorNameAndSymbol } from '@utils/strings';
-import { KreskoAssetAnchor } from '@/types/typechain';
+import { Role } from '@utils/test/roles';
 
 export async function createKrAsset<T extends AllTokenSymbols>(
   symbol: T,

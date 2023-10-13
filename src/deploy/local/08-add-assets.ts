@@ -1,7 +1,7 @@
-import type { DeployFunction } from 'hardhat-deploy/dist/types';
 import { testnetConfigs } from '@config/deploy/arbitrumGoerli';
-import { getLogger } from '@utils/logging';
 import { TASK_ADD_ASSET } from '@tasks';
+import { getLogger } from '@utils/logging';
+import type { DeployFunction } from 'hardhat-deploy/dist/types';
 
 const logger = getLogger(TASK_ADD_ASSET);
 

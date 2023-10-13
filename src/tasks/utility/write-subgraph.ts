@@ -1,12 +1,11 @@
-import { getLogger } from '@utils/logging';
 import { getOutDir } from '@scripts/task-utils';
-import { writeFileSync } from 'fs';
-import { task } from 'hardhat/config';
-import { TaskArguments } from 'hardhat/types';
-import { TASK_WRITE_SUBGRAPH_JSON } from '../names';
-
 import { ERC20ABI } from '@utils/abi';
-import { Deployment } from 'hardhat-deploy/dist/types';
+import { getLogger } from '@utils/logging';
+import { writeFileSync } from 'fs';
+import type { Deployment } from 'hardhat-deploy/dist/types';
+import { task } from 'hardhat/config';
+import type { TaskArguments } from 'hardhat/types';
+import { TASK_WRITE_SUBGRAPH_JSON } from '../names';
 
 const logger = getLogger(TASK_WRITE_SUBGRAPH_JSON);
 

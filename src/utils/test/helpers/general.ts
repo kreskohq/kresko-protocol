@@ -1,13 +1,13 @@
-import { WrapperBuilder } from '@redstone-finance/evm-connector';
-import { formatBytesString } from '@utils/values';
-import { defaultRedstoneDataPoints, wrapKresko } from '@utils/redstone';
-import { AssetArgs, AssetConfig, OracleType } from '@/types';
+import { OracleType, type AssetArgs, type AssetConfig } from '@/types';
+import type { MockERC20 } from '@/types/typechain';
 import type {
   AssetStruct,
   FeedConfigurationStruct,
 } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
-import { MockERC20 } from '@/types/typechain';
+import { WrapperBuilder } from '@redstone-finance/evm-connector';
+import { defaultRedstoneDataPoints, wrapKresko } from '@utils/redstone';
+import { formatBytesString } from '@utils/values';
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -34,7 +34,8 @@ export const getAssetConfig = async (
   if (!config.krAssetConfig && !config.collateralConfig && !config.scdpDepositConfig && !config.scdpKrAssetConfig)
     throw new Error('No config provided');
   const configuredDataPoint = defaultRedstoneDataPoints.find(i => i.dataFeedId === config.ticker);
-  if (!configuredDataPoint) throw new Error(`No configured price data point: ${config.symbol} ${config.ticker}`);
+  if (!configuredDataPoint)
+    throw new Error(`No configured price for asset: ${config.symbol} | ticker: ${config.ticker}`);
 
   const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()]);
 

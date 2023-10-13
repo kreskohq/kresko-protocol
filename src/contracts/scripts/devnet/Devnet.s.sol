@@ -138,7 +138,7 @@ contract WithLocal is Devnet("MNEMONIC_DEVNET") {
             VaultAsset({
                 token: ERC20(usdc.addr),
                 oracle: usdc.oracle,
-                oracleTimeout: 86401,
+                staleTime: 86401,
                 decimals: 0,
                 depositFee: 0,
                 withdrawFee: 0,
@@ -150,7 +150,7 @@ contract WithLocal is Devnet("MNEMONIC_DEVNET") {
             VaultAsset({
                 token: ERC20(usdt.addr),
                 oracle: usdt.oracle,
-                oracleTimeout: 86401,
+                staleTime: 86401,
                 decimals: 0,
                 depositFee: 0,
                 withdrawFee: 0,
@@ -162,7 +162,7 @@ contract WithLocal is Devnet("MNEMONIC_DEVNET") {
             VaultAsset({
                 token: ERC20(dai.addr),
                 oracle: dai.oracle,
-                oracleTimeout: 86401,
+                staleTime: 86401,
                 decimals: 0,
                 depositFee: 0,
                 withdrawFee: 0,

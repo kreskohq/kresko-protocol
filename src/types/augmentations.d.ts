@@ -1,7 +1,7 @@
+import { hardhatUsers } from '@config/hardhat';
 import { Fragment, FunctionFragment, type JsonFragment } from '@ethersproject/abi';
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { providers } from 'ethers';
-import { hardhatUsers } from '@config/hardhat';
 import type { ABI, DeployOptions, Deployment } from 'hardhat-deploy/dist/types';
 import 'hardhat/types/config';
 import 'mocha';
@@ -54,13 +54,6 @@ declare module 'hardhat/types/runtime' {
     getDeploymentOrFork: (deploymentName: string) => Promise<Deployment | null>;
     getContractOrFork: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T]>;
     getContractOrNull: <T extends keyof TC>(type: T, deploymentName?: string) => Promise<TC[T] | null>;
-    forking: {
-      provider: providers.JsonRpcProvider;
-      deploy: <T extends keyof TC>(
-        type: T,
-        options?: Partial<DeployOptions & { deploymentName?: string }>,
-      ) => Promise<TC[T]>;
-    };
     deploy<T extends keyof TC>(
       type: T,
       options?: Omit<DeployOptions, 'from'> & {
@@ -72,7 +65,6 @@ declare module 'hardhat/types/runtime' {
     getSignature: (jsonItem: Fragment | JsonFragment | string) => string | false;
     getSignatures: (abi: ABI) => string[];
     getSignaturesWithNames: (abi: ABI) => { name: string; sig: string }[];
-    bytesCall: <T>(func: FunctionFragment, params: T) => string;
     users: HardhatUsers<SignerWithAddress>;
     addr: HardhatUsers<string>;
 

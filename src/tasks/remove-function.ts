@@ -1,9 +1,9 @@
-import { task, types } from 'hardhat/config';
-import { TaskArguments } from 'hardhat/types';
-import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
-import { getLogger } from '@utils/logging';
-import { TASK_REMOVE_FUNCTION } from './names';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { getLogger } from '@utils/logging';
+import { FacetCutAction, type FacetCut } from 'hardhat-deploy/dist/types';
+import { task, types } from 'hardhat/config';
+import type { TaskArguments } from 'hardhat/types';
+import { TASK_REMOVE_FUNCTION } from './names';
 
 task(TASK_REMOVE_FUNCTION)
   .addParam('name', 'Artifact/Contract name of the facet')

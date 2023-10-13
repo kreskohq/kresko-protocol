@@ -2695,7 +2695,7 @@ export const deployments = {
               type: 'uint256',
             },
           ],
-          name: 'setOracleDeviationPct',
+          name: 'setMaxPriceDeviationPct',
           outputs: [],
           stateMutability: 'nonpayable',
           type: 'function',
@@ -2704,11 +2704,11 @@ export const deployments = {
           inputs: [
             {
               internalType: 'uint256',
-              name: '_oracleTimeout',
+              name: '_staleTime',
               type: 'uint256',
             },
           ],
-          name: 'setOracleTimeout',
+          name: 'setStaleTime',
           outputs: [],
           stateMutability: 'nonpayable',
           type: 'function',
@@ -3588,7 +3588,7 @@ export const deployments = {
                 },
                 {
                   internalType: 'uint256',
-                  name: 'oracleDeviationPct',
+                  name: 'maxPriceDeviationPct',
                   type: 'uint256',
                 },
               ],
@@ -3810,7 +3810,7 @@ export const deployments = {
         },
         {
           inputs: [],
-          name: 'oracleDeviationPct',
+          name: 'maxPriceDeviationPct',
           outputs: [
             {
               internalType: 'uint256',

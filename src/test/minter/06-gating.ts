@@ -1,5 +1,5 @@
 import { expect } from '@test/chai';
-import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
+import { defaultFixture, type DefaultFixture } from '@utils/test/fixtures';
 import { wrapContractWithSigner } from '@utils/test/helpers/general';
 import { toBig } from '@utils/values';
 

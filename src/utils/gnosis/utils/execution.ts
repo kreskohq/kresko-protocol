@@ -1,15 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-extra-non-null-assertion */
-import { Contract, utils, BigNumber, BigNumberish, Signer, PopulatedTransaction } from 'ethers';
-import { TypedDataSigner } from '@ethersproject/abstract-signer';
+import type { TypedDataSigner } from '@ethersproject/abstract-signer';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
-
-export const EIP_DOMAIN = {
-  EIP712Domain: [
-    { type: 'uint256', name: 'chainId' },
-    { type: 'address', name: 'verifyingContract' },
-  ],
-};
+import { BigNumber, Contract, Signer, type BigNumberish } from 'ethers';
 
 export const EIP712_SAFE_TX_TYPE = {
   // "SafeTx(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)"
@@ -25,11 +18,6 @@ export const EIP712_SAFE_TX_TYPE = {
     { type: 'address', name: 'refundReceiver' },
     { type: 'uint256', name: 'nonce' },
   ],
-};
-
-export const EIP712_SAFE_MESSAGE_TYPE = {
-  // "SafeMessage(bytes message)"
-  SafeMessage: [{ type: 'bytes', name: 'message' }],
 };
 
 export interface MetaTransaction {
@@ -53,55 +41,6 @@ export interface SafeSignature {
   data: string;
 }
 
-export const calculateSafeDomainSeparator = (safe: Contract, chainId: BigNumberish): string => {
-  return utils._TypedDataEncoder.hashDomain({
-    verifyingContract: safe.address,
-    chainId,
-  });
-};
-
-export const preimageSafeTransactionHash = (safe: Contract, safeTx: SafeTransaction, chainId: BigNumberish): string => {
-  return utils._TypedDataEncoder.encode({ verifyingContract: safe.address, chainId }, EIP712_SAFE_TX_TYPE, safeTx);
-};
-
-export const calculateSafeTransactionHash = (
-  safe: Contract,
-  safeTx: SafeTransaction,
-  chainId: BigNumberish,
-): string => {
-  return utils._TypedDataEncoder.hash({ verifyingContract: safe.address, chainId }, EIP712_SAFE_TX_TYPE, safeTx);
-};
-
-export const calculateSafeMessageHash = (safe: Contract, message: string, chainId: BigNumberish): string => {
-  return utils._TypedDataEncoder.hash({ verifyingContract: safe.address, chainId }, EIP712_SAFE_MESSAGE_TYPE, {
-    message,
-  });
-};
-
-export const safeApproveHash = async (
-  signer: Signer,
-  safe: Contract,
-  safeTx: SafeTransaction,
-  skipOnChainApproval?: boolean,
-): Promise<SafeSignature> => {
-  if (!skipOnChainApproval) {
-    if (!signer.provider) throw Error('Provider required for on-chain approval');
-    const chainId = (await signer.provider.getNetwork()).chainId;
-    const typedDataHash = utils.arrayify(calculateSafeTransactionHash(safe, safeTx, chainId));
-    const signerSafe = safe.connect(signer);
-    await signerSafe.approveHash(typedDataHash);
-  }
-  const signerAddress = await signer.getAddress();
-  return {
-    signer: signerAddress,
-    data:
-      '0x000000000000000000000000' +
-      signerAddress.slice(2) +
-      '0000000000000000000000000000000000000000000000000000000000000000' +
-      '01',
-  };
-};
-
 export const safeSignTypedData = async (
   signer: Signer & TypedDataSigner,
   safe: Contract,
@@ -117,25 +56,6 @@ export const safeSignTypedData = async (
   };
 };
 
-export const signHash = async (signer: Signer, hash: string): Promise<SafeSignature> => {
-  const typedDataHash = utils.arrayify(hash);
-  const signerAddress = await signer.getAddress();
-  return {
-    signer: signerAddress,
-    data: (await signer.signMessage(typedDataHash)).replace(/1b$/, '1f').replace(/1c$/, '20'),
-  };
-};
-
-export const safeSignMessage = async (
-  signer: Signer,
-  safe: GnosisSafeL2,
-  safeTx: SafeTransaction,
-  chainId?: BigNumberish,
-): Promise<SafeSignature> => {
-  const cid = chainId || (await signer.provider!!.getNetwork()).chainId;
-  return signHash(signer, calculateSafeTransactionHash(safe, safeTx, cid));
-};
-
 export const buildSignatureBytes = (signatures: SafeSignature[]): string => {
   signatures.sort((left, right) => left.signer.toLowerCase().localeCompare(right.signer.toLowerCase()));
   let signatureBytes = '0x';
@@ -143,14 +63,6 @@ export const buildSignatureBytes = (signatures: SafeSignature[]): string => {
     signatureBytes += sig.data.slice(2);
   }
   return signatureBytes;
-};
-
-export const logGas = async (message: string, tx: Promise<any>, skip?: boolean): Promise<any> => {
-  return tx.then(async result => {
-    const receipt = await result.wait();
-    if (!skip) console.log('           Used', receipt.gasUsed.toNumber(), `gas for >${message}<`);
-    return result;
-  });
 };
 
 export const executeTx = async (
@@ -161,28 +73,6 @@ export const executeTx = async (
 ): Promise<any> => {
   const signatureBytes = buildSignatureBytes(signatures);
   return safe.execTransaction(
-    safeTx.to,
-    safeTx.value,
-    safeTx.data,
-    safeTx.operation,
-    safeTx.safeTxGas,
-    safeTx.baseGas,
-    safeTx.gasPrice,
-    safeTx.gasToken,
-    safeTx.refundReceiver,
-    signatureBytes,
-    overrides || {},
-  );
-};
-
-export const populateExecuteTx = async (
-  safe: Contract,
-  safeTx: SafeTransaction,
-  signatures: SafeSignature[],
-  overrides?: any,
-): Promise<PopulatedTransaction> => {
-  const signatureBytes = buildSignatureBytes(signatures);
-  return safe.populateTransaction.execTransaction(
     safeTx.to,
     safeTx.value,
     safeTx.data,

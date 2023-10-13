@@ -1,14 +1,14 @@
 import { expect } from '@test/chai';
-import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
+import { defaultFixture, type DefaultFixture } from '@utils/test/fixtures';
 
+import type { KrAssetConfig } from '@/types';
+import type { AssetStruct } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { addMockExtAsset } from '@utils/test/helpers/collaterals';
 import { getAssetConfig, wrapContractWithSigner } from '@utils/test/helpers/general';
 import { addMockKreskoAsset } from '@utils/test/helpers/krassets';
 import { getFakeOracle } from '@utils/test/helpers/oracle';
 import { testCollateralConfig, testKrAssetConfig, testMinterParams } from '@utils/test/mocks';
 import { fromBig, toBig } from '@utils/values';
-import { KrAssetConfig } from '@/types';
-import { AssetStruct } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 describe('Minter - Configuration', function () {
   let f: DefaultFixture;
@@ -40,7 +40,12 @@ describe('Minter - Configuration', function () {
     });
 
     it('can add a kresko asset', async function () {
-      const { contract, assetInfo } = await addMockKreskoAsset();
+      const { contract, assetInfo } = await addMockKreskoAsset({
+        ...testKrAssetConfig,
+        name: 'Kresko Asset: 5',
+        symbol: 'KrAsset5',
+        ticker: 'KrAsset5',
+      });
 
       const values = await assetInfo();
       const kreskoPriceAnswer = fromBig(await hre.Diamond.getValue(contract.address, toBig(1)), 8);
@@ -76,7 +81,7 @@ describe('Minter - Configuration', function () {
 
       expect(currentDeviationPct).to.not.equal(newDeviationPct);
 
-      await expect(hre.Diamond.setOracleDeviationPct(newDeviationPct)).to.not.be.reverted;
+      await expect(hre.Diamond.setMaxPriceDeviationPct(newDeviationPct)).to.not.be.reverted;
       expect(await hre.Diamond.getOracleDeviationPct()).to.equal(newDeviationPct);
     });
 

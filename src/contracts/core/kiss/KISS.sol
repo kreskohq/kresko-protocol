@@ -78,48 +78,48 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
 
     /// @inheritdoc IVaultExtender
     function vaultDeposit(
-        address _asset,
+        address _assetAddr,
         uint256 _assets,
         address _receiver
     ) external returns (uint256 sharesOut, uint256 assetFee) {
-        ERC20Upgradeable(_asset).safeTransferFrom(msg.sender, address(this), _assets);
-        (sharesOut, assetFee) = IVault(vKISS).deposit(_asset, _assets, address(this));
+        ERC20Upgradeable(_assetAddr).safeTransferFrom(msg.sender, address(this), _assets);
+        (sharesOut, assetFee) = IVault(vKISS).deposit(_assetAddr, _assets, address(this));
         _mint(_receiver, sharesOut);
     }
 
     /// @inheritdoc IVaultExtender
     function vaultMint(
-        address _asset,
+        address _assetAddr,
         uint256 _shares,
         address _receiver
     ) external returns (uint256 assetsIn, uint256 assetFee) {
-        (assetsIn, assetFee) = IVault(vKISS).previewMint(_asset, _shares);
-        ERC20Upgradeable(_asset).safeTransferFrom(msg.sender, address(this), assetsIn);
-        IVault(vKISS).mint(_asset, _shares, address(this));
+        (assetsIn, assetFee) = IVault(vKISS).previewMint(_assetAddr, _shares);
+        ERC20Upgradeable(_assetAddr).safeTransferFrom(msg.sender, address(this), assetsIn);
+        IVault(vKISS).mint(_assetAddr, _shares, address(this));
         _mint(_receiver, _shares);
     }
 
     /// @inheritdoc IVaultExtender
     function vaultWithdraw(
-        address _asset,
+        address _assetAddr,
         uint256 _assets,
         address _receiver,
         address _owner
     ) external returns (uint256 sharesIn, uint256 assetFee) {
-        (sharesIn, assetFee) = IVault(vKISS).previewWithdraw(_asset, _assets);
+        (sharesIn, assetFee) = IVault(vKISS).previewWithdraw(_assetAddr, _assets);
         withdrawFrom(_owner, address(this), sharesIn);
-        IVault(vKISS).withdraw(_asset, _assets, _receiver, address(this));
+        IVault(vKISS).withdraw(_assetAddr, _assets, _receiver, address(this));
     }
 
     /// @inheritdoc IVaultExtender
     function vaultRedeem(
-        address _asset,
+        address _assetAddr,
         uint256 _shares,
         address _receiver,
         address _owner
     ) external returns (uint256 assetsOut, uint256 assetFee) {
         withdrawFrom(_owner, address(this), _shares);
-        (assetsOut, assetFee) = IVault(vKISS).redeem(_asset, _shares, _receiver, address(this));
+        (assetsOut, assetFee) = IVault(vKISS).redeem(_assetAddr, _shares, _receiver, address(this));
     }
 
     /// @inheritdoc IVaultExtender
@@ -208,9 +208,9 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     /* -------------------------------------------------------------------------- */
     /*                                  internal                                  */
     /* -------------------------------------------------------------------------- */
-    function _withdraw(address _from, address _to, uint256 _amount) internal {
-        _burn(_from, _amount);
-        ERC20Upgradeable(vKISS).transfer(_to, _amount);
+    function _withdraw(address from, address to, uint256 amount) internal {
+        _burn(from, amount);
+        ERC20Upgradeable(vKISS).transfer(to, amount);
     }
 
     /**

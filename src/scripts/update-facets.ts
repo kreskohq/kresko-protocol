@@ -1,6 +1,7 @@
 import { getLogger } from '@utils/logging';
+import { Contract } from 'ethers';
 import { writeFileSync } from 'fs';
-import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
+import { FacetCutAction, type FacetCut } from 'hardhat-deploy/dist/types';
 type Args = {
   facetNames: readonly (keyof TC)[];
   initializer?: {

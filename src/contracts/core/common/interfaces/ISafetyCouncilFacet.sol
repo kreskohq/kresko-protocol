@@ -33,7 +33,7 @@ interface ISafetyCouncilFacet {
 
     /**
      * @notice View the state of safety measures for an asset on a per-action basis
-     * @param _asset krAsset / collateral asset
+     * @param _assetAddr krAsset / collateral asset
      * @param _action One of possible user actions:
      *
      *  Deposit = 0
@@ -42,10 +42,10 @@ interface ISafetyCouncilFacet {
      *  Borrow = 3,
      *  Liquidate = 4
      */
-    function safetyStateFor(address _asset, Enums.Action _action) external view returns (SafetyState memory);
+    function safetyStateFor(address _assetAddr, Enums.Action _action) external view returns (SafetyState memory);
 
     /**
-     * @notice Check if `_asset` has a pause enabled for `_action`
+     * @notice Check if `_assetAddr` has a pause enabled for `_action`
      * @param _action enum `Action`
      *  Deposit = 0
      *  Withdraw = 1,
@@ -54,5 +54,5 @@ interface ISafetyCouncilFacet {
      *  Liquidate = 4
      * @return true if `_action` is paused
      */
-    function assetActionPaused(Enums.Action _action, address _asset) external view returns (bool);
+    function assetActionPaused(Enums.Action _action, address _assetAddr) external view returns (bool);
 }

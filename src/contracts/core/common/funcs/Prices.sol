@@ -124,16 +124,16 @@ function SDIPrice() view returns (uint256) {
 /**
  * @notice Gets answer from AggregatorV3 type feed.
  * @param _feedAddr The feed address.
- * @param _oracleTimeout Staleness threshold.
+ * @param _staleTime Time in seconds for the feed to be considered stale.
  * @return uint256 Parsed answer from the feed, 0 if its stale.
  */
-function aggregatorV3Price(address _feedAddr, uint256 _oracleTimeout) view returns (uint256) {
+function aggregatorV3Price(address _feedAddr, uint256 _staleTime) view returns (uint256) {
     (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_feedAddr).latestRoundData();
     if (answer < 0) {
         revert Errors.NEGATIVE_PRICE(_feedAddr, answer);
     }
     // IMPORTANT: Returning zero when answer is stale, to activate fallback oracle.
-    if (block.timestamp - updatedAt > _oracleTimeout) {
+    if (block.timestamp - updatedAt > _staleTime) {
         return 0;
     }
     return uint256(answer);
@@ -142,16 +142,16 @@ function aggregatorV3Price(address _feedAddr, uint256 _oracleTimeout) view retur
 /**
  * @notice Gets answer from IAPI3 type feed.
  * @param _feedAddr The feed address.
- * @param _oracleTimeout Staleness threshold.
+ * @param _staleTime Staleness threshold.
  * @return uint256 Parsed answer from the feed, 0 if its stale.
  */
-function API3Price(address _feedAddr, uint256 _oracleTimeout) view returns (uint256) {
+function API3Price(address _feedAddr, uint256 _staleTime) view returns (uint256) {
     (int256 answer, uint256 updatedAt) = IAPI3(_feedAddr).read();
     if (answer < 0) {
         revert Errors.NEGATIVE_PRICE(_feedAddr, answer);
     }
     // IMPORTANT: Returning zero when answer is stale, to activate fallback oracle.
-    if (block.timestamp - updatedAt > _oracleTimeout) {
+    if (block.timestamp - updatedAt > _staleTime) {
         return 0;
     }
     return uint256(answer / 1e10); // @todo actual decimals
@@ -168,7 +168,7 @@ function API3Price(address _feedAddr, uint256 _oracleTimeout) view returns (uint
  */
 function aggregatorV3RawPrice(address _feedAddr) view returns (RawPrice memory) {
     (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_feedAddr).latestRoundData();
-    bool isStale = block.timestamp - updatedAt > cs().oracleTimeout;
+    bool isStale = block.timestamp - updatedAt > cs().staleTime;
     return RawPrice(answer, updatedAt, isStale, answer == 0, Enums.OracleType.Chainlink, _feedAddr);
 }
 
@@ -179,7 +179,7 @@ function aggregatorV3RawPrice(address _feedAddr) view returns (RawPrice memory) 
  */
 function API3RawPrice(address _feedAddr) view returns (RawPrice memory) {
     (int256 answer, uint256 updatedAt) = IAPI3(_feedAddr).read();
-    bool isStale = block.timestamp - updatedAt > cs().oracleTimeout;
+    bool isStale = block.timestamp - updatedAt > cs().staleTime;
     return RawPrice(answer, updatedAt, isStale, answer == 0, Enums.OracleType.API3, _feedAddr);
 }
 

@@ -41,7 +41,7 @@ library LibModifiers {
     function onlyMinterCollateral(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
         asset = self.assets[_assetAddr];
         if (!asset.isMinterCollateral) {
-            revert Errors.ASSET_NOT_COLLATERAL(Errors.id(_assetAddr));
+            revert Errors.ASSET_NOT_MINTER_COLLATERAL(Errors.id(_assetAddr));
         }
     }
 
@@ -52,7 +52,7 @@ library LibModifiers {
     ) internal view returns (Asset storage asset) {
         asset = onlyUnpaused(self, _assetAddr, _action);
         if (!asset.isMinterCollateral) {
-            revert Errors.ASSET_NOT_COLLATERAL(Errors.id(_assetAddr));
+            revert Errors.ASSET_NOT_MINTER_COLLATERAL(Errors.id(_assetAddr));
         }
     }
 
@@ -64,7 +64,7 @@ library LibModifiers {
     function onlyMinterMintable(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
         asset = self.assets[_assetAddr];
         if (!asset.isMinterMintable) {
-            revert Errors.ASSET_NOT_MINTER_KRASSET(Errors.id(_assetAddr));
+            revert Errors.ASSET_NOT_MINTABLE_FROM_MINTER(Errors.id(_assetAddr));
         }
     }
 
@@ -75,7 +75,7 @@ library LibModifiers {
     ) internal view returns (Asset storage asset) {
         asset = onlyUnpaused(self, _assetAddr, _action);
         if (!asset.isMinterMintable) {
-            revert Errors.ASSET_NOT_MINTER_KRASSET(Errors.id(_assetAddr));
+            revert Errors.ASSET_NOT_MINTABLE_FROM_MINTER(Errors.id(_assetAddr));
         }
     }
 

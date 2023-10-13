@@ -1,8 +1,8 @@
+import { defaultFixture, type DefaultFixture } from '@utils/test/fixtures';
 import { getMaxWithdrawal } from '@utils/test/helpers/collaterals';
 import optimized from '@utils/test/helpers/optimizations';
+import { Role } from '@utils/test/roles';
 import { expect } from '../chai';
-import { DefaultFixture, defaultFixture } from '@utils/test/fixtures';
-import Role from '@utils/test/roles';
 
 describe('CollateralReceiver - UncheckedCollateralWithdraw', () => {
   let f: DefaultFixture;
@@ -19,7 +19,7 @@ describe('CollateralReceiver - UncheckedCollateralWithdraw', () => {
         const withdrawalAmount = 42069;
 
         await expect(f.Receiver.testWithdrawalAmount(f.Collateral.address, withdrawalAmount)).to.not.be.revertedWith(
-          'wront amount received',
+          'wrong amount received',
         );
         expect(await f.Collateral.balanceOf(f.Receiver.address)).to.equal(withdrawalAmount);
       });

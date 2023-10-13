@@ -1,14 +1,14 @@
-import { SCDPKrAssetConfig } from '@/types';
+import type { SCDPKrAssetConfig } from '@/types';
 import { SmockCollateralReceiver, SmockCollateralReceiver__factory } from '@/types/typechain';
-import { Kresko } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
-import { AllTokenSymbols } from '@config/deploy';
-import { MockContract, smock } from '@defi-wonderland/smock';
+import type { Kresko } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import type { AllTokenSymbols } from '@config/deploy';
+import { type MockContract, smock } from '@defi-wonderland/smock';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { createKrAsset } from '@scripts/create-krasset';
 import { wrapKresko } from '@utils/redstone';
 import { MaxUint128, toBig } from '@utils/values';
-import { Facet } from 'hardhat-deploy/types';
+import type { Facet } from 'hardhat-deploy/types';
 import { addMockExtAsset, depositCollateral } from './helpers/collaterals';
 import { wrapContractWithSigner } from './helpers/general';
 import { addMockKreskoAsset, leverageKrAsset, mintKrAsset } from './helpers/krassets';
@@ -22,7 +22,7 @@ import {
   testCollateralConfig,
   testKrAssetConfig,
 } from './mocks';
-import Role from './roles';
+import { Role } from './roles';
 
 type SCDPFixtureParams = undefined;
 
@@ -372,13 +372,18 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
 });
 
 export type DepositWithdrawFixture = {
-  users: [SignerWithAddress, Kresko][];
   initialDeposits: BigNumber;
   initialBalance: BigNumber;
   Collateral: TestExtAsset;
   KrAsset: TestKrAsset;
   Collateral2: TestExtAsset;
   KrAssetCollateral: TestKrAsset;
+  depositor: SignerWithAddress;
+  withdrawer: SignerWithAddress;
+  user: SignerWithAddress;
+  User: Kresko;
+  Depositor: Kresko;
+  Withdrawer: Kresko;
 };
 
 export const depositWithdrawFixture = hre.deployments.createFixture<DepositWithdrawFixture, {}>(async hre => {
@@ -414,15 +419,16 @@ export const depositWithdrawFixture = hre.deployments.createFixture<DepositWithd
   return {
     initialDeposits,
     initialBalance,
-    users: [
-      [hre.users.userOne, wrapKresko(hre.Diamond, hre.users.userOne)], // user1
-      [hre.users.userTwo, wrapKresko(hre.Diamond, hre.users.userTwo)], // "depositor"
-      [hre.users.userThree, wrapKresko(hre.Diamond, hre.users.userThree)], // "withdrawer"
-    ],
     Collateral: DefaultCollateral,
     KrAsset: DefaultKrAsset,
     Collateral2: hre.extAssets!.find(c => c.config.args.ticker === 'Collateral2')!,
     KrAssetCollateral,
+    user: hre.users.userOne,
+    depositor: hre.users.userTwo,
+    withdrawer: hre.users.userThree,
+    User: wrapKresko(hre.Diamond, hre.users.userOne),
+    Depositor: wrapKresko(hre.Diamond, hre.users.userTwo),
+    Withdrawer: wrapKresko(hre.Diamond, hre.users.userThree),
   };
 });
 export type MintRepayFixture = {
@@ -432,11 +438,14 @@ export type MintRepayFixture = {
   KrAsset2: TestKrAsset;
   Collateral2: TestExtAsset;
   KrAssetCollateral: TestKrAsset;
-  users: [SignerWithAddress, Kresko][];
   collaterals: TestExtAsset[];
   krAssets: TestKrAsset[];
   initialDeposits: BigNumber;
   initialMintAmount: BigNumber;
+  user1: SignerWithAddress;
+  user2: SignerWithAddress;
+  User1: Kresko;
+  User2: Kresko;
 };
 
 export const mintRepayFixture = hre.deployments.createFixture<MintRepayFixture, {}>(async hre => {
@@ -484,15 +493,15 @@ export const mintRepayFixture = hre.deployments.createFixture<MintRepayFixture, 
     krAssets: hre.krAssets,
     initialDeposits,
     initialMintAmount,
-    users: [
-      [hre.users.userOne, wrapKresko(hre.Diamond, hre.users.userOne)],
-      [hre.users.userTwo, wrapKresko(hre.Diamond, hre.users.userTwo)],
-    ],
     Collateral: DefaultCollateral,
     KrAsset: DefaultKrAsset,
     KrAsset2,
     Collateral2: hre.extAssets!.find(c => c.config.args.ticker === 'Collateral2')!,
     KrAssetCollateral,
+    user1: hre.users.userOne,
+    user2: hre.users.userTwo,
+    User1: wrapKresko(hre.Diamond, hre.users.userOne),
+    User2: wrapKresko(hre.Diamond, hre.users.userTwo),
   };
 });
 
