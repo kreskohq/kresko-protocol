@@ -37,8 +37,8 @@ import {Vault} from "vault/Vault.sol";
 
 abstract contract KreskoForgeBase is
     IKreskoForgeTypes,
-    RedstoneScript("./src/utils/getRedstonePayload.js"),
-    FacetScript("./src/utils/selectorsFromArtifact.sh")
+    RedstoneScript("./utils/getRedstonePayload.js"),
+    FacetScript("./utils/selectorsFromArtifact.sh")
 {
     address internal testAdmin = address(0xABABAB);
     DeployArgs internal deployArgs;

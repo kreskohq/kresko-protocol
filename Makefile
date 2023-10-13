@@ -1,27 +1,28 @@
 deploy-local:
 	source .env && \
 	forge script src/contracts/scripts/devnet/Devnet.s.sol:WithLocal \
-	--mnemonics "$$MNEMONIC_DEVNET" --ffi \
+	--mnemonics "$$MNEMONIC_DEVNET" \
 	--fork-url "$$RPC_LOCAL" \
 	--with-gas-price 100000000 \
-	-vv \
-	--skip-simulation
+	--skip-simulation \
+	--ffi \
+	-vvv
 
 deploy-arbitrum:
 	source .env && \
-	forge script src/contracts/scripts/devnet/Devnet.s.sol:WithArbitrum \ 
-	--mnemonics "$$MNEMONIC_DEVNET" --ffi \
+	forge script src/contracts/scripts/devnet/Devnet.s.sol:WithArbitrum \
+	--mnemonics "$$MNEMONIC_DEVNET" \
 	--fork-url "$$RPC_LOCAL" \
 	--broadcast \
 	--with-gas-price 100000000 \
-	-vv \
-	--skip-simulation
+	--ffi \
+	-vvvv
 
 server:
 	source .env && \
 	anvil -m "$$MNEMONIC_DEVNET" \
 	--fork-url "$$RPC_ARBITRUM_ALCHEMY" \
-	--fork-block-number 139667500
+	# --fork-block-number 139667500
 
 flats: 
 	forge flatten src/contracts/periphery/IKresko.sol > out/IKresko.sol && \

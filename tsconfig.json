@@ -27,7 +27,7 @@
     }
   },
   "exclude": ["**/@kreskolabs/lib/**/*.d.ts", "temp", "docs", "node_modules/**/*.ts", "cache/**/*", "out"],
-  "include": ["hardhat.config.ts", "src", "configs"],
+  "include": ["hardhat.config.ts", "src", "configs", "utils"],
   "ts-node": {
     "files": true,
     "transpileOnly": true,

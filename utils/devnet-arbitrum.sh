@@ -1,1 +1,8 @@
-source .env && forge script src/contracts/scripts/devnet/Devnet.s.sol:WithArbitrum --mnemonics $MNEMONIC_DEVNET --ffi --fork-url $RPC_ARBITRUM_ALCHEMY --fork-block-number 139667500 --with-gas-price 100000000 -vv --skip-simulation
+source .env &&
+    forge script src/contracts/scripts/devnet/Devnet.s.sol:WithArbitrum \
+        --mnemonics $MNEMONIC_DEVNET \
+        --fork-url $RPC_ARBITRUM_ALCHEMY \
+        --fork-block-number 139667500 \
+        --with-gas-price 100000000 \
+        --ffi \
+        -vvvv

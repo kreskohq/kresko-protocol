@@ -5,17 +5,17 @@ cache/
 coverage/
 dist/
 lib/
-out/**/*
-temp/**/*
-src/types/**/*
+out/
+temp/
+src/types/
 node_modules/
-deployments/**
-src/contracts/vendor/**/*
-src/utils/**/*
+deployments/
+src/contracts/
+utils/
 packages
 docs/
 ganache.js
-test/**/*
+test/
 ecosystem.config.js
 
 # files
