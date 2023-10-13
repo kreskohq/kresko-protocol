@@ -304,6 +304,22 @@ library Validations {
         }
     }
 
+    function validateCollateralArgs(
+        MinterState storage self,
+        address _account,
+        address _collateralAsset,
+        uint256 _collateralIndex,
+        uint256 _amount
+    ) internal view {
+        if (_amount == 0) revert Errors.ZERO_AMOUNT(Errors.id(_collateralAsset));
+        if (_collateralIndex > self.depositedCollateralAssets[_account].length - 1)
+            revert Errors.ELEMENT_DOES_NOT_MATCH_PROVIDED_INDEX(
+                Errors.id(_collateralAsset),
+                _collateralIndex,
+                self.depositedCollateralAssets[_account]
+            );
+    }
+
     function rawAssetPrice(Asset storage self) internal view returns (RawPrice memory) {
         return rawPrice(self.oracles, self.ticker);
     }

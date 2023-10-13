@@ -7,7 +7,7 @@ pragma solidity ^0.8.13;
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {Vault} from "vault/Vault.sol";
 import {KISS} from "kiss/KISS.sol";
-import {VaultAsset} from "vault/Types.sol";
+import {VaultAsset} from "vault/VTypes.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import {ERC20} from "kresko-lib/token/ERC20.sol";
 import {Devnet, ArbitrumDevnet} from "./DevnetConfigs.s.sol";
@@ -137,7 +137,7 @@ contract WithLocal is Devnet("MNEMONIC_DEVNET") {
         vkiss.addAsset(
             VaultAsset({
                 token: ERC20(usdc.addr),
-                oracle: usdc.oracle,
+                feed: usdc.oracle,
                 staleTime: 86401,
                 decimals: 0,
                 depositFee: 0,
@@ -149,7 +149,7 @@ contract WithLocal is Devnet("MNEMONIC_DEVNET") {
         vkiss.addAsset(
             VaultAsset({
                 token: ERC20(usdt.addr),
-                oracle: usdt.oracle,
+                feed: usdt.oracle,
                 staleTime: 86401,
                 decimals: 0,
                 depositFee: 0,
@@ -161,7 +161,7 @@ contract WithLocal is Devnet("MNEMONIC_DEVNET") {
         vkiss.addAsset(
             VaultAsset({
                 token: ERC20(dai.addr),
-                oracle: dai.oracle,
+                feed: dai.oracle,
                 staleTime: 86401,
                 decimals: 0,
                 depositFee: 0,

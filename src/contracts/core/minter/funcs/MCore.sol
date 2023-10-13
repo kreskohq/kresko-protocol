@@ -95,7 +95,7 @@ library MCore {
         uint256 _collateralDeposits,
         uint256 _collateralIndex
     ) internal {
-        self.validateCollateralArgs(_account, _collateralAsset, _collateralIndex, _withdrawAmount);
+        Validations.validateCollateralArgs(self, _account, _collateralAsset, _collateralIndex, _withdrawAmount);
 
         uint256 newCollateralAmount = _collateralDeposits - _withdrawAmount;
 
@@ -136,7 +136,7 @@ library MCore {
         uint256 _collateralDeposits,
         uint256 _collateralIndex
     ) internal {
-        self.validateCollateralArgs(_account, _collateralAsset, _collateralIndex, _withdrawAmount);
+        Validations.validateCollateralArgs(self, _account, _collateralAsset, _collateralIndex, _withdrawAmount);
         uint256 newCollateralAmount = _collateralDeposits - _withdrawAmount;
 
         // If the collateral asset is also a kresko asset, ensure that the deposit amount is above the minimum.
@@ -153,21 +153,5 @@ library MCore {
         self.collateralDeposits[_account][_collateralAsset] = _asset.toNonRebasingAmount(newCollateralAmount);
 
         emit MEvent.UncheckedCollateralWithdrawn(_account, _collateralAsset, _withdrawAmount);
-    }
-
-    function validateCollateralArgs(
-        MinterState storage self,
-        address _account,
-        address _collateralAsset,
-        uint256 _collateralIndex,
-        uint256 _amount
-    ) internal view {
-        if (_amount == 0) revert Errors.ZERO_AMOUNT(Errors.id(_collateralAsset));
-        if (_collateralIndex > self.depositedCollateralAssets[_account].length - 1)
-            revert Errors.ELEMENT_DOES_NOT_MATCH_PROVIDED_INDEX(
-                Errors.id(_collateralAsset),
-                _collateralIndex,
-                self.depositedCollateralAssets[_account]
-            );
     }
 }

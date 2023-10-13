@@ -9,7 +9,7 @@ pragma solidity ^0.8.0;
 import {KreskoForgeUtils} from "../utils/KreskoForgeUtils.s.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
-import {VaultAsset} from "vault/Types.sol";
+import {VaultAsset} from "vault/VTypes.sol";
 import {addr, tokens, cl} from "kresko-lib/info/Arbitrum.sol";
 
 abstract contract DevnetBase is ScriptBase, KreskoForgeUtils {
@@ -80,7 +80,7 @@ abstract contract ArbitrumDevnet is DevnetBase {
     VaultAsset internal USDC_VAULT_CONFIG =
         VaultAsset({
             token: tokens.USDC,
-            oracle: cl.USDC,
+            feed: cl.USDC,
             staleTime: 86401,
             decimals: 0,
             depositFee: 0,
@@ -92,7 +92,7 @@ abstract contract ArbitrumDevnet is DevnetBase {
     VaultAsset internal USDT_VAULT_CONFIG =
         VaultAsset({
             token: tokens.USDT,
-            oracle: cl.USDT,
+            feed: cl.USDT,
             staleTime: 86401,
             decimals: 0,
             depositFee: 0,
@@ -104,7 +104,7 @@ abstract contract ArbitrumDevnet is DevnetBase {
     VaultAsset internal DAI_VAULT_CONFIG =
         VaultAsset({
             token: tokens.DAI,
-            oracle: cl.DAI,
+            feed: cl.DAI,
             staleTime: 86401,
             decimals: 0,
             depositFee: 0,
