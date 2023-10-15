@@ -7,7 +7,7 @@ import {IKreskoForgeTypes} from "./IKreskoForgeTypes.sol";
 import {FacetCut, Initializer, FacetCutAction} from "diamond/DSTypes.sol";
 import {Diamond} from "diamond/Diamond.sol";
 import {DiamondCutFacet} from "diamond/facets/DiamondCutFacet.sol";
-import {DiamondOwnershipFacet} from "diamond/facets/DiamondOwnershipFacet.sol";
+import {DiamondStateFacet} from "diamond/facets/DiamondStateFacet.sol";
 import {DiamondLoupeFacet} from "diamond/facets/DiamondLoupeFacet.sol";
 import {ERC165Facet} from "diamond/facets/ERC165Facet.sol";
 
@@ -34,11 +34,15 @@ import {SCDPInitArgs} from "scdp/STypes.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {KISS} from "kiss/KISS.sol";
 import {Vault} from "vault/Vault.sol";
+import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
+
+uint256 constant FACET_COUNT = 22;
+uint256 constant INITIALIZER_COUNT = 3;
 
 abstract contract KreskoForgeBase is
     IKreskoForgeTypes,
     RedstoneScript("./utils/getRedstonePayload.js"),
-    FacetScript("./utils/selectorsFromArtifact.sh")
+    FacetScript("./utils/getFunctionSelectors.sh")
 {
     address internal testAdmin = address(0xABABAB);
     DeployArgs internal deployArgs;
@@ -50,8 +54,8 @@ abstract contract KreskoForgeBase is
     address[] internal councilUsers;
 
     function deployDiamond(DeployArgs memory args) internal returns (IKresko kresko_) {
-        FacetCut[] memory facets = new FacetCut[](22);
-        Initializer[] memory initializers = new Initializer[](3);
+        FacetCut[] memory facets = new FacetCut[](FACET_COUNT);
+        Initializer[] memory initializers = new Initializer[](FACET_COUNT);
         /* --------------------------------- Diamond -------------------------------- */
         diamondFacets(facets);
         /* --------------------------------- Common --------------------------------- */
@@ -64,7 +68,7 @@ abstract contract KreskoForgeBase is
         __current_kresko = address(kresko_); // @note mandatory
     }
 
-    function getCommonInitializer(DeployArgs memory args) internal pure returns (CommonInitArgs memory init) {
+    function getCommonInitArgs(DeployArgs memory args) internal pure returns (CommonInitArgs memory init) {
         init.admin = args.admin;
         init.council = args.council;
         init.treasury = args.treasury;
@@ -77,12 +81,12 @@ abstract contract KreskoForgeBase is
         init.phase = 3;
     }
 
-    function getMinterInitializer(DeployArgs memory args) internal pure returns (MinterInitArgs memory init) {
+    function getMinterInitArgs(DeployArgs memory args) internal pure returns (MinterInitArgs memory init) {
         init.minCollateralRatio = args.minterMcr;
         init.liquidationThreshold = args.minterLt;
     }
 
-    function getSCDPInitializer(DeployArgs memory args) internal pure returns (SCDPInitArgs memory init) {
+    function getSCDPInitArgs(DeployArgs memory args) internal pure returns (SCDPInitArgs memory init) {
         init.minCollateralRatio = args.scdpMcr;
         init.liquidationThreshold = args.scdpLt;
         init.sdiPricePrecision = args.sdiPrecision;
@@ -95,9 +99,9 @@ abstract contract KreskoForgeBase is
             functionSelectors: getSelectorsFromArtifact("DiamondCutFacet")
         });
         facets[1] = FacetCut({
-            facetAddress: address(new DiamondOwnershipFacet()),
+            facetAddress: address(new DiamondStateFacet()),
             action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("DiamondOwnershipFacet")
+            functionSelectors: getSelectorsFromArtifact("DiamondStateFacet")
         });
         facets[2] = FacetCut({
             facetAddress: address(new DiamondLoupeFacet()),
@@ -149,7 +153,7 @@ abstract contract KreskoForgeBase is
         return
             Initializer(
                 configurationFacetAddress,
-                abi.encodeWithSelector(CommonConfigurationFacet.initializeCommon.selector, getCommonInitializer(args))
+                abi.encodeWithSelector(CommonConfigurationFacet.initializeCommon.selector, getCommonInitArgs(args))
             );
     }
 
@@ -194,7 +198,7 @@ abstract contract KreskoForgeBase is
         return
             Initializer(
                 configurationFacetAddress,
-                abi.encodeWithSelector(MinterConfigurationFacet.initializeMinter.selector, getMinterInitializer(args))
+                abi.encodeWithSelector(MinterConfigurationFacet.initializeMinter.selector, getMinterInitArgs(args))
             );
     }
 
@@ -229,7 +233,48 @@ abstract contract KreskoForgeBase is
         return
             Initializer(
                 configurationFacetAddress,
-                abi.encodeWithSelector(SCDPConfigFacet.initializeSCDP.selector, getSCDPInitializer(args))
+                abi.encodeWithSelector(SCDPConfigFacet.initializeSCDP.selector, getSCDPInitArgs(args))
             );
+    }
+
+    function deployDiamondOneTx(DeployArgs memory args) internal returns (IKresko kresko_) {
+        string[] memory cmd = new string[](2);
+        cmd[0] = "./utils/getBytecodes.sh";
+        cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
+
+        (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vm.ffi(cmd), (bytes[], bytes4[][]));
+        (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(selectors, args);
+        __current_kresko = address(new DiamondDeployer().create(args.admin, creationCodes, selectors, initializers, calldatas));
+        kresko_ = IKresko(__current_kresko);
+    }
+
+    function getInitializers(
+        bytes4[][] memory selectors,
+        DeployArgs memory args
+    ) internal pure returns (uint256[] memory initializers, bytes[] memory datas) {
+        initializers = new uint256[](INITIALIZER_COUNT);
+        datas = new bytes[](INITIALIZER_COUNT);
+        bytes4[3] memory initSelectors = [
+            CommonConfigurationFacet.initializeCommon.selector,
+            MinterConfigurationFacet.initializeMinter.selector,
+            SCDPConfigFacet.initializeSCDP.selector
+        ];
+        bytes[3] memory initDatas = [
+            abi.encodeWithSelector(initSelectors[0], getCommonInitArgs(args)),
+            abi.encodeWithSelector(initSelectors[1], getMinterInitArgs(args)),
+            abi.encodeWithSelector(initSelectors[2], getSCDPInitArgs(args))
+        ];
+
+        for (uint256 i; i < selectors.length; i++) {
+            for (uint256 j; j < selectors[i].length; j++) {
+                for (uint256 k; k < initSelectors.length; k++) {
+                    if (selectors[i][j] == initSelectors[k]) {
+                        initializers[k] = i;
+                        datas[k] = initDatas[k];
+                    }
+                }
+            }
+        }
+        require(initializers[INITIALIZER_COUNT - 1] != 0, "KreskoForgeBase: No initializers");
     }
 }

@@ -72,9 +72,14 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     }
 
     /// @inheritdoc IKreskoAsset
-    function setAnchorToken(address _anchor) external onlyRole(Role.ADMIN) {
+    function setAnchorToken(address _anchor) external {
         if (_anchor == address(0)) revert Errors.ZERO_ADDRESS();
+
+        // allows easy initialization from anchor itself
+        if (anchor != address(0)) _checkRole(Role.ADMIN);
+
         anchor = _anchor;
+        _grantRole(Role.OPERATOR, _anchor);
     }
 
     /// @inheritdoc IKreskoAsset

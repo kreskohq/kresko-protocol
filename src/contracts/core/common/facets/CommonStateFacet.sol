@@ -12,16 +12,6 @@ import {aggregatorV3Price, API3Price, vaultPrice} from "common/funcs/Prices.sol"
 
 contract CommonStateFacet is ICommonStateFacet {
     /// @inheritdoc ICommonStateFacet
-    function domainSeparator() external view returns (bytes32) {
-        return ds().diamondDomainSeparator;
-    }
-
-    /// @inheritdoc ICommonStateFacet
-    function getStorageVersion() external view returns (uint96) {
-        return ds().storageVersion;
-    }
-
-    /// @inheritdoc ICommonStateFacet
     function getFeeRecipient() external view returns (address) {
         return cs().feeRecipient;
     }

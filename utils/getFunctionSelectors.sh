@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$#" -ne 1 ]; then
-    echo "Usage: utils/selectorsFromArtifact.sh <facet_name> " >&2
+    echo "Usage: utils/getFunctionSelectors.sh <facet_name> " >&2
     exit 1
 fi
 

@@ -4,6 +4,7 @@ pragma solidity >=0.8.21;
 import {Strings} from "libs/Strings.sol";
 import {EnumerableSet} from "libs/EnumerableSet.sol";
 import {Meta} from "libs/Meta.sol";
+import {ds} from "diamond/DState.sol";
 
 import {Errors} from "common/Errors.sol";
 import {Role} from "common/Constants.sol";
@@ -119,7 +120,7 @@ library Auth {
     function setupSecurityCouncil(address _councilAddress) internal {
         if (getRoleMemberCount(Role.SAFETY_COUNCIL) != 0)
             revert Errors.SAFETY_COUNCIL_ALREADY_EXISTS(_councilAddress, getRoleMember(Role.SAFETY_COUNCIL, 0));
-        if (!IGnosisSafeL2(_councilAddress).isOwner(msg.sender))
+        if (!IGnosisSafeL2(_councilAddress).isOwner(ds().contractOwner))
             revert Errors.SAFETY_COUNCIL_SETTER_IS_NOT_ITS_OWNER(_councilAddress);
 
         cs()._roles[Role.SAFETY_COUNCIL].members[_councilAddress] = true;

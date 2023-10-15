@@ -1,7 +1,6 @@
 import type { KreskoAssetAnchor } from '@/types/typechain';
 import { getDeploymentUsers, type AllTokenSymbols } from '@config/deploy';
 import { getAnchorNameAndSymbol } from '@utils/strings';
-import { Role } from '@utils/test/roles';
 
 export async function createKrAsset<T extends AllTokenSymbols>(
   symbol: T,
@@ -60,9 +59,6 @@ export async function createKrAsset<T extends AllTokenSymbols>(
       },
     },
   });
-
-  await KreskoAsset.grantRole(Role.OPERATOR, KreskoAssetAnchor.address);
-  await KreskoAsset.setAnchorToken(KreskoAssetAnchor.address);
 
   return {
     KreskoAsset,

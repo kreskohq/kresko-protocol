@@ -27,8 +27,7 @@ contract MinterConfigurationFacet is DSModifiers, Modifiers, IMinterConfiguratio
     /*                                 Initialize                                 */
     /* -------------------------------------------------------------------------- */
 
-    function initializeMinter(MinterInitArgs calldata args) external onlyDiamondOwner {
-        if (ms().minCollateralRatio != 0) revert Errors.MINTER_ALREADY_INITIALIZED();
+    function initializeMinter(MinterInitArgs calldata args) external initializer(3) {
         setMinCollateralRatioMinter(args.minCollateralRatio);
         setLiquidationThresholdMinter(args.liquidationThreshold);
     }

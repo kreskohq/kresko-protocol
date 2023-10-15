@@ -32,8 +32,11 @@ contract DiamondCutFacet is IDiamondCutFacet, IExtendedDiamondCutFacet, DSModifi
 
     /// @inheritdoc IExtendedDiamondCutFacet
     function executeInitializers(Initializer[] calldata _initializers) external onlyRole(Role.ADMIN) {
-        for (uint256 i; i < _initializers.length; i++) {
+        for (uint256 i; i < _initializers.length; ) {
             DSCore.execute(_initializers[i].initContract, _initializers[i].initData);
+            unchecked {
+                i++;
+            }
         }
     }
 }

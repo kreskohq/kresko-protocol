@@ -22,10 +22,7 @@ struct DiamondState {
     mapping(bytes4 => bool) supportedInterfaces;
     /// @notice address(this) replacement for FF
     address self;
-    /* -------------------------------------------------------------------------- */
-    /*                               Initialization                               */
-    /* -------------------------------------------------------------------------- */
-    /// @notice Initialization status
+    /// @notice Diamond initialized
     bool initialized;
     /// @notice Domain field separator
     bytes32 diamondDomainSeparator;

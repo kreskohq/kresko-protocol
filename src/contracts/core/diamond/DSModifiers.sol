@@ -6,6 +6,10 @@ import {DSCore} from "diamond/DSCore.sol";
 import {ds} from "diamond/DState.sol";
 
 abstract contract DSModifiers {
+    modifier initializer(uint256 version) {
+        if (version <= ds().storageVersion) revert DSCore.DIAMOND_ALREADY_INITIALIZED(version, ds().storageVersion);
+        _;
+    }
     modifier onlyDiamondOwner() {
         if (Meta.msgSender() != ds().contractOwner) {
             revert DSCore.NOT_DIAMOND_OWNER(Meta.msgSender(), ds().contractOwner);

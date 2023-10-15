@@ -21,7 +21,7 @@ contract SmockInit is DSModifiers, Modifiers {
     }
 
     function getNumber() public pure returns (uint8) {
-        return 1;
+        return 111;
     }
 
     function getBool() public pure returns (bool) {
@@ -29,6 +29,6 @@ contract SmockInit is DSModifiers, Modifiers {
     }
 
     function upgradeState() external {
-        ds().initialized = getBool();
+        ds().storageVersion = getNumber();
     }
 }

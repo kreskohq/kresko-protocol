@@ -16,7 +16,7 @@ import {addr} from "kresko-lib/info/Arbitrum.sol";
 contract WithArbitrum is ArbitrumDevnet("MNEMONIC_DEVNET") {
     function run() external broadcastWithMnemonic(0) {
         config();
-        kresko = deployDiamond(deployArgs);
+        kresko = deployDiamondOneTx(deployArgs);
         setupVault();
         setupProtocol();
         setupVaultAssets();

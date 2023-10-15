@@ -46,6 +46,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
 
         // Setup the operator, which is the protocol linked to the main asset
         _grantRole(Role.OPERATOR, asset.kresko());
+        _asset.setAnchorToken(address(this));
     }
 
     /// @inheritdoc IERC165

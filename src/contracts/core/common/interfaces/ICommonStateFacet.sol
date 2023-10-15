@@ -3,12 +3,6 @@ pragma solidity ^0.8.0;
 import {Enums} from "common/Constants.sol";
 
 interface ICommonStateFacet {
-    /// @notice The EIP-712 typehash for the contract's domain.
-    function domainSeparator() external view returns (bytes32);
-
-    /// @notice amount of times the storage has been upgraded
-    function getStorageVersion() external view returns (uint96);
-
     /// @notice The recipient of protocol fees.
     function getFeeRecipient() external view returns (address);
 

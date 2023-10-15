@@ -14,24 +14,31 @@ contract Diamond {
         DSCore.create(facets, initializers, owner);
     }
 
-    // Find facet for function that is called and execute the
-    // function if a facet is found and return any value.
+    /**
+     * @dev Find the matching `facet` for the call signature and delegate.
+     * This does not return to its internal call site, it will return directly to the external caller.
+     */
     fallback() external payable {
-        // get facet from function selectors
+        // Get the mapped facet of the selector
         address facet = ds().selectorToFacetAndPosition[msg.sig].facetAddress;
 
         if (facet == address(0)) revert DSCore.DIAMOND_FUNCTION_DOES_NOT_EXIST(msg.sig);
 
-        // Execute external function from facet using delegatecall and return any value.
         assembly {
-            // copy function selector and any arguments
+            // Copy msg.data. We take full control of memory in this inline assembly
+            // block because it will not return to Solidity code. We overwrite the
+            // Solidity scratch pad at memory position 0.
             calldatacopy(0, 0, calldatasize())
-            // execute function call using the facet
+
+            // Call the facet.
+            // out and outsize are 0 because we don't know the size yet.
             let result := delegatecall(gas(), facet, 0, calldatasize(), 0, 0)
-            // get any return value
+
+            // Copy the returned data.
             returndatacopy(0, 0, returndatasize())
-            // return any return value or error back to the caller
+
             switch result
+            // delegatecall returns 0 on error.
             case 0 {
                 revert(0, returndatasize())
             }

@@ -1,8 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-/// @title Contract Ownership
-interface IDiamondOwnershipFacet {
+/// @title IDiamondStateFacet
+/// @notice Functions for the diamond state itself.
+interface IDiamondStateFacet {
+    /// @notice Whether the diamond is initialized.
+    function initialized() external view returns (bool);
+
+    /// @notice The EIP-712 typehash for the contract's domain.
+    function domainSeparator() external view returns (bytes32);
+
+    /// @notice Get the storage version (amount of times the storage has been upgraded)
+    /// @return uint256 The storage version.
+    function getStorageVersion() external view returns (uint256);
+
     /**
      * @notice Get the address of the owner
      * @return owner_ The address of the owner.
@@ -30,10 +41,4 @@ interface IDiamondOwnershipFacet {
      * @notice emits a {OwnershipTransferred} event
      */
     function acceptOwnership() external;
-
-    /**
-     * @notice Check if the contract is initialized
-     * @return initialized_ bool True if the contract is initialized, false otherwise.
-     */
-    function initialized() external view returns (bool initialized_);
 }

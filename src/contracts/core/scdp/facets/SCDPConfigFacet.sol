@@ -19,9 +19,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, Modifiers {
     using Arrays for address[];
 
     /// @inheritdoc ISCDPConfigFacet
-    function initializeSCDP(SCDPInitArgs calldata args) external onlyDiamondOwner {
-        if (scdp().minCollateralRatio != 0) revert Errors.SCDP_ALREADY_INITIALIZED();
-
+    function initializeSCDP(SCDPInitArgs calldata args) external initializer(4) {
         setMinCollateralRatioSCDP(args.minCollateralRatio);
         setLiquidationThresholdSCDP(args.liquidationThreshold);
         Validations.validateOraclePrecision(args.sdiPricePrecision);

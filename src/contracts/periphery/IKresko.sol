@@ -21,7 +21,7 @@ import {IAssetStateFacet} from "common/interfaces/IAssetStateFacet.sol";
 import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFacet.sol";
 import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
-import {IDiamondOwnershipFacet} from "diamond/interfaces/IDiamondOwnershipFacet.sol";
+import {IDiamondStateFacet} from "diamond/interfaces/IDiamondStateFacet.sol";
 
 // import {IMinterBurnHelperFacet} from "periphery/facets/IMinterBurnHelperFacet.sol";
 
@@ -29,7 +29,7 @@ import {IDiamondOwnershipFacet} from "diamond/interfaces/IDiamondOwnershipFacet.
 interface IKresko is
     IDiamondCutFacet,
     IDiamondLoupeFacet,
-    IDiamondOwnershipFacet,
+    IDiamondStateFacet,
     IAuthorizationFacet,
     ICommonConfigurationFacet,
     ICommonStateFacet,

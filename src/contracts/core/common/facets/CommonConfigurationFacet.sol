@@ -21,9 +21,7 @@ import {Validations} from "common/Validations.sol";
 contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSModifiers {
     using Strings for bytes32;
 
-    function initializeCommon(CommonInitArgs calldata args) external onlyDiamondOwner {
-        if (cs().entered != 0) revert Errors.COMMON_ALREADY_INITIALIZED();
-
+    function initializeCommon(CommonInitArgs calldata args) external initializer(2) {
         cs().entered = Constants.NOT_ENTERED;
         // Temporarily set ADMIN role for deployer
         Auth._grantRole(Role.DEFAULT_ADMIN, msg.sender);
