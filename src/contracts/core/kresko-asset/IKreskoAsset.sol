@@ -46,7 +46,7 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
      * @param _decimals Decimals for the asset.
      * @param _admin The adminstrator of this contract.
      * @param _kresko The protocol, can perform mint and burn.
-     * @param _ticker The underlying token if available.
+     * @param _underlyingAddr The underlying token if available.
      * @param _feeRecipient Fee recipient for synth wraps.
      * @param _openFee Synth warp open fee.
      * @param _closeFee Synth wrap close fee.
@@ -57,7 +57,7 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
         uint8 _decimals,
         address _admin,
         address _kresko,
-        address _ticker,
+        address _underlyingAddr,
         address _feeRecipient,
         uint48 _openFee,
         uint40 _closeFee
@@ -177,7 +177,7 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
      * @notice Sets underlying token address (and its decimals)
      * @notice Zero address will disable functionality provided for the underlying.
      * @dev Has modifiers: onlyRole.
-     * @param _ticker The underlying address.
+     * @param _underlyingAddr The underlying address.
      */
-    function setUnderlying(address _ticker) external;
+    function setUnderlying(address _underlyingAddr) external;
 }

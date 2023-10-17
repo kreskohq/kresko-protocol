@@ -2,18 +2,31 @@ import { getDeploymentUsers } from '@config/deploy';
 import { getLogger } from '@utils/logging';
 import { testKrAssetConfig } from '@utils/test/mocks';
 import { Role } from '@utils/test/roles';
+import { MaxUint128, toBig } from '@utils/values';
 import { task } from 'hardhat/config';
 import type { TaskArguments } from 'hardhat/types';
 import { TASK_DEPLOY_KISS } from './names';
-import { MaxUint128, toBig } from '@utils/values';
 
 const logger = getLogger(TASK_DEPLOY_KISS);
 
 task(TASK_DEPLOY_KISS).setAction(async function (_taskArgs: TaskArguments, hre) {
   logger.log(`Deploying KISS`);
-
+  const { deployer } = await hre.getNamedAccounts();
+  if (!hre.ProxyFactory) {
+    [hre.ProxyFactory] = await hre.deploy('ProxyFactory', {
+      args: [deployer],
+    });
+  }
+  const VaultDeployment = await hre.deployments.getOrNull('vKISS');
+  if (!VaultDeployment?.address) {
+    if (hre.network.name === 'hardhat') {
+      await hre.run('deploy:vault', { withMockAsset: true });
+    } else {
+      throw new Error('Vault is not deployed');
+    }
+  }
+  const Vault = await hre.getContractOrFork('Vault', 'vKISS');
   const { multisig } = await getDeploymentUsers(hre);
-  const { deployer } = await hre.ethers.getNamedSigners();
   const Diamond = await hre.getContractOrFork('Diamond');
   const args = {
     name: 'KISS',
@@ -23,24 +36,15 @@ task(TASK_DEPLOY_KISS).setAction(async function (_taskArgs: TaskArguments, hre) 
     operator: Diamond.address,
   };
 
-  const VAULT_ADDRESS = hre.ethers.constants.AddressZero;
-
-  const [KISSContract] = await hre.deploy('KISS', {
-    from: deployer.address,
-    contract: 'KISS',
-    log: true,
-    proxy: {
-      owner: deployer.address,
-      proxyContract: 'OptimizedTransparentProxy',
-      execute: {
-        methodName: 'initialize',
-        args: [args.name, args.symbol, args.decimals, args.admin, args.operator, VAULT_ADDRESS],
-      },
-    },
+  const KISS = await hre.deployProxy('KISS', {
+    initializer: 'initialize',
+    initializerArgs: [args.name, args.symbol, args.decimals, args.admin, args.operator, Vault.address],
+    type: 'create3',
+    salt: 'KISS',
   });
-  logger.log(`KISS deployed at ${KISSContract.address}, checking roles...`);
-  const hasRole = await KISSContract.hasRole(Role.OPERATOR, args.operator);
-  const hasRoleAdmin = await KISSContract.hasRole(Role.ADMIN, args.admin);
+
+  const hasRole = await KISS.hasRole(Role.OPERATOR, args.operator);
+  const hasRoleAdmin = await KISS.hasRole(Role.ADMIN, args.admin);
 
   if (!hasRoleAdmin) {
     throw new Error(`Multisig is missing Role.ADMIN`);
@@ -48,13 +52,12 @@ task(TASK_DEPLOY_KISS).setAction(async function (_taskArgs: TaskArguments, hre) 
   if (!hasRole) {
     throw new Error(`Diamond is missing Role.OPERATOR`);
   }
-  logger.success(`KISS succesfully deployed @ ${KISSContract.address}`);
-
+  logger.success(`KISS succesfully deployed @ ${KISS.address}`);
   // Add to runtime for tests and further scripts
 
   const asset = {
-    address: KISSContract.address,
-    contract: KISSContract,
+    address: KISS.address,
+    contract: KISS,
     config: {
       args: {
         name: 'KISS',
@@ -65,8 +68,8 @@ task(TASK_DEPLOY_KISS).setAction(async function (_taskArgs: TaskArguments, hre) 
         krAssetConfig: testKrAssetConfig.krAssetConfig,
       },
     },
-    errorId: ['KISS', KISSContract.address],
-    assetInfo: async () => hre.Diamond.getAsset(KISSContract.address),
+    errorId: ['KISS', KISS.address],
+    assetInfo: () => hre.Diamond.getAsset(KISS.address),
     getPrice: async () => toBig(1, 8),
     priceFeed: {} as any,
   };

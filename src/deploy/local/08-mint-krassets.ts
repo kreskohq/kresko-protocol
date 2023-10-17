@@ -38,7 +38,7 @@ const deploy: DeployFunction = async function (hre) {
   }
 };
 deploy.tags = ['all', 'local', 'mint-krassets'];
-deploy.dependencies = ['add-assets'];
+deploy.dependencies = ['configuration'];
 
 deploy.skip = async hre => {
   if (hre.network.name === 'hardhat') {

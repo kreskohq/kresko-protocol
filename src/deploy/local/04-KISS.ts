@@ -1,19 +1,15 @@
-import { TASK_DEPLOY_KISS } from '@tasks';
+import { TASK_DEPLOY_KISS, TASK_DEPLOY_VAULT } from '@tasks';
 import { getLogger } from '@utils/logging';
-import { toBig } from '@utils/values';
 import type { DeployFunction } from 'hardhat-deploy/dist/types';
 
 const logger = getLogger('create-kiss');
 
 const deploy: DeployFunction = async hre => {
   try {
-    await hre.deploy('MockOracle', {
-      deploymentName: 'KISSFeed',
-      args: ['KISS/USD', toBig(1, 8), 8],
-    });
-    logger.success('Created: KISS oracle.');
+    await hre.run(TASK_DEPLOY_VAULT, { withMockAsset: true });
+    const Vault = await hre.getContractOrFork('Vault', 'vKISS');
+    logger.success(`Deployed vKISS @ ${Vault.address}`);
     await hre.run(TASK_DEPLOY_KISS);
-    logger.success('Created: KISS.');
   } catch (e) {
     console.log(e);
   }
@@ -27,7 +23,7 @@ deploy.skip = async hre => {
   return false;
 };
 
-deploy.tags = ['all', 'local', 'protocol-init', 'KISS'];
-deploy.dependencies = ['common-facets', 'minter-facets', 'scdp-facets'];
+deploy.tags = ['all', 'local', 'tokens', 'KISS'];
+deploy.dependencies = ['facets', 'core'];
 
 export default deploy;

@@ -1,4 +1,4 @@
-import type { KreskoAssetAnchor } from '@/types/typechain';
+import { type KreskoAssetAnchor } from '@/types/typechain';
 import { getDeploymentUsers, type AllTokenSymbols } from '@config/deploy';
 import { getAnchorNameAndSymbol } from '@utils/strings';
 
@@ -14,50 +14,46 @@ export async function createKrAsset<T extends AllTokenSymbols>(
   const { deployer } = await hre.ethers.getNamedSigners();
   const { admin } = await getDeploymentUsers(hre);
 
-  const { anchorName, anchorSymbol } = getAnchorNameAndSymbol(symbol, name);
-
   const Kresko = await hre.getContractOrFork('Kresko');
-  const kreskoAssetInitArgs = [
-    name,
-    symbol,
-    decimals,
-    admin,
-    Kresko.address,
-    underlyingToken,
-    feeRecipient,
-    openFee,
-    closeFee,
-  ];
 
-  const [KreskoAsset] = await hre.deploy('KreskoAsset', {
-    from: deployer.address,
-    log: true,
+  if (symbol === 'KISS') throw new Error('KISS cannot be created through createKrAsset');
+
+  if (!hre.ProxyFactory) {
+    [hre.ProxyFactory] = await hre.deploy('ProxyFactory', {
+      args: [deployer.address],
+    });
+  }
+
+  const { anchorName, anchorSymbol } = getAnchorNameAndSymbol(symbol, name);
+  const exists = await hre.getContractOrNull('KreskoAsset', symbol);
+  if (exists) {
+    const anchor = await hre.getContractOrNull('KreskoAssetAnchor', anchorSymbol);
+    if (anchor == null) new Error(`Anchor ${anchorSymbol} not found`);
+    return {
+      KreskoAsset: exists,
+      KreskoAssetAnchor: anchor!,
+    };
+  }
+  const preparedKrAsset = await hre.prepareProxy('KreskoAsset', {
     deploymentName: symbol,
-    proxy: {
-      owner: deployer.address,
-      proxyContract: 'OptimizedTransparentProxy',
-      execute: {
-        methodName: 'initialize',
-        args: kreskoAssetInitArgs,
-      },
-    },
+    initializer: 'initialize',
+    initializerArgs: [name, symbol, decimals, admin, Kresko.address, underlyingToken, feeRecipient, openFee, closeFee],
+    type: 'create3',
+    salt: symbol + anchorSymbol,
+    from: deployer.address,
+  });
+  const preparedAnchor = await hre.prepareProxy('KreskoAssetAnchor', {
+    initializer: 'initialize',
+    deploymentName: anchorSymbol,
+    constructorArgs: [preparedKrAsset.proxyAddress],
+    initializerArgs: [preparedKrAsset.proxyAddress, anchorName, anchorSymbol, admin],
+    type: 'create3',
+    salt: anchorSymbol + symbol,
+    from: deployer.address,
   });
 
-  const kreskoAssetAnchorInitArgs = [KreskoAsset.address, anchorName, anchorSymbol, admin];
-
-  const [KreskoAssetAnchor] = await hre.deploy('KreskoAssetAnchor', {
-    from: deployer.address,
+  const [[KreskoAsset], [KreskoAssetAnchor]] = await hre.deployProxyBatch([preparedKrAsset, preparedAnchor] as const, {
     log: true,
-    deploymentName: anchorSymbol,
-    args: [KreskoAsset.address],
-    proxy: {
-      owner: deployer.address,
-      proxyContract: 'OptimizedTransparentProxy',
-      execute: {
-        methodName: 'initialize',
-        args: kreskoAssetAnchorInitArgs,
-      },
-    },
   });
 
   return {

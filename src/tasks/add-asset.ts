@@ -83,7 +83,7 @@ task(TASK_ADD_ASSET)
     };
     const { anchorSymbol } = getAnchorNameAndSymbol(config.symbol, config.name);
     if (exists) {
-      logger.warn(`Asset ${config.symbol} already exists! Skipping..`);
+      logger.warn(`Asset ${config.symbol} already exists, skipping..`);
     } else {
       const anchor = isKISS
         ? await hre.ethers.getContractAt('KreskoAssetAnchor', Asset.address)
@@ -91,24 +91,23 @@ task(TASK_ADD_ASSET)
 
       if (config.krAssetConfig) {
         if (!anchor) {
-          throw new Error(`Add asset fail: No anchor for KrAsset ${config.symbol}`);
+          throw new Error(`Add asset failed because no anchor exist (${config.symbol})`);
         }
         config.krAssetConfig!.anchor = anchor.address;
-        logger.log(`Is KrAsset, Anchor: ${config.krAssetConfig!.anchor}}`);
         asset.anchor = anchor;
         asset.isMinterMintable = true;
       }
 
       if (config.scdpKrAssetConfig) {
         if (!anchor) {
-          throw new Error(`Add assset fail - No anchor for SCDP KrAsset: ${config.symbol}`);
+          throw new Error(`Add asset failed because no anchor exist (${config.symbol})`);
         }
         config.krAssetConfig!.anchor = anchor.address;
         asset.anchor = anchor;
         asset.isMinterMintable = true;
       }
 
-      logger.log(`Adding Asset: ${config.symbol}`);
+      logger.log(`Adding asset to protocol ${config.symbol}`);
 
       const parsedConfig = await getAssetConfig(Asset, config);
 
@@ -116,7 +115,7 @@ task(TASK_ADD_ASSET)
       asset.config.feedConfig = parsedConfig.feedConfig;
       asset.config.extendedInfo = parsedConfig.extendedInfo;
       const tx = await Kresko.addAsset(Asset.address, parsedConfig.assetStruct, parsedConfig.feedConfig.feeds);
-      logger.success('txHash', tx.hash);
+      logger.success('Transaction hash: ', tx.hash);
       logger.success(`Succesfully added asset: ${config.symbol}`);
     }
 

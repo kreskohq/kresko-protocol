@@ -4,6 +4,7 @@ export * from './clean';
 export * from './deploy-contract';
 export * from './deploy-kiss';
 export * from './deploy-token';
+export * from './deploy-vault';
 export * from './mint-krasset-optimal';
 export * from './names';
 export * from './remove-facet';

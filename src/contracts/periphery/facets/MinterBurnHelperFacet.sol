@@ -2,17 +2,16 @@
 pragma solidity >=0.8.21;
 
 import {Arrays} from "libs/Arrays.sol";
-import {Role} from "common/Constants.sol";
+import {Role, Enums} from "common/Constants.sol";
 import {Errors} from "common/Errors.sol";
 import {Modifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
-import {Asset, Action} from "common/Types.sol";
+import {Asset} from "common/Types.sol";
 
 import {DSModifiers} from "diamond/DSModifiers.sol";
 import {IMinterBurnHelperFacet} from "./IMinterBurnHelperFacet.sol";
 import {MEvent} from "minter/MEvent.sol";
 import {ms, MinterState} from "minter/MState.sol";
-import {MinterFee} from "minter/MTypes.sol";
 import {handleMinterFee} from "minter/funcs/MFees.sol";
 
 /**
@@ -28,16 +27,16 @@ contract MinterBurnHelperFacet is IMinterBurnHelperFacet, DSModifiers, Modifiers
     function closeDebtPosition(
         address _account,
         address _krAsset
-    ) public nonReentrant kreskoAssetExists(_krAsset) onlyRoleIf(_account != msg.sender, Role.MANAGER) {
-        Asset storage asset = cs().onlyMinterMintable(_krAsset, Action.Repay);
+    ) public nonReentrant onlyRoleIf(_account != msg.sender, Role.MANAGER) {
+        Asset storage asset = cs().onlyMinterMintable(_krAsset, Enums.Action.Repay);
 
         MinterState storage s = ms();
         // Get accounts principal debt
         uint256 principalDebt = s.accountDebtAmount(_account, _krAsset, asset);
-        if (principalDebt == 0) revert Errors.ZERO_DEBT(_krAsset);
+        if (principalDebt == 0) revert Errors.ZERO_DEBT(Errors.id(_krAsset));
 
         // Charge the burn fee from collateral of _account
-        handleMinterFee(asset, _account, principalDebt, MinterFee.Close);
+        handleMinterFee(asset, _account, principalDebt, Enums.MinterFee.Close);
 
         // Record the burn
         s.burn(_krAsset, asset.anchor, principalDebt, _account);

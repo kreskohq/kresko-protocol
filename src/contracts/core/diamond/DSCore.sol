@@ -123,6 +123,8 @@ library DSCore {
 
             // solhint-disable-next-line avoid-low-level-calls
             (bool success, bytes memory error) = _initializer.delegatecall(_calldata);
+            // pass along failure message from initializer if it reverts
+
             if (!success) {
                 if (error.length > 0) {
                     // bubble up the error

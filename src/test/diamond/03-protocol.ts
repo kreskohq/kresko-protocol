@@ -22,7 +22,7 @@ describe('Diamond', () => {
         functionSelectors,
       }));
       const expectedFacets = await Promise.all(
-        [...minterFacets, ...diamondFacets, ...scdpFacets, ...commonFacets].map(async name => {
+        [...diamondFacets, ...minterFacets, ...scdpFacets, ...commonFacets].map(async name => {
           const deployment = await hre.deployments.get(name);
           return {
             facetAddress: deployment.address,
@@ -33,7 +33,7 @@ describe('Diamond', () => {
       expect(facetsOnChain).to.have.deep.members(expectedFacets);
     });
     it('initialized correct state', async function () {
-      expect(await hre.Diamond.getStorageVersion()).to.equal(4);
+      expect(await hre.Diamond.getStorageVersion()).to.equal(3);
 
       const { args } = await getCommonInitializer(hre);
       const { args: minterArgs } = await getMinterInitializer(hre);

@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
 
-import {WETH9} from "kresko-lib/token/WETH9.sol";
+import {ERC20} from "kresko-lib/token/ERC20.sol";
 
-contract MockWBTC is WETH9 {
+contract MockWBTC is ERC20("Wrapped BTC", "WBTC", 8) {
+    event Deposit(address indexed dst, uint256 wad);
+
     mapping(address => bool) public minters;
 
-    constructor(string memory _name, string memory _symbol, uint8 _decimals) {
+    constructor() {
         minters[msg.sender] = true;
-        symbol = _symbol;
-        name = _name;
-        decimals = _decimals;
     }
 
     function toggleMinter(address minter) public {
@@ -18,13 +17,13 @@ contract MockWBTC is WETH9 {
         minters[minter] = !minters[minter];
     }
 
-    function deposit() public payable override {
-        revert("Use deposit(uint256 amount) instead");
+    function deposit() public payable {
+        revert("WBTC: use deposit(uint256)");
     }
 
     function deposit(uint256 amount) public {
         require(minters[msg.sender], "Not a minter");
-        balanceOf[msg.sender] += amount;
+        _balances[msg.sender] += amount;
         emit Deposit(msg.sender, amount);
     }
 }

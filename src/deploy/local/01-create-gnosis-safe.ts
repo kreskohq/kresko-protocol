@@ -68,7 +68,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   hre.Multisig = SafeProxy;
 };
 
-deploy.tags = ['all', 'local', 'gnosis-safe'];
+deploy.tags = ['all', 'local', 'safe'];
 // deploy.skip = async hre => hre.network.live;
 
 export default deploy;

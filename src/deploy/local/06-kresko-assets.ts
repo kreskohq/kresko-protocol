@@ -9,10 +9,17 @@ const deploy: DeployFunction = async function (hre) {
   const assets = testnetConfigs[hre.network.name].assets.filter(a => !!a.krAssetConfig || !!a.scdpKrAssetConfig);
 
   for (const krAsset of assets) {
+    if (krAsset.symbol === 'KISS') {
+      logger.warn(`Skip: ${krAsset.symbol}`);
+      continue;
+    }
     const isDeployed = await hre.deployments.getOrNull(krAsset.symbol);
     if (isDeployed != null) continue;
     // Deploy the asset
-    if (!krAsset.krAssetConfig?.underlyingAddr) throw new Error(`No underlying address for ${krAsset.symbol}`);
+    if (!krAsset.krAssetConfig?.underlyingAddr)
+      throw new Error(`Underlying address should be zero address if it does not exist (${krAsset.symbol})`);
+
+    logger.log(`Create: ${krAsset.name} (${krAsset.symbol})`);
     await createKrAsset(
       krAsset.symbol,
       krAsset.name ? krAsset.name : krAsset.symbol,
@@ -42,6 +49,7 @@ deploy.skip = async hre => {
   return false;
 };
 
-deploy.tags = ['local', 'all', 'kresko-assets'];
+deploy.tags = ['local', 'all', 'tokens', 'krassets'];
+deploy.dependencies = ['core'];
 
 export default deploy;

@@ -30,7 +30,7 @@ const deploy: DeployFunction = async hre => {
   logger.success('Created external tokens.');
 };
 
-deploy.tags = ['all', 'local', 'external-assets'];
+deploy.tags = ['all', 'local', 'tokens', 'external-assets'];
 
 deploy.skip = async hre => {
   const assets = testnetConfigs[hre.network.name].assets.filter(a => !!a.collateralConfig && !a.krAssetConfig);

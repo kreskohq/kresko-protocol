@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import type { ContractTypes } from '@/types';
 import { signatureFilters } from '@config/deploy';
 import { Fragment } from '@ethersproject/abi';
 import { WrapperBuilder } from '@redstone-finance/evm-connector';
 import { getAddresses, getUsers } from '@utils/hardhat';
 import { extendEnvironment } from 'hardhat/config';
-import type { ContractTypes } from '@/types';
+import { commonUtils, proxyUtils } from './utils';
+import { DeterministicProxy } from '@/types/functions';
 
 extendEnvironment(async function (hre) {
   // for testing
@@ -84,6 +86,50 @@ extendEnvironment(function (hre) {
     return (await hre.ethers.getContractAt(type, deployment.address)) as unknown as TC[typeof type];
   };
 
+  hre.prepareProxy = proxyUtils.prepare;
+  hre.deployProxy = async (name, options) => {
+    const preparedProxy = await proxyUtils.prepare(name, options);
+    const txData = await proxyUtils.prepareDeploy([preparedProxy], options);
+
+    const txSummary = await commonUtils.sendPreparedTx(
+      preparedProxy.create({
+        gasLimit: txData.preparedTx.gasLimit,
+      }),
+      txData.preparedTx,
+    );
+
+    const [proxy] = await hre.ProxyFactory.getLatestProxies(1);
+    await proxyUtils.save(txSummary.receipt, preparedProxy, proxy, txSummary);
+
+    return hre.getContractOrFork(name, preparedProxy.deploymentId);
+  };
+  hre.deployProxyBatch = async (preparedData, options) => {
+    if (!preparedData.length || preparedData.length === 1) {
+      throw new Error('Use deployProxy for single deployment');
+    }
+    const args = await proxyUtils.prepareDeploy(preparedData, options);
+    const tx = hre.ProxyFactory.batch(args.batchCalldata, {
+      gasLimit: args.preparedTx.gasLimit, // manual set required (...atleast in hardhat network)
+      from: args.from,
+    });
+    const { receipt } = await commonUtils.sendPreparedTx(tx, args.preparedTx);
+
+    const proxies = args.onlyDeterministic
+      ? preparedData.map((p: DeterministicProxy) => ({
+          proxy: p.proxyAddress!,
+          implementation: p.implementationAddress!,
+        }))
+      : await hre.ProxyFactory.getLatestProxies(args.count);
+
+    const results = await Promise.all(
+      args.proxies.map(async (prepared, i) => {
+        const deployment = await proxyUtils.save(receipt, prepared, proxies[i], args);
+        return [await hre.getContractOrFork(prepared.name, prepared.deploymentId), deployment] as const;
+      }),
+    );
+
+    return results as unknown as ReturnType<typeof hre.deployProxyBatch>;
+  };
   hre.deploy = async (type, options) => {
     const { deployer } = await hre.getNamedAccounts();
     const deploymentId = options?.deploymentName ?? type;

@@ -3,18 +3,43 @@ pragma solidity >=0.8.21;
 
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
-import {IUniswapV2Factory} from "vendor/uniswap/v2-core/interfaces/IUniswapV2Factory.sol";
-import {IUniswapV2Router02} from "vendor/uniswap/v2-periphery/interfaces/IUniswapV2Router02.sol";
 import {IKrStaking} from "./interfaces/IKrStaking.sol";
+
+interface IV2Factory {
+    function getPair(address tokenA, address tokenB) external view returns (address pair);
+}
+
+interface IV2Router {
+    function addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 amountADesired,
+        uint256 amountBDesired,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountA, uint256 amountB, uint256 liquidity);
+
+    function removeLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 liquidity,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountA, uint256 amountB);
+}
 
 contract KrStakingHelper {
     using SafeTransfer for IERC20;
 
-    IUniswapV2Router02 public immutable router;
-    IUniswapV2Factory public immutable factory;
+    IV2Router public immutable router;
+    IV2Factory public immutable factory;
     IKrStaking public immutable staking;
 
-    constructor(IUniswapV2Router02 _router, IUniswapV2Factory _factory, IKrStaking _staking) {
+    constructor(IV2Router _router, IV2Factory _factory, IKrStaking _staking) {
         router = _router;
         factory = _factory;
         staking = _staking;

@@ -42,7 +42,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         uint8 _decimals,
         address _admin,
         address _kresko,
-        address _ticker,
+        address _underlying,
         address _feeRecipient,
         uint48 _openFee,
         uint40 _closeFee
@@ -65,7 +65,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
         kresko = _kresko;
 
-        setUnderlying(_ticker);
+        setUnderlying(_underlying);
         setFeeRecipient(_feeRecipient);
         setOpenFee(_openFee);
         setCloseFee(_closeFee);
@@ -83,9 +83,9 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     }
 
     /// @inheritdoc IKreskoAsset
-    function setUnderlying(address _tickerAddr) public onlyRole(Role.ADMIN) {
-        wrapping.underlying = _tickerAddr;
-        if (_tickerAddr != address(0)) {
+    function setUnderlying(address _underlyingAddr) public onlyRole(Role.ADMIN) {
+        wrapping.underlying = _underlyingAddr;
+        if (_underlyingAddr != address(0)) {
             wrapping.underlyingDecimals = IERC20(wrapping.underlying).decimals();
         }
     }

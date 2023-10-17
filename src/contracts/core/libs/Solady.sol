@@ -1,56 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-library LibCreate {
-    function create(bytes memory creationCode, uint256 value) public returns (address location) {
-        assembly {
-            location := create(value, add(creationCode, 0x20), mload(creationCode))
-            if iszero(extcodesize(location)) {
-                revert(0, 0)
-            }
-        }
-    }
-
-    function create2(bytes32 salt, bytes memory creationCode, uint256 value) internal returns (address location) {
-        uint256 _salt = uint256(salt);
-        assembly {
-            location := create2(value, add(creationCode, 0x20), mload(creationCode), _salt)
-            if iszero(extcodesize(location)) {
-                revert(0, 0)
-            }
-        }
-    }
-
-    function create3(bytes32 salt, bytes memory creationCode, uint256 value) internal returns (address location) {
-        return CREATE3.deploy(salt, creationCode, value);
-    }
-
-    function create(bytes memory creationCode) internal returns (address location) {
-        return create(creationCode, msg.value);
-    }
-
-    function create2(bytes32 salt, bytes memory creationCode) internal returns (address location) {
-        return create2(salt, creationCode, msg.value);
-    }
-
-    function create3(bytes32 salt, bytes memory creationCode) internal returns (address location) {
-        return create3(salt, creationCode, msg.value);
-    }
-
-    function peek2(bytes32 salt, address _c2caller, bytes memory creationCode) internal pure returns (address) {
-        return address(uint160(uint256(keccak256(abi.encodePacked(bytes1(0xff), _c2caller, salt, keccak256(creationCode))))));
-    }
-
-    function peek3(bytes32 salt) internal view returns (address) {
-        return CREATE3.getDeployed(salt);
-    }
-}
-
-/// @notice Deploy to deterministic addresses without an initcode factor.
-/// @author Solady (https://github.com/vectorized/solmady/blob/main/src/utils/CREATE3.sol)
-/// @author Modified from Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.sol)
-/// @author Modified from 0xSequence (https://github.com/0xSequence/create3/blob/master/contracts/Create3.sol)
-library CREATE3 {
+/// @author Solady https://github.com/Vectorized/solady
+library Solady {
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                        CUSTOM ERRORS                       */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -100,11 +52,14 @@ library CREATE3 {
     /*                      CREATE3 OPERATIONS                    */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
+    /// Deploy to deterministic addresses without an initcode factor.
+    /// Modified from Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.sol)
+    /// Modified from 0xSequence (https://github.com/0xSequence/create3/blob/master/contracts/Create3.sol)
     /// @dev Deploys `creationCode` deterministically with a `salt`.
     /// The deployed contract is funded with `value` (in wei) ETH.
     /// Returns the deterministic address of the deployed contract,
     /// which solely depends on `salt`.
-    function deploy(bytes32 salt, bytes memory creationCode, uint256 value) internal returns (address deployed) {
+    function create3(bytes32 salt, bytes memory creationCode, uint256 value) internal returns (address deployed) {
         /// @solidity memory-safe-assembly
         assembly {
             // Store the `_PROXY_BYTECODE` into scratch space.
@@ -159,7 +114,7 @@ library CREATE3 {
     }
 
     /// @dev Returns the deterministic address for `salt`.
-    function getDeployed(bytes32 salt) internal view returns (address deployed) {
+    function peek3(bytes32 salt) internal view returns (address deployed) {
         /// @solidity memory-safe-assembly
         assembly {
             // Cache the free memory pointer.
@@ -184,6 +139,74 @@ library CREATE3 {
             mstore8(0x34, 0x01)
 
             deployed := keccak256(0x1e, 0x17)
+        }
+    }
+
+    /// @notice Enables a single call to call multiple methods on itself.
+    /// Solady (https://github.com/vectorized/solady/blob/main/src/utils/Multicallable.sol)
+    /// Modified from Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/Multicallable.sol)
+    /// @dev Apply `DELEGATECALL` with the current contract to each calldata in `data`,
+    /// and store the `abi.encode` formatted results of each `DELEGATECALL` into `results`.
+    /// If any of the `DELEGATECALL`s reverts, the entire context is reverted,
+    /// and the error is bubbled up.
+    ///
+    /// For payable, see: https://www.paradigm.xyz/2021/08/two-rights-might-make-a-wrong)
+    ///
+    /// For efficiency, this function will directly return the results, terminating the context.
+    /// If called internally, it must be called at the end of a function
+    /// that returns `(bytes[] memory)`.
+    function multicall(bytes[] calldata data) internal returns (bytes[] memory) {
+        assembly {
+            mstore(0x00, 0x20)
+            mstore(0x20, data.length) // Store `data.length` into `results`.
+            // Early return if no data.
+            if iszero(data.length) {
+                return(0x00, 0x40)
+            }
+
+            let results := 0x40
+            // `shl` 5 is equivalent to multiplying by 0x20.
+            let end := shl(5, data.length)
+            // Copy the offsets from calldata into memory.
+            calldatacopy(0x40, data.offset, end)
+            // Offset into `results`.
+            let resultsOffset := end
+            // Pointer to the end of `results`.
+            end := add(results, end)
+
+            for {
+
+            } 1 {
+
+            } {
+                // The offset of the current bytes in the calldata.
+                let o := add(data.offset, mload(results))
+                let m := add(resultsOffset, 0x40)
+                // Copy the current bytes from calldata to the memory.
+                calldatacopy(
+                    m,
+                    add(o, 0x20), // The offset of the current bytes' bytes.
+                    calldataload(o) // The length of the current bytes.
+                )
+                if iszero(delegatecall(gas(), address(), m, calldataload(o), codesize(), 0x00)) {
+                    // Bubble up the revert if the delegatecall reverts.
+                    returndatacopy(0x00, 0x00, returndatasize())
+                    revert(0x00, returndatasize())
+                }
+                // Append the current `resultsOffset` into `results`.
+                mstore(results, resultsOffset)
+                results := add(results, 0x20)
+                // Append the `returndatasize()`, and the return data.
+                mstore(m, returndatasize())
+                returndatacopy(add(m, 0x20), 0x00, returndatasize())
+                // Advance the `resultsOffset` by `returndatasize() + 0x20`,
+                // rounded up to the next multiple of 32.
+                resultsOffset := and(add(add(resultsOffset, returndatasize()), 0x3f), 0xffffffffffffffe0)
+                if iszero(lt(results, end)) {
+                    break
+                }
+            }
+            return(0x00, add(resultsOffset, 0x40))
         }
     }
 }

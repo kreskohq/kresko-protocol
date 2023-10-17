@@ -63,32 +63,28 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
         address _admin,
         address _operator
     ) external initializer {
-        require(_rewardPerBlocks.length == _rewardTokens.length, "Reward tokens must have a rewardPerBlock value");
-
-        __AccessControl_init();
-        __ReentrancyGuard_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
-        _setupRole(OPERATOR_ROLE, _operator);
-        _setupRole(OPERATOR_ROLE, msg.sender);
-
-        // Set initial reward tokens and allocations
-        for (uint256 i; i < _rewardTokens.length; i++) {
-            rewardPerBlockFor[_rewardTokens[i]] = _rewardPerBlocks[i];
-        }
-
-        // Push the initial pool in.
-        _poolInfo.push(
-            PoolInfo({
-                depositToken: _depositToken,
-                allocPoint: _allocPoint,
-                lastRewardBlock: _startBlock,
-                accRewardPerShares: new uint256[](_rewardTokens.length),
-                rewardTokens: _rewardTokens
-            })
-        );
-
-        totalAllocPoint += _allocPoint;
+        // if (_rewardPerBlocks.length == _rewardTokens.length) {
+        //     revert("KR: arrayLengthMismatch");
+        // }
+        // __ReentrancyGuard_init();
+        // _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        // _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+        // _grantRole(OPERATOR_ROLE, _operator);
+        // // Set initial reward tokens and allocations
+        // for (uint256 i; i < _rewardTokens.length; i++) {
+        //     rewardPerBlockFor[_rewardTokens[i]] = _rewardPerBlocks[i];
+        // }
+        // // Push the initial pool in.
+        // _poolInfo.push(
+        //     PoolInfo({
+        //         depositToken: _depositToken,
+        //         allocPoint: _allocPoint,
+        //         lastRewardBlock: _startBlock,
+        //         accRewardPerShares: new uint256[](_rewardTokens.length),
+        //         rewardTokens: _rewardTokens
+        //     })
+        // );
+        // totalAllocPoint += _allocPoint;
     }
 
     /**

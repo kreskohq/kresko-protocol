@@ -1,52 +1,16 @@
-import type { AssetConfigExtended } from '@config/deploy/arbitrumGoerli';
 import type { AllTokenSymbols } from '@config/deploy';
+import type { AssetConfigExtended } from '@config/deploy/arbitrumGoerli';
 import type { AllTickers } from '@utils/redstone';
-import { BigNumber } from 'ethers';
+import type { BigNumber, Overrides } from 'ethers';
 import type { Address } from 'hardhat-deploy/types';
 import type * as Contracts from './typechain';
-import {
+import type {
   AssetStruct,
   CommonInitArgsStruct,
   FeedConfigurationStruct,
   MinterInitArgsStruct,
   SCDPInitArgsStruct,
 } from './typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
-
-export type Split<S extends string, D extends string> = string extends S
-  ? string[]
-  : S extends ''
-  ? []
-  : S extends `${infer T}${D}${infer U}`
-  ? [T, ...Split<U, D>]
-  : [S];
-
-export type ExcludeType<T, E> = {
-  [K in keyof T]: T[K] extends E ? K : never;
-}[keyof T];
-
-export type Excludes =
-  | 'AccessControlEnumerableUpgradeable'
-  | 'AccessControlUpgradeable'
-  | 'FallbackManager'
-  | 'BaseGuard'
-  | 'Guard'
-  | 'GuardManager'
-  | 'ModuleManager'
-  | 'OwnerManager'
-  | 'EtherPaymentFallback'
-  | 'StorageAccessible';
-type KeyValue<T = unknown> = {
-  [key: string]: T;
-};
-export type FactoryName<T extends KeyValue> = Exclude<keyof T, 'factories'>;
-export type MinEthersFactoryExt<C> = {
-  connect(address: string, signerOrProvider: any): C;
-};
-export type InferContractType<Factory> = Factory extends MinEthersFactoryExt<infer C> ? C : unknown;
-
-export type GetContractTypes<T extends KeyValue> = {
-  [K in FactoryName<T> as `${Split<K extends string ? K : never, '__factory'>[0]}`]: InferContractType<T[K]>;
-};
 
 export type ContractTypes = GetContractTypes<typeof Contracts>;
 export type ContractNames = keyof ContractTypes;
@@ -163,4 +127,71 @@ export type GnosisSafeDeployment = {
     opgoerli: string;
   };
   abi: any;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                 TYPE UTILS                                 */
+/* -------------------------------------------------------------------------- */
+export type FuncNames<T extends ContractNames> = keyof TC[T]['functions'] | undefined;
+
+export type FuncArgs<F extends FuncNames<T>, T extends ContractNames> = F extends keyof TC[T]['functions']
+  ? TC[T]['functions'][F] extends (...args: infer Args) => any
+    ? Args extends readonly [...infer Args2, overrides?: Overrides | undefined]
+      ? Args2 extends []
+        ? never
+        : readonly [...Args2]
+      : never
+    : never
+  : never;
+export type Or<T extends readonly unknown[]> = T extends readonly [infer Head, ...infer Tail]
+  ? Head extends true
+    ? true
+    : Or<Tail>
+  : false;
+export type ValueOf<T> = T[keyof T];
+
+export type IsUndefined<T> = [undefined] extends [T] ? true : false;
+export type MaybeExcludeEmpty<T, TMaybeExclude extends boolean> = TMaybeExclude extends true
+  ? Exclude<T, [] | null | undefined>
+  : T;
+
+export type MaybeRequired<T, TRequired extends boolean> = TRequired extends true ? Required<T> : T;
+export type MaybeUndefined<T, TUndefinedish extends boolean> = TUndefinedish extends true ? T | undefined : T;
+export type Split<S extends string, D extends string> = string extends S
+  ? string[]
+  : S extends ''
+  ? []
+  : S extends `${infer T}${D}${infer U}`
+  ? [T, ...Split<U, D>]
+  : [S];
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+export type ExcludeType<T, E> = {
+  [K in keyof T]: T[K] extends E ? K : never;
+}[keyof T];
+
+export type Excludes =
+  | 'AccessControlEnumerableUpgradeable'
+  | 'AccessControlUpgradeable'
+  | 'FallbackManager'
+  | 'BaseGuard'
+  | 'Guard'
+  | 'GuardManager'
+  | 'ModuleManager'
+  | 'OwnerManager'
+  | 'EtherPaymentFallback'
+  | 'StorageAccessible';
+
+type KeyValue<T = unknown> = {
+  [key: string]: T;
+};
+export type FactoryName<T extends KeyValue> = Exclude<keyof T, 'factories'>;
+export type MinEthersFactoryExt<C> = {
+  connect(address: string, signerOrProvider: any): C;
+};
+export type InferContractType<Factory> = Factory extends MinEthersFactoryExt<infer C> ? C : unknown;
+
+export type GetContractTypes<T extends KeyValue> = {
+  [K in FactoryName<T> as `${Split<K extends string ? K : never, '__factory'>[0]}`]: InferContractType<T[K]>;
 };

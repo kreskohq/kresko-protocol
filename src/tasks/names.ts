@@ -14,6 +14,7 @@ export const TASK_UPGRADE_DIAMOND = 'upgrade:diamond';
 export const TASK_DEPLOY_STAKING_HELPER = 'deploy:staking-helper';
 export const TASK_DEPLOY_STAKING = 'deploy:staking';
 export const TASK_DEPLOY_KISS = 'deploy:kiss';
+export const TASK_DEPLOY_VAULT = 'deploy:vault';
 export const TASK_DEPLOY_KRASSET = 'deploy:krasset';
 export const TASK_GENERATE_TYPECHAIN = 'typechain:generate-types';
 export const TASK_ACCOUNTS = 'accounts';

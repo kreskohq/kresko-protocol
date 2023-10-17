@@ -22,8 +22,8 @@ export const compilers: { compilers: SolcUserConfig[] } = {
         evmVersion: 'paris',
         viaIR: false,
         optimizer: {
-          enabled: true,
-          runs: 1000,
+          enabled: false,
+          runs: 200,
         },
         outputSelection: {
           '*': {

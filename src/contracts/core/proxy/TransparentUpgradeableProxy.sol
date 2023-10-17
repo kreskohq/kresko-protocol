@@ -60,9 +60,10 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
      * @dev Initializes an upgradeable proxy managed by an instance of a {ProxyAdmin} with an `initialOwner`,
      * backed by the implementation at `_logic`, and optionally initialized with `_data` as explained in
      * {ERC1967Proxy-constructor}.
-     * @notice Kresko modification: Do not construct the ProxyAdmin contract. Instead, use the factory address as the admin.
-     * @dev Kresko: Explicitly passing the factory address instead of using msg.sender for CREATE3 support.
-     * See {ProxyFactory-createProxy}
+     *
+     * @notice Kresko
+     * @dev Removed ProxyAdmin construction - instead using the creator {ProxyFactory} as {ProxyAdmin}.
+     * @dev Factory address is explicitly passed as argument (and not as msg.sender) to support "CREATE3".
      */
     constructor(address _logic, address _factory, bytes memory _data) payable ERC1967Proxy(_logic, _data) {
         _admin = _factory;

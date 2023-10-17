@@ -6,7 +6,7 @@
     "body": ["console.log($1);"]
   },
   "console.log": {
-    "prefix": "cl2g",
+    "prefix": "clg2",
     "description": "console2.log",
     "scope": "solidity",
     "body": ["console2.log($1);"]
@@ -24,7 +24,7 @@
     "body": ["import \"hardhat/console.sol\";"]
   },
   "fc2": {
-    "prefix": "fc2",
+    "prefix": "forgeconsole2",
     "description": "fc2",
     "scope": "solidity",
     "body": ["import {console2} from \"forge-std/console2.sol\";"]

@@ -60,7 +60,7 @@ describe('Diamond', () => {
     });
 
     it('can remove a function', async function () {
-      // Delete acceptOwnership from DiamondOwnershipFacet
+      // Delete acceptOwnership from DiamondStateFacet
 
       // Check there is no pending owner
       let pendingOwner = await hre.Diamond.pendingOwner();
@@ -131,8 +131,8 @@ describe('Diamond', () => {
 
       const OldOwnershipFacet = await hre.Diamond.facetAddress(signature);
 
-      const [NewOwnershipFacet, allOwnershipFacetSignatures] = await hre.deploy('DiamondOwnershipFacet', {
-        deploymentName: 'DiamondOwnershipFacet2',
+      const [NewOwnershipFacet, allOwnershipFacetSignatures] = await hre.deploy('DiamondStateFacet', {
+        deploymentName: 'DiamondStateFacet2',
       });
 
       // Only replace a single function, we could replace all of them

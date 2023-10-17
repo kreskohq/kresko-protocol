@@ -12,7 +12,7 @@ contract MockWETH is WETH9 {
 
     function deposit(uint256 amount) public {
         require(minters[msg.sender], "Not a minter");
-        balanceOf[msg.sender] += amount;
+        _balances[msg.sender] += amount;
         emit Deposit(msg.sender, amount);
     }
 }

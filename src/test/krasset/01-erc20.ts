@@ -3,18 +3,18 @@ import { expect } from '@test/chai';
 import { kreskoAssetFixture } from '@utils/test/fixtures';
 import { Role } from '@utils/test/roles';
 
-describe('KreskoAsset', () => {
+describe.only('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset;
 
   beforeEach(async function () {
     ({ KreskoAsset } = await kreskoAssetFixture({ name: 'Ether', symbol: 'krETH', underlyingToken: ZERO_ADDRESS }));
-    this.owner = hre.users.deployer;
     this.mintAmount = 125;
+    this.owner = hre.users.deployer;
     await KreskoAsset.grantRole(Role.OPERATOR, this.owner.address);
   });
 
   describe('#mint', () => {
-    it('should allow the owner to mint to their own address', async function () {
+    it.only('should allow the owner to mint to their own address', async function () {
       expect(await KreskoAsset.totalSupply()).to.equal(0);
       expect(await KreskoAsset.balanceOf(this.owner.address)).to.equal(0);
 

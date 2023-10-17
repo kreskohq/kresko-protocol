@@ -31,8 +31,8 @@ const deploy: DeployFunction = async function (hre) {
   logger.success('Added assets.');
 };
 
-deploy.tags = ['local', 'all', 'add-assets'];
-deploy.dependencies = ['common-facets', 'minter-facets', 'scdp-facets'];
+deploy.tags = ['local', 'all', 'configuration'];
+deploy.dependencies = ['core', 'tokens'];
 // deploy.skip = async hre => hre.network.live;
 
 export default deploy;

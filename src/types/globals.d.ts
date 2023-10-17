@@ -7,7 +7,7 @@ import type {
   setBalanceKrAssetFunc,
 } from '@utils/test/helpers/smock';
 import type { BytesLike } from 'ethers';
-import type { DeployResult } from 'hardhat-deploy/types';
+import type { DeployResult, Deployment } from 'hardhat-deploy/types';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import type * as Contracts from './typechain';
 import type { MockOracle } from './typechain';
@@ -79,7 +79,6 @@ declare global {
   /* -------------------------------------------------------------------------- */
   /*                               Signers / Users                              */
   /* -------------------------------------------------------------------------- */
-  type Signer = import('ethers').Signer;
   type SignerWithAddress = import('@nomiclabs/hardhat-ethers/signers').SignerWithAddress;
 
   /* -------------------------------------------------------------------------- */
@@ -88,6 +87,7 @@ declare global {
 
   // type DeployResultWithSignaturesUnknown<C extends Contract> = readonly [C, string[], DeployResult];
   type DeployResultWithSignatures<T> = readonly [T, string[], DeployResult];
+  type ProxyDeployResult<T> = readonly [T, Deployment];
 
   type DiamondCutInitializer = [string, BytesLike];
 }

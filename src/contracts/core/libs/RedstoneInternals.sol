@@ -57,8 +57,8 @@ library NumericArrayLib {
  * @author The Redstone Oracles team
  */
 library RedstoneDefaultsLib {
-    uint256 constant DEFAULT_MAX_DATA_TIMESTAMP_DELAY_SECONDS = 3 minutes;
-    uint256 constant DEFAULT_MAX_DATA_TIMESTAMP_AHEAD_SECONDS = 1 minutes;
+    uint256 internal constant DEFAULT_MAX_DATA_TIMESTAMP_DELAY_SECONDS = 3 minutes;
+    uint256 internal constant DEFAULT_MAX_DATA_TIMESTAMP_AHEAD_SECONDS = 1 minutes;
 
     error TimestampFromTooLongFuture(uint256 receivedTimestampSeconds, uint256 blockTimestamp);
     error TimestampIsTooOld(uint256 receivedTimestampSeconds, uint256 blockTimestamp);
@@ -98,8 +98,8 @@ library BitmapLib {
 }
 
 library SignatureLib {
-    uint256 constant ECDSA_SIG_R_BS = 32;
-    uint256 constant ECDSA_SIG_S_BS = 32;
+    uint256 internal constant ECDSA_SIG_R_BS = 32;
+    uint256 internal constant ECDSA_SIG_S_BS = 32;
 
     function recoverSignerAddress(bytes32 signedHash, uint256 signatureCalldataNegativeOffset) internal pure returns (address) {
         bytes32 r;

@@ -1,5 +1,24 @@
 set dotenv-load
-	
+
+
+dry-local:
+	forge script src/contracts/scripts/devnet/Devnet.s.sol:WithLocal \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--with-gas-price 100000000 \
+	--skip-simulation \
+	--ffi \
+	-vvvv
+
+dry-arbitrum:
+	forge script src/contracts/scripts/devnet/Devnet.s.sol:WithArbitrum \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--with-gas-price 100000000 \
+	--fork-url "$RPC_ARBITRUM_INFURA" \
+	--skip-simulation \
+	--ffi \
+	-vvvv
+
+
 deploy-local:
 	forge script src/contracts/scripts/devnet/Devnet.s.sol:WithLocal \
 	--mnemonics "$MNEMONIC_DEVNET" \
@@ -24,7 +43,7 @@ anvil-fork:
 	--fork-block-number 140307500
 
 anvil-local:
-  anvil -m "$MNEMONIC_DEVNET"
+  anvil -m "$MNEMONIC_DEVNET" --code-size-limit "10000000000000"
 
 flats: 
 	forge flatten src/contracts/periphery/IKresko.sol > out/IKresko.sol && \

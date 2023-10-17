@@ -119,6 +119,6 @@ const deploy: DeployFunction = async function (hre) {
   logger.success('safe contracts succesfully deployed');
 };
 
-deploy.tags = ['all', 'local', 'gnosis-safe'];
+deploy.tags = ['all', 'local', 'safe'];
 // deploy.skip = async hre => hre.network.live;
 export default deploy;

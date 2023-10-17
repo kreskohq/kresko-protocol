@@ -69,7 +69,7 @@ const deploy: DeployFunction = async function (hre) {
   logger.success('Diamond deployed @', hre.Diamond.address, 'with', deployment.facets?.length, 'facets');
 };
 
-deploy.tags = ['all', 'local', 'protocol-test', 'diamond-init'];
+deploy.tags = ['all', 'local', 'core', 'diamond'];
 // deploy.skip = async hre => hre.network.live;
 
 export default deploy;

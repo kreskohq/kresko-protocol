@@ -100,7 +100,7 @@ export const getAssetConfig = async (
   return { args: config, assetStruct, feedConfig, extendedInfo: { decimals, symbol } };
 };
 
-export const wrapContractWithSigner = <T>(contract: T, signer: Signer) =>
+export const wrapContractWithSigner = <T>(contract: T, signer: SignerWithAddress) =>
   // @ts-expect-error
   WrapperBuilder.wrap(contract.connect(signer)).usingSimpleNumericMock({
     mockSignersCount: 1,

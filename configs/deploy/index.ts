@@ -11,7 +11,7 @@ export type AllTokenSymbols = TestTokenSymbols | 'ETH' | (typeof assets)[keyof t
 // These function namings are ignored when generating ABI for the diamond
 export const signatureFilters = ['init', 'initializer'];
 
-export const diamondFacets = ['DiamondCutFacet', 'DiamondLoupeFacet', 'DiamondOwnershipFacet', 'ERC165Facet'] as const;
+export const diamondFacets = ['DiamondCutFacet', 'DiamondLoupeFacet', 'DiamondStateFacet', 'ERC165Facet'] as const;
 
 export const commonFacets = [
   'CommonConfigurationFacet',

@@ -24,7 +24,7 @@ import 'hardhat-interface-generator';
 import { configDotenv } from 'dotenv';
 configDotenv();
 
-const mnemonic = process.env.MNEMONIC || 'test test test test test test test test test test test junk';
+const mnemonic = process.env.MNEMONIC_DEVNET || 'test test test test test test test test test test test junk';
 
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
@@ -65,7 +65,7 @@ const config: HardhatUserConfig = {
     artifacts: 'artifacts',
     cache: 'cache',
     tests: 'src/test/',
-    sources: 'src/contracts/core',
+    sources: 'src/contracts/',
     deploy: 'src/deploy/',
     deployments: 'deployments/',
   },
