@@ -65,7 +65,7 @@ const config: HardhatUserConfig = {
     artifacts: 'artifacts',
     cache: 'cache',
     tests: 'src/test/',
-    sources: 'src/contracts/',
+    sources: 'src/contracts/core/',
     deploy: 'src/deploy/',
     deployments: 'deployments/',
   },

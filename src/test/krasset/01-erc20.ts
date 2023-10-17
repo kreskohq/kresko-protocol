@@ -3,7 +3,7 @@ import { expect } from '@test/chai';
 import { kreskoAssetFixture } from '@utils/test/fixtures';
 import { Role } from '@utils/test/roles';
 
-describe.only('KreskoAsset', () => {
+describe('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset;
 
   beforeEach(async function () {
@@ -14,7 +14,7 @@ describe.only('KreskoAsset', () => {
   });
 
   describe('#mint', () => {
-    it.only('should allow the owner to mint to their own address', async function () {
+    it('should allow the owner to mint to their own address', async function () {
       expect(await KreskoAsset.totalSupply()).to.equal(0);
       expect(await KreskoAsset.balanceOf(this.owner.address)).to.equal(0);
 
