@@ -25,7 +25,7 @@ library Conversions {
         return abi.decode(b, (Asset));
     }
 
-    function toArray(bytes memory value) internal view returns (bytes[] memory result) {
+    function toArray(bytes memory value) internal pure returns (bytes[] memory result) {
         result = new bytes[](1);
         result[0] = value;
     }

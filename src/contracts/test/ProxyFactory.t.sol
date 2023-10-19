@@ -700,34 +700,21 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
             anchorSalt
         );
 
-        bytes memory krAssetCall = abi.encodeCall(factory.create2ProxyAndLogic, (krAssetImpl, krAssetInitializer, krAssetSalt));
-        bytes memory anchorCall = abi.encodeCall(factory.create2ProxyAndLogic, (anchorImpl, anchorInitializer, anchorSalt));
         bytes[] memory assets = new bytes[](2);
-        assets[0] = krAssetCall;
-        assets[1] = anchorCall;
-        bytes memory fullCall = abi.encodeCall(factory.batch, (assets));
-        vm.writeFile("./forge-full-calldata.txt", vm.toString(fullCall));
-        // Proxy memory krAsset = factory.create2ProxyAndLogic(krAssetImpl, krAssetInitializer, salt);
-        // Proxy memory anchor = factory.create2ProxyAndLogic(anchorImpl, anchorInitializer, salt);
+        assets[0] = abi.encodeCall(factory.create2ProxyAndLogic, (krAssetImpl, krAssetInitializer, krAssetSalt));
+        assets[1] = abi.encodeCall(factory.create2ProxyAndLogic, (anchorImpl, anchorInitializer, anchorSalt));
 
-        // Proxy[] memory proxies = factory.batch(assets).map(Conversions.toProxy);
-        // Proxy memory krAsset = proxies[0];
-        // Proxy memory anchor = proxies[1];
+        Proxy[] memory proxies = factory.batch(assets).map(Conversions.toProxy);
+        Proxy memory krAsset = proxies[0];
+        Proxy memory anchor = proxies[1];
 
-        console2.log(predictedAddress, predictedImpl);
-
-        // console2.log("krAsset", address(krAsset.proxy));
-        // console2.log("predict", predictedAddress);
-        // console2.log("krAssetImpl", krAsset.implementation);
-        // console2.log("predict", predictedImpl);
-
-        // console2.log("anchor", address(anchor.proxy));
-        // console2.log("predict", predictedAnchorAddress);
-        // console2.log("anchorImpl:", anchor.implementation);
-        // console2.log("predict:", predictedAnchorImpl);
+        address(krAsset.proxy).equals(predictedAddress);
+        address(anchor.proxy).equals(predictedAnchorAddress);
+        krAsset.implementation.equals(predictedImpl);
+        anchor.implementation.equals(predictedAnchorImpl);
     }
 
-    function _toArray(bytes memory call) internal view returns (bytes[] memory calls) {
+    function _toArray(bytes memory call) internal pure returns (bytes[] memory calls) {
         calls = new bytes[](1);
         calls[0] = call;
     }
