@@ -53,7 +53,4 @@ jobs:
         env:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
-          MNEMONIC: ${{ secrets.MNEMONIC }}
-          TREASURY: ${{ secrets.TREASURY }}
-          ADMIN: ${{ secrets.ADMIN }}
-          BURN_FEE: 0.015e4
+          MNEMONIC_DEVNET: ${{ secrets.MNEMONIC_DEVNET }}
