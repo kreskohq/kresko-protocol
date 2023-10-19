@@ -13,6 +13,11 @@ import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {KreskoForgeBase} from "scripts/utils/KreskoForgeBase.s.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {LibSafe, GnosisSafeL2Mock} from "kresko-lib/mocks/MockSafe.sol";
+import {Proxy, ProxyFactory} from "proxy/ProxyFactory.sol";
+import {Conversions} from "libs/Utils.sol";
+
+using Conversions for bytes;
+using Conversions for bytes[];
 
 abstract contract ConfigurationUtils is KreskoForgeBase {
     Enums.OracleType[2] internal ORACLES_RS_CL = [Enums.OracleType.Redstone, Enums.OracleType.Chainlink];
@@ -63,7 +68,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         Enums.OracleType[2] memory oracles,
         address[2] memory feeds,
         AssetIdentity memory identity
-    ) internal returns (Asset memory result) {
+    ) internal requiresKresko returns (Asset memory result) {
         result = _createKrAssetConfig(ticker, anchorAddr, oracles, identity);
         kresko.addAsset(assetAddr, result, setTickerFeeds ? feeds : SKIP_FEEDS);
     }
@@ -95,7 +100,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         Enums.OracleType[2] memory oracles,
         address[2] memory feeds,
         AssetIdentity memory identity
-    ) internal returns (Asset memory config) {
+    ) internal requiresKresko returns (Asset memory config) {
         config = kresko.getAsset(assetAddr);
         config.ticker = ticker;
         config.oracles = oracles;
@@ -118,7 +123,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         address kissAddr,
         address vaultAddr,
         AssetIdentity memory identity
-    ) internal returns (KISSConfig memory result) {
+    ) internal requiresKresko returns (KISSConfig memory result) {
         result.config.ticker = bytes32("KISS");
         result.config.anchor = kissAddr;
         result.config.oracles = ORACLES_KISS;
@@ -198,13 +203,13 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         }
     }
 
-    function enableSwapBothWays(address asset0, address asset1, bool enabled) internal {
-        SwapRouteSetter[] memory swapPairsEnabled = new SwapRouteSetter[](2);
+    function enableSwapBothWays(address asset0, address asset1, bool enabled) internal requiresKresko {
+        SwapRouteSetter[] memory swapPairsEnabled = new SwapRouteSetter[](1);
         swapPairsEnabled[0] = SwapRouteSetter({assetIn: asset0, assetOut: asset1, enabled: enabled});
         kresko.setSwapRoutesSCDP(swapPairsEnabled);
     }
 
-    function enableSwapSingleWay(address asset0, address asset1, bool enabled) internal {
+    function enableSwapSingleWay(address asset0, address asset1, bool enabled) internal requiresKresko {
         kresko.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: asset0, assetOut: asset1, enabled: enabled}));
     }
 
@@ -223,6 +228,14 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
 abstract contract NonDiamondDeployUtils is ConfigurationUtils {
     MockSequencerUptimeFeed internal mockSeqFeed;
     GnosisSafeL2Mock internal mockSafe;
+    ProxyFactory internal proxyFactory;
+
+    bytes private KR_ASSET_IMPL = type(KreskoAsset).creationCode;
+
+    modifier needsProxyFactory() {
+        require(address(proxyFactory) != address(0), "KreskoForge: Deploy ProxyFactory first");
+        _;
+    }
 
     function getMockSeqFeed() internal returns (address) {
         return address((mockSeqFeed = new MockSequencerUptimeFeed()));
@@ -230,6 +243,10 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
 
     function getMockSafe(address admin) internal returns (address) {
         return address((mockSafe = LibSafe.createSafe(admin)));
+    }
+
+    function deployProxyFactory(address _owner) internal returns (ProxyFactory) {
+        return new ProxyFactory(_owner);
     }
 
     struct MockConfig {
@@ -246,24 +263,39 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         address underlyingAddr,
         address admin,
         address treasury
-    ) internal returns (KrDeploy memory result) {
-        result.krAsset = new KreskoAsset();
-        result.anchor = new KreskoAssetAnchor(IKreskoAsset(result.krAsset));
+    ) internal needsProxyFactory returns (KrDeploy memory) {
+        (string memory anchorName, string memory anchorSymbol) = getAnchorSymbolAndName(name, symbol);
+        (bytes32 krAssetSalt, bytes32 anchorSalt) = getKrAssetSalts(symbol, anchorSymbol);
 
-        result.krAsset.initialize(name, symbol, 18, admin, address(kresko), underlyingAddr, treasury, 0, 0);
-        result.underlyingAddr = underlyingAddr;
-
-        result.krAsset.grantRole(Role.OPERATOR, address(result.anchor));
-        result.anchor.initialize(
-            IKreskoAsset(result.krAsset),
-            string.concat("Kresko Asset Anchor: ", symbol),
-            string.concat("a", symbol),
-            admin
+        bytes memory KR_ASSET_INITIALIZER = abi.encodeCall(
+            KreskoAsset.initialize,
+            (name, symbol, 18, admin, address(kresko), underlyingAddr, treasury, 0, 0)
         );
-        result.krAsset.setAnchorToken(address(result.anchor));
-        result.addr = address(result.krAsset);
+        (address predictedAddress, ) = proxyFactory.previewCreate2ProxyAndLogic(
+            KR_ASSET_IMPL,
+            KR_ASSET_INITIALIZER,
+            krAssetSalt
+        );
 
-        return result;
+        bytes memory ANCHOR_IMPL = abi.encodePacked(type(KreskoAssetAnchor).creationCode, abi.encode(predictedAddress));
+        bytes memory ANCHOR_INITIALIZER = abi.encodeCall(
+            KreskoAssetAnchor.initialize,
+            (IKreskoAsset(predictedAddress), anchorName, anchorSymbol, admin)
+        );
+
+        bytes[] memory batch = new bytes[](2);
+        batch[0] = abi.encodeCall(proxyFactory.create2ProxyAndLogic, (KR_ASSET_IMPL, KR_ASSET_INITIALIZER, krAssetSalt));
+        batch[1] = abi.encodeCall(proxyFactory.create2ProxyAndLogic, (ANCHOR_IMPL, ANCHOR_INITIALIZER, anchorSalt));
+
+        Proxy[] memory results = proxyFactory.batch(batch).map(Conversions.toProxy);
+
+        return
+            KrDeploy({
+                addr: address(results[0].proxy),
+                krAsset: KreskoAsset(payable(address(results[0].proxy))),
+                anchor: KreskoAssetAnchor(payable(address(results[1].proxy))),
+                underlyingAddr: underlyingAddr
+            });
     }
 
     function deployKrAssetWithOracle(
@@ -272,7 +304,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         uint256 price,
         address underlyingAddr,
         DeployArgs memory args
-    ) internal returns (KrDeployExtended memory result) {
+    ) internal needsProxyFactory returns (KrDeployExtended memory result) {
         KrDeploy memory deployment = deployKrAsset(name, symbol, underlyingAddr, args.admin, args.treasury);
         result.krAsset = deployment.krAsset;
         result.addr = deployment.addr;
@@ -341,6 +373,22 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         uint256 initialSupply
     ) internal returns (MockERC20Restricted) {
         return new MockERC20Restricted(name, symbol, decimals, initialSupply);
+    }
+
+    function getAnchorSymbolAndName(
+        string memory krAssetName,
+        string memory krAssetSymbol
+    ) internal pure returns (string memory name, string memory symbol) {
+        name = string.concat("Kresko Asset Anchor: ", krAssetName);
+        symbol = string.concat("a", krAssetSymbol);
+    }
+
+    function getKrAssetSalts(
+        string memory symbol,
+        string memory anchorSymbol
+    ) internal pure returns (bytes32 krAssetSalt, bytes32 anchorSalt) {
+        krAssetSalt = bytes32(bytes.concat(bytes(symbol), bytes(anchorSymbol)));
+        anchorSalt = bytes32(bytes.concat(bytes(anchorSymbol), bytes(symbol)));
     }
 }
 

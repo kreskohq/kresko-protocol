@@ -35,7 +35,6 @@ import {IKresko} from "periphery/IKresko.sol";
 import {KISS} from "kiss/KISS.sol";
 import {Vault} from "vault/Vault.sol";
 import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
-import {ProxyFactory} from "proxy/ProxyFactory.sol";
 
 uint256 constant FACET_COUNT = 22;
 uint256 constant INITIALIZER_COUNT = 3;
@@ -45,7 +44,6 @@ abstract contract KreskoForgeBase is
     RedstoneScript("./utils/getRedstonePayload.js"),
     FacetScript("./utils/getFunctionSelectors.sh")
 {
-    ProxyFactory internal proxyFactory;
     address internal testAdmin = address(0xABABAB);
     DeployArgs internal deployArgs;
     IKresko internal kresko;
@@ -54,6 +52,11 @@ abstract contract KreskoForgeBase is
 
     address public constant TEST_TREASURY = address(0xFEE);
     address[] internal councilUsers;
+
+    modifier requiresKresko() {
+        require(address(kresko) != address(0), "KreskoForgeBase: Deploy Kresko first");
+        _;
+    }
 
     function deployDiamond(DeployArgs memory args) internal returns (IKresko kresko_) {
         FacetCut[] memory facets = new FacetCut[](FACET_COUNT);

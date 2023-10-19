@@ -104,6 +104,7 @@ contract WithLocal is Devnet("MNEMONIC_DEVNET") {
         vm.startPrank(getAddr(0));
         config();
         kresko = deployDiamond(deployArgs);
+        proxyFactory = deployProxyFactory(deployArgs.admin);
         mockSeqFeed.setAnswers(0, 0, 0);
         setupSpecialTokens();
         setupProtocol();

@@ -46,6 +46,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         vm.startPrank(deployArgs.admin);
 
         kresko = deployDiamond(deployArgs);
+        proxyFactory = deployProxyFactory(testAdmin);
         vm.warp(3601);
 
         usdc = mockCollateral(
@@ -321,6 +322,6 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         ((uint256(totalCover) * sdiPrice) / 1e18).clg(prefix.and("SCDP SDI Cover USD"), 8);
         sdiDebtUSD.clg(prefix.and("SCDP SDI Debt USD"), 8);
 
-        staticCall(kresko.getCollateralRatioSCDP.selector, prices).clg(prefix.and("SCDP CR %"), 16);
+        staticCall(kresko.getCollateralRatioSCDP.selector, prices).clg(prefix.and("SCDP CR %"), 2);
     }
 }
