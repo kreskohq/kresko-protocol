@@ -17,6 +17,7 @@ contract WithArbitrum is ArbitrumDevnet("MNEMONIC_DEVNET") {
     function run() external broadcastWithMnemonic(0) {
         config();
         kresko = deployDiamondOneTx(deployArgs);
+        proxyFactory = deployProxyFactory(deployArgs.admin);
         setupVault();
         setupProtocol();
         setupVaultAssets();

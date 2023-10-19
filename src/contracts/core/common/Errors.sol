@@ -151,7 +151,7 @@ library Errors {
     error NOT_A_CONTRACT(address who);
     error NO_ALLOWANCE(address spender, address owner, uint256 requested, uint256 allowed);
     error NOT_ENOUGH_BALANCE(address who, uint256 requested, uint256 available);
-    error SENDER_NOT_KRESKO(ID, address sender, address kresko);
+    error SENDER_NOT_OPERATOR(ID, address sender, address kresko);
     error ZERO_SHARES_FROM_ASSETS(ID, uint256 assets, ID);
     error ZERO_SHARES_OUT(ID, uint256 assets);
     error ZERO_SHARES_IN(ID, uint256 assets);

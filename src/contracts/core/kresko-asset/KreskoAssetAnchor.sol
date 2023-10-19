@@ -36,16 +36,11 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     function initialize(IKreskoAsset _asset, string memory _name, string memory _symbol, address _admin) external initializer {
         // ERC4626
         __ERC4626Upgradeable_init(_asset, _name, _symbol);
-
         // Default admin setup
         _grantRole(Role.DEFAULT_ADMIN, _admin);
-        _grantRole(Role.ADMIN, _admin);
-
-        _grantRole(Role.DEFAULT_ADMIN, msg.sender);
-        _grantRole(Role.ADMIN, msg.sender);
-
         // Setup the operator, which is the protocol linked to the main asset
         _grantRole(Role.OPERATOR, asset.kresko());
+
         _asset.setAnchorToken(address(this));
     }
 
@@ -114,7 +109,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         uint256 _assets,
         address _to
     ) public virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) returns (uint256 shares) {
-        _onlyKresko();
+        _onlyOperator();
         shares = super.issue(_assets, _to);
     }
 
@@ -123,7 +118,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         uint256 _assets,
         address _from
     ) public virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) returns (uint256 shares) {
-        _onlyKresko();
+        _onlyOperator();
         shares = super.destroy(_assets, _from);
     }
 
@@ -163,9 +158,9 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     /* -------------------------------------------------------------------------- */
     /*                            INTERNAL HOOKS LOGIC                            */
     /* -------------------------------------------------------------------------- */
-    function _onlyKresko() internal view {
-        if (msg.sender != asset.kresko()) {
-            revert Errors.SENDER_NOT_KRESKO(_anchorId(), msg.sender, asset.kresko());
+    function _onlyOperator() internal view {
+        if (!hasRole(Role.OPERATOR, msg.sender)) {
+            revert Errors.SENDER_NOT_OPERATOR(_anchorId(), msg.sender, asset.kresko());
         }
     }
 
