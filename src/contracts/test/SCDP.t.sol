@@ -183,7 +183,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         // logSimple("#4 1 krETH debt repaid", newPrices);
     }
 
-    function testGas() public prankAddr(user0) {
+    function testGas() public prankedAddr(user0) {
         uint256 depositValueWad = 20000e18;
         mintKISS(user0, depositValueWad);
         bool success;
@@ -265,11 +265,11 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         call(kresko.mintKreskoAsset.selector, user, KISS.addr, amount, initialPrices);
     }
 
-    function poolDeposit(address user, address asset, uint256 amount, string memory prices) internal prankAddr(user) {
+    function poolDeposit(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {
         call(kresko.depositSCDP.selector, user, asset, amount, prices);
     }
 
-    function poolWithdraw(address user, address asset, uint256 amount, string memory prices) internal prankAddr(user) {
+    function poolWithdraw(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {
         call(kresko.withdrawSCDP.selector, user, asset, amount, prices);
     }
 
@@ -279,7 +279,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         uint256 amount,
         address assetOut,
         string memory prices
-    ) internal prankAddr(user) {
+    ) internal prankedAddr(user) {
         call(kresko.swapSCDP.selector, user, assetIn, assetOut, amount, 0, prices);
     }
 
@@ -287,7 +287,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         call(kresko.SDICover.selector, asset, amount, prices);
     }
 
-    function _approvals(address user) internal prankAddr(user) {
+    function _approvals(address user) internal prankedAddr(user) {
         usdc.asset.approve(address(kresko), type(uint256).max);
         krETH.krAsset.approve(address(kresko), type(uint256).max);
         KISS.krAsset.approve(address(kresko), type(uint256).max);

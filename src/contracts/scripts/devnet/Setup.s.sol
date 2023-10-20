@@ -259,18 +259,18 @@ abstract contract ArbitrumSetup is DevnetSetupBase {
     function configureAssets(KrDeploy[KR_ASSET_COUNT] memory krAssets) internal {
         require(krAssets[0].addr != addr.ZERO, "createKrAssets should be called before configureAssets");
         /* --------------------- Whitelist external collaterals --------------------- */
-        addCollateral(bytes32("ETH"), addr.WETH, true, ORACLES_RS_CL, ETH_FEEDS, defaultCollateral);
-        addCollateral(bytes32("BTC"), addr.WBTC, true, ORACLES_RS_CL, BTC_FEEDS, defaultCollateral);
-        addCollateral(bytes32("DAI"), addr.DAI, true, ORACLES_RS_CL, DAI_FEEDS, defaultCollateral);
-        addCollateral(bytes32("USDC"), addr.USDC, true, ORACLES_RS_CL, USDC_FEEDS, defaultCollateral);
-        addCollateral(bytes32("USDT"), addr.USDT, true, ORACLES_RS_CL, USDT_FEEDS, defaultCollateral);
+        addCollateral(bytes32("ETH"), addr.WETH, true, OT_RS_CL, ETH_FEEDS, defaultCollateral);
+        addCollateral(bytes32("BTC"), addr.WBTC, true, OT_RS_CL, BTC_FEEDS, defaultCollateral);
+        addCollateral(bytes32("DAI"), addr.DAI, true, OT_RS_CL, DAI_FEEDS, defaultCollateral);
+        addCollateral(bytes32("USDC"), addr.USDC, true, OT_RS_CL, USDC_FEEDS, defaultCollateral);
+        addCollateral(bytes32("USDT"), addr.USDT, true, OT_RS_CL, USDT_FEEDS, defaultCollateral);
         /* ----------------------------- Whitelist KISS ----------------------------- */
         kissConfig = addKISS(address(kiss), address(vkiss), defaultKISS);
         /* ----------------------- Deploy + whitelist KrAssets ---------------------- */
         krETH = addKrAsset(
             bytes32("ETH"),
             false,
-            ORACLES_RS_CL,
+            OT_RS_CL,
             ETH_FEEDS,
             deployKrAsset("Kresko: Ether", "krETH", addr.WETH, deployArgs.admin, deployArgs.treasury),
             defaultKrAsset
@@ -279,7 +279,7 @@ abstract contract ArbitrumSetup is DevnetSetupBase {
         krBTC = addKrAsset(
             bytes32("BTC"),
             false,
-            ORACLES_RS_CL,
+            OT_RS_CL,
             BTC_FEEDS,
             deployKrAsset("Kresko: Bitcoin", "krBTC", addr.WBTC, deployArgs.admin, deployArgs.treasury),
             defaultKrAsset
@@ -288,7 +288,7 @@ abstract contract ArbitrumSetup is DevnetSetupBase {
         krEUR = addKrAsset(
             bytes32("EUR"),
             false,
-            ORACLES_RS_CL,
+            OT_RS_CL,
             BTC_FEEDS,
             deployKrAsset("Kresko: Euro", "krEUR", addr.WBTC, deployArgs.admin, deployArgs.treasury),
             defaultKrAsset
@@ -297,7 +297,7 @@ abstract contract ArbitrumSetup is DevnetSetupBase {
         krJPY = addKrAsset(
             bytes32("JPY"),
             true,
-            ORACLES_RS_CL,
+            OT_RS_CL,
             JPY_FEEDS,
             deployKrAsset("Kresko: Yen", "krJPY", addr.ZERO, deployArgs.admin, deployArgs.treasury),
             defaultKrAsset
@@ -477,35 +477,21 @@ abstract contract LocalSetup is DevnetSetupBase {
 
         weth9 = new WETH9();
         MockOracle ethOracle = new MockOracle("ETH", 2000e8, 8);
-        addCollateral(bytes32("ETH"), address(weth9), true, ORACLES_RS_CL, [addr.ZERO, address(ethOracle)], defaultCollateral);
+        addCollateral(bytes32("ETH"), address(weth9), true, OT_RS_CL, [addr.ZERO, address(ethOracle)], defaultCollateral);
 
         krETH = addKrAsset(
             bytes32("ETH"),
             false,
-            ORACLES_RS_CL,
+            OT_RS_CL,
             [addr.ZERO, address(ethOracle)],
             deployKrAsset("krETH", "krETH", address(weth9), deployArgs.admin, deployArgs.treasury),
             defaultKrAsset
         );
         KrDeployExtended memory krBTCDeploy = deployKrAssetWithOracle("krBTC", "krBTC", 20000e8, addr.ZERO, deployArgs);
-        krBTC = addKrAsset(
-            bytes32("BTC"),
-            true,
-            ORACLES_RS_CL,
-            [addr.ZERO, krBTCDeploy.oracleAddr],
-            krBTCDeploy,
-            defaultKrAsset
-        );
+        krBTC = addKrAsset(bytes32("BTC"), true, OT_RS_CL, [addr.ZERO, krBTCDeploy.oracleAddr], krBTCDeploy, defaultKrAsset);
 
         KrDeployExtended memory krJPYDeploy = deployKrAssetWithOracle("krJPY", "krJPY", 1e8, addr.ZERO, deployArgs);
-        krJPY = addKrAsset(
-            bytes32("JPY"),
-            true,
-            ORACLES_RS_CL,
-            [addr.ZERO, krJPYDeploy.oracleAddr],
-            krJPYDeploy,
-            defaultKrAsset
-        );
+        krJPY = addKrAsset(bytes32("JPY"), true, OT_RS_CL, [addr.ZERO, krJPYDeploy.oracleAddr], krJPYDeploy, defaultKrAsset);
 
         krETH.krAsset.setUnderlying(address(weth9));
 

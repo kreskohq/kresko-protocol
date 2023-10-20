@@ -126,7 +126,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
     ) internal requiresKresko returns (KISSConfig memory result) {
         result.config.ticker = bytes32("KISS");
         result.config.anchor = kissAddr;
-        result.config.oracles = ORACLES_KISS;
+        result.config.oracles = OT_KISS;
         result.config.maxDebtMinter = type(uint128).max;
 
         result.config.factor = 1e4;
@@ -220,7 +220,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         config.liqIncentive = 1.1e4;
         config.isMinterCollateral = true;
         config.factor = 1e4;
-        config.oracles = ORACLES_RS_CL;
+        config.oracles = OT_RS_CL;
         kresko.updateAsset(assetAddr, config);
     }
 }
@@ -328,7 +328,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
             result.addr,
             address(result.anchor),
             config.setFeeds,
-            ORACLES_RS_CL,
+            OT_RS_CL,
             [address(0), result.oracleAddr],
             identity
         );
@@ -347,7 +347,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
             ticker,
             result.addr,
             config.setFeeds,
-            ORACLES_RS_CL,
+            OT_RS_CL,
             [address(0), result.oracleAddr],
             identity
         );

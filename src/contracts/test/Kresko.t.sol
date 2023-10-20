@@ -112,7 +112,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         kresko.getSwapEnabledSCDP(usdc.addr, krJPY.addr).equals(false);
     }
 
-    function testDeposit() public prankAddr(user0) {
+    function testDeposit() public prankedAddr(user0) {
         uint256 depositAmount = 100e18;
 
         usdc.asset.mint(user0, depositAmount);
@@ -124,7 +124,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         staticCall(kresko.getAccountTotalCollateralValue.selector, user0, usdcPrice).equals(100e8);
     }
 
-    function testMint() public prankAddr(user0) {
+    function testMint() public prankedAddr(user0) {
         uint256 depositAmount = 1000e18;
         uint256 mintAmount = 100e18;
 
@@ -139,7 +139,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         staticCall(kresko.getAccountTotalDebtValue.selector, user0, initialPrices).equals(120e8);
     }
 
-    function testBurn() public prankAddr(user0) {
+    function testBurn() public prankedAddr(user0) {
         uint256 depositAmount = 1000e18;
         uint256 mintAmount = 100e18;
 
@@ -155,7 +155,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         staticCall(kresko.getAccountTotalDebtValue.selector, user0, initialPrices).equals(0);
     }
 
-    function testWithdraw() public prankAddr(user0) {
+    function testWithdraw() public prankedAddr(user0) {
         uint256 depositAmount = 1000e18;
         uint256 mintAmount = 100e18;
 
@@ -173,7 +173,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         staticCall(kresko.getAccountTotalDebtValue.selector, user0, initialPrices).equals(0);
     }
 
-    function testGas() public prankAddr(user0) {
+    function testGas() public prankedAddr(user0) {
         uint256 depositAmount = 1000e18;
         uint256 mintAmount = 100e18;
         bytes memory redstonePayload = getRedstonePayload(initialPrices);

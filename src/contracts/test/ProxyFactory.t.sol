@@ -39,7 +39,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
     bytes CALLDATA_LOGIC_A;
     bytes CALLDATA_LOGIC_B;
 
-    function setUp() public prankMnemonic(0) {
+    function setUp() public pranked(0) {
         initialOwner = getAddr(0);
         factory = new ProxyFactory(initialOwner);
 
@@ -51,7 +51,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.owner().equals(initialOwner);
     }
 
-    function testCreateProxy() public prankMnemonic(0) {
+    function testCreateProxy() public pranked(0) {
         LogicA logicA = new LogicA();
         Proxy memory proxy = factory.createProxy(address(logicA), CALLDATA_LOGIC_A);
         address proxyAddr = address(proxy.proxy);
@@ -81,7 +81,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
     }
 
-    function testCreate2Proxy() public prankMnemonic(0) {
+    function testCreate2Proxy() public pranked(0) {
         LogicA logicA = new LogicA();
 
         address expectedProxyAddress = factory.previewCreate2Proxy(address(logicA), CALLDATA_LOGIC_A, salt);
@@ -117,7 +117,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
     }
 
-    function testCreate3Proxy() public prankMnemonic(0) {
+    function testCreate3Proxy() public pranked(0) {
         LogicA logicA = new LogicA();
 
         address expectedSaltAddress = factory.getCreate3Address(salt);
@@ -157,7 +157,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
     }
 
-    function testCreateProxyAndLogic() public prankMnemonic(0) {
+    function testCreateProxyAndLogic() public pranked(0) {
         Proxy memory proxy = factory.createProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A);
         address proxyAddr = address(proxy.proxy);
 
@@ -189,7 +189,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
     }
 
-    function testCreateProxy2AndLogic() public prankMnemonic(0) {
+    function testCreateProxy2AndLogic() public pranked(0) {
         bytes32 implementationSalt = salt.add(1);
 
         (address expectedProxy, address expectedImplementation) = factory.previewCreate2ProxyAndLogic(
@@ -240,7 +240,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
     }
 
-    function testCreate3ProxyAndLogic() public prankMnemonic(0) {
+    function testCreate3ProxyAndLogic() public pranked(0) {
         bytes32 implementationSalt = bytes32(uint256(salt) + 1);
 
         (address expectedProxy, address expectedImplementation) = factory.previewCreate3ProxyAndLogic(salt);
@@ -281,7 +281,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
     }
 
-    function testUpgradeAndCall() public prankMnemonic(0) {
+    function testUpgradeAndCall() public pranked(0) {
         Proxy memory proxy = factory.createProxy(address(new LogicA()), abi.encodeWithSelector(LogicA.initialize.selector));
 
         LogicB logicB = new LogicB();
@@ -321,7 +321,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
     }
 
-    function testCreate2UpgradeAndCall() public prankMnemonic(0) {
+    function testCreate2UpgradeAndCall() public pranked(0) {
         Proxy memory proxy = factory.create2ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
         address newOwner = getAddr(1);
         uint256 newValue = 100;
@@ -368,7 +368,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
     }
 
-    function testCreate3UpgradeAndCall() public prankMnemonic(0) {
+    function testCreate3UpgradeAndCall() public pranked(0) {
         Proxy memory proxy = factory.create3ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
 
         (address expectedImplementation, uint256 version) = factory.previewCreate3Upgrade(proxy.proxy);
@@ -406,7 +406,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
     }
 
-    function testBatching() public prankMnemonic(0) {
+    function testBatching() public pranked(0) {
         bytes[] memory initCalls = new bytes[](3);
         initCalls[0] = abi.encodeCall(factory.createProxy, (address(new LogicA()), CALLDATA_LOGIC_A));
         initCalls[1] = abi.encodeCall(factory.create2ProxyAndLogic, (LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt));
@@ -657,7 +657,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         vm.stopPrank();
     }
 
-    function testDeployKrAssetAndAnchor() public prankMnemonic(0) {
+    function testDeployKrAssetAndAnchor() public pranked(0) {
         address kresko = 0x7366d18831e535f3Ab0b804C01d454DaD72B4c36;
         address feeRecipient = 0xC4489F3A82079C5a7b0b610Fc85952B6E585E697;
         address admin = 0xFcbB93547B7C1936fEbfe56b4cEeD9Ab66dA1857;
