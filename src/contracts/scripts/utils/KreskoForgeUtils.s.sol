@@ -3,7 +3,7 @@ pragma solidity >=0.8.21;
 // solhint-disable var-name-mixedcase
 // solhint-disable no-empty-blocks
 import {Asset} from "common/Types.sol";
-import {Role, Enums} from "common/Constants.sol";
+import {Enums} from "common/Constants.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import {MockERC20, MockERC20Restricted} from "mocks/MockERC20.sol";
@@ -20,8 +20,8 @@ using Conversions for bytes;
 using Conversions for bytes[];
 
 abstract contract ConfigurationUtils is KreskoForgeBase {
-    Enums.OracleType[2] internal ORACLES_RS_CL = [Enums.OracleType.Redstone, Enums.OracleType.Chainlink];
-    Enums.OracleType[2] internal ORACLES_KISS = [Enums.OracleType.Vault, Enums.OracleType.Empty];
+    Enums.OracleType[2] internal OT_RS_CL = [Enums.OracleType.Redstone, Enums.OracleType.Chainlink];
+    Enums.OracleType[2] internal OT_KISS = [Enums.OracleType.Vault, Enums.OracleType.Empty];
     address[2] internal SKIP_FEEDS = [address(0), address(0)];
 
     AssetIdentity internal defaultCollateral =

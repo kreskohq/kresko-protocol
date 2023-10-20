@@ -5,8 +5,29 @@ import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import {Asset} from "common/Types.sol";
+import {Enums} from "common/Constants.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 
 interface IKreskoForgeTypes {
+    struct KrAssetDef {
+        string name;
+        string symbol;
+        bytes32 ticker;
+        address underlying;
+        address[2] feeds;
+        Enums.OracleType[2] oracles;
+        AssetIdentity identity;
+        bool setTickerFeeds;
+    }
+
+    struct ExtDef {
+        bytes32 ticker;
+        IERC20 token;
+        address[2] feeds;
+        Enums.OracleType[2] oracles;
+        AssetIdentity identity;
+        bool setTickerFeeds;
+    }
     struct AssetIdentity {
         bool krAsset;
         bool collateral;
@@ -59,7 +80,6 @@ interface IKreskoForgeTypes {
 
     struct TestUserConfig {
         address addr;
-        uint256 idx;
         uint256 daiBalance;
         uint256 usdcBalance;
         uint256 usdtBalance;

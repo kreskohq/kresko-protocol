@@ -2,7 +2,7 @@ set dotenv-load
 
 
 dry-local:
-	forge script src/contracts/scripts/devnet/Devnet.s.sol:WithLocal \
+	forge script src/contracts/scripts/devnet/Launch.s.sol:Local \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--with-gas-price 100000000 \
 	--skip-simulation \
@@ -10,7 +10,7 @@ dry-local:
 	-vvvv
 
 dry-arbitrum:
-	forge script src/contracts/scripts/devnet/Devnet.s.sol:WithArbitrum \
+	forge script src/contracts/scripts/devnet/Launch.s.sol:ArbitrumOne \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--with-gas-price 100000000 \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
@@ -20,7 +20,7 @@ dry-arbitrum:
 
 
 deploy-local:
-	forge script src/contracts/scripts/devnet/Devnet.s.sol:WithLocal \
+	forge script src/contracts/scripts/devnet/Launch.s.sol:Local \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \
 	--with-gas-price 100000000 \
@@ -29,7 +29,7 @@ deploy-local:
 	-vvv
 
 deploy-arbitrum:
-	forge script src/contracts/scripts/devnet/Devnet.s.sol:WithArbitrum \
+	forge script src/contracts/scripts/devnet/Launch.s.sol:ArbitrumOne \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \
 	--broadcast \
