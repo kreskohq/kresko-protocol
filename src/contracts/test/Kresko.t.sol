@@ -16,10 +16,10 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     using Strings for uint256;
     using PercentageMath for uint256;
 
-    MockCollDeploy internal usdc;
-    KrDeployExtended internal krETH;
-    KrDeployExtended internal krJPY;
-    KrDeployExtended internal KISS;
+    MockTokenDeployInfo internal usdc;
+    KrAssetInfo internal krETH;
+    KrAssetInfo internal krJPY;
+    KrAssetInfo internal KISS;
 
     string internal usdcPrice = "USDC:1:8";
     string internal ethPrice = "ETH:2000:8";
@@ -28,7 +28,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     string internal initialPrices = "USDC:1:8,ETH:2000:8,JPY:1:8,KISS:1:8";
 
     function setUp() public users(address(111), address(222), address(333)) {
-        deployArgs = DeployArgs({
+        deployArgs = CoreConfig({
             admin: testAdmin,
             seqFeed: getMockSeqFeed(),
             minterMcr: 150e2,
@@ -49,14 +49,14 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         usdc = mockCollateral(
             bytes32("USDC"),
             MockConfig({symbol: "USDC", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            fullCollateral
+            kr_full
         );
 
         krETH = mockKrAsset(
             bytes32("ETH"),
             address(0),
             MockConfig({symbol: "krETH", price: 2000e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            defaultKrAsset,
+            kr_default,
             deployArgs
         );
 
@@ -64,14 +64,14 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
             bytes32("KISS"),
             address(0),
             MockConfig({symbol: "KISS", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            defaultKISS,
+            kiss_default,
             deployArgs
         );
         krJPY = mockKrAsset(
             bytes32("JPY"),
             address(0),
             MockConfig({symbol: "krJPY", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            defaultKrAsset,
+            kr_default,
             deployArgs
         );
 
@@ -91,7 +91,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         usdcConfig.isSharedOrSwappedCollateral.equals(true);
         usdcConfig.isSharedCollateral.equals(true);
 
-        usdcConfig.decimals.equals(usdc.asset.decimals());
+        usdcConfig.decimals.equals(usdc.mock.decimals());
         usdcConfig.depositLimitSCDP.equals(type(uint128).max);
         usdcConfig.liquidityIndexSCDP.equals(1e27);
 
@@ -115,8 +115,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     function testDeposit() public prankedAddr(user0) {
         uint256 depositAmount = 100e18;
 
-        usdc.asset.mint(user0, depositAmount);
-        usdc.asset.approve(address(kresko), depositAmount);
+        usdc.mock.mint(user0, depositAmount);
+        usdc.mock.approve(address(kresko), depositAmount);
 
         kresko.depositCollateral(user0, usdc.addr, depositAmount);
         kresko.getAccountCollateralAmount(user0, usdc.addr).equals(depositAmount);
@@ -128,8 +128,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         uint256 depositAmount = 1000e18;
         uint256 mintAmount = 100e18;
 
-        usdc.asset.mint(user0, depositAmount);
-        usdc.asset.approve(address(kresko), depositAmount);
+        usdc.mock.mint(user0, depositAmount);
+        usdc.mock.approve(address(kresko), depositAmount);
 
         kresko.depositCollateral(user0, usdc.addr, depositAmount);
         kresko.getAccountCollateralAmount(user0, usdc.addr).equals(depositAmount);
@@ -143,8 +143,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         uint256 depositAmount = 1000e18;
         uint256 mintAmount = 100e18;
 
-        usdc.asset.mint(user0, depositAmount);
-        usdc.asset.approve(address(kresko), depositAmount);
+        usdc.mock.mint(user0, depositAmount);
+        usdc.mock.approve(address(kresko), depositAmount);
 
         kresko.depositCollateral(user0, usdc.addr, depositAmount);
         kresko.getAccountCollateralAmount(user0, usdc.addr).equals(depositAmount);
@@ -159,8 +159,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         uint256 depositAmount = 1000e18;
         uint256 mintAmount = 100e18;
 
-        usdc.asset.mint(user0, depositAmount);
-        usdc.asset.approve(address(kresko), depositAmount);
+        usdc.mock.mint(user0, depositAmount);
+        usdc.mock.approve(address(kresko), depositAmount);
 
         kresko.depositCollateral(user0, usdc.addr, depositAmount);
         kresko.getAccountCollateralAmount(user0, usdc.addr).equals(depositAmount);
@@ -179,8 +179,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         bytes memory redstonePayload = getRedstonePayload(initialPrices);
         bool success;
 
-        usdc.asset.mint(user0, depositAmount);
-        usdc.asset.approve(address(kresko), depositAmount);
+        usdc.mock.mint(user0, depositAmount);
+        usdc.mock.approve(address(kresko), depositAmount);
 
         uint256 gasDeposit = gasleft();
         kresko.depositCollateral(user0, usdc.addr, depositAmount);

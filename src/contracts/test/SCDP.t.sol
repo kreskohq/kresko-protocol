@@ -16,11 +16,11 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     using WadRay for uint256;
     using PercentageMath for uint256;
 
-    MockCollDeploy internal usdc;
-    KrDeployExtended internal KISS;
-    KrDeployExtended internal krETH;
-    KrDeployExtended internal krJPY;
-    KrDeployExtended internal krTSLA;
+    MockTokenDeployInfo internal usdc;
+    KrAssetInfo internal KISS;
+    KrAssetInfo internal krETH;
+    KrAssetInfo internal krJPY;
+    KrAssetInfo internal krTSLA;
 
     string usdcPrice = "USDC:1:8";
     string ethPrice = "ETH:2000:8";
@@ -30,7 +30,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     string initialPrices = "USDC:1:8,ETH:2000:8,JPY:1:8,KISS:1:8,TSLA:1:8";
 
     function setUp() public users(address(11), address(22), address(33)) {
-        deployArgs = DeployArgs({
+        deployArgs = CoreConfig({
             admin: testAdmin,
             seqFeed: getMockSeqFeed(),
             minterMcr: 150e2,
@@ -52,34 +52,34 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         usdc = mockCollateral(
             bytes32("USDC"),
             MockConfig({symbol: "USDC", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            fullCollateral
+            ext_full
         );
         KISS = mockKrAsset(
             bytes32("KISS"),
             address(0),
             MockConfig({symbol: "KISS", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            fullKrAsset,
+            kr_full,
             deployArgs
         );
         krETH = mockKrAsset(
             bytes32("ETH"),
             address(0),
             MockConfig({symbol: "krETH", price: 2000e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            defaultKrAsset,
+            kr_default,
             deployArgs
         );
         krJPY = mockKrAsset(
             bytes32("JPY"),
             address(0),
             MockConfig({symbol: "krJPY", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            onlySwapMintable,
+            kr_swap_only,
             deployArgs
         );
         krTSLA = mockKrAsset(
             bytes32("TSLA"),
             address(0),
             MockConfig({symbol: "krTSLA", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
-            onlySwapMintable,
+            kr_swap_only,
             deployArgs
         );
         kresko.setFeeAssetSCDP(KISS.addr);
@@ -106,16 +106,16 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     function testDeposit() public {
         uint256 amount = 1000e18;
 
-        usdc.asset.mint(user0, 1000e18);
+        usdc.mock.mint(user0, 1000e18);
         poolDeposit(user0, usdc.addr, amount, initialPrices);
         staticCall(kresko.totalSDI.selector, initialPrices).equals(0, "total supply should be 0");
-        usdc.asset.balanceOf(address(kresko)).equals(amount);
+        usdc.mock.balanceOf(address(kresko)).equals(amount);
 
         staticCall(kresko.getTotalCollateralValueSCDP.selector, true, initialPrices).equals(1000e8);
     }
 
     function testWithdraw() public {
-        usdc.asset.mint(user0, 1000e18);
+        usdc.mock.mint(user0, 1000e18);
         poolDeposit(user0, usdc.addr, 1000e18, initialPrices);
 
         poolWithdraw(user0, usdc.addr, 1000e18, initialPrices);
@@ -127,8 +127,8 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         uint256 borrowAmount = 1000e18;
         uint256 swapAmount = borrowAmount / 4;
 
-        usdc.asset.mint(user0, depositAmount * 2);
-        usdc.asset.mint(user1, depositAmount);
+        usdc.mock.mint(user0, depositAmount * 2);
+        usdc.mock.mint(user1, depositAmount);
 
         vm.startPrank(user0);
         kresko.depositCollateral(user0, usdc.addr, depositAmount);
@@ -191,7 +191,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         bytes memory redstonePayload = getRedstonePayload(initialPrices);
 
         uint256 scdpDepositAmount = depositValueWad / 2;
-        uint256 swapValueWad = ((scdpDepositAmount / 2) * 1e8) / KISS.oracle.price();
+        uint256 swapValueWad = ((scdpDepositAmount / 2) * 1e8) / KISS.mockFeed.price();
 
         bytes memory depositData = abi.encodePacked(
             abi.encodeWithSelector(kresko.depositSCDP.selector, user0, KISS.addr, scdpDepositAmount),
@@ -254,13 +254,13 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         uint256 scdpDepositAmount = depositValueWad / 2;
         call(kresko.depositSCDP.selector, user0, KISS.addr, scdpDepositAmount, initialPrices);
 
-        swapValueWad = ((scdpDepositAmount / 2) * 1e8) / KISS.oracle.price();
+        swapValueWad = ((scdpDepositAmount / 2) * 1e8) / KISS.mockFeed.price();
 
         call(kresko.swapSCDP.selector, user0, KISS.addr, krETH.addr, swapValueWad, 0, initialPrices);
     }
 
     function mintKISS(address user, uint256 amount) internal {
-        usdc.asset.mint(user, amount * (2));
+        usdc.mock.mint(user, amount * (2));
         kresko.depositCollateral(user, usdc.addr, amount * (2));
         call(kresko.mintKreskoAsset.selector, user, KISS.addr, amount, initialPrices);
     }
@@ -288,7 +288,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     }
 
     function _approvals(address user) internal prankedAddr(user) {
-        usdc.asset.approve(address(kresko), type(uint256).max);
+        usdc.mock.approve(address(kresko), type(uint256).max);
         krETH.krAsset.approve(address(kresko), type(uint256).max);
         KISS.krAsset.approve(address(kresko), type(uint256).max);
         krJPY.krAsset.approve(address(kresko), type(uint256).max);

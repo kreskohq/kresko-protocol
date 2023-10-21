@@ -16,7 +16,7 @@ dry-arbitrum:
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--skip-simulation \
 	--ffi \
-	-vvvv
+	-vvv
 
 
 deploy-local:

@@ -1,40 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import {MockERC20} from "mocks/MockERC20.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import {Asset} from "common/Types.sol";
-import {Enums} from "common/Constants.sol";
-import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {Vault} from "vault/Vault.sol";
+import {KISS} from "kiss/KISS.sol";
 
 interface IKreskoForgeTypes {
-    struct KrAssetDef {
-        string name;
-        string symbol;
-        bytes32 ticker;
-        address underlying;
-        address[2] feeds;
-        Enums.OracleType[2] oracles;
-        AssetIdentity identity;
-        bool setTickerFeeds;
-    }
-
-    struct ExtDef {
-        bytes32 ticker;
-        IERC20 token;
-        address[2] feeds;
-        Enums.OracleType[2] oracles;
-        AssetIdentity identity;
-        bool setTickerFeeds;
-    }
     struct AssetIdentity {
         bool krAsset;
         bool collateral;
         bool scdpKrAsset;
         bool scdpDepositable;
     }
-    struct DeployArgs {
+    struct CoreConfig {
         uint32 minterMcr;
         uint32 minterLt;
         uint32 scdpMcr;
@@ -48,41 +31,47 @@ interface IKreskoForgeTypes {
         address treasury;
     }
 
-    struct KrDeploy {
+    struct KrAssetDeployInfo {
         address addr;
         KreskoAsset krAsset;
         KreskoAssetAnchor anchor;
         address underlyingAddr;
     }
 
-    struct KrDeployExtended {
+    struct KrAssetInfo {
         address addr;
-        address oracleAddr;
+        Asset config;
         KreskoAsset krAsset;
         KreskoAssetAnchor anchor;
         address underlyingAddr;
-        MockOracle oracle;
-        Asset config;
+        address feedAddr;
+        MockOracle mockFeed;
+        IAggregatorV3 feed;
+        IERC20 asToken;
+    }
+    struct MockConfig {
+        string symbol;
+        uint256 price;
+        uint8 tknDecimals;
+        uint8 oracleDecimals;
+        bool setFeeds;
     }
 
-    struct MockCollDeploy {
+    struct MockTokenDeployInfo {
         address addr;
-        address oracleAddr;
-        MockERC20 asset;
-        MockOracle oracle;
         Asset config;
+        IAggregatorV3 feed;
+        address feedAddr;
+        MockERC20 mock;
+        MockOracle mockFeed;
+        IERC20 asToken;
     }
-    struct KISSConfig {
-        Asset config;
+    struct KISSDeployInfo {
         address addr;
+        KISS kiss;
+        Asset config;
+        Vault vault;
         address vaultAddr;
-    }
-
-    struct TestUserConfig {
-        address addr;
-        uint256 daiBalance;
-        uint256 usdcBalance;
-        uint256 usdtBalance;
-        uint256 wethBalance;
+        IERC20 asToken;
     }
 }

@@ -45,7 +45,7 @@ abstract contract KreskoForgeBase is
     FacetScript("./utils/getFunctionSelectors.sh")
 {
     address internal testAdmin = address(0xABABAB);
-    DeployArgs internal deployArgs;
+    CoreConfig internal deployArgs;
     IKresko internal kresko;
     KISS internal kiss;
     Vault internal vkiss;
@@ -58,7 +58,7 @@ abstract contract KreskoForgeBase is
         _;
     }
 
-    function deployDiamond(DeployArgs memory args) internal returns (IKresko kresko_) {
+    function deployDiamond(CoreConfig memory args) internal returns (IKresko kresko_) {
         FacetCut[] memory facets = new FacetCut[](FACET_COUNT);
         Initializer[] memory initializers = new Initializer[](FACET_COUNT);
         /* --------------------------------- Diamond -------------------------------- */
@@ -73,7 +73,7 @@ abstract contract KreskoForgeBase is
         __current_kresko = address(kresko_); // @note mandatory
     }
 
-    function getCommonInitArgs(DeployArgs memory args) internal pure returns (CommonInitArgs memory init) {
+    function getCommonInitArgs(CoreConfig memory args) internal pure returns (CommonInitArgs memory init) {
         init.admin = args.admin;
         init.council = args.council;
         init.treasury = args.treasury;
@@ -86,12 +86,12 @@ abstract contract KreskoForgeBase is
         init.phase = 3;
     }
 
-    function getMinterInitArgs(DeployArgs memory args) internal pure returns (MinterInitArgs memory init) {
+    function getMinterInitArgs(CoreConfig memory args) internal pure returns (MinterInitArgs memory init) {
         init.minCollateralRatio = args.minterMcr;
         init.liquidationThreshold = args.minterLt;
     }
 
-    function getSCDPInitArgs(DeployArgs memory args) internal pure returns (SCDPInitArgs memory init) {
+    function getSCDPInitArgs(CoreConfig memory args) internal pure returns (SCDPInitArgs memory init) {
         init.minCollateralRatio = args.scdpMcr;
         init.liquidationThreshold = args.scdpLt;
         init.sdiPricePrecision = args.sdiPrecision;
@@ -122,7 +122,7 @@ abstract contract KreskoForgeBase is
         return Initializer({initContract: address(0), initData: ""});
     }
 
-    function commonFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initializer memory) {
+    function commonFacets(CoreConfig memory args, FacetCut[] memory facets) internal returns (Initializer memory) {
         address configurationFacetAddress = address(new CommonConfigurationFacet());
         facets[4] = FacetCut({
             facetAddress: configurationFacetAddress,
@@ -162,7 +162,7 @@ abstract contract KreskoForgeBase is
             );
     }
 
-    function minterFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initializer memory) {
+    function minterFacets(CoreConfig memory args, FacetCut[] memory facets) internal returns (Initializer memory) {
         address configurationFacetAddress = address(new MinterConfigurationFacet());
         facets[10] = FacetCut({
             facetAddress: configurationFacetAddress,
@@ -207,7 +207,7 @@ abstract contract KreskoForgeBase is
             );
     }
 
-    function scdpFacets(DeployArgs memory args, FacetCut[] memory facets) internal returns (Initializer memory) {
+    function scdpFacets(CoreConfig memory args, FacetCut[] memory facets) internal returns (Initializer memory) {
         address configurationFacetAddress = address(new SCDPConfigFacet());
 
         facets[17] = FacetCut({
@@ -242,7 +242,7 @@ abstract contract KreskoForgeBase is
             );
     }
 
-    function deployDiamondOneTx(DeployArgs memory args) internal returns (IKresko kresko_) {
+    function deployDiamondOneTx(CoreConfig memory args) internal returns (IKresko kresko_) {
         string[] memory cmd = new string[](2);
         cmd[0] = "./utils/getBytecodes.sh";
         cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
@@ -255,7 +255,7 @@ abstract contract KreskoForgeBase is
 
     function getInitializers(
         bytes4[][] memory selectors,
-        DeployArgs memory args
+        CoreConfig memory args
     ) internal pure returns (uint256[] memory initializers, bytes[] memory datas) {
         initializers = new uint256[](INITIALIZER_COUNT);
         datas = new bytes[](INITIALIZER_COUNT);
