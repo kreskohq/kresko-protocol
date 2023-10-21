@@ -14,7 +14,7 @@ contract ArbitrumOne is ArbitrumSetup("MNEMONIC_DEVNET") {
         // deploys
         address kreskoAddr = createCore(cfg);
         address vaultAddr = createVault(cfg, kreskoAddr);
-        KISSDeployInfo memory kissInfo = createKISS(cfg, kreskoAddr, vaultAddr);
+        KISSInfo memory kissInfo = createKISS(cfg, kreskoAddr, vaultAddr);
         KrAssetDeployInfo[] memory krAssetInfos = createKrAssets(cfg, assetCfg);
         // configure
         configureAssets(assetCfg, krAssetInfos, kissInfo);
@@ -32,7 +32,7 @@ contract Local is LocalSetup("MNEMONIC_DEVNET") {
         // deploys
         address kreskoAddr = createCore(cfg);
         address vaultAddr = createVault(cfg, kreskoAddr);
-        KISSDeployInfo memory kissInfo = createKISS(cfg, kreskoAddr, vaultAddr);
+        KISSInfo memory kissInfo = createKISS(cfg, kreskoAddr, vaultAddr);
         KrAssetDeployInfo[] memory krAssetInfos = createKrAssets(cfg, assetCfg);
         // configure
         configureAssets(assetCfg, krAssetInfos, kissInfo);

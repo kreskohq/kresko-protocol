@@ -16,7 +16,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     using Strings for uint256;
     using PercentageMath for uint256;
 
-    MockTokenDeployInfo internal usdc;
+    MockTokenInfo internal usdc;
     KrAssetInfo internal krETH;
     KrAssetInfo internal krJPY;
     KrAssetInfo internal KISS;
@@ -28,8 +28,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     string internal initialPrices = "USDC:1:8,ETH:2000:8,JPY:1:8,KISS:1:8";
 
     function setUp() public users(address(111), address(222), address(333)) {
-        deployArgs = CoreConfig({
-            admin: testAdmin,
+        deployCfg = CoreConfig({
+            admin: TEST_ADMIN,
             seqFeed: getMockSeqFeed(),
             minterMcr: 150e2,
             minterLt: 140e2,
@@ -38,41 +38,41 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
             sdiPrecision: 8,
             oraclePrecision: 8,
             staleTime: 86401,
-            council: getMockSafe(testAdmin),
+            council: getMockSafe(TEST_ADMIN),
             treasury: TEST_TREASURY
         });
-        vm.startPrank(deployArgs.admin);
-        proxyFactory = deployProxyFactory(testAdmin);
-        kresko = deployDiamond(deployArgs);
+        vm.startPrank(deployCfg.admin);
+        proxyFactory = deployProxyFactory(TEST_ADMIN);
+        kresko = deployDiamond(deployCfg);
         vm.warp(3601);
 
         usdc = mockCollateral(
             bytes32("USDC"),
-            MockConfig({symbol: "USDC", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            MockConfig({symbol: "USDC", price: 1e8, setFeeds: true, dec: 18, feedDec: 8}),
             kr_full
         );
 
         krETH = mockKrAsset(
             bytes32("ETH"),
             address(0),
-            MockConfig({symbol: "krETH", price: 2000e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            MockConfig({symbol: "krETH", price: 2000e8, setFeeds: true, dec: 18, feedDec: 8}),
             kr_default,
-            deployArgs
+            deployCfg
         );
 
         KISS = mockKrAsset(
             bytes32("KISS"),
             address(0),
-            MockConfig({symbol: "KISS", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            MockConfig({symbol: "KISS", price: 1e8, setFeeds: true, dec: 18, feedDec: 8}),
             kiss_default,
-            deployArgs
+            deployCfg
         );
         krJPY = mockKrAsset(
             bytes32("JPY"),
             address(0),
-            MockConfig({symbol: "krJPY", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),
+            MockConfig({symbol: "krJPY", price: 1e8, setFeeds: true, dec: 18, feedDec: 8}),
             kr_default,
-            deployArgs
+            deployCfg
         );
 
         enableSwapBothWays(usdc.addr, krETH.addr, true);
@@ -82,7 +82,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     }
 
     function testSetup() public {
-        kresko.owner().equals(deployArgs.admin);
+        kresko.owner().equals(deployCfg.admin);
         Asset memory usdcConfig = kresko.getAsset(usdc.addr);
         Asset memory krETHConfig = kresko.getAsset(krETH.addr);
         kresko.getMinCollateralRatioMinter().equals(150e2);

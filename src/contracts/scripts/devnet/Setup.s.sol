@@ -163,7 +163,7 @@ abstract contract DevnetSetupBase is DefaultAssets {
     constructor(string memory _mnemonicId) DefaultAssets(_mnemonicId) {}
 
     KrAssetInfo[] internal KR_ASSETS;
-    KISSDeployInfo internal KISS_INFO;
+    KISSInfo internal KISS_INFO;
 
     function createAssetConfig() internal virtual returns ($.Assets memory assetCfg_);
 
@@ -186,7 +186,7 @@ abstract contract DevnetSetupBase is DefaultAssets {
         CoreConfig memory _cfg,
         address _kresko,
         address _vault
-    ) internal virtual returns (KISSDeployInfo memory kiss_) {
+    ) internal virtual returns (KISSInfo memory kiss_) {
         return deployKISS(_kresko, _vault, _cfg.admin);
     }
 
@@ -221,7 +221,7 @@ abstract contract DevnetSetupBase is DefaultAssets {
     function configureAssets(
         $.Assets memory _assetCfg,
         KrAssetDeployInfo[] memory _kraContracts,
-        KISSDeployInfo memory _kiss
+        KISSInfo memory _kiss
     ) internal virtual;
 
     function configureSwaps(address _kissAddr) internal virtual;
@@ -264,7 +264,7 @@ abstract contract ArbitrumSetup is DevnetSetupBase {
     function createCoreConfig() internal override returns (CoreConfig memory cfg_) {
         address admin = getAddr(0);
         address treasury = getAddr(10);
-        deployArgs = CoreConfig({
+        deployCfg = CoreConfig({
             admin: admin,
             seqFeed: addr.CL_SEQ_UPTIME,
             staleTime: 86401,
@@ -277,13 +277,13 @@ abstract contract ArbitrumSetup is DevnetSetupBase {
             council: getMockSafe(admin),
             treasury: treasury
         });
-        return deployArgs;
+        return deployCfg;
     }
 
     function configureAssets(
         $.Assets memory _assetCfg,
         KrAssetDeployInfo[] memory _kraContracts,
-        KISSDeployInfo memory _kiss
+        KISSInfo memory _kiss
     ) internal override {
         require(_kraContracts[0].addr != address(0), "configureAssets: krAssets not deployed");
         require(_kiss.addr != address(0), "configureAssets: KISS not deployed");
@@ -350,10 +350,10 @@ abstract contract ArbitrumSetup is DevnetSetupBase {
 abstract contract LocalSetup is DevnetSetupBase {
     constructor(string memory _mnemonicId) DevnetSetupBase(_mnemonicId) {}
 
-    MockTokenDeployInfo internal mockWBTC;
-    MockTokenDeployInfo internal mockDAI;
-    MockTokenDeployInfo internal mockUSDC;
-    MockTokenDeployInfo internal mockUSDT;
+    MockTokenInfo internal mockWBTC;
+    MockTokenInfo internal mockDAI;
+    MockTokenInfo internal mockUSDC;
+    MockTokenInfo internal mockUSDT;
     MockOracle internal mockFeedETH;
     MockOracle internal mockFeedEUR;
     MockOracle internal mockFeedJPY;
@@ -397,7 +397,7 @@ abstract contract LocalSetup is DevnetSetupBase {
     function createCoreConfig() internal override returns (CoreConfig memory cfg_) {
         address admin = getAddr(0);
         address treasury = getAddr(10);
-        deployArgs = CoreConfig({
+        deployCfg = CoreConfig({
             admin: admin,
             seqFeed: address(new MockSequencerUptimeFeed()),
             staleTime: 86401,
@@ -410,13 +410,13 @@ abstract contract LocalSetup is DevnetSetupBase {
             council: getMockSafe(admin),
             treasury: TEST_TREASURY
         });
-        return deployArgs;
+        return deployCfg;
     }
 
     function configureAssets(
         $.Assets memory _assetCfg,
         KrAssetDeployInfo[] memory _kraContracts,
-        KISSDeployInfo memory _kiss
+        KISSInfo memory _kiss
     ) internal override {
         require(_kraContracts[0].addr != address(0), "configureAssets: krAssets not deployed");
         require(_kiss.addr != address(0), "configureAssets: KISS not deployed");

@@ -52,12 +52,12 @@ interface IKreskoForgeTypes {
     struct MockConfig {
         string symbol;
         uint256 price;
-        uint8 tknDecimals;
-        uint8 oracleDecimals;
+        uint8 dec;
+        uint8 feedDec;
         bool setFeeds;
     }
 
-    struct MockTokenDeployInfo {
+    struct MockTokenInfo {
         address addr;
         Asset config;
         IAggregatorV3 feed;
@@ -66,7 +66,7 @@ interface IKreskoForgeTypes {
         MockOracle mockFeed;
         IERC20 asToken;
     }
-    struct KISSDeployInfo {
+    struct KISSInfo {
         address addr;
         KISS kiss;
         Asset config;

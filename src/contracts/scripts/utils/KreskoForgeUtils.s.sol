@@ -138,7 +138,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         return config_;
     }
 
-    function addKISS(KISSDeployInfo memory _kissContracts) internal returns (KISSDeployInfo memory) {
+    function addKISS(KISSInfo memory _kissContracts) internal returns (KISSInfo memory) {
         _kissContracts.config = addKISS(_kissContracts.addr, _kissContracts.vaultAddr, kiss_default).config;
         return _kissContracts;
     }
@@ -147,7 +147,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         address kissAddr,
         address vaultAddr,
         AssetIdentity memory identity
-    ) internal requiresKresko returns (KISSDeployInfo memory kissContracts_) {
+    ) internal requiresKresko returns (KISSInfo memory kissContracts_) {
         kissContracts_.config.ticker = bytes32("KISS");
         kissContracts_.config.anchor = kissAddr;
         kissContracts_.config.oracles = OT_KISS;
@@ -283,7 +283,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         address kreskoAddr,
         address vaultAddr,
         address admin
-    ) internal needsProxyFactory returns (KISSDeployInfo memory kissInfo_) {
+    ) internal needsProxyFactory returns (KISSInfo memory kissInfo_) {
         require(kreskoAddr != address(0), "deployKISS: Kresko address is zero");
         require(vaultAddr != address(0), "deployKISS: Vault address is zero");
         Proxy memory proxy = proxyFactory.create3ProxyAndLogic(
@@ -387,24 +387,24 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         bytes32 ticker,
         MockConfig memory config,
         AssetIdentity memory identity
-    ) internal returns (MockTokenDeployInfo memory result) {
-        result.mock = deployMockToken(config.symbol, config.symbol, config.tknDecimals, 0);
+    ) internal returns (MockTokenInfo memory result) {
+        result.mock = deployMockToken(config.symbol, config.symbol, config.dec, 0);
         result.addr = address(result.mock);
         result.asToken = IERC20(result.addr);
 
-        result.mockFeed = deployMockOracle(config.symbol, config.price, config.oracleDecimals);
+        result.mockFeed = deployMockOracle(config.symbol, config.price, config.feedDec);
         result.feedAddr = address(result.mockFeed);
         result.feed = IAggregatorV3(result.feedAddr);
 
         result.config = addCollateral(ticker, result.addr, config.setFeeds, OT_RS_CL, [address(0), result.feedAddr], identity);
     }
 
-    function deployMockTokenAndOracle(MockConfig memory config) internal returns (MockTokenDeployInfo memory result) {
-        result.mock = deployMockToken(config.symbol, config.symbol, config.tknDecimals, 0);
+    function deployMockTokenAndOracle(MockConfig memory config) internal returns (MockTokenInfo memory result) {
+        result.mock = deployMockToken(config.symbol, config.symbol, config.dec, 0);
         result.addr = address(result.mock);
         result.asToken = IERC20(result.addr);
 
-        result.mockFeed = deployMockOracle(config.symbol, config.price, config.oracleDecimals);
+        result.mockFeed = deployMockOracle(config.symbol, config.price, config.feedDec);
         result.feedAddr = address(result.mockFeed);
         result.feed = IAggregatorV3(result.feedAddr);
     }

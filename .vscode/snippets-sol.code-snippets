@@ -41,8 +41,8 @@
     "scope": "solidity",
     "body": ["/** ", "* @title $1", "* @author Kresko", "* @notice $2", "* @dev $3", "*/"]
   },
-  "Forge Test Template": {
-    "prefix": "forgetesttemplate",
+  "Forge Kresko Test Template": {
+    "prefix": "forgekreskotesttemplate",
     "body": [
       "// solhint-disable no-console",
       "",
@@ -59,7 +59,7 @@
       "using WadRay for uint256;",
       "using PercentageMath for uint256;",
       "",
-      "contract NewTest is TestBase(\"MNEMONIC_TESTNET\") {",
+      "contract NewTest is TestBase(\"MNEMONIC_DEVNET\") {",
       "    using LibTest for *;",
       "",
       "    address internal addr;",
@@ -79,8 +79,8 @@
     ],
     "description": "Quick base for a new forge test file"
   },
-  "Forge Protocol Test Template": {
-    "prefix": "forgetestprotocoltemplate",
+  "Forge Kresko Test Protocol Template": {
+    "prefix": "forgekreskotestprotocoltemplate",
     "body": [
       "// solhint-disable",
       "",
@@ -100,7 +100,9 @@
       "    using WadRay for uint256;",
       "    using PercentageMath for uint256;",
       "",
-      "    MockTokenDeployInfo internal usdc;",
+      "    MockConfig usdConfig = MockConfig({symbol: \"USDC\", price: 1e8, setFeeds: true, dec: 18, feedDec: 8});",
+      "    MockConfig krETHConfig = MockConfig({symbol: \"krETH\", price: 2000e8, setFeeds: true, dec: 18, feedDec: 8});",
+      "    MockTokenInfo internal usdc;",
       "    KrAssetInfo internal krETH;",
       "",
       "    string usdcPrice = \"USDC:1:8\";",
@@ -108,8 +110,8 @@
       "    string initialPrices = \"USDC:1:8,ETH:2000:8\";",
       "",
       "    function setUp() public users(address(11), address(22), address(33)) {",
-      "        deployArgs = CoreConfig({",
-      "            admin: testAdmin,",
+      "        deployCfg = CoreConfig({",
+      "            admin: TEST_ADMIN,",
       "            seqFeed: getMockSeqFeed(),",
       "            minterMcr: 150e2,",
       "            minterLt: 140e2,",
@@ -118,26 +120,15 @@
       "            sdiPrecision: 8,",
       "            oraclePrecision: 8,",
       "            staleTime: 86401,",
-      "            council: getMockSafe(testAdmin),",
+      "            council: getMockSafe(TEST_ADMIN),",
       "            treasury: TEST_TREASURY",
       "        });",
-      "        vm.startPrank(deployArgs.admin);",
-      "",
-      "        kresko = deployDiamond(deployArgs);",
+      "        prank(deployCfg.admin);",
+      "        kresko = deployDiamond(deployCfg);",
+      "        proxyFactory = deployProxyFactory(TEST_ADMIN);",
       "        vm.warp(3601);",
-      "",
-      "        usdc = mockCollateral(",
-      "            bytes32(\"USDC\"),",
-      "            MockConfig({symbol: \"USDC\", price: 1e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),",
-      "            fullCollateral",
-      "        );",
-      "        krETH = mockKrAsset(",
-      "            bytes32(\"ETH\"),",
-      "            address(0),",
-      "            MockConfig({symbol: \"krETH\", price: 2000e8, setFeeds: true, tknDecimals: 18, oracleDecimals: 8}),",
-      "            defaultKrAsset,",
-      "            deployArgs",
-      "        );",
+      "        usdc = mockCollateral(bytes32(\"USDC\"), usdConfig, ext_full);",
+      "        krETH = mockKrAsset(bytes32(\"ETH\"), address(0), krETHConfig, kr_default, deployCfg);",
       "    }",
       "",
       "    function testSomething() public {",
@@ -146,6 +137,6 @@
       "    }",
       "}"
     ],
-    "description": "Quick template for a protocol forge test"
+    "description": "forge test template for protocol"
   }
 }
