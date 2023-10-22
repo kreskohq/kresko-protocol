@@ -331,7 +331,7 @@ contract Vault is IVault, ERC20 {
     }
 
     /// @inheritdoc IVault
-    function addAsset(VaultAsset memory assetConfig) external onlyGovernance {
+    function addAsset(VaultAsset memory assetConfig) external onlyGovernance returns (VaultAsset memory) {
         address assetAddr = address(assetConfig.token);
         if (assetAddr == address(0)) revert Errors.ZERO_ADDRESS();
         if (_assets[assetAddr].decimals != 0) revert Errors.ASSET_ALREADY_EXISTS(Errors.id(assetAddr));
@@ -352,6 +352,8 @@ contract Vault is IVault, ERC20 {
             assetConfig.maxDeposits,
             block.timestamp
         );
+
+        return assetConfig;
     }
 
     /// @inheritdoc IVault

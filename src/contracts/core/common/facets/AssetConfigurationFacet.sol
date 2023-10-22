@@ -28,7 +28,11 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
     using Validations for address;
 
     /// @inheritdoc IAssetConfigurationFacet
-    function addAsset(address _assetAddr, Asset memory _config, address[2] memory _feeds) external onlyRole(Role.ADMIN) {
+    function addAsset(
+        address _assetAddr,
+        Asset memory _config,
+        address[2] memory _feeds
+    ) external onlyRole(Role.ADMIN) returns (Asset memory) {
         (string memory symbol, string memory tickerStr, uint8 decimals) = _assetAddr.validateAddAssetArgs(_config);
         _config.decimals = decimals;
 
@@ -82,10 +86,11 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
             );
         }
         Validations.validateRawAssetPrice(_assetAddr);
+        return _config;
     }
 
     /// @inheritdoc IAssetConfigurationFacet
-    function updateAsset(address _assetAddr, Asset memory _config) external onlyRole(Role.ADMIN) {
+    function updateAsset(address _assetAddr, Asset memory _config) external onlyRole(Role.ADMIN) returns (Asset memory) {
         (string memory symbol, string memory tickerStr, Asset storage asset) = _assetAddr.validateUpdateAssetArgs(_config);
 
         asset.ticker = _config.ticker;
@@ -166,6 +171,8 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         } // no deleting collaterals here
 
         Validations.validateRawAssetPrice(_assetAddr);
+
+        return asset;
     }
 
     /// @inheritdoc IAssetConfigurationFacet

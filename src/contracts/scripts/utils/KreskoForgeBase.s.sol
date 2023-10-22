@@ -36,14 +36,13 @@ import {KISS} from "kiss/KISS.sol";
 import {Vault} from "vault/Vault.sol";
 import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
 
-uint256 constant FACET_COUNT = 22;
-uint256 constant INITIALIZER_COUNT = 3;
-
 abstract contract KreskoForgeBase is
     IKreskoForgeTypes,
     RedstoneScript("./utils/getRedstonePayload.js"),
     FacetScript("./utils/getFunctionSelectors.sh")
 {
+    uint256 internal constant FACET_COUNT = 22;
+    uint256 internal constant INITIALIZER_COUNT = 3;
     address internal constant TEST_ADMIN = address(0xABABAB);
     address public constant TEST_TREASURY = address(0xFEE);
 

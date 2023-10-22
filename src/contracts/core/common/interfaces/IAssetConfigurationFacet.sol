@@ -11,10 +11,11 @@ interface IAssetConfigurationFacet {
      * @param _assetAddr Asset address.
      * @param _config Configuration struct to save for the asset.
      * @param _feeds Feed addresses, if both are address(0) they are ignored.
-     * @custom:signature addAsset(address,(bytes32,address,uint8[2],uint16,uint16,uint16,uint16,uint16,uint256,uint256,uint256,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool),address[2])
-     * @custom:selector 0x4bc7e683
+     * @return Asset Result of addAsset.
+     * @custom:signature addAsset(address,(bytes32,address,,uint16,uint16,uint16,uint16,uint16,uint256,uint256,uint256,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool),address[2])
+     * @custom:selector 0x73320167
      */
-    function addAsset(address _assetAddr, Asset memory _config, address[2] memory _feeds) external;
+    function addAsset(address _assetAddr, Asset memory _config, address[2] memory _feeds) external returns (Asset memory);
 
     /**
      * @notice Update asset config.
@@ -22,10 +23,10 @@ interface IAssetConfigurationFacet {
      * @dev Use validateAssetConfig / static call this for validation.
      * @param _assetAddr The asset address.
      * @param _config Configuration struct to apply for the asset.
-     * @custom:signature updateAsset(address,(bytes32,address,uint8[2],uint16,uint16,uint16,uint16,uint16,uint256,uint256,uint256,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool))
-     * @custom:selector 0xf8ff2fe6
+     * @custom:signature updateAsset(address,(bytes32,address,,uint16,uint16,uint16,uint16,uint16,uint256,uint256,uint256,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool))
+     * @custom:selector 0xe2f08b19
      */
-    function updateAsset(address _assetAddr, Asset memory _config) external;
+    function updateAsset(address _assetAddr, Asset memory _config) external returns (Asset memory);
 
     /**
      * @notice  Updates the cFactor of a KreskoAsset. Convenience.

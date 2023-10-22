@@ -180,7 +180,7 @@ interface IVault {
      * @notice Adds a new asset to the vault
      * @param assetConfig Asset to add
      */
-    function addAsset(VaultAsset memory assetConfig) external;
+    function addAsset(VaultAsset memory assetConfig) external returns (VaultAsset memory);
 
     /**
      * @notice Removes an asset from the vault

@@ -7,7 +7,7 @@ dry-local:
 	--with-gas-price 100000000 \
 	--skip-simulation \
 	--ffi \
-	-vvvv
+	-vvv
 
 dry-arbitrum:
 	forge script src/contracts/scripts/devnet/Launch.s.sol:ArbitrumOne \
@@ -35,7 +35,7 @@ deploy-arbitrum:
 	--broadcast \
 	--with-gas-price 100000000 \
 	--ffi \
-	-vvvv 
+	-vvv
 
 anvil-fork:
 	anvil -m "$MNEMONIC_DEVNET" \

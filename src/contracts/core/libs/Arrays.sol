@@ -9,6 +9,8 @@ import {Enums} from "common/Constants.sol";
  */
 library Arrays {
     using Arrays for address[];
+    using Arrays for bytes32[];
+    using Arrays for string[];
 
     struct FindResult {
         uint256 index;
@@ -23,10 +25,10 @@ library Arrays {
         return _oracles[0] == Enums.OracleType.Empty && _oracles[1] == Enums.OracleType.Empty;
     }
 
-    function find(address[] storage _addresses, address _elementToFind) internal pure returns (FindResult memory result) {
-        address[] memory addresses = _addresses;
-        for (uint256 i; i < addresses.length; ) {
-            if (addresses[i] == _elementToFind) {
+    function find(address[] storage _elements, address _elementToFind) internal pure returns (FindResult memory result) {
+        address[] memory elements = _elements;
+        for (uint256 i; i < elements.length; ) {
+            if (elements[i] == _elementToFind) {
                 return FindResult(i, true);
             }
             unchecked {
@@ -35,9 +37,45 @@ library Arrays {
         }
     }
 
-    function pushUnique(address[] storage _addresses, address _elementToAdd) internal {
-        if (!_addresses.find(_elementToAdd).exists) {
-            _addresses.push(_elementToAdd);
+    function find(bytes32[] storage _elements, bytes32 _elementToFind) internal pure returns (FindResult memory result) {
+        bytes32[] memory elements = _elements;
+        for (uint256 i; i < elements.length; ) {
+            if (elements[i] == _elementToFind) {
+                return FindResult(i, true);
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function find(string[] storage _elements, string memory _elementToFind) internal pure returns (FindResult memory result) {
+        string[] memory elements = _elements;
+        for (uint256 i; i < elements.length; ) {
+            if (keccak256(abi.encodePacked(elements[i])) == keccak256(abi.encodePacked(_elementToFind))) {
+                return FindResult(i, true);
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function pushUnique(address[] storage _elements, address _elementToAdd) internal {
+        if (!_elements.find(_elementToAdd).exists) {
+            _elements.push(_elementToAdd);
+        }
+    }
+
+    function pushUnique(bytes32[] storage _elements, bytes32 _elementToAdd) internal {
+        if (!_elements.find(_elementToAdd).exists) {
+            _elements.push(_elementToAdd);
+        }
+    }
+
+    function pushUnique(string[] storage _elements, string memory _elementToAdd) internal {
+        if (!_elements.find(_elementToAdd).exists) {
+            _elements.push(_elementToAdd);
         }
     }
 
