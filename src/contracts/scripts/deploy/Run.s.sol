@@ -16,10 +16,9 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
         address treasury = getAddr(10);
         vm.deal(deployer, 100 ether);
 
-        UserCfg[] memory userCfg = createUserConfig(testUsers);
+        UserCfg[] memory userCfg = super.createUserConfig(testUsers);
         AssetsOnChain memory assets = deploy(deployer, admin, treasury);
-
-        setupUsers(userCfg, assets);
+        super.setupUsers(userCfg, assets);
     }
 
     function deploy(
@@ -28,22 +27,22 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
         address treasury
     ) internal broadcastWithAddr(deployer) returns (AssetsOnChain memory assets_) {
         // create configurations
-        AssetCfg memory assetCfg = createAssetConfig();
-        CoreConfig memory coreCfg = createCoreConfig(admin, treasury);
+        AssetCfg memory assetCfg = super.createAssetConfig();
+        CoreConfig memory coreCfg = super.createCoreConfig(admin, treasury);
 
         // create base contracts
-        address kreskoAddr = createCore(coreCfg);
-        address vaultAddr = createVault(coreCfg, kreskoAddr);
+        address kreskoAddr = super.createCore(coreCfg);
+        address vaultAddr = super.createVault(coreCfg, kreskoAddr);
 
         // create assets
-        KISSInfo memory kissInfo = createKISS(coreCfg, kreskoAddr, vaultAddr);
-        KrAssetDeployInfo[] memory krAssetInfos = createKrAssets(coreCfg, assetCfg);
+        KISSInfo memory kissInfo = super.createKISS(coreCfg, kreskoAddr, vaultAddr);
+        KrAssetDeployInfo[] memory krAssetInfos = super.createKrAssets(coreCfg, assetCfg);
 
         // add assets
-        assets_ = addAssets(assetCfg, krAssetInfos, kissInfo, kreskoAddr);
+        assets_ = super.addAssets(assetCfg, krAssetInfos, kissInfo, kreskoAddr);
 
         // handle things depending on assets existing
-        configureSwap(kreskoAddr, assets_);
+        super.configureSwap(kreskoAddr, assets_);
     }
 }
 
@@ -58,7 +57,7 @@ contract Local is LocalDeployment("MNEMONIC_DEVNET") {
         address treasury = getAddr(10);
         vm.deal(deployer, 100 ether);
 
-        UserCfg[] memory userCfg = createUserConfig(testUsers);
+        UserCfg[] memory userCfg = super.createUserConfig(testUsers);
         AssetsOnChain memory assets = deploy(deployer, admin, treasury);
 
         setupUsers(userCfg, assets);
@@ -70,21 +69,21 @@ contract Local is LocalDeployment("MNEMONIC_DEVNET") {
         address treasury
     ) internal broadcastWithAddr(deployer) returns (AssetsOnChain memory assets_) {
         // create configurations
-        AssetCfg memory assetCfg = createAssetConfig();
-        CoreConfig memory coreCfg = createCoreConfig(admin, treasury);
+        AssetCfg memory assetCfg = super.createAssetConfig();
+        CoreConfig memory coreCfg = super.createCoreConfig(admin, treasury);
 
         // create base contracts
-        address kreskoAddr = createCore(coreCfg);
-        address vaultAddr = createVault(coreCfg, kreskoAddr);
+        address kreskoAddr = super.createCore(coreCfg);
+        address vaultAddr = super.createVault(coreCfg, kreskoAddr);
 
         // create assets
-        KISSInfo memory kissInfo = createKISS(coreCfg, kreskoAddr, vaultAddr);
-        KrAssetDeployInfo[] memory krAssetInfos = createKrAssets(coreCfg, assetCfg);
+        KISSInfo memory kissInfo = super.createKISS(coreCfg, kreskoAddr, vaultAddr);
+        KrAssetDeployInfo[] memory krAssetInfos = super.createKrAssets(coreCfg, assetCfg);
 
         // add assets
-        assets_ = addAssets(assetCfg, krAssetInfos, kissInfo, kreskoAddr);
+        assets_ = super.addAssets(assetCfg, krAssetInfos, kissInfo, kreskoAddr);
 
         // handle things depending on assets existing
-        configureSwap(kreskoAddr, assets_);
+        super.configureSwap(kreskoAddr, assets_);
     }
 }

@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-// solhint-disable-next-line
 import {AccessControlEnumerableUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
 import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
 import {ERC20Upgradeable} from "kresko-lib/token/ERC20Upgradeable.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-
 import {IERC165} from "vendor/IERC165.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {Percents, Role} from "common/Constants.sol";
@@ -17,7 +15,7 @@ import {Rebaser} from "./Rebaser.sol";
 import {IKreskoAsset, ISyncable} from "./IKreskoAsset.sol";
 
 /**
- * @title Kresko Synthethic Asset - rebasing ERC20.
+ * @title Kresko Synthethic Asset, rebasing ERC20 with underlying wrapping.
  * @author Kresko
  * @notice Rebases to adjust for stock splits and reverse stock splits
  * @notice Minting, burning and rebasing can only be performed by the `Role.OPERATOR`
@@ -35,6 +33,10 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     address public anchor;
     Wrapping private wrapping;
 
+    constructor() {
+        // _disableInitializers();
+    }
+
     /// @inheritdoc IKreskoAsset
     function initialize(
         string memory _name,
@@ -47,28 +49,28 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         uint48 _openFee,
         uint40 _closeFee
     ) external initializer {
-        // ERC20
+        // SetupERC20
         __ERC20Upgradeable_init(_name, _symbol, _decimals);
 
-        // Setup Pausing
+        // Setup pausable
         __Pausable_init();
 
-        // Setup the admin
-        _grantRole(Role.DEFAULT_ADMIN, msg.sender);
-        _grantRole(Role.ADMIN, msg.sender);
-
-        _grantRole(Role.DEFAULT_ADMIN, _admin);
-        _grantRole(Role.ADMIN, _admin);
-
         // Setup the protocol
+        kresko = _kresko;
         _grantRole(Role.OPERATOR, _kresko);
 
-        kresko = _kresko;
-
+        // Setup the state
+        _grantRole(Role.ADMIN, msg.sender);
         setUnderlying(_underlying);
         setFeeRecipient(_feeRecipient);
         setOpenFee(_openFee);
         setCloseFee(_closeFee);
+        // Revoke admin rights after state setup
+        _revokeRole(Role.ADMIN, msg.sender);
+
+        // Setup the admin
+        _grantRole(Role.DEFAULT_ADMIN, _admin);
+        _grantRole(Role.ADMIN, _admin);
     }
 
     /// @inheritdoc IKreskoAsset

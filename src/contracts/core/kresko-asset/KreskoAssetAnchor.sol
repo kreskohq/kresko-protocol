@@ -6,7 +6,6 @@ import {IERC165} from "vendor/IERC165.sol";
 
 import {Role} from "common/Constants.sol";
 import {Errors} from "common/Errors.sol";
-
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
 import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
@@ -30,7 +29,9 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     /* -------------------------------------------------------------------------- */
     /*                                 Immutables                                 */
     /* -------------------------------------------------------------------------- */
-    constructor(IKreskoAsset _asset) payable ERC4626Upgradeable(_asset) {}
+    constructor(IKreskoAsset _asset) payable ERC4626Upgradeable(_asset) {
+        // _disableInitializers();
+    }
 
     /// @inheritdoc IKreskoAssetAnchor
     function initialize(IKreskoAsset _asset, string memory _name, string memory _symbol, address _admin) external initializer {
@@ -38,6 +39,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         __ERC4626Upgradeable_init(_asset, _name, _symbol);
         // Default admin setup
         _grantRole(Role.DEFAULT_ADMIN, _admin);
+        _grantRole(Role.ADMIN, _admin);
         // Setup the operator, which is the protocol linked to the main asset
         _grantRole(Role.OPERATOR, asset.kresko());
 

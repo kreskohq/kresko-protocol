@@ -51,8 +51,6 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
 
         // Setup vault
         vKISS = vKISS_;
-
-        renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     modifier onlyContract() {
@@ -158,9 +156,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         bytes32 _role,
         address _to
     ) public override(IKISS, AccessControlUpgradeable, IAccessControl) onlyRole(Role.ADMIN) {
-        if (_role == Role.OPERATOR) {
-            if (_to.code.length == 0) revert Errors.NOT_A_CONTRACT(_to);
-        }
+        if (_role == Role.OPERATOR && _to.code.length == 0) revert Errors.NOT_A_CONTRACT(_to);
         _grantRole(_role, _to);
     }
 

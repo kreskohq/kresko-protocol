@@ -7,7 +7,7 @@ import { Errors } from '@utils/errors';
 import { getInternalEvent } from '@utils/events';
 import { executeContractCallWithSigners } from '@utils/gnosis/utils/execution';
 import { wrapKresko } from '@utils/redstone';
-import { depositWithdrawFixture, type DepositWithdrawFixture } from '@utils/test/fixtures';
+import { type DepositWithdrawFixture, depositWithdrawFixture } from '@utils/test/fixtures';
 import { depositCollateral, withdrawCollateral } from '@utils/test/helpers/collaterals';
 import optimized from '@utils/test/helpers/optimizations';
 import { Role } from '@utils/test/roles';
