@@ -9,7 +9,7 @@ import {ERC20} from "kresko-lib/token/ERC20.sol";
 import {DeployContext} from "./DeployContext.s.sol";
 
 abstract contract DeployLogicBase is DeployContext {
-    function createAssetConfigs() internal virtual returns (AssetCfg memory assetCfg_);
+    function createAssetConfig() internal virtual returns (AssetCfg memory assetCfg_);
 
     function createCoreConfig() internal virtual returns (CoreConfig memory cfg_);
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {console2} from "forge-std/Console2.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
@@ -12,14 +13,14 @@ import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
-import {addr, tokens, cl} from "kresko-lib/info/Arbitrum.sol";
 import {LibTest} from "kresko-lib/utils/LibTest.sol";
-import {DefaultDeploySettings} from "./DeployBase.s.sol";
+import {DefaultDeployConfig} from "scripts/deploy/config/DefaultDeployConfig.s.sol";
+import {StdCheats} from "forge-std/StdCheats.sol";
 
 using LibTest for string;
 
-abstract contract LocalSetup is DefaultConfig {
-    constructor(string memory _mnemonicId) DefaultConfig(_mnemonicId) {}
+abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
+    constructor(string memory _mnemonicId) DefaultDeployConfig(_mnemonicId) {}
 
     MockTokenInfo internal mockWBTC;
     MockTokenInfo internal mockDAI;
@@ -29,7 +30,7 @@ abstract contract LocalSetup is DefaultConfig {
     MockOracle internal mockFeedEUR;
     MockOracle internal mockFeedJPY;
 
-    function createAssetConfigs() internal override ctx returns (AssetCfg memory assetCfg_) {
+    function createAssetConfig() internal override ctx returns (AssetCfg memory assetCfg_) {
         WETH = IWETH9(address(new WETH9()));
         IERC20 WETH20 = IERC20(address(WETH));
 
@@ -112,7 +113,6 @@ abstract contract LocalSetup is DefaultConfig {
         routing[7] = SwapRouteSetter({assetIn: krBTC.addr, assetOut: krJPY.addr, enabled: true});
         routing[8] = SwapRouteSetter({assetIn: krEUR.addr, assetOut: krJPY.addr, enabled: true});
 
-        // for full coverage, only JPY -> KISS and not KISS -> JPY
         facet.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: krJPY.addr, assetOut: _kissAddr, enabled: true})); //
         facet.setSwapRoutesSCDP(routing);
     }
@@ -122,8 +122,13 @@ abstract contract LocalSetup is DefaultConfig {
             for (uint256 i; i < _userCfg.length; i++) {
                 if (_userCfg[i].addr != address(0)) {
                     UserCfg memory user = _userCfg[i];
+
+                    vm.deal(user.addr, 10000 ether);
+                    console2.log("value: %s", user.addr, user.addr.balance);
+
                     for (uint256 j; j < user.bal.length; j++) {
                         if (user.bal[j] == 0) continue;
+
                         if (j == _assetsOnChain.wethIndex) {
                             WETH.deposit{value: user.bal[j]}();
                         } else {

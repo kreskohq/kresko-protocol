@@ -7,10 +7,14 @@ import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.sol";
-import {DeployLogicBase} from "./DeployLogic.s.sol";
-import {$} from "./DeployContext.s.sol";
+import {DeployLogicBase} from "scripts/deploy/base/DeployLogic.s.sol";
+import {$} from "scripts/deploy/base/DeployContext.s.sol";
+import {console2} from "forge-std/Console2.sol";
 
-abstract contract DefaultDeploySettings is ScriptBase, DeployLogicBase {
+/**
+ * @dev Default asset and price configuration
+ */
+abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
     using $ for *;
 
     constructor(string memory _mnemonicId) ScriptBase(_mnemonicId) {}
@@ -162,13 +166,16 @@ abstract contract DefaultDeploySettings is ScriptBase, DeployLogicBase {
     function createUserConfig(
         uint32[] memory _idxs,
         uint256[EXT_COUNT][] memory _bals
-    ) internal view returns (UserCfg[] memory userCfg_) {
+    ) internal returns (UserCfg[] memory userCfg_) {
         require(_idxs.length == _bals.length, "createUserConfig: idxs and bals length mismatch");
         userCfg_ = new UserCfg[](_idxs.length);
         unchecked {
             for (uint256 i; i < _idxs.length; i++) {
-                userCfg_[i] = UserCfg(getAddr(_idxs[i]), _bals[i].dyn());
+                address userAddr = getAddr(_idxs[i]);
+                userCfg_[i] = UserCfg(userAddr, _bals[i].dyn());
             }
         }
+
+        super.afterUserConfig(userCfg_);
     }
 }

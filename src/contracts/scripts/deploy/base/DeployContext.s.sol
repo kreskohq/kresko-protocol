@@ -23,6 +23,7 @@ using Arrays for bytes32[];
 using Arrays for address[];
 using Arrays for string[];
 
+/// @notice Serves context and callbacks for deployment scripts
 abstract contract DeployContext is KreskoForgeUtils {
     struct AssetsOnChain {
         uint256 wethIndex;
@@ -80,7 +81,12 @@ abstract contract DeployContext is KreskoForgeUtils {
         _;
     }
 
-    function onConfigurationsCreated($.Ctx storage _ctx, CoreConfig memory _cfg, AssetCfg memory _assetCfg) internal virtual {}
+    function onConfigurationsCreated(
+        $.Ctx storage _ctx,
+        CoreConfig memory _cfg,
+        AssetCfg memory _assetCfg,
+        UserCfg[] memory _userCfg
+    ) internal virtual {}
 
     function onCoreContractsCreated($.Ctx storage _ctx) internal virtual {}
 
@@ -100,7 +106,11 @@ abstract contract DeployContext is KreskoForgeUtils {
 
     function afterCoreConfig(CoreConfig memory _cfg) internal ctx {
         require(_cfg.admin != address(0), "createCoreConfig: coreArgs should have some admin address set");
-        onConfigurationsCreated($.createCoreConfigCtx((_cfg)), _cfg, $.ctx().assetCfg);
+        onConfigurationsCreated($.createCoreConfigCtx((_cfg)), _cfg, $.ctx().assetCfg, $.ctx().userCfg);
+    }
+
+    function afterUserConfig(UserCfg[] memory _cfg) internal ctx {
+        $.createUserConfigCtx(_cfg);
     }
 
     function beforeCreateCore(CoreConfig memory) internal ctx {
@@ -166,7 +176,7 @@ abstract contract DeployContext is KreskoForgeUtils {
     }
 }
 
-/// @dev general utility lib for network scripts
+/// @dev General utility for deployments
 library $ {
     struct Ctx {
         mapping(uint256 => IKreskoForgeTypes.KrAssetInfo) krAssetAt;
@@ -220,7 +230,7 @@ library $ {
         }
     }
 
-    function handleBeforeCreateCoreCtx() internal check {
+    function handleBeforeCreateCoreCtx() internal {
         $.ctx().deployer = LibTest.peekSender();
     }
 
@@ -230,20 +240,20 @@ library $ {
         return ctx();
     }
 
-    function createVaultCtx(Vault _vault) internal check {
+    function createVaultCtx(Vault _vault) internal {
         ctx().vault = _vault;
         tokenCtx(address(_vault), "vKISS");
         handleFeedCtx(address(_vault), "vKISS");
     }
 
-    function createKISSCtx(IKreskoForgeTypes.KISSInfo memory _kissInfo, address _vaultAddr) internal check {
+    function createKISSCtx(IKreskoForgeTypes.KISSInfo memory _kissInfo, address _vaultAddr) internal {
         ctx().kiss = _kissInfo.kiss;
         tokenCtx(address(_kissInfo.proxy.proxy), "KISS");
         proxyCtx(_kissInfo.proxy, "KISS");
         handleFeedCtx(_vaultAddr, "KISS");
     }
 
-    function tokenCtx(address _token, string memory symbol) internal check {
+    function tokenCtx(address _token, string memory symbol) internal {
         ctx().getAddress[symbol] = _token;
         ctx().getToken[symbol] = IERC20(_token);
         ctx().getMockToken[symbol] = MockERC20(_token);
@@ -335,6 +345,15 @@ library $ {
             ctx().assetCfg.wethIndex = _cfg.wethIndex;
         }
         ctx().weth = WETH9(payable(address((_cfg.ext[_cfg.wethIndex].token))));
+        return ctx();
+    }
+
+    function createUserConfigCtx(DeployContext.UserCfg[] memory _cfg) internal returns (Ctx storage ctx_) {
+        if (ctx().enabled) {
+            for (uint256 i; i < _cfg.length; i++) {
+                ctx().userCfg.push(_cfg[i]);
+            }
+        }
         return ctx();
     }
 

@@ -3,22 +3,19 @@
 pragma solidity <0.9.0;
 
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {ScriptBase} from "kresko-lib/utils/ScriptBase.sol";
-import {$} from "./DeployContext.s.sol";
+import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
+import {addr, tokens, cl} from "kresko-lib/info/Arbitrum.sol";
+import {DefaultDeployConfig} from "scripts/deploy/config/DefaultDeployConfig.s.sol";
+import {SwapRouteSetter} from "scdp/STypes.sol";
 
 /**
- * @dev Base for Arbitrum Devnet:
+ * @dev Arbitrum deployment using defaults
  * @dev Implements the functions that are called by launch scripts
  */
-abstract contract ArbitrumSettings is DefaultDeploySettings {
-    constructor(string memory _mnemonicId) DefaultConfig(_mnemonicId) {}
+abstract contract ArbitrumDeployment is DefaultDeployConfig {
+    constructor(string memory _mnemonicId) DefaultDeployConfig(_mnemonicId) {}
 
-    function getValue() external view returns (uint256) {
-        uint256 value = 1 ether;
-        return value;
-    }
-
-    function createAssetConfigs() internal override returns (AssetCfg memory assetCfg_) {
+    function createAssetConfig() internal override returns (AssetCfg memory assetCfg_) {
         WETH = tokens.WETH;
         IERC20 WETH20 = IERC20(address(WETH));
 
@@ -78,7 +75,8 @@ abstract contract ArbitrumSettings is DefaultDeploySettings {
     }
 
     function configureSwaps(address _kreskoAddr, address _kissAddr) internal override {
-        kresko.setFeeAssetSCDP(_kissAddr);
+        ISCDPConfigFacet facet = ISCDPConfigFacet(_kreskoAddr);
+        facet.setFeeAssetSCDP(_kissAddr);
 
         SwapRouteSetter[] memory routing = new SwapRouteSetter[](9);
         routing[0] = SwapRouteSetter({assetIn: _kissAddr, assetOut: krETH.addr, enabled: true});
@@ -93,10 +91,9 @@ abstract contract ArbitrumSettings is DefaultDeploySettings {
         routing[7] = SwapRouteSetter({assetIn: krBTC.addr, assetOut: krJPY.addr, enabled: true});
 
         routing[8] = SwapRouteSetter({assetIn: krEUR.addr, assetOut: krJPY.addr, enabled: true});
-        kresko.setSwapRoutesSCDP(routing);
 
-        // for full coverage, only JPY -> KISS and not KISS -> JPY
-        kresko.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: krJPY.addr, assetOut: _kissAddr, enabled: true})); //
+        facet.setSwapRoutesSCDP(routing);
+        facet.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: krJPY.addr, assetOut: _kissAddr, enabled: true})); //
     }
 
     function configureUsers(UserCfg[] memory _userCfg, AssetsOnChain memory _results) internal override {
