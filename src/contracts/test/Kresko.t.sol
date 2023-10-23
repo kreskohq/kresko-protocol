@@ -1,14 +1,14 @@
+// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {console} from "forge-std/Test.sol";
 import {LibTest} from "kresko-lib/utils/LibTest.sol";
 import {TestBase} from "kresko-lib/utils/TestBase.sol";
 import {Strings} from "libs/Strings.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
-
 import {Asset} from "common/Types.sol";
+import {console2} from "forge-std/Console2.sol";
 
 // solhint-disable
 contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
@@ -184,7 +184,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
 
         uint256 gasDeposit = gasleft();
         kresko.depositCollateral(user0, usdc.addr, depositAmount);
-        console.log("gasDepositCollateral", gasDeposit - gasleft());
+        console2.log("gasDepositCollateral", gasDeposit - gasleft());
 
         bytes memory mintData = abi.encodePacked(
             abi.encodeWithSelector(kresko.mintKreskoAsset.selector, user0, krJPY.addr, mintAmount),
@@ -192,7 +192,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasMint = gasleft();
         (success, ) = address(kresko).call(mintData);
-        console.log("gasMintKreskoAsset", gasMint - gasleft());
+        console2.log("gasMintKreskoAsset", gasMint - gasleft());
         require(success, "!success");
 
         bytes memory burnData = abi.encodePacked(
@@ -201,7 +201,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasBurn = gasleft();
         (success, ) = address(kresko).call(burnData);
-        console.log("gasBurnKreskoAsset", gasBurn - gasleft());
+        console2.log("gasBurnKreskoAsset", gasBurn - gasleft());
         require(success, "!success");
 
         bytes memory withdrawData = abi.encodePacked(
@@ -210,7 +210,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasWithdraw = gasleft();
         (success, ) = address(kresko).call(withdrawData);
-        console.log("gasWithdrawCollateral", gasWithdraw - gasleft());
+        console2.log("gasWithdrawCollateral", gasWithdraw - gasleft());
         require(success, "!success");
     }
 }

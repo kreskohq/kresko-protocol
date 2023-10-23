@@ -57,7 +57,7 @@ task(TASK_DEPLOY_VAULT)
     if (!MockTokenFeed) {
       console.log(`No feed exists, deploying ${MockTokenSymbol}/USD feed`);
       [MockTokenFeed] = await hre.deploy('MockOracle', {
-        deploymentName: 'MockOracle_' + MockTokenSymbol,
+        deploymentName: `MockOracle_${MockTokenSymbol}`,
         args: [`${MockTokenSymbol}/USD`, toBig(1, 8), 8],
       });
     }

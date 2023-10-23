@@ -1,13 +1,13 @@
-// solhint-disable
+// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {LocalSetup, ArbitrumSetup} from "./Setup.s.sol";
+import {LocalSetup, ArbitrumSettings} from "./DevnetNetworks.s.sol";
 
 import {$} from "./DeployContext.s.sol";
 import {console2} from "forge-std/console2.sol";
 
-contract ArbitrumOne is ArbitrumSetup("MNEMONIC_DEVNET") {
+contract ArbitrumOne is ArbitrumSettings("MNEMONIC_DEVNET") {
     function run() external broadcastWithIdx(0) {
         // prepare
         AssetCfg memory assetCfg = createAssetConfigs();

@@ -18,7 +18,7 @@ const deploy: DeployFunction = async function (hre) {
       ? asset.feed
       : (
           await hre.deploy('MockOracle', {
-            deploymentName: 'MockOracle_' + asset.symbol,
+            deploymentName: `MockOracle_${asset.symbol}`,
             args: [`${asset.symbol}/USD`, await asset.getPrice(), 8],
           })
         )[0].address;

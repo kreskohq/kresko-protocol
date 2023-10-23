@@ -82,7 +82,7 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
       ? hre.ethers.utils.formatBytes32String(options.salt)
       : options.salt;
 
-  let calldata: string = '0x';
+  let calldata = '0x';
   let create: (overrides?: Overrides) => Promise<ContractTransaction>;
   let estimateGas: () => Promise<BigNumber>;
 
@@ -291,7 +291,6 @@ const prepareTx = async (
 
   if (gasPriceEstimate.eq(0)) promises.push(hre.ethers.provider.getGasPrice());
   else promises.push(new Promise<BigNumber>(rs => rs(gasPriceEstimate)));
-
   [gasUsedEstimate, senderBalanceBig, gasPriceEstimate] = await Promise.all(promises);
 
   const senderBalance = fromBig(senderBalanceBig).toFixed(5);

@@ -2,7 +2,6 @@ import { minterFacets } from '@config/deploy';
 import { updateFacets } from '@scripts/update-facets';
 import { expect } from '@test/chai';
 import { toBig } from '@utils/values';
-
 (process.env.FORKING ? describe : describe.skip)('Forking', () => {
   describe('#setup', () => {
     it('should get Kresko from the companion network locally', async function () {

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { ContractTypes } from '@/types';
+import { DeterministicProxy } from '@/types/functions';
 import { signatureFilters } from '@config/deploy';
 import { Fragment } from '@ethersproject/abi';
 import { WrapperBuilder } from '@redstone-finance/evm-connector';
 import { getAddresses, getUsers } from '@utils/hardhat';
 import { extendEnvironment } from 'hardhat/config';
 import { commonUtils, proxyUtils } from './utils';
-import { DeterministicProxy } from '@/types/functions';
 
 extendEnvironment(async function (hre) {
   // for testing
@@ -24,15 +24,15 @@ extendEnvironment(function (hre) {
   hre.krAssets = [];
   hre.allAssets = [];
   hre.getDeploymentOrFork = async deploymentName => {
-    const isFork = !hre.network.live && hre.companionNetworks['live'];
+    const isFork = !hre.network.live && hre.companionNetworks.live;
     const deployment = !isFork
       ? await hre.deployments.getOrNull(deploymentName)
-      : await hre.companionNetworks['live'].deployments.getOrNull(deploymentName);
+      : await hre.companionNetworks.live.deployments.getOrNull(deploymentName);
 
     if (!deployment && deploymentName === 'Kresko') {
       return !isFork
         ? await hre.deployments.getOrNull('Diamond')
-        : await hre.companionNetworks['live'].deployments.getOrNull('Diamond');
+        : await hre.companionNetworks.live.deployments.getOrNull('Diamond');
     }
     return deployment || (await hre.deployments.getOrNull(deploymentName));
   };

@@ -1,4 +1,4 @@
-import { OracleType, type AssetArgs, type AssetConfig } from '@/types';
+import { type AssetArgs, type AssetConfig, OracleType } from '@/types';
 import type { MockERC20 } from '@/types/typechain';
 import type {
   AssetStruct,
@@ -39,7 +39,7 @@ export const getAssetConfig = async (
 
   const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()]);
 
-  let assetStruct: AssetStruct = {
+  const assetStruct: AssetStruct = {
     ticker: formatBytesString(config.ticker, 32),
     oracles: (config.oracleIds as any) ?? [OracleType.Redstone, OracleType.Chainlink],
     isMinterCollateral: !!config.collateralConfig,

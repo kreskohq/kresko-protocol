@@ -1,11 +1,11 @@
 import { type KreskoAssetAnchor } from '@/types/typechain';
-import { getDeploymentUsers, type AllTokenSymbols } from '@config/deploy';
+import { type AllTokenSymbols, getDeploymentUsers } from '@config/deploy';
 import { getAnchorNameAndSymbol } from '@utils/strings';
 
 export async function createKrAsset<T extends AllTokenSymbols>(
   symbol: T,
   name: string,
-  decimals = 18,
+  decimals: number,
   underlyingToken: string,
   feeRecipient = hre.users.treasury.address,
   openFee = 0,

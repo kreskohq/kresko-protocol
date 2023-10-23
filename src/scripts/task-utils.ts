@@ -1,6 +1,6 @@
-import { getLogger } from '@utils/logging';
 import { existsSync, mkdirSync, rmSync } from 'fs';
 import path from 'path';
+import { getLogger } from '@utils/logging';
 
 /** @note folders supplied will be cleared */
 export const getOutDir = (...ids: string[]) => {
@@ -58,7 +58,7 @@ export const logContext = async (...extras: any[]) => {
     `-- hardhat`,
     `network: ${hre.network.name} (${hre.network.config.chainId})`,
     `live: ${hre.network.live}`,
-    `forking: ${hre.network.companionNetworks['live'] ? hre.network.companionNetworks['live'] : 'none'}`,
+    `forking: ${hre.network.companionNetworks.live ? hre.network.companionNetworks.live : 'none'}`,
     `deployments: ${Object.keys(all).length} contracts`,
     `root account: ${deployer.address}`,
     `balance: ${hre.ethers.utils.formatEther(bal)} ETH`,

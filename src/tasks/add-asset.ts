@@ -50,10 +50,10 @@ task(TASK_ADD_ASSET)
     }
 
     if (isMinterMintable && config.krAssetConfig?.kFactor === 0) {
-      throw new Error('Invalid kFactor for ' + config.symbol);
+      throw new Error(`Invalid kFactor for ${config.symbol}`);
     }
     if (isMinterCollateral && config.collateralConfig?.cFactor === 0) {
-      throw new Error('Invalid cFactor for ' + config.symbol);
+      throw new Error(`Invalid cFactor for ${config.symbol}`);
     }
     const redstoneId = TickerMap[config.ticker as keyof typeof TickerMap];
     if (!redstoneId) throw new Error(`RedstoneId not found for ${config.symbol}`);

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-extra-non-null-assertion */
 import type { TypedDataSigner } from '@ethersproject/abstract-signer';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
-import { BigNumber, Contract, Signer, type BigNumberish } from 'ethers';
+import { BigNumber, type BigNumberish, Contract, Signer } from 'ethers';
 
 export const EIP712_SAFE_TX_TYPE = {
   // "SafeTx(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)"
@@ -48,7 +48,7 @@ export const safeSignTypedData = async (
   chainId?: BigNumberish,
 ): Promise<SafeSignature> => {
   if (!chainId && !signer?.provider) throw Error('Provider required to retrieve chainId');
-  const cid = chainId || (await signer.provider!!.getNetwork()).chainId;
+  const cid = chainId || (await signer.provider!.getNetwork()).chainId;
   const signerAddress = await signer.getAddress();
   return {
     signer: signerAddress,

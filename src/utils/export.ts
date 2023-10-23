@@ -1,5 +1,5 @@
-import { TASK_GENERATE_TYPECHAIN } from '@tasks';
 import { exec } from 'child_process';
+import { TASK_GENERATE_TYPECHAIN } from '@tasks';
 import { subtask } from 'hardhat/config';
 import { getFullyQualifiedName } from 'hardhat/utils/contract-names';
 import type { PublicConfig as RunTypeChainConfig } from 'typechain';
@@ -103,7 +103,7 @@ export const externalArtifacts = () => {
   ];
 };
 export const exportDeployments = async () => {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
       exec('npx hardhat export --export-all packages/contracts/src/deployments.ts', async (error, stdout, stderr) => {
         if (error) {

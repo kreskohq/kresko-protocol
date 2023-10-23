@@ -288,9 +288,9 @@ export const defaultFixture = hre.deployments.createFixture<DefaultFixture, {}>(
   const DefaultKrAsset = hre.krAssets!.find(k => k.config.args.ticker === testKrAssetConfig.ticker)!;
   const Collateral2 = hre.extAssets!.find(c => c.config.args.ticker === 'Collateral2')!;
 
-  let blankUser = hre.users.userOne;
-  let userWithDeposits = hre.users.userTwo;
-  let userWithMint = hre.users.userThree;
+  const blankUser = hre.users.userOne;
+  const userWithDeposits = hre.users.userTwo;
+  const userWithMint = hre.users.userThree;
 
   await DefaultCollateral.setBalance(userWithDeposits, depositAmount, hre.Diamond.address);
   await DefaultCollateral.setBalance(userWithMint, depositAmount, hre.Diamond.address);
@@ -353,7 +353,7 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
   await hre.Diamond.setAssetCFactor(Coll8Dec.address, 0.5e4);
   await hre.Diamond.setAssetCFactor(CollateralAsset.address, 0.5e4);
 
-  let user = hre.users.userEight;
+  const user = hre.users.userEight;
   const startingBalance = 100;
   await CollateralAsset.setBalance(user, toBig(startingBalance), hre.Diamond.address);
   await Coll8Dec.setBalance(user, toBig(startingBalance, 8), hre.Diamond.address);

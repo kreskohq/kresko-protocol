@@ -3,7 +3,7 @@ import { smock } from '@defi-wonderland/smock';
 import { wrapKresko } from '@utils/redstone';
 import { getAnchorNameAndSymbol } from '@utils/strings';
 import { toBig } from '@utils/values';
-import { defaultCloseFee, defaultSupplyLimit, testKrAssetConfig, type InputArgsSimple } from '../mocks';
+import { type InputArgsSimple, defaultCloseFee, defaultSupplyLimit, testKrAssetConfig } from '../mocks';
 import { Role } from '../roles';
 import { getAssetConfig, updateTestAsset, wrapContractWithSigner } from './general';
 import optimized from './optimizations';
@@ -138,7 +138,7 @@ export const leverageKrAsset = async (
 
   await collateralToUse.setBalance(user, collateralAmount, hre.Diamond.address);
 
-  let addPromises: Promise<any>[] = [];
+  const addPromises: Promise<any>[] = [];
   if (!collateralToUseInfo.isMinterCollateral) {
     const config = { ...collateralToUseInfo, isMinterCollateral: true, factor: 1e4, liqIncentive: 1.1e4 };
     addPromises.push(hre.Diamond.updateAsset(collateralToUse.address, config));

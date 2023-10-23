@@ -1,51 +1,35 @@
 {
-  "console.log": {
-    "prefix": "clg",
-    "description": "console.log",
+  "kresko: default spdx and pragma": {
+    "prefix": "kresko_spdx_pragma",
+    "description": "Add default SPDX license identifier and pragma solidity version.",
     "scope": "solidity",
-    "body": ["console.log($1);"]
+    "body": ["// SPDX-License-Identifier: ${2:BUSL-1.1}", "pragma solidity ${1:^0.8.0};", ""]
   },
-  "console.log": {
-    "prefix": "clg2",
-    "description": "console2.log",
-    "scope": "solidity",
-    "body": ["console2.log($1);"]
-  },
-  "spdxpragma": {
-    "prefix": "spdxpragma",
-    "description": "spdxpragma",
-    "scope": "solidity",
-    "body": ["// SPDX-License-Identifier: MIT", "pragma solidity <0.9.0;"]
-  },
-  "hhc": {
-    "prefix": "hhc",
-    "description": "hhc",
-    "scope": "solidity",
-    "body": ["import \"hardhat/console.sol\";"]
-  },
-  "fc2": {
-    "prefix": "forgeconsole2",
-    "description": "fc2",
-    "scope": "solidity",
-    "body": ["import {console2} from \"forge-std/console2.sol\";"]
-  },
-  "natfunc": {
-    "prefix": "natfunc",
-    "description": "natfunc",
+  "kresko: stub natspec for function": {
+    "prefix": "kresko_natspec_function",
+    "description": "Function natspec template",
     "scope": "solidity",
     "body": ["/**", "* @notice $1", "* @dev $2", "* @param $3", "*/"]
   },
-  "natcontract": {
-    "prefix": "natcontract",
-    "description": "natcontract",
+  "kresko: stub natspec for contract": {
+    "prefix": "kresko_natspec_contract",
+    "description": "Contract natspec template.",
     "scope": "solidity",
     "body": ["/** ", "* @title $1", "* @author Kresko", "* @notice $2", "* @dev $3", "*/"]
   },
-  "Forge Kresko Test Template": {
-    "prefix": "forgekreskotesttemplate",
+  "kresko: disable solhint rules in forge test/script": {
+    "prefix": "kresko_solhint_disable",
+    "description": "Disable solhint rules in forge files",
+    "scope": "solidity",
     "body": [
-      "// solhint-disable no-console",
-      "",
+      "// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console"
+    ]
+  },
+  "kresko: forge test template with workspace tools": {
+    "isFileTemplate": true,
+    "prefix": "kresko_forge_test_template",
+    "body": [
+      "// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console",
       "// SPDX-License-Identifier: MIT",
       "pragma solidity ^0.8.0;",
       "",
@@ -77,13 +61,13 @@
       "    }",
       "}"
     ],
-    "description": "Quick base for a new forge test file"
+    "description": "Base for a new forge test using workspace utils"
   },
-  "Forge Kresko Test Protocol Template": {
-    "prefix": "forgekreskotestprotocoltemplate",
+  "kresko: forge test template with protocol deployment": {
+    "isFileTemplate": true,
+    "prefix": "kresko_forge_test_protocol_template",
     "body": [
-      "// solhint-disable",
-      "",
+      "// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console",
       "// SPDX-License-Identifier: MIT",
       "pragma solidity ^0.8.0;",
       "",
@@ -137,6 +121,6 @@
       "    }",
       "}"
     ],
-    "description": "forge test template for protocol"
+    "description": "Base for a new forge test using minimal protocol deployment"
   }
 }
