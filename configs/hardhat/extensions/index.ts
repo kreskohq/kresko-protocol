@@ -98,7 +98,7 @@ extendEnvironment(function (hre) {
       txData.preparedTx,
     );
 
-    const [proxy] = await hre.ProxyFactory.getLatestProxies(1);
+    const [proxy] = await hre.DeploymentFactory.getLatestDeployments(1);
     await proxyUtils.save(txSummary.receipt, preparedProxy, proxy, txSummary);
 
     return hre.getContractOrFork(name, preparedProxy.deploymentId);
@@ -108,7 +108,7 @@ extendEnvironment(function (hre) {
       throw new Error('Use deployProxy for single deployment');
     }
     const args = await proxyUtils.prepareDeploy(preparedData, options);
-    const tx = hre.ProxyFactory.batch(args.batchCalldata, {
+    const tx = hre.DeploymentFactory.batch(args.batchCalldata, {
       gasLimit: args.preparedTx.gasLimit, // manual set required (...atleast in hardhat network)
       from: args.from,
     });
@@ -119,7 +119,7 @@ extendEnvironment(function (hre) {
           proxy: p.proxyAddress!,
           implementation: p.implementationAddress!,
         }))
-      : await hre.ProxyFactory.getLatestProxies(args.count);
+      : await hre.DeploymentFactory.getLatestDeployments(args.count);
 
     const results = await Promise.all(
       args.proxies.map(async (prepared, i) => {

@@ -20,8 +20,8 @@ task(TASK_DEPLOY_CONTRACT, 'deploy something', async (_, _hre) => {
 
   // logger.log('Deployer: ', deployer.address);
   // logger.log('Deployer balance: ', fromBig((await deployer.getBalance()).toString()));
-  // if (!hre.ProxyFactory) {
-  //   [hre.ProxyFactory] = await hre.deploy('ProxyFactory', {
+  // if (!hre.DeploymentFactory) {
+  //   [hre.DeploymentFactory] = await hre.deploy('DeploymentFactory', {
   //     args: [deployer.address],
   //     from: deployer.address,
   //   });
@@ -72,7 +72,7 @@ task(TASK_DEPLOY_CONTRACT, 'deploy something', async (_, _hre) => {
 
   // const proxies = [preparedKrAsset, preparedAnchor, preparedKrAsset, erc165Facet1, erc165Facet2] as const;
 
-  // // const result = await hre.ProxyFactory.batch([preparedKrAsset.calldata, preparedAnchor.calldata]);
+  // // const result = await hre.DeploymentFactory.batch([preparedKrAsset.calldata, preparedAnchor.calldata]);
   // const result = await hre.deployProxyBatch(proxies, {
   //   log: true,
   // });

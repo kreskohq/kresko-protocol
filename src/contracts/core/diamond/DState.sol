@@ -3,14 +3,7 @@ pragma solidity >=0.8.21;
 
 import {FacetAddressAndPosition, FacetFunctionSelectors} from "diamond/DSTypes.sol";
 
-/* -------------------------------------------------------------------------- */
-/*                                 Main Layout                                */
-/* -------------------------------------------------------------------------- */
-
 struct DiamondState {
-    /* -------------------------------------------------------------------------- */
-    /*                                   Proxy                                    */
-    /* -------------------------------------------------------------------------- */
     /// @notice Maps function selector to the facet address and
     /// the position of the selector in the facetFunctionSelectors.selectors array
     mapping(bytes4 => FacetAddressAndPosition) selectorToFacetAndPosition;
@@ -26,9 +19,6 @@ struct DiamondState {
     bool initialized;
     /// @notice Domain field separator
     bytes32 diamondDomainSeparator;
-    /* -------------------------------------------------------------------------- */
-    /*                                  Ownership                                 */
-    /* -------------------------------------------------------------------------- */
     /// @notice Current owner of the diamond
     address contractOwner;
     /// @notice Pending new diamond owner
@@ -37,9 +27,6 @@ struct DiamondState {
     uint96 storageVersion;
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                   Getter                                   */
-/* -------------------------------------------------------------------------- */
 // Storage position
 bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("kresko.diamond.storage");
 

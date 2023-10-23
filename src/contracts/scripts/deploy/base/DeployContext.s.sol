@@ -11,11 +11,10 @@ import {Enums} from "common/Constants.sol";
 import {IKreskoForgeTypes} from "scripts/utils/IKreskoForgeTypes.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {ProxyFactory} from "proxy/ProxyFactory.sol";
-import {Proxy} from "proxy/IProxyFactory.sol";
+import {DeploymentFactory} from "factory/DeploymentFactory.sol";
+import {Deployment} from "factory/IDeploymentFactory.sol";
 import {Asset} from "common/Types.sol";
 import {LibTest} from "kresko-lib/utils/LibTest.sol";
-import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {Vault} from "vault/Vault.sol";
 import {BaseLogger} from "./Logger.s.sol";
@@ -106,7 +105,7 @@ abstract contract DeployContext is BaseLogger {
         $.handleBeforeCreateCoreCtx();
     }
 
-    function afterCoreCreated(IKresko _kresko, ProxyFactory _proxyFactory) internal senderCtx {
+    function afterCoreCreated(IKresko _kresko, DeploymentFactory _proxyFactory) internal senderCtx {
         super.onCoreContractsCreated($.createCoreCtx(_kresko, _proxyFactory));
     }
 
@@ -185,7 +184,7 @@ library $ {
         mapping(string => address) getFeed;
         mapping(string => IAggregatorV3) getVFeed;
         mapping(string => MockERC20) getMockToken;
-        mapping(string => Proxy) getProxy;
+        mapping(string => Deployment) getDeploy;
         IKreskoForgeTypes.CoreConfig cfg;
         DeployContext.AssetCfg assetCfg;
         DeployContext.UserCfg[] userCfg;
@@ -193,8 +192,8 @@ library $ {
         KISS kiss;
         IKresko kresko;
         Vault vault;
-        ProxyFactory proxyFactory;
-        Proxy[] allProxies;
+        DeploymentFactory proxyFactory;
+        Deployment[] allProxies;
         IERC20[] allTokens;
         address[] allFeeds;
         WETH9 weth;
@@ -231,7 +230,7 @@ library $ {
         $.ctx().deployer = LibTest.peekSender();
     }
 
-    function createCoreCtx(IKresko _kresko, ProxyFactory _proxyFactory) internal returns (Ctx storage ctx_) {
+    function createCoreCtx(IKresko _kresko, DeploymentFactory _proxyFactory) internal returns (Ctx storage ctx_) {
         $.ctx().kresko = _kresko;
         $.ctx().proxyFactory = _proxyFactory;
         return ctx();
@@ -263,8 +262,8 @@ library $ {
         ctx().allFeeds.push(_feed);
     }
 
-    function proxyCtx(Proxy memory _proxy, string memory symbol) internal check {
-        ctx().getProxy[symbol] = _proxy;
+    function proxyCtx(Deployment memory _proxy, string memory symbol) internal check {
+        ctx().getDeploy[symbol] = _proxy;
         ctx().allProxies.push(_proxy);
     }
 

@@ -20,7 +20,7 @@ abstract contract DeployLogicBase is DeployContext {
         kresko = super.deployDiamondOneTx(_cfg);
         kreskoAddr_ = address(kresko);
 
-        proxyFactory = super.deployProxyFactory(_cfg.admin);
+        proxyFactory = super.deployDeploymentFactory(_cfg.admin);
 
         super.afterCoreCreated(kresko, proxyFactory);
     }

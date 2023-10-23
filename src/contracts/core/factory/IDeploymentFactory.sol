@@ -10,16 +10,16 @@ enum CreationKind {
 }
 
 /**
- * @notice Proxy information
+ * @notice Deployment information
  * @param implementation Current implementation address
  * @param updatedAt Timestamp of latest upgrade
- * @param kind Creation mechanism used for this proxy
- * @param proxy Address of the proxy itself
- * @param index Array index of the proxy in the internal tracking list
- * @param createdAt Creation timestamp of the proxy
- * @param version Current version of the proxy (count of upgrade calls)
+ * @param kind Creation mechanism used for the deployment
+ * @param proxy Address of the proxy or zero if not a proxy deployment
+ * @param index Array index of the deployment in the internal tracking list
+ * @param createdAt Creation timestamp of the deployment
+ * @param version Current version of the deployment (can be over 1 for proxies)
  */
-struct Proxy {
+struct Deployment {
     address implementation;
     uint88 updatedAt;
     CreationKind kind;
@@ -30,63 +30,73 @@ struct Proxy {
     bytes32 salt;
 }
 
-interface IProxyFactory {
+interface IDeploymentFactory {
     error BatchRevertSilentOrCustomError(bytes innerError);
     error CreateProxyPreview(address proxy);
     error CreateProxyAndLogicPreview(address proxy, address implementation);
-    error InvalidKind(Proxy);
+    error InvalidKind(Deployment);
     error ArrayLengthMismatch(uint256 proxies, uint256 implementations, uint256 datas);
-    error InvalidSalt(Proxy);
+    error InvalidSalt(Deployment);
     error DeployerAlreadySet(address, bool);
 
     event DeployerSet(address, bool);
-    event ProxyCreated(Proxy);
-    event ProxyUpgraded(Proxy);
+    event Deployed(Deployment);
+    event Upgrade(Deployment);
 
     function setDeployer(address who, bool value) external;
 
     function isDeployer(address who) external view returns (bool);
 
     /**
-     * @notice Get available information of `proxy`.
-     * @param proxy Address of the proxy.
-     * @return Proxy Proxy information.
+     * @notice Get available deployment information for address.
+     * @param addr Address of the contract.
+     * @return Deployment Deployment information.
      */
-    function getProxy(address proxy) external view returns (Proxy memory);
+    function getDeployment(address addr) external view returns (Deployment memory);
 
     /**
-     * @notice Get the topmost `count` of proxies.
-     * @return Proxy[] List of information about the proxies.
+     * @notice Get the topmost `count` of deployments.
+     * @return Deployment[] List of information about the deployments.
      */
-    function getLatestProxies(uint256 count) external view returns (Proxy[] memory);
+    function getLatestDeployments(uint256 count) external view returns (Deployment[] memory);
 
     /**
-     * @notice Get available information of `proxy`.
-     * @param index Index of the proxy.
-     * @return Proxy Proxy information.
+     * @notice Get available information of deployment in index.
+     * @param index Index of the deployment.
+     * @return Deployment Deployment information.
      */
-    function getProxyByIndex(uint256 index) external view returns (Proxy memory);
+    function getDeployByIndex(uint256 index) external view returns (Deployment memory);
 
     /**
-     * @notice Get all proxies.
-     * @return Proxy[] Array of proxies.
+     * @notice Get all deployments.
+     * @return Deployment[] Array of deployments.
      */
-    function getProxies() external view returns (Proxy[] memory);
+    function getDeployments() external view returns (Deployment[] memory);
 
     /**
-     * @notice Get number of proxies.
-     * @return uint256 Number of proxies.
+     * @notice Get number of deployments.
+     * @return uint256 Number of deployments.
      */
-    function getProxyCount() external view returns (uint256);
+    function getDeployCount() external view returns (uint256);
+
+    /**
+     * @notice Inspect if an address is created by this contract.
+     * @param addr Address to inspect
+     * @return bool True if deployment was created by this contract.
+     */
+    function isDeployment(address addr) external view returns (bool);
 
     /**
      * @notice Inspect if an address is a proxy created by this contract.
-     * @param proxy Address to inspect
-     * @return bool True if `proxy` was created by this contract.
+     * @param addr Address to inspect
+     * @return bool True if proxy was created by this contract.
      */
-    function isProxy(address proxy) external view returns (bool);
+    function isProxy(address addr) external view returns (bool);
 
-    function isDeterministic(address proxy) external view returns (bool);
+    /// @notice Inspect if an address is a non proxy deployment created by this contract.
+    function isNonProxy(address addr) external view returns (bool);
+
+    function isDeterministic(address addr) external view returns (bool);
 
     /**
      * @notice Inspect the current implementation address of a proxy.
@@ -203,19 +213,19 @@ interface IProxyFactory {
      * @notice Creates a new proxy for the `implementation` and initializes it with `data`.
      * @param implementation Address of the implementation.
      * @param _calldata Initializer calldata.
-     * @return newProxy Proxy information.
+     * @return newProxy Deployment information.
      * See {TransparentUpgradeableProxy-constructor}.
      * @custom:signature createAndCall(address,bytes)
      * @custom:selector 0xfb506844
      */
-    function createProxy(address implementation, bytes memory _calldata) external payable returns (Proxy memory newProxy);
+    function createProxy(address implementation, bytes memory _calldata) external payable returns (Deployment memory newProxy);
 
     /**
      * @notice Creates a new proxy with deterministic address derived from arguments given.
      * @param implementation Address of the implementation.
      * @param _calldata Initializer calldata.
      * @param salt Salt for the deterministic deployment.
-     * @return newProxy Proxy information.
+     * @return newProxy Deployment information.
      * @custom:signature create2AndCall(address,bytes,bytes32)
      * @custom:selector 0xe852e6d5
      */
@@ -223,14 +233,14 @@ interface IProxyFactory {
         address implementation,
         bytes memory _calldata,
         bytes32 salt
-    ) external payable returns (Proxy memory newProxy);
+    ) external payable returns (Deployment memory newProxy);
 
     /**
      * @notice Creates a new proxy with deterministic address derived only from the salt given.
      * @param implementation Address of the implementation.
      * @param _calldata Initializer calldata.
      * @param salt Salt for the deterministic deployment.
-     * @return newProxy Proxy information.
+     * @return newProxy Deployment information.
      * @custom:signature create3AndCall(address,bytes,bytes32)
      * @custom:selector 0xbd233f6c
      */
@@ -238,20 +248,20 @@ interface IProxyFactory {
         address implementation,
         bytes memory _calldata,
         bytes32 salt
-    ) external payable returns (Proxy memory newProxy);
+    ) external payable returns (Deployment memory newProxy);
 
     /**
      * @notice Deploys an implementation and creates a proxy initialized with `data` for it.
      * @param implementation Bytecode of the implementation.
      * @param _calldata Initializer calldata.
-     * @return newProxy Proxy information.
+     * @return newProxy Deployment information.
      * @custom:signature deployCreateAndCall(bytes,bytes)
      * @custom:selector 0xfcdf055e
      */
     function createProxyAndLogic(
         bytes memory implementation,
         bytes memory _calldata
-    ) external payable returns (Proxy memory newProxy);
+    ) external payable returns (Deployment memory newProxy);
 
     /**
      * @notice Deterministic version of {deployCreateAndCall} where arguments are used to derive the salt.
@@ -259,7 +269,7 @@ interface IProxyFactory {
      * @param implementation Bytecode of the implementation.
      * @param _calldata Initializer calldata.
      * @param salt Salt to derive both addresses from.
-     * @return newProxy Proxy information.
+     * @return newProxy Deployment information.
      * @custom:signature deployCreate2AndCall(bytes,bytes,bytes32)
      * @custom:selector 0xeb4495f3
      */
@@ -267,7 +277,7 @@ interface IProxyFactory {
         bytes memory implementation,
         bytes memory _calldata,
         bytes32 salt
-    ) external payable returns (Proxy memory newProxy);
+    ) external payable returns (Deployment memory newProxy);
 
     /**
      * @notice Deterministic version of {deployCreateAndCall} where only salt matters.
@@ -275,7 +285,7 @@ interface IProxyFactory {
      * @param implementation Bytecode of the implementation to deploy.
      * @param _calldata Initializer calldata.
      * @param salt Salt to derive both addresses from.
-     * @return newProxy Proxy information.
+     * @return newProxy Deployment information.
      * @custom:signature deployCreate3AndCall(bytes,bytes,bytes32)
      * @custom:selector 0x99480e85
      */
@@ -283,21 +293,21 @@ interface IProxyFactory {
         bytes memory implementation,
         bytes memory _calldata,
         bytes32 salt
-    ) external payable returns (Proxy memory newProxy);
+    ) external payable returns (Deployment memory newProxy);
 
-    /// @notice Deploys the @param implementation for {upgradeAndCall} and @return Proxy information.
+    /// @notice Deploys the @param implementation for {upgradeAndCall} and @return Deployment information.
     function upgradeAndCall(
         ITransparentUpgradeableProxy proxy,
         bytes memory implementation,
         bytes memory _calldata
-    ) external payable returns (Proxy memory);
+    ) external payable returns (Deployment memory);
 
-    /// @notice Same as {upgradeAndCall} but @return Proxy information.
+    /// @notice Same as {upgradeAndCall} but @return Deployment information.
     function upgradeAndCallReturn(
         ITransparentUpgradeableProxy proxy,
         address implementation,
         bytes memory _calldata
-    ) external payable returns (Proxy memory);
+    ) external payable returns (Deployment memory);
 
     /**
      * @notice Deterministically deploys the upgrade implementation and calls the {ProxyAdmin-upgradeAndCall}.
@@ -305,14 +315,14 @@ interface IProxyFactory {
      * @param proxy Existing ITransparentUpgradeableProxy to upgrade.
      * @param implementation Bytecode of the new implementation.
      * @param _calldata Initializer calldata.
-     * @return Proxy Proxy information.
+     * @return Deployment Deployment information.
      */
 
     function create2UpgradeAndCall(
         ITransparentUpgradeableProxy proxy,
         bytes memory implementation,
         bytes memory _calldata
-    ) external payable returns (Proxy memory);
+    ) external payable returns (Deployment memory);
 
     /**
      * @notice Deterministically deploys the upgrade implementatio and calls the {ProxyAdmin-upgradeAndCall}.
@@ -320,13 +330,43 @@ interface IProxyFactory {
      * @param proxy Existing ITransparentUpgradeableProxy to upgrade.
      * @param implementation Bytecode of the new implementation.
      * @param _calldata Initializer calldata.
-     * @return Proxy Proxy information.
+     * @return Deployment Deployment information.
      */
     function create3UpgradeAndCall(
         ITransparentUpgradeableProxy proxy,
         bytes memory implementation,
         bytes memory _calldata
-    ) external payable returns (Proxy memory);
+    ) external payable returns (Deployment memory);
+
+    /**
+     * @notice Deploy contract using create2.
+     * @param creationCode The creation code (bytes).
+     * @param _calldata The calldata (bytes).
+     * @param salt The salt (bytes32).
+     * @return newDeployment Deployment information.
+     * @custom:signature deployCreate2(bytes,bytes,bytes32)
+     * @custom:selector 0x2197eeb6
+     */
+    function deployCreate2(
+        bytes memory creationCode,
+        bytes memory _calldata,
+        bytes32 salt
+    ) external payable returns (Deployment memory newDeployment);
+
+    /**
+     * @notice Deploy contract using create3.
+     * @param creationCode The creation code (bytes).
+     * @param _calldata The calldata (bytes).
+     * @param salt The salt (bytes32).
+     * @return newDeployment Deployment information.
+     * @custom:signature deployCreate3(bytes,bytes,bytes32)
+     * @custom:selector 0xa3419e18
+     */
+    function deployCreate3(
+        bytes memory creationCode,
+        bytes memory _calldata,
+        bytes32 salt
+    ) external payable returns (Deployment memory newDeployment);
 
     /**
      * @notice Batch any action in this contract.
@@ -336,7 +376,7 @@ interface IProxyFactory {
     function batch(bytes[] calldata calls) external payable returns (bytes[] memory results);
 
     /**
-     * @notice Batch view this contract, reverts on write.
+     * @notice Batch view data from this contract.
      */
     function batchStatic(bytes[] calldata calls) external view returns (bytes[] memory results);
 }

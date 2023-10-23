@@ -9,7 +9,7 @@ import {MockOracle} from "mocks/MockOracle.sol";
 import {Asset} from "common/Types.sol";
 import {Vault} from "vault/Vault.sol";
 import {KISS} from "kiss/KISS.sol";
-import {Proxy} from "proxy/IProxyFactory.sol";
+import {Deployment} from "factory/IDeploymentFactory.sol";
 import {ERC20} from "kresko-lib/token/ERC20.sol";
 
 interface IKreskoForgeTypes {
@@ -38,8 +38,8 @@ interface IKreskoForgeTypes {
         string symbol;
         KreskoAsset krAsset;
         KreskoAssetAnchor anchor;
-        Proxy krAssetProxy;
-        Proxy anchorProxy;
+        Deployment krAssetProxy;
+        Deployment anchorProxy;
         string anchorSymbol;
         address underlyingAddr;
     }
@@ -64,8 +64,8 @@ interface IKreskoForgeTypes {
         address feedAddr;
         MockOracle mockFeed;
         IAggregatorV3 feed;
-        Proxy krAssetProxy;
-        Proxy anchorProxy;
+        Deployment krAssetProxy;
+        Deployment anchorProxy;
         IERC20 asToken;
     }
     struct MockConfig {
@@ -91,7 +91,7 @@ interface IKreskoForgeTypes {
         KISS kiss;
         Asset config;
         Vault vault;
-        Proxy proxy;
+        Deployment proxy;
         address vaultAddr;
         IERC20 asToken;
     }

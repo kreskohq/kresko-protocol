@@ -13,7 +13,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployer, userOne, userTwo, devOne, extOne, extTwo } = await hre.ethers.getNamedSigners();
 
   // Get the factory
-  const FactoryDeployment = await hre.deployments.get('GnosisSafeProxyFactory');
+  const FactoryDeployment = await hre.deployments.get('GnosisSafeDeploymentFactory');
   const Factory = await hre.ethers.getContractAt(FactoryDeployment.abi, FactoryDeployment.address);
 
   // Local mastercopy

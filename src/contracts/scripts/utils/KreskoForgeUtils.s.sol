@@ -16,7 +16,7 @@ import {KreskoForgeBase} from "scripts/utils/KreskoForgeBase.s.sol";
 import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFacet.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {LibSafe, GnosisSafeL2Mock} from "kresko-lib/mocks/MockSafe.sol";
-import {Proxy, ProxyFactory} from "proxy/ProxyFactory.sol";
+import {Deployment, DeploymentFactory} from "factory/DeploymentFactory.sol";
 import {Conversions} from "libs/Utils.sol";
 import {Vault} from "vault/Vault.sol";
 import {KISS} from "kiss/KISS.sol";
@@ -255,12 +255,12 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
 abstract contract NonDiamondDeployUtils is ConfigurationUtils {
     MockSequencerUptimeFeed internal mockSeqFeed;
     GnosisSafeL2Mock internal mockSafe;
-    ProxyFactory internal proxyFactory;
+    DeploymentFactory internal proxyFactory;
 
     bytes private KR_ASSET_IMPL = type(KreskoAsset).creationCode;
 
-    modifier needsProxyFactory() {
-        require(address(proxyFactory) != address(0), "KreskoForge: Deploy ProxyFactory first");
+    modifier needsDeploymentFactory() {
+        require(address(proxyFactory) != address(0), "KreskoForge: Deploy DeploymentFactory first");
         _;
     }
 
@@ -272,18 +272,18 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         return address((mockSafe = LibSafe.createSafe(admin)));
     }
 
-    function deployProxyFactory(address _owner) internal returns (ProxyFactory) {
-        return new ProxyFactory(_owner);
+    function deployDeploymentFactory(address _owner) internal returns (DeploymentFactory) {
+        return new DeploymentFactory(_owner);
     }
 
     function deployKISS(
         address kreskoAddr,
         address vaultAddr,
         address admin
-    ) internal needsProxyFactory returns (KISSInfo memory kissInfo_) {
+    ) internal needsDeploymentFactory returns (KISSInfo memory kissInfo_) {
         require(kreskoAddr != address(0), "deployKISS: Kresko address is zero");
         require(vaultAddr != address(0), "deployKISS: Vault address is zero");
-        Proxy memory proxy = proxyFactory.create3ProxyAndLogic(
+        Deployment memory proxy = proxyFactory.create3ProxyAndLogic(
             type(KISS).creationCode,
             abi.encodeCall(KISS.initialize, ("Kresko: KISS", "KISS", 18, admin, kreskoAddr, vaultAddr)),
             getKISSSalt()
@@ -304,7 +304,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         address underlyingAddr,
         address admin,
         address treasury
-    ) internal needsProxyFactory returns (KrAssetDeployInfo memory result_) {
+    ) internal needsDeploymentFactory returns (KrAssetDeployInfo memory result_) {
         (string memory anchorName, string memory anchorSymbol) = getAnchorSymbolAndName(name, symbol);
         (bytes32 krAssetSalt, bytes32 anchorSalt) = getKrAssetSalts(symbol, anchorSymbol);
 
@@ -328,7 +328,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         batch[0] = abi.encodeCall(proxyFactory.create2ProxyAndLogic, (KR_ASSET_IMPL, KR_ASSET_INITIALIZER, krAssetSalt));
         batch[1] = abi.encodeCall(proxyFactory.create2ProxyAndLogic, (ANCHOR_IMPL, ANCHOR_INITIALIZER, anchorSalt));
 
-        Proxy[] memory proxies = proxyFactory.batch(batch).map(Conversions.toProxy);
+        Deployment[] memory proxies = proxyFactory.batch(batch).map(Conversions.toDeployment);
         result_.addr = address(proxies[0].proxy);
         result_.krAsset = KreskoAsset(payable(address(proxies[0].proxy)));
         result_.anchor = KreskoAssetAnchor(payable(address(proxies[1].proxy)));
@@ -345,7 +345,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         uint256 price,
         address underlyingAddr,
         CoreConfig memory args
-    ) internal needsProxyFactory returns (KrAssetInfo memory result) {
+    ) internal needsDeploymentFactory returns (KrAssetInfo memory result) {
         KrAssetDeployInfo memory deployment = deployKrAsset(name, symbol, underlyingAddr, args.admin, args.treasury);
         result.addr = deployment.addr;
         result.krAsset = deployment.krAsset;

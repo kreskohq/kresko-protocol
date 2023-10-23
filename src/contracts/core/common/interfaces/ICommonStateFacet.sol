@@ -73,7 +73,7 @@ interface ICommonStateFacet {
     function redstonePrice(bytes32 _ticker, address) external view returns (uint256);
 
     /**
-     * @notice Price getter for IProxy/API3 type feeds.
+     * @notice Price getter for API3 type feeds.
      * @notice Decimal precision is NOT the same as other sources.
      * @notice Returns 0-price if answer is stale.This triggers the use of a secondary provider if available.
      * @dev Valid call will revert if the answer is negative.

@@ -42,7 +42,7 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
             treasury: TEST_TREASURY
         });
         vm.startPrank(deployCfg.admin);
-        proxyFactory = deployProxyFactory(TEST_ADMIN);
+        proxyFactory = deployDeploymentFactory(TEST_ADMIN);
         kresko = deployDiamond(deployCfg);
         vm.warp(3601);
 

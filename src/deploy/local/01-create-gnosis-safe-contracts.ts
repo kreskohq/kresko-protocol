@@ -20,10 +20,12 @@ const deploy: DeployFunction = async function (hre) {
         address: simulateTxAccesorInfo!.networkAddresses.opgoerli,
       });
 
-      const gnosisSafeProxyFactoryInfo = gnosisSafeDeployments.find(i => i.contractName === 'GnosisSafeProxyFactory')!;
-      await hre.deployments.save('GnosisSafeProxyFactory', {
-        abi: gnosisSafeProxyFactoryInfo.abi,
-        address: gnosisSafeProxyFactoryInfo.networkAddresses.opgoerli,
+      const gnosisSafeDeploymentFactoryInfo = gnosisSafeDeployments.find(
+        i => i.contractName === 'GnosisSafeDeploymentFactory',
+      )!;
+      await hre.deployments.save('GnosisSafeDeploymentFactory', {
+        abi: gnosisSafeDeploymentFactoryInfo.abi,
+        address: gnosisSafeDeploymentFactoryInfo.networkAddresses.opgoerli,
       });
 
       const compatibilityFallbackHandlerInfo = gnosisSafeDeployments.find(
@@ -81,19 +83,21 @@ const deploy: DeployFunction = async function (hre) {
     case 'arbitrumGoerli':
     case 'hardhat': {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const safeProxyFactoryArtifact = require('../../utils/gnosis/json/GnosisSafeProxyFactory2.json');
-      const safeProxyFactoryFactory = await hre.ethers.getContractFactoryFromArtifact(safeProxyFactoryArtifact);
-      const proxyFactory = await safeProxyFactoryFactory.deploy();
-      await hre.deployments.save('GnosisSafeProxyFactory', {
-        abi: safeProxyFactoryArtifact.abi,
+      const safeDeploymentFactoryArtifact = require('../../utils/gnosis/json/GnosisSafeDeploymentFactory2.json');
+      const safeDeploymentFactoryFactory = await hre.ethers.getContractFactoryFromArtifact(
+        safeDeploymentFactoryArtifact,
+      );
+      const proxyFactory = await safeDeploymentFactoryFactory.deploy();
+      await hre.deployments.save('GnosisSafeDeploymentFactory', {
+        abi: safeDeploymentFactoryArtifact.abi,
         address: proxyFactory.address,
         args: [],
       });
 
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const safeProxyArtifact = require('../../utils/gnosis/json/GnosisSafe.json');
-      const safeProxyFactory = await hre.ethers.getContractFactoryFromArtifact(safeProxyArtifact);
-      const safeProxy = await safeProxyFactory.deploy();
+      const safeDeploymentFactory = await hre.ethers.getContractFactoryFromArtifact(safeProxyArtifact);
+      const safeProxy = await safeDeploymentFactory.deploy();
       await hre.deployments.save('GnosisSafe', {
         abi: safeProxyArtifact.abi,
         address: safeProxy.address,

@@ -12,20 +12,20 @@ import {stdStorage, StdStorage} from "forge-std/StdStorage.sol";
 import {console2} from "forge-std/console2.sol";
 import {Conversions, Deploys, Proxies} from "libs/Utils.sol";
 import {LogicA, LogicB} from "mocks-misc/MockLogic.sol";
-import {ProxyFactory, IProxyFactory, Proxy, TransparentUpgradeableProxy} from "proxy/ProxyFactory.sol";
+import {DeploymentFactory, IDeploymentFactory, Deployment, TransparentUpgradeableProxy} from "factory/DeploymentFactory.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 
 bytes32 constant EIP1967_ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 bytes32 constant EIP1967_IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
 
-contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
+contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
     using stdStorage for StdStorage;
     using LibTest for *;
     using Proxies for *;
     using Conversions for *;
 
-    ProxyFactory factory;
+    DeploymentFactory factory;
     address initialOwner;
 
     bytes32 salt = keccak256("test");
@@ -41,7 +41,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
 
     function setUp() public pranked(0) {
         initialOwner = getAddr(0);
-        factory = new ProxyFactory(initialOwner);
+        factory = new DeploymentFactory(initialOwner);
 
         CALLDATA_LOGIC_A = abi.encodeWithSelector(LogicA.initialize.selector);
         CALLDATA_LOGIC_B = abi.encodeWithSelector(LogicB.initialize.selector, getAddr(1), 100);
@@ -53,7 +53,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
 
     function testCreateProxy() public pranked(0) {
         LogicA logicA = new LogicA();
-        Proxy memory proxy = factory.createProxy(address(logicA), CALLDATA_LOGIC_A);
+        Deployment memory proxy = factory.createProxy(address(logicA), CALLDATA_LOGIC_A);
         address proxyAddr = address(proxy.proxy);
 
         address admin = address(uint160(uint256(vm.load(proxyAddr, EIP1967_ADMIN_SLOT))));
@@ -76,9 +76,9 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.isProxy(address(logicA)).equals(false);
         factory.isProxy(proxyAddr).equals(true);
         factory.getImplementation(proxyAddr).equals(address(logicA));
-        factory.getProxyCount().equals(1);
-        factory.getProxies().length.equals(1);
-        assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
+        factory.getDeployCount().equals(1);
+        factory.getDeployments().length.equals(1);
+        assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
     function testCreate2Proxy() public pranked(0) {
@@ -87,7 +87,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         address expectedProxyAddress = factory.previewCreate2Proxy(address(logicA), CALLDATA_LOGIC_A, salt);
         expectedProxyAddress.notEqual(address(0));
 
-        Proxy memory proxy = factory.create2Proxy(address(logicA), CALLDATA_LOGIC_A, salt);
+        Deployment memory proxy = factory.create2Proxy(address(logicA), CALLDATA_LOGIC_A, salt);
         address proxyAddr = address(proxy.proxy);
 
         address admin = address(uint160(uint256(vm.load(proxyAddr, EIP1967_ADMIN_SLOT))));
@@ -112,9 +112,9 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.isProxy(address(logicA)).equals(false);
         factory.isProxy(proxyAddr).equals(true);
         factory.getImplementation(proxyAddr).equals(address(logicA));
-        factory.getProxyCount().equals(1);
-        factory.getProxies().length.equals(1);
-        assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
+        factory.getDeployCount().equals(1);
+        factory.getDeployments().length.equals(1);
+        assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
     function testCreate3Proxy() public pranked(0) {
@@ -126,7 +126,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         expectedSaltAddress.notEqual(address(0));
         expectedProxyAddress.equals(expectedSaltAddress);
 
-        Proxy memory proxy = factory.create3Proxy(address(logicA), CALLDATA_LOGIC_A, salt);
+        Deployment memory proxy = factory.create3Proxy(address(logicA), CALLDATA_LOGIC_A, salt);
         address proxyAddr = address(proxy.proxy);
 
         address admin = address(uint160(uint256(vm.load(proxyAddr, EIP1967_ADMIN_SLOT))));
@@ -152,13 +152,13 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.isProxy(address(logicA)).equals(false);
         factory.isProxy(proxyAddr).equals(true);
         factory.getImplementation(proxyAddr).equals(address(logicA));
-        factory.getProxyCount().equals(1);
-        factory.getProxies().length.equals(1);
-        assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
+        factory.getDeployCount().equals(1);
+        factory.getDeployments().length.equals(1);
+        assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
     function testCreateProxyAndLogic() public pranked(0) {
-        Proxy memory proxy = factory.createProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A);
+        Deployment memory proxy = factory.createProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A);
         address proxyAddr = address(proxy.proxy);
 
         address admin = address(uint160(uint256(vm.load(proxyAddr, EIP1967_ADMIN_SLOT))));
@@ -184,9 +184,9 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.isProxy(address(logicA)).equals(false);
         factory.isProxy(proxyAddr).equals(true);
         factory.getImplementation(proxyAddr).equals(address(logicA));
-        factory.getProxyCount().equals(1);
-        factory.getProxies().length.equals(1);
-        assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
+        factory.getDeployCount().equals(1);
+        factory.getDeployments().length.equals(1);
+        assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
     function testCreateProxy2AndLogic() public pranked(0) {
@@ -201,7 +201,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         expectedImplementation.notEqual(address(0));
         expectedProxy.notEqual(expectedImplementation);
 
-        Proxy memory proxy = factory.create2ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
+        Deployment memory proxy = factory.create2ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
         address proxyAddr = address(proxy.proxy);
 
         address admin = address(uint160(uint256(vm.load(proxyAddr, EIP1967_ADMIN_SLOT))));
@@ -235,9 +235,9 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.isProxy(address(logicA)).equals(false);
         factory.isProxy(proxyAddr).equals(true);
         factory.getImplementation(proxyAddr).equals(address(logicA));
-        factory.getProxyCount().equals(1);
-        factory.getProxies().length.equals(1);
-        assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
+        factory.getDeployCount().equals(1);
+        factory.getDeployments().length.equals(1);
+        assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
     function testCreate3ProxyAndLogic() public pranked(0) {
@@ -248,7 +248,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         expectedImplementation.notEqual(address(0));
         expectedProxy.notEqual(expectedImplementation);
 
-        Proxy memory proxy = factory.create3ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
+        Deployment memory proxy = factory.create3ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
         address proxyAddr = address(proxy.proxy);
 
         address admin = address(uint160(uint256(vm.load(proxyAddr, EIP1967_ADMIN_SLOT))));
@@ -276,13 +276,16 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.isProxy(address(logicA)).equals(false);
         factory.isProxy(proxyAddr).equals(true);
         factory.getImplementation(proxyAddr).equals(address(logicA));
-        factory.getProxyCount().equals(1);
-        factory.getProxies().length.equals(1);
-        assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
+        factory.getDeployCount().equals(1);
+        factory.getDeployments().length.equals(1);
+        assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
     function testUpgradeAndCall() public pranked(0) {
-        Proxy memory proxy = factory.createProxy(address(new LogicA()), abi.encodeWithSelector(LogicA.initialize.selector));
+        Deployment memory proxy = factory.createProxy(
+            address(new LogicA()),
+            abi.encodeWithSelector(LogicA.initialize.selector)
+        );
 
         LogicB logicB = new LogicB();
         LogicB proxyLogicB = LogicB(address(proxy.proxy));
@@ -302,7 +305,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         proxyLogicB.owner().equals(newOwner);
         proxyLogicB.valueUint().equals(newValue);
 
-        Proxy memory upgraded = factory.getProxy(address(proxy.proxy));
+        Deployment memory upgraded = factory.getDeployment(address(proxy.proxy));
         address proxyAddr = address(upgraded.proxy);
         upgraded.implementation.notEqual(proxy.implementation);
         upgraded.version.equals(2);
@@ -316,13 +319,13 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.isProxy(address(logicB)).equals(false);
         factory.isProxy(proxyAddr).equals(true);
         factory.getImplementation(proxyAddr).equals(address(logicB));
-        factory.getProxyCount().equals(1);
-        factory.getProxies().length.equals(1);
-        assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
+        factory.getDeployCount().equals(1);
+        factory.getDeployments().length.equals(1);
+        assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
     function testCreate2UpgradeAndCall() public pranked(0) {
-        Proxy memory proxy = factory.create2ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
+        Deployment memory proxy = factory.create2ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
         address newOwner = getAddr(1);
         uint256 newValue = 100;
         bytes memory _calldata = abi.encodeWithSelector(LogicB.initialize.selector, newOwner, newValue);
@@ -332,7 +335,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         LogicB proxyLogicB = LogicB(address(proxy.proxy));
 
         vm.warp(100);
-        Proxy memory upgraded = factory.create2UpgradeAndCall(proxy.proxy, LOGIC_B_CREATION_CODE, _calldata);
+        Deployment memory upgraded = factory.create2UpgradeAndCall(proxy.proxy, LOGIC_B_CREATION_CODE, _calldata);
         LogicB logicB = LogicB(expectedImplementation);
 
         address proxyAddr = address(upgraded.proxy);
@@ -363,19 +366,19 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.isProxy(address(logicB)).equals(false);
         factory.isProxy(proxyAddr).equals(true);
         factory.getImplementation(proxyAddr).equals(address(logicB));
-        factory.getProxyCount().equals(1);
-        factory.getProxies().length.equals(1);
-        assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
+        factory.getDeployCount().equals(1);
+        factory.getDeployments().length.equals(1);
+        assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
     function testCreate3UpgradeAndCall() public pranked(0) {
-        Proxy memory proxy = factory.create3ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
+        Deployment memory proxy = factory.create3ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
 
         (address expectedImplementation, uint256 version) = factory.previewCreate3Upgrade(proxy.proxy);
         proxy.implementation.notEqual(expectedImplementation);
 
         vm.warp(100);
-        Proxy memory upgraded = factory.create3UpgradeAndCall(proxy.proxy, LOGIC_B_CREATION_CODE, CALLDATA_LOGIC_B);
+        Deployment memory upgraded = factory.create3UpgradeAndCall(proxy.proxy, LOGIC_B_CREATION_CODE, CALLDATA_LOGIC_B);
 
         LogicB logicB = LogicB(expectedImplementation);
         LogicB proxyLogicB = LogicB(address(proxy.proxy));
@@ -401,9 +404,9 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.isProxy(address(logicB)).equals(false);
         factory.isProxy(proxyAddr).equals(true);
         factory.getImplementation(proxyAddr).equals(address(logicB));
-        factory.getProxyCount().equals(1);
-        factory.getProxies().length.equals(1);
-        assertTrue(factory.getProxies()[0].proxy == proxy.proxy);
+        factory.getDeployCount().equals(1);
+        factory.getDeployments().length.equals(1);
+        assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
     function testBatching() public pranked(0) {
@@ -411,10 +414,10 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         initCalls[0] = abi.encodeCall(factory.createProxy, (address(new LogicA()), CALLDATA_LOGIC_A));
         initCalls[1] = abi.encodeCall(factory.create2ProxyAndLogic, (LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt));
         initCalls[2] = abi.encodeCall(factory.create3ProxyAndLogic, (LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt));
-        Proxy[] memory proxies = factory.batch(initCalls).map(Conversions.toProxy);
+        Deployment[] memory proxies = factory.batch(initCalls).map(Conversions.toDeployment);
 
         for (uint256 i; i < proxies.length; i++) {
-            Proxy memory proxy = proxies[i];
+            Deployment memory proxy = proxies[i];
             address proxyAddr = address(proxy.proxy);
 
             LogicA logicA = LogicA(proxy.implementation);
@@ -428,9 +431,9 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
 
             proxyLogicA.valueUint().equals(42);
             proxy.index.equals(i);
-            assertTrue(factory.getProxies()[i].proxy == proxy.proxy);
+            assertTrue(factory.getDeployments()[i].proxy == proxy.proxy);
         }
-        factory.getProxyCount().equals(initCalls.length);
+        factory.getDeployCount().equals(initCalls.length);
 
         address newOwner = getAddr(1);
         uint256 newValue = 101;
@@ -453,10 +456,10 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         );
 
         vm.warp(100);
-        Proxy[] memory upgradedProxies = factory.batch(upgradeCalls).map(Conversions.toProxy);
+        Deployment[] memory upgradedProxies = factory.batch(upgradeCalls).map(Conversions.toDeployment);
 
         for (uint256 i; i < upgradedProxies.length; i++) {
-            Proxy memory proxy = upgradedProxies[i];
+            Deployment memory proxy = upgradedProxies[i];
             address proxyAddr = address(proxy.proxy);
 
             LogicB logicB = LogicB(proxy.implementation);
@@ -479,9 +482,9 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
             proxy.index.equals(i);
             proxy.createdAt.equals(proxies[i].createdAt);
             proxy.updatedAt.isGt(proxies[i].updatedAt);
-            assertTrue(factory.getProxies()[i].proxy == proxy.proxy);
+            assertTrue(factory.getDeployments()[i].proxy == proxy.proxy);
         }
-        factory.getProxyCount().equals(initCalls.length);
+        factory.getDeployCount().equals(initCalls.length);
 
         address newLogicA = address(new LogicA());
         vm.expectRevert();
@@ -514,7 +517,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
 
         // run deploys
         vm.prank(whitelisted);
-        Proxy[] memory proxies = factory.batch(deployCalls).map(Conversions.toProxy);
+        Deployment[] memory proxies = factory.batch(deployCalls).map(Conversions.toDeployment);
         proxies.length.equals(deployCalls.length);
 
         // cannot upgrade
@@ -551,7 +554,7 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         implementationAddr.notEqual(address(0));
 
         vm.startPrank(owner);
-        Proxy[] memory upgraded = factory.batch(mixedCalls).map(Conversions.toProxy);
+        Deployment[] memory upgraded = factory.batch(mixedCalls).map(Conversions.toDeployment);
         upgraded.length.equals(mixedCalls.length);
         upgraded[0].implementation.equals(newLogicA);
         upgraded[0].version.equals(1);
@@ -605,9 +608,9 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         address logicA = address(new LogicA());
         address logicB = address(new LogicB());
 
-        Proxy memory proxy1 = factory.createProxy(logicA, CALLDATA_LOGIC_A);
-        Proxy memory proxy2 = factory.create2Proxy(logicA, CALLDATA_LOGIC_A, salt2);
-        Proxy memory proxy3 = factory.create3Proxy(logicA, CALLDATA_LOGIC_A, salt2);
+        Deployment memory proxy1 = factory.createProxy(logicA, CALLDATA_LOGIC_A);
+        Deployment memory proxy2 = factory.create2Proxy(logicA, CALLDATA_LOGIC_A, salt2);
+        Deployment memory proxy3 = factory.create3Proxy(logicA, CALLDATA_LOGIC_A, salt2);
         vm.stopPrank();
 
         address invalid = getAddr(2);
@@ -704,9 +707,9 @@ contract ProxyFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assets[0] = abi.encodeCall(factory.create2ProxyAndLogic, (krAssetImpl, krAssetInitializer, krAssetSalt));
         assets[1] = abi.encodeCall(factory.create2ProxyAndLogic, (anchorImpl, anchorInitializer, anchorSalt));
 
-        Proxy[] memory proxies = factory.batch(assets).map(Conversions.toProxy);
-        Proxy memory krAsset = proxies[0];
-        Proxy memory anchor = proxies[1];
+        Deployment[] memory proxies = factory.batch(assets).map(Conversions.toDeployment);
+        Deployment memory krAsset = proxies[0];
+        Deployment memory anchor = proxies[1];
 
         address(krAsset.proxy).equals(predictedAddress);
         address(anchor.proxy).equals(predictedAnchorAddress);

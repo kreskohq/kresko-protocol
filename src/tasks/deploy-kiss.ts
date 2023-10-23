@@ -12,8 +12,8 @@ const logger = getLogger(TASK_DEPLOY_KISS);
 task(TASK_DEPLOY_KISS).setAction(async function (_taskArgs: TaskArguments, hre) {
   logger.log(`Deploying KISS`);
   const { deployer } = await hre.getNamedAccounts();
-  if (!hre.ProxyFactory) {
-    [hre.ProxyFactory] = await hre.deploy('ProxyFactory', {
+  if (!hre.DeploymentFactory) {
+    [hre.DeploymentFactory] = await hre.deploy('DeploymentFactory', {
       args: [deployer],
     });
   }

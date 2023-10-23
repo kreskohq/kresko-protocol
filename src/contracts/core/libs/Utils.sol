@@ -2,7 +2,8 @@
 pragma solidity ^0.8.4;
 import {Asset} from "common/Types.sol";
 import {Solady} from "libs/Solady.sol";
-import {TransparentUpgradeableProxy, ITransparentUpgradeableProxy, Proxy} from "proxy/ProxyFactory.sol";
+import {ITransparentUpgradeableProxy, Deployment} from "factory/IDeploymentFactory.sol";
+import {TransparentUpgradeableProxy} from "factory/TransparentUpgradeableProxy.sol";
 
 library Conversions {
     function toAddress(bytes32 b) internal pure returns (address) {
@@ -17,8 +18,8 @@ library Conversions {
         return abi.decode(b, (address));
     }
 
-    function toProxy(bytes memory b) internal pure returns (Proxy memory) {
-        return abi.decode(b, (Proxy));
+    function toDeployment(bytes memory b) internal pure returns (Deployment memory) {
+        return abi.decode(b, (Deployment));
     }
 
     function toAsset(bytes memory b) internal pure returns (Asset memory) {
@@ -52,9 +53,9 @@ library Conversions {
 
     function map(
         bytes[] memory rawData,
-        function(bytes memory) pure returns (Proxy memory) dataHandler
-    ) internal pure returns (Proxy[] memory result) {
-        result = new Proxy[](rawData.length);
+        function(bytes memory) pure returns (Deployment memory) dataHandler
+    ) internal pure returns (Deployment[] memory result) {
+        result = new Deployment[](rawData.length);
         unchecked {
             for (uint256 i; i < rawData.length; i++) {
                 result[i] = dataHandler(rawData[i]);

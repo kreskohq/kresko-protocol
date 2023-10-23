@@ -18,8 +18,8 @@ export async function createKrAsset<T extends AllTokenSymbols>(
 
   if (symbol === 'KISS') throw new Error('KISS cannot be created through createKrAsset');
 
-  if (!hre.ProxyFactory) {
-    [hre.ProxyFactory] = await hre.deploy('ProxyFactory', {
+  if (!hre.DeploymentFactory) {
+    [hre.DeploymentFactory] = await hre.deploy('DeploymentFactory', {
       args: [deployer.address],
     });
   }

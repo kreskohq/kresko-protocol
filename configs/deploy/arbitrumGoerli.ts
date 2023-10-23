@@ -1,25 +1,25 @@
-import { price } from '@kreskolabs/lib/ext';
 import { AssetArgs, GnosisSafeDeployment, NetworkConfig, OracleType } from '@/types';
+import { price } from '@kreskolabs/lib/ext';
+import { defaultSupplyLimit } from '@utils/test/mocks';
 import {
   CompatibilityFallbackHandler,
   CreateCall,
+  DeploymentFactory,
   GnosisSafe,
   GnosisSafeL2,
   MultiSend,
   MultiSendCallOnly,
-  ProxyFactory,
   SignMessageLib,
   SimulateTxAccessor,
 } from '../../src/utils/gnosis/gnosis-safe';
-import { defaultSupplyLimit } from '@utils/test/mocks';
 
-import { toBig } from '@utils/values';
 import {
   CommonInitArgsStruct,
   MinterInitArgsStruct,
   SCDPInitArgsStruct,
 } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { toBig } from '@utils/values';
 
 const fetchPrice = async (symbol: string) => {
   if (!process.env.TWELVEDATA_API_KEY) {
@@ -200,7 +200,7 @@ const gnosisSafeDeployments: GnosisSafeDeployment[] = [
   GnosisSafe,
   MultiSendCallOnly,
   MultiSend,
-  ProxyFactory,
+  DeploymentFactory,
   SignMessageLib,
   SimulateTxAccessor,
 ];

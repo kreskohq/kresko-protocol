@@ -70,7 +70,7 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
 
     function onCoreContractsCreated($.Ctx storage _ctx) internal override logEnabled {
         console2.log("Diamond created @", address(_ctx.kresko));
-        console2.log("ProxyFactory @", address(_ctx.proxyFactory));
+        console2.log("DeploymentFactory @", address(_ctx.proxyFactory));
     }
 
     function onKrAssetAdded($.Ctx storage _ctx, KrAssetInfo memory _info) internal override logEnabled {

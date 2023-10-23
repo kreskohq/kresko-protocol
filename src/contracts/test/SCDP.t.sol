@@ -46,7 +46,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         vm.startPrank(deployCfg.admin);
 
         kresko = deployDiamond(deployCfg);
-        proxyFactory = deployProxyFactory(TEST_ADMIN);
+        proxyFactory = deployDeploymentFactory(TEST_ADMIN);
         vm.warp(3601);
 
         usdc = mockCollateral(

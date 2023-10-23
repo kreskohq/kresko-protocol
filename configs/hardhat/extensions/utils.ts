@@ -37,7 +37,7 @@ const prepareProxyDeploy = async <
     log?: boolean;
   },
 ) => {
-  if (!hre.ProxyFactory?.address) throw new Error('ProxyFactory not deployed');
+  if (!hre.DeploymentFactory?.address) throw new Error('DeploymentFactory not deployed');
   const txData = preparedProxies.map(d => d.calldata);
 
   const isBatch = txData.length > 1;
@@ -48,11 +48,12 @@ const prepareProxyDeploy = async <
 
   const count = txData.length;
 
-  const preparedTx = await commonUtils.prepareTx(hre.ProxyFactory, {
+  const preparedTx = await commonUtils.prepareTx(hre.DeploymentFactory, {
     logger,
     action: isBatch ? `deploy ${count} proxies (batch)` : `deploy ${preparedProxies[0].name} proxy`,
-    name: 'ProxyFactory',
-    txGasEstimator: () => (!isBatch ? preparedProxies[0].estimateGas() : hre.ProxyFactory.estimateGas.batch(txData)),
+    name: 'DeploymentFactory',
+    txGasEstimator: () =>
+      !isBatch ? preparedProxies[0].estimateGas() : hre.DeploymentFactory.estimateGas.batch(txData),
     ...options,
   });
 
@@ -70,7 +71,7 @@ const prepareProxyDeploy = async <
 };
 
 const prepareProxy: PrepareProxyFunction = async (name, options) => {
-  if (!hre.ProxyFactory) throw new Error('ProxyFactory not deployed');
+  if (!hre.DeploymentFactory) throw new Error('DeploymentFactory not deployed');
   const { factory, creationCode, iface, deploymentId } = await proxyUtils.getFactory(name, options);
 
   const initializerCalldata = options.initializer
@@ -97,13 +98,13 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
     deployedImplementationBytecode: creationCode,
   } as const;
   if (!options.type) {
-    calldata = hre.ProxyFactory.interface.encodeFunctionData('createProxyAndLogic', [
+    calldata = hre.DeploymentFactory.interface.encodeFunctionData('createProxyAndLogic', [
       creationCode,
       initializerCalldata,
     ]);
 
-    estimateGas = () => hre.ProxyFactory.estimateGas.createProxyAndLogic(creationCode, initializerCalldata);
-    create = overrides => hre.ProxyFactory.createProxyAndLogic(creationCode, initializerCalldata, overrides);
+    estimateGas = () => hre.DeploymentFactory.estimateGas.createProxyAndLogic(creationCode, initializerCalldata);
+    create = overrides => hre.DeploymentFactory.createProxyAndLogic(creationCode, initializerCalldata, overrides);
 
     return {
       ...commonData,
@@ -116,16 +117,17 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
   } else if (options.type === 'create2') {
     if (!salt) throw new Error('create2 needs a salt value');
 
-    calldata = hre.ProxyFactory.interface.encodeFunctionData('create2ProxyAndLogic', [
+    calldata = hre.DeploymentFactory.interface.encodeFunctionData('create2ProxyAndLogic', [
       creationCode,
       initializerCalldata,
       salt,
     ]);
 
-    estimateGas = () => hre.ProxyFactory.estimateGas.create2ProxyAndLogic(creationCode, initializerCalldata, salt);
-    create = overrides => hre.ProxyFactory.create2ProxyAndLogic(creationCode, initializerCalldata, salt, overrides);
+    estimateGas = () => hre.DeploymentFactory.estimateGas.create2ProxyAndLogic(creationCode, initializerCalldata, salt);
+    create = overrides =>
+      hre.DeploymentFactory.create2ProxyAndLogic(creationCode, initializerCalldata, salt, overrides);
 
-    const [proxyAddress, implementationAddress] = await hre.ProxyFactory.previewCreate2ProxyAndLogic(
+    const [proxyAddress, implementationAddress] = await hre.DeploymentFactory.previewCreate2ProxyAndLogic(
       creationCode,
       initializerCalldata,
       salt,
@@ -143,16 +145,17 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
   } else if (options.type === 'create3') {
     if (!salt) throw new Error('create3 needs a salt value');
 
-    calldata = hre.ProxyFactory.interface.encodeFunctionData('create3ProxyAndLogic', [
+    calldata = hre.DeploymentFactory.interface.encodeFunctionData('create3ProxyAndLogic', [
       creationCode,
       initializerCalldata,
       salt,
     ]);
 
-    estimateGas = () => hre.ProxyFactory.estimateGas.create3ProxyAndLogic(creationCode, initializerCalldata, salt);
-    create = overrides => hre.ProxyFactory.create3ProxyAndLogic(creationCode, initializerCalldata, salt, overrides);
+    estimateGas = () => hre.DeploymentFactory.estimateGas.create3ProxyAndLogic(creationCode, initializerCalldata, salt);
+    create = overrides =>
+      hre.DeploymentFactory.create3ProxyAndLogic(creationCode, initializerCalldata, salt, overrides);
 
-    const [proxyAddress, implementationAddress] = await hre.ProxyFactory.previewCreate3ProxyAndLogic(salt);
+    const [proxyAddress, implementationAddress] = await hre.DeploymentFactory.previewCreate3ProxyAndLogic(salt);
 
     return {
       ...commonData,

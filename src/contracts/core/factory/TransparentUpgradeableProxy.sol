@@ -62,7 +62,7 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
      * {ERC1967Proxy-constructor}.
      *
      * @notice Kresko
-     * @dev Removed ProxyAdmin construction - instead using the creator {ProxyFactory} as {ProxyAdmin}.
+     * @dev Removed ProxyAdmin construction - instead using the creator {DeploymentFactory} as {ProxyAdmin}.
      * @dev Factory address is explicitly passed as argument (and not as msg.sender) to support "CREATE3".
      */
     constructor(address _logic, address _factory, bytes memory _data) payable ERC1967Proxy(_logic, _data) {
