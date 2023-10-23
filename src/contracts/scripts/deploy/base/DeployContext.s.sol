@@ -18,13 +18,16 @@ import {LibTest} from "kresko-lib/utils/LibTest.sol";
 import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {Vault} from "vault/Vault.sol";
+import {BaseLogger} from "./Logger.s.sol";
+
+import {console2} from "forge-std/Console2.sol";
 
 using Arrays for bytes32[];
 using Arrays for address[];
 using Arrays for string[];
 
 /// @notice Serves context and callbacks for deployment scripts
-abstract contract DeployContext is KreskoForgeUtils {
+abstract contract DeployContext is BaseLogger {
     struct AssetsOnChain {
         uint256 wethIndex;
         IKreskoForgeTypes.ExtAssetInfo[] ext;
@@ -35,6 +38,10 @@ abstract contract DeployContext is KreskoForgeUtils {
         uint256 krAssetCount;
         uint256 vaultAssetCount;
         IKreskoForgeTypes.KISSInfo kiss;
+    }
+
+    struct DeploymentResult {
+        AssetsOnChain assets;
     }
 
     struct AssetCfg {
@@ -74,54 +81,36 @@ abstract contract DeployContext is KreskoForgeUtils {
         $.enableCtx();
     }
 
-    modifier ctx() {
+    modifier senderCtx() {
         if ($.ctx().enabled) {
             $.ctx().msgSender = LibTest.peekSender();
+            console2.log("Sender", $.ctx().msgSender);
         }
         _;
     }
 
-    function onConfigurationsCreated(
-        $.Ctx storage _ctx,
-        CoreConfig memory _cfg,
-        AssetCfg memory _assetCfg,
-        UserCfg[] memory _userCfg
-    ) internal virtual {}
-
-    function onCoreContractsCreated($.Ctx storage _ctx) internal virtual {}
-
-    function onContractsCreated($.Ctx storage _ctx) internal virtual {}
-
-    function onKrAssetAdded($.Ctx storage _ctx, KrAssetInfo memory _onChainInfo) internal virtual {}
-
-    function onExtAssetAdded($.Ctx storage _ctx, ExtAssetInfo memory _onChainInfo) internal virtual {}
-
-    function onAssetsComplete($.Ctx storage _ctx, AssetsOnChain memory _onChainInfo) internal virtual {}
-
-    function onComplete($.Ctx storage _ctx) internal virtual {}
-
-    function afterAssetConfigs(AssetCfg memory _assetCfg) internal ctx {
+    function afterAssetConfigs(AssetCfg memory _assetCfg) internal senderCtx {
         $.createAssetConfigsCtx(_assetCfg);
     }
 
-    function afterCoreConfig(CoreConfig memory _cfg) internal ctx {
+    function afterCoreConfig(CoreConfig memory _cfg) internal senderCtx {
         require(_cfg.admin != address(0), "createCoreConfig: coreArgs should have some admin address set");
-        onConfigurationsCreated($.createCoreConfigCtx((_cfg)), _cfg, $.ctx().assetCfg, $.ctx().userCfg);
+        super.onConfigurationsCreated($.createCoreConfigCtx((_cfg)), _cfg, $.ctx().assetCfg, $.ctx().userCfg);
     }
 
-    function afterUserConfig(UserCfg[] memory _cfg) internal ctx {
+    function afterUserConfig(UserCfg[] memory _cfg) internal senderCtx {
         $.createUserConfigCtx(_cfg);
     }
 
-    function beforeCreateCore(CoreConfig memory) internal ctx {
+    function beforeCreateCore(CoreConfig memory) internal senderCtx {
         $.handleBeforeCreateCoreCtx();
     }
 
-    function afterCoreCreated(IKresko _kresko, ProxyFactory _proxyFactory) internal ctx {
-        onCoreContractsCreated($.createCoreCtx(_kresko, _proxyFactory));
+    function afterCoreCreated(IKresko _kresko, ProxyFactory _proxyFactory) internal senderCtx {
+        super.onCoreContractsCreated($.createCoreCtx(_kresko, _proxyFactory));
     }
 
-    function afterVaultCreated(Vault _vault) internal ctx {
+    function afterVaultCreated(Vault _vault) internal senderCtx {
         $.createVaultCtx(_vault);
     }
 
@@ -132,28 +121,28 @@ abstract contract DeployContext is KreskoForgeUtils {
         $.proxyCtx(_deployment.anchorProxy, _deployment.anchorSymbol);
     }
 
-    function afterKrAssetsCreated(KrAssetDeployInfo[] memory _deployments) internal ctx {
+    function afterKrAssetsCreated(KrAssetDeployInfo[] memory _deployments) internal senderCtx {
         require(_deployments.length > 0, "DevnetDeployContext: Should deploy some krAssets");
         for (uint256 i; i < _deployments.length; i++) {
             handleNewKrAsset(_deployments[i]);
         }
 
-        onContractsCreated($.ctx());
+        super.onContractsCreated($.ctx());
     }
 
-    function afterKISSCreated(KISSInfo memory _kissInfo, address _vaultAddr) internal ctx {
+    function afterKISSCreated(KISSInfo memory _kissInfo, address _vaultAddr) internal senderCtx {
         $.createKISSCtx(_kissInfo, _vaultAddr);
     }
 
-    function afterVaultAssetsComplete(
-        AssetCfg memory _assetCfg,
-        VaultAsset[] memory _onChainInfo
-    ) internal ctx returns (AssetsOnChain memory) {
-        return $.vaultAssetCompleteCtx(_assetCfg, _onChainInfo);
+    function afterVaultAssetAdded(VaultAsset memory _onChainInfo) internal senderCtx {
+        ($.Ctx storage _ctx, string memory symbol) = $.vaultAssetAddedCtx(_onChainInfo);
+        super.onVaultAssetAdded(_ctx, symbol, _onChainInfo);
     }
 
+    function afterVaultAssetsComplete() internal {}
+
     function afterKrAssetAdded(KrAssetInfo memory _onChainInfo) internal {
-        onKrAssetAdded($.ctx(), _onChainInfo);
+        super.onKrAssetAdded($.ctx(), _onChainInfo);
     }
 
     function afterKISSAdded(KISSInfo memory _onChainInfo) internal {
@@ -167,12 +156,20 @@ abstract contract DeployContext is KreskoForgeUtils {
     }
 
     function afterExtAssetAdded(ExtAssetInfo memory _onChainInfo) internal {
-        onExtAssetAdded($.ctx(), _onChainInfo);
+        super.onExtAssetAdded($.ctx(), _onChainInfo);
     }
 
-    function afterAssetsComlete(AssetsOnChain memory _onChainInfo) internal ctx returns (AssetsOnChain memory result_) {
+    function afterAssetsComplete(AssetsOnChain memory _onChainInfo) internal senderCtx returns (AssetsOnChain memory result_) {
         result_ = $.assetsCompleteCtx(_onChainInfo);
-        onAssetsComplete($.ctx(), result_);
+        super.onAssetsComplete($.ctx(), result_);
+    }
+
+    function afterDeployment() internal senderCtx {
+        super.onDeploymentComplete($.ctx());
+    }
+
+    function afterComplete() internal senderCtx {
+        super.onComplete($.ctx());
     }
 }
 
@@ -271,17 +268,15 @@ library $ {
         ctx().allProxies.push(_proxy);
     }
 
-    function vaultAssetCompleteCtx(
-        DeployContext.AssetCfg memory _assetCfg,
-        VaultAsset[] memory _results
-    ) internal returns (DeployContext.AssetsOnChain memory results_) {
-        for (uint256 i; i < _results.length; i++) {
-            ctx().getVAsset[_assetCfg.vaultSymbols[i]] = _results[i];
-            ctx().assetsOnChain.vassets.push(_results[i]);
-            ctx().assetsOnChain.vaultSymbols.pushUnique(_assetCfg.vaultSymbols[i]);
-        }
-        ctx().assetsOnChain.vaultAssetCount = _results.length;
-        return ctx().assetsOnChain;
+    function vaultAssetAddedCtx(VaultAsset memory _onChainInfo) internal returns (Ctx storage ctx_, string memory symbol_) {
+        uint256 count = ctx().assetsOnChain.vaultAssetCount;
+        string memory symbol = ctx().assetCfg.vaultSymbols[count];
+        ctx().getVAsset[symbol] = _onChainInfo;
+        ctx().assetsOnChain.vassets.push(_onChainInfo);
+        ctx().assetsOnChain.vaultSymbols.pushUnique(symbol);
+        ctx().assetsOnChain.vaultAssetCount = count + 1;
+
+        return (ctx(), symbol);
     }
 
     function assetsCompleteCtx(

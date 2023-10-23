@@ -69,8 +69,7 @@ contract Vault is IVault, ERC20 {
         _;
     }
 
-    /// @notice checks if the deposit amounts are valid.
-    /// (..close enough to modifier)
+    /// @notice Validate deposits.
     function _checkAssetsIn(address assetAddr, uint256 assetsIn, uint256 sharesOut) private view {
         uint256 depositLimit = maxDeposit(assetAddr);
 
@@ -198,8 +197,12 @@ contract Vault is IVault, ERC20 {
     }
 
     /// @inheritdoc IVault
-    function assets(address assetAddr) public view returns (VaultAsset memory) {
+    function assets(address assetAddr) external view returns (VaultAsset memory) {
         return _assets[assetAddr];
+    }
+
+    function assetPrice(address assetAddr) external view returns (uint256) {
+        return _assets[assetAddr].price(_config);
     }
 
     /// @inheritdoc IVault
@@ -299,7 +302,7 @@ contract Vault is IVault, ERC20 {
     }
 
     /// @inheritdoc IVault
-    function maxWithdraw(address assetAddr, address owner) public view returns (uint256 max) {
+    function maxWithdraw(address assetAddr, address owner) external view returns (uint256 max) {
         (max, ) = previewRedeem(assetAddr, maxRedeem(assetAddr, owner));
     }
 
@@ -309,7 +312,7 @@ contract Vault is IVault, ERC20 {
     }
 
     /// @inheritdoc IVault
-    function maxMint(address assetAddr, address user) public view virtual returns (uint256 max) {
+    function maxMint(address assetAddr, address user) external view virtual returns (uint256 max) {
         uint256 balance = IERC20(assetAddr).balanceOf(user);
         uint256 depositLimit = maxDeposit(assetAddr);
         if (balance > depositLimit) {

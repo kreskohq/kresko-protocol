@@ -1,4 +1,4 @@
-// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
+// solhint-disable state-visibility, event-name-camelcase, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
@@ -23,12 +23,14 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
     uint256 constant KR_COUNT = 4;
     uint256 constant VAULT_COUNT = 3;
     /* --------------------------------- assets --------------------------------- */
+    // @todo remove explicit state
     IWETH9 internal WETH;
     IERC20 internal WBTC;
     IERC20 internal DAI;
     IERC20 internal USDC;
     IERC20 internal USDT;
     /* ------------------------------------ . ----------------------------------- */
+    // @todo  remove explicit state
     KrAssetInfo internal krETH;
     KrAssetInfo internal krBTC;
     KrAssetInfo internal krJPY;
@@ -45,11 +47,12 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
     uint256 constant price_eth = 2000e8;
     uint256 constant price_btc = 27662e8;
     uint256 constant price_dai = 1e8;
-    uint256 constant price_eur = 106e8;
+    uint256 constant price_eur = 1.06e8;
     uint256 constant price_usdc = 1e8;
     uint256 constant price_usdt = 1e8;
     uint256 constant price_jpy = 0.0067e8;
     /* ------------------------------------ . ----------------------------------- */
+    // @todo can probably delete these aswell
     string constant price_eth_rs = "ETH:1590:8";
     string constant price_btc_rs = "BTC:27662:8";
     string constant price_eur_rs = "EUR:1.06:8";
@@ -99,8 +102,8 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
             feed: _feeds[0],
             staleTime: 86401,
             decimals: 0,
-            depositFee: 0,
-            withdrawFee: 0,
+            depositFee: 2,
+            withdrawFee: 2,
             maxDeposits: type(uint248).max,
             enabled: true
         });
@@ -109,8 +112,8 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
             feed: _feeds[1],
             staleTime: 86401,
             decimals: 0,
-            depositFee: 0,
-            withdrawFee: 0,
+            depositFee: 2,
+            withdrawFee: 2,
             maxDeposits: type(uint248).max,
             enabled: true
         });
@@ -126,13 +129,14 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
         });
     }
 
-    function configureAssets(
+    // @todo Remove explicit state for assets (and this helper step that sets them).
+    function addAssets(
         AssetCfg memory _assetCfg,
         KrAssetDeployInfo[] memory _kraContracts,
         KISSInfo memory _kiss,
         address _kreskoAddr
     ) internal virtual override returns (AssetsOnChain memory results_) {
-        results_ = super.configureAssets(_assetCfg, _kraContracts, _kiss, _kreskoAddr);
+        results_ = super.addAssets(_assetCfg, _kraContracts, _kiss, _kreskoAddr);
 
         krETH = results_.kra[0];
         krBTC = results_.kra[1];
@@ -147,18 +151,19 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
     }
 
     /* ---------------------------------- users --------------------------------- */
+
     uint256 internal constant USER_COUNT = 6;
 
     function createUserConfig(uint32[USER_COUNT] memory _idxs) internal returns (UserCfg[] memory userCfg_) {
         userCfg_ = new UserCfg[](USER_COUNT);
 
         uint256[EXT_COUNT][] memory bals = new uint256[EXT_COUNT][](USER_COUNT);
-        bals[0] = [uint256(100 ether), 10e18, 10000e18, 10000e18, 10000e6]; // deployer
+        bals[0] = [uint256(100 ether), 10e8, 10000e18, 10000e18, 10000e6]; // deployer
         bals[1] = [uint256(0), 0, 0, 0, 0]; // nothing
-        bals[2] = [uint256(100 ether), 10e18, 1e24, 1e24, 1e12]; // a lot
-        bals[3] = [uint256(0.05 ether), 0.01e18, 50e18, 10e18, 5e6]; // low
-        bals[4] = [uint256(2 ether), 0.05e18, 3000e18, 1000e18, 800e6];
-        bals[5] = [uint256(2 ether), 0.05e18, 3000e18, 1000e18, 800e6];
+        bals[2] = [uint256(100 ether), 10e8, 1e24, 1e24, 1e12]; // a lot
+        bals[3] = [uint256(0.05 ether), 0.01e8, 50e18, 10e18, 5e6]; // low
+        bals[4] = [uint256(2 ether), 0.05e8, 3000e18, 1000e18, 800e6];
+        bals[5] = [uint256(2 ether), 0.05e8, 3000e18, 1000e18, 800e6];
 
         return createUserConfig(_idxs.dyn(), bals);
     }
@@ -172,10 +177,17 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
         unchecked {
             for (uint256 i; i < _idxs.length; i++) {
                 address userAddr = getAddr(_idxs[i]);
+                vm.deal(userAddr, _bals[i][0] + 100 ether);
                 userCfg_[i] = UserCfg(userAddr, _bals[i].dyn());
             }
         }
 
         super.afterUserConfig(userCfg_);
     }
+
+    function configureSwap(address _kreskoAddr, AssetsOnChain memory _assetsOnChain) internal virtual override {
+        super.afterDeployment();
+    }
+
+    function setupUsers(UserCfg[] memory _usersCfg, AssetsOnChain memory _assetsOnChain) internal virtual;
 }

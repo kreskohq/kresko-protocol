@@ -15,7 +15,7 @@ import {SwapRouteSetter} from "scdp/STypes.sol";
 abstract contract ArbitrumDeployment is DefaultDeployConfig {
     constructor(string memory _mnemonicId) DefaultDeployConfig(_mnemonicId) {}
 
-    function createAssetConfig() internal override returns (AssetCfg memory assetCfg_) {
+    function createAssetConfig() internal override senderCtx returns (AssetCfg memory assetCfg_) {
         WETH = tokens.WETH;
         IERC20 WETH20 = IERC20(address(WETH));
 
@@ -52,11 +52,9 @@ abstract contract ArbitrumDeployment is DefaultDeployConfig {
         super.afterAssetConfigs(assetCfg_);
     }
 
-    function createCoreConfig() internal override returns (CoreConfig memory cfg_) {
-        address admin = getAddr(0);
-        address treasury = getAddr(10);
+    function createCoreConfig(address _admin, address _treasury) internal override senderCtx returns (CoreConfig memory cfg_) {
         cfg_ = CoreConfig({
-            admin: admin,
+            admin: _admin,
             seqFeed: addr.CL_SEQ_UPTIME,
             staleTime: 86401,
             minterMcr: 150e2,
@@ -65,8 +63,8 @@ abstract contract ArbitrumDeployment is DefaultDeployConfig {
             scdpLt: 150e2,
             sdiPrecision: 8,
             oraclePrecision: 8,
-            council: getMockSafe(admin),
-            treasury: treasury
+            council: getMockSafe(_admin),
+            treasury: _treasury
         });
 
         deployCfg = cfg_;
@@ -74,14 +72,17 @@ abstract contract ArbitrumDeployment is DefaultDeployConfig {
         super.afterCoreConfig(cfg_);
     }
 
-    function configureSwaps(address _kreskoAddr, address _kissAddr) internal override {
+    function configureSwap(address _kreskoAddr, AssetsOnChain memory _assetsOnChain) internal override senderCtx {
         ISCDPConfigFacet facet = ISCDPConfigFacet(_kreskoAddr);
-        facet.setFeeAssetSCDP(_kissAddr);
+        address kissAddr = _assetsOnChain.kiss.addr;
 
+        facet.setFeeAssetSCDP(kissAddr);
+
+        // @todo Use assets only from _assetsOnChain
         SwapRouteSetter[] memory routing = new SwapRouteSetter[](9);
-        routing[0] = SwapRouteSetter({assetIn: _kissAddr, assetOut: krETH.addr, enabled: true});
-        routing[1] = SwapRouteSetter({assetIn: _kissAddr, assetOut: krBTC.addr, enabled: true});
-        routing[2] = SwapRouteSetter({assetIn: _kissAddr, assetOut: krEUR.addr, enabled: true});
+        routing[0] = SwapRouteSetter({assetIn: kissAddr, assetOut: krETH.addr, enabled: true});
+        routing[1] = SwapRouteSetter({assetIn: kissAddr, assetOut: krBTC.addr, enabled: true});
+        routing[2] = SwapRouteSetter({assetIn: kissAddr, assetOut: krEUR.addr, enabled: true});
 
         routing[3] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krBTC.addr, enabled: true});
         routing[4] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krJPY.addr, enabled: true});
@@ -93,10 +94,9 @@ abstract contract ArbitrumDeployment is DefaultDeployConfig {
         routing[8] = SwapRouteSetter({assetIn: krEUR.addr, assetOut: krJPY.addr, enabled: true});
 
         facet.setSwapRoutesSCDP(routing);
-        facet.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: krJPY.addr, assetOut: _kissAddr, enabled: true})); //
+        facet.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: krJPY.addr, assetOut: kissAddr, enabled: true})); //
+        super.configureSwap(_kreskoAddr, _assetsOnChain);
     }
 
-    function configureUsers(UserCfg[] memory _userCfg, AssetsOnChain memory _results) internal override {
-        //
-    }
+    function setupUsers(UserCfg[] memory _userCfg, AssetsOnChain memory _results) internal override {}
 }

@@ -4,14 +4,13 @@ pragma solidity ^0.8.0;
 
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {Vault} from "vault/Vault.sol";
-import {VaultAsset} from "vault/VTypes.sol";
 import {ERC20} from "kresko-lib/token/ERC20.sol";
 import {DeployContext} from "./DeployContext.s.sol";
 
 abstract contract DeployLogicBase is DeployContext {
     function createAssetConfig() internal virtual returns (AssetCfg memory assetCfg_);
 
-    function createCoreConfig() internal virtual returns (CoreConfig memory cfg_);
+    function createCoreConfig(address _admin, address _treasury) internal virtual returns (CoreConfig memory cfg_);
 
     function createCore(CoreConfig memory _cfg) internal returns (address kreskoAddr_) {
         require(_cfg.admin != address(0), "createCoreConfig: coreArgs should have some admin address set");
@@ -37,7 +36,7 @@ abstract contract DeployLogicBase is DeployContext {
         CoreConfig memory _cfg,
         address _kreskoAddr,
         address _vaultAddr
-    ) internal ctx returns (KISSInfo memory kissInfo_) {
+    ) internal senderCtx returns (KISSInfo memory kissInfo_) {
         kissInfo_ = super.deployKISS(_kreskoAddr, _vaultAddr, _cfg.admin);
 
         super.afterKISSCreated(kissInfo_, _vaultAddr);
@@ -46,7 +45,7 @@ abstract contract DeployLogicBase is DeployContext {
     function createKrAssets(
         CoreConfig memory _cfg,
         AssetCfg memory _assetCfg
-    ) internal ctx returns (KrAssetDeployInfo[] memory krAssetInfos_) {
+    ) internal senderCtx returns (KrAssetDeployInfo[] memory krAssetInfos_) {
         require(_assetCfg.kra.length > 0, "createKrAssets: No KrAssets defined");
         krAssetInfos_ = new KrAssetDeployInfo[](_assetCfg.kra.length);
 
@@ -65,30 +64,26 @@ abstract contract DeployLogicBase is DeployContext {
         super.afterKrAssetsCreated(krAssetInfos_);
     }
 
-    function configureVaultAssets(
-        AssetCfg memory _assetCfg,
-        address _vaultAddr
-    ) internal returns (AssetsOnChain memory vAssetsOnChain_) {
+    function addVaultAssets(AssetCfg memory _assetCfg, address _vaultAddr) internal {
         require(_vaultAddr != address(0), "configureVault: vault needs to exist before configuring it");
-        VaultAsset[] memory vAssetsOnChain = new VaultAsset[](_assetCfg.vassets.length);
         unchecked {
             for (uint256 i; i < _assetCfg.vassets.length; i++) {
-                vAssetsOnChain[i] = Vault(_vaultAddr).addAsset(_assetCfg.vassets[i]);
+                super.afterVaultAssetAdded(Vault(_vaultAddr).addAsset(_assetCfg.vassets[i]));
             }
         }
 
-        return super.afterVaultAssetsComplete(_assetCfg, vAssetsOnChain);
+        super.afterVaultAssetsComplete();
     }
 
-    function configureAssets(
+    function addAssets(
         AssetCfg memory _assetCfg,
         KrAssetDeployInfo[] memory _kraContracts,
         KISSInfo memory _kiss,
         address _kreskoAddr
-    ) internal virtual ctx returns (AssetsOnChain memory assetsOnChain_) {
-        require(_kraContracts[0].addr != address(0), "configureAssets: krAssets not deployed");
-        require(_kiss.addr != address(0), "configureAssets: KISS not deployed");
-        require(_kiss.vaultAddr != address(0), "configureAssets: Vault not deployed");
+    ) internal virtual senderCtx returns (AssetsOnChain memory assetsOnChain_) {
+        require(_kraContracts[0].addr != address(0), "addAssets: krAssets not deployed");
+        require(_kiss.addr != address(0), "addAssets: KISS not deployed");
+        require(_kiss.vaultAddr != address(0), "addAssets: Vault not deployed");
 
         assetsOnChain_.kra = new KrAssetInfo[](_assetCfg.kra.length);
         assetsOnChain_.ext = new ExtAssetInfo[](_assetCfg.ext.length);
@@ -138,10 +133,11 @@ abstract contract DeployLogicBase is DeployContext {
             }
         }
 
-        return super.afterAssetsComlete(assetsOnChain_);
+        /* ---------------------------- Add Vault Assets ---------------------------- */
+        addVaultAssets(_assetCfg, _kiss.vaultAddr);
+
+        return super.afterAssetsComplete(assetsOnChain_);
     }
 
-    function configureSwaps(address _kreskoAddr, address _kissAddr) internal virtual;
-
-    function configureUsers(UserCfg[] memory _usersCfg, AssetsOnChain memory _assetsOnChain) internal virtual;
+    function configureSwap(address _kreskoAddr, AssetsOnChain memory _assetsOnChain) internal virtual;
 }

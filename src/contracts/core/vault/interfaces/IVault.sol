@@ -99,6 +99,8 @@ interface IVault {
      */
     function assets(address) external view returns (VaultAsset memory asset);
 
+    function assetPrice(address assetAddr) external view returns (uint256);
+
     /**
      * @notice This function is used for previewing the amount of shares minted for `assetsIn` of `asset`.
      * @param assetAddr Supported asset address

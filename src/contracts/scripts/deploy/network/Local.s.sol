@@ -30,7 +30,7 @@ abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
     MockOracle internal mockFeedEUR;
     MockOracle internal mockFeedJPY;
 
-    function createAssetConfig() internal override ctx returns (AssetCfg memory assetCfg_) {
+    function createAssetConfig() internal override senderCtx returns (AssetCfg memory assetCfg_) {
         WETH = IWETH9(address(new WETH9()));
         IERC20 WETH20 = IERC20(address(WETH));
 
@@ -75,11 +75,9 @@ abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
         super.afterAssetConfigs(assetCfg_);
     }
 
-    function createCoreConfig() internal override ctx returns (CoreConfig memory cfg_) {
-        address admin = getAddr(0);
-        address treasury = getAddr(10);
+    function createCoreConfig(address _admin, address _treasury) internal override senderCtx returns (CoreConfig memory cfg_) {
         cfg_ = CoreConfig({
-            admin: admin,
+            admin: _admin,
             seqFeed: address(new MockSequencerUptimeFeed()),
             staleTime: 86401,
             minterMcr: 150e2,
@@ -88,8 +86,8 @@ abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
             scdpLt: 150e2,
             sdiPrecision: 8,
             oraclePrecision: 8,
-            council: getMockSafe(admin),
-            treasury: TEST_TREASURY
+            council: getMockSafe(_admin),
+            treasury: _treasury
         });
 
         deployCfg = cfg_;
@@ -97,15 +95,15 @@ abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
         super.afterCoreConfig(cfg_);
     }
 
-    function configureSwaps(address _kreskoAddr, address _kissAddr) internal override ctx {
+    function configureSwap(address _kreskoAddr, AssetsOnChain memory _assetsOnChain) internal override senderCtx {
         ISCDPConfigFacet facet = ISCDPConfigFacet(_kreskoAddr);
-
-        facet.setFeeAssetSCDP(_kissAddr);
+        address kissAddr = _assetsOnChain.kiss.addr;
+        facet.setFeeAssetSCDP(kissAddr);
 
         SwapRouteSetter[] memory routing = new SwapRouteSetter[](9);
-        routing[0] = SwapRouteSetter({assetIn: _kissAddr, assetOut: krETH.addr, enabled: true});
-        routing[1] = SwapRouteSetter({assetIn: _kissAddr, assetOut: krBTC.addr, enabled: true});
-        routing[2] = SwapRouteSetter({assetIn: _kissAddr, assetOut: krEUR.addr, enabled: true});
+        routing[0] = SwapRouteSetter({assetIn: kissAddr, assetOut: krETH.addr, enabled: true});
+        routing[1] = SwapRouteSetter({assetIn: kissAddr, assetOut: krBTC.addr, enabled: true});
+        routing[2] = SwapRouteSetter({assetIn: kissAddr, assetOut: krEUR.addr, enabled: true});
         routing[3] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krBTC.addr, enabled: true});
         routing[4] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krJPY.addr, enabled: true});
         routing[5] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krEUR.addr, enabled: true});
@@ -113,24 +111,23 @@ abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
         routing[7] = SwapRouteSetter({assetIn: krBTC.addr, assetOut: krJPY.addr, enabled: true});
         routing[8] = SwapRouteSetter({assetIn: krEUR.addr, assetOut: krJPY.addr, enabled: true});
 
-        facet.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: krJPY.addr, assetOut: _kissAddr, enabled: true})); //
+        facet.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: krJPY.addr, assetOut: kissAddr, enabled: true})); //
         facet.setSwapRoutesSCDP(routing);
+        super.configureSwap(_kreskoAddr, _assetsOnChain);
     }
 
-    function configureUsers(UserCfg[] memory _userCfg, AssetsOnChain memory _assetsOnChain) internal override ctx {
+    function setupUsers(UserCfg[] memory _userCfg, AssetsOnChain memory _assetsOnChain) internal override senderCtx {
         unchecked {
             for (uint256 i; i < _userCfg.length; i++) {
                 if (_userCfg[i].addr != address(0)) {
                     UserCfg memory user = _userCfg[i];
 
-                    vm.deal(user.addr, 10000 ether);
-                    console2.log("value: %s", user.addr, user.addr.balance);
-
                     for (uint256 j; j < user.bal.length; j++) {
                         if (user.bal[j] == 0) continue;
 
                         if (j == _assetsOnChain.wethIndex) {
-                            WETH.deposit{value: user.bal[j]}();
+                            broadcastWith(user.addr);
+                            IWETH9(_assetsOnChain.ext[j].addr).deposit{value: user.bal[j]}();
                         } else {
                             MockERC20(_assetsOnChain.ext[j].addr).mint(user.addr, user.bal[j]);
                         }
@@ -138,5 +135,7 @@ abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
                 }
             }
         }
+
+        super.afterComplete();
     }
 }
