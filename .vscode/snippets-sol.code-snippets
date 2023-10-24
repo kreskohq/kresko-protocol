@@ -109,7 +109,7 @@
       "        });",
       "        prank(deployCfg.admin);",
       "        kresko = deployDiamond(deployCfg);",
-      "        proxyFactory = deployDeploymentFactory(TEST_ADMIN);",
+      "        factory = deployDeploymentFactory(TEST_ADMIN);",
       "        vm.warp(3601);",
       "        usdc = mockCollateral(bytes32(\"USDC\"), usdConfig, ext_full);",
       "        krETH = mockKrAsset(bytes32(\"ETH\"), address(0), krETHConfig, kr_default, deployCfg);",

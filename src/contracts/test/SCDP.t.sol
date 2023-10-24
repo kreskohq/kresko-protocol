@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {console} from "forge-std/Test.sol";
-import {LibTest} from "kresko-lib/utils/LibTest.sol";
-import {TestBase} from "kresko-lib/utils/TestBase.sol";
+import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
+import {Log, Help} from "kresko-lib/utils/Libs.sol";
+import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
 import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
@@ -12,7 +13,9 @@ import {Asset} from "common/Types.sol";
 // solhint-disable
 
 contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
-    using LibTest for *;
+    using ShortAssert for *;
+    using Log for *;
+    using Help for string;
     using WadRay for uint256;
     using PercentageMath for uint256;
 
@@ -46,7 +49,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         vm.startPrank(deployCfg.admin);
 
         kresko = deployDiamond(deployCfg);
-        proxyFactory = deployDeploymentFactory(TEST_ADMIN);
+        factory = deployDeploymentFactory(TEST_ADMIN);
         vm.warp(3601);
 
         usdc = mockCollateral(
@@ -95,12 +98,12 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     }
 
     function testSetup() public {
-        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(0, "debt should be 0");
-        staticCall(kresko.totalSDI.selector, initialPrices).equals(0, "total supply should be 0");
+        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).eq(0, "debt should be 0");
+        staticCall(kresko.totalSDI.selector, initialPrices).eq(0, "total supply should be 0");
         Asset memory kissConfig = kresko.getAsset(KISS.addr);
-        kresko.getAsset(usdc.addr).liquidityIndexSCDP.equals(1e27);
-        kissConfig.liquidityIndexSCDP.equals(1e27);
-        kissConfig.isCoverAsset.equals(true);
+        kresko.getAsset(usdc.addr).liquidityIndexSCDP.eq(1e27);
+        kissConfig.liquidityIndexSCDP.eq(1e27);
+        kissConfig.isCoverAsset.eq(true);
     }
 
     function testDeposit() public {
@@ -108,10 +111,10 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
 
         usdc.mock.mint(user0, 1000e18);
         poolDeposit(user0, usdc.addr, amount, initialPrices);
-        staticCall(kresko.totalSDI.selector, initialPrices).equals(0, "total supply should be 0");
-        usdc.mock.balanceOf(address(kresko)).equals(amount);
+        staticCall(kresko.totalSDI.selector, initialPrices).eq(0, "total supply should be 0");
+        usdc.mock.balanceOf(address(kresko)).eq(amount);
 
-        staticCall(kresko.getTotalCollateralValueSCDP.selector, true, initialPrices).equals(1000e8);
+        staticCall(kresko.getTotalCollateralValueSCDP.selector, true, initialPrices).eq(1000e8);
     }
 
     function testWithdraw() public {
@@ -119,7 +122,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         poolDeposit(user0, usdc.addr, 1000e18, initialPrices);
 
         poolWithdraw(user0, usdc.addr, 1000e18, initialPrices);
-        staticCall(kresko.getTotalCollateralValueSCDP.selector, true, initialPrices).equals(0);
+        staticCall(kresko.getTotalCollateralValueSCDP.selector, true, initialPrices).eq(0);
     }
 
     function testSwap() public {
@@ -145,29 +148,29 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
 
         swap(user1, KISS.addr, swapAmount, krETH.addr, initialPrices);
 
-        logSimple("testSwap");
+        printInfo("testSwap");
     }
 
     function testCover() public {
         vm.startPrank(user0);
         initSCDPETH();
-        logSimple("#1 Init: $15,000 collateral (-fees) | Swap $5,000 KISS -> krETH (-fees)");
+        printInfo("#1 Init: $15,000 collateral (-fees) | Swap $5,000 KISS -> krETH (-fees)");
 
-        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(5760e18, "effectiveDebt");
-        kresko.getTotalSDIDebt.equals(5760e18, "total-debt");
+        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).eq(5760e18, "effectiveDebt");
+        kresko.getTotalSDIDebt.eq(5760e18, "total-debt");
 
         // changePrank(user1);
         // mintKISS(user1, 1000e18);
         // cover(KISS.addr, 1000e18, initialPrices);
 
         // uint256 totalCoverBefore = staticCall(kresko.getSDICoverAmount.selector, initialPrices);
-        // totalCoverBefore.equals(1000e18, "total-cover-before");
+        // totalCoverBefore.eq(1000e18, "total-cover-before");
 
-        // kresko.getTotalSDIDebt.equals(5760e18, "total-debt");
-        // staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).equals(4760e18);
-        // staticCall(kresko.getSDIPrice.selector, initialPrices).equals(1e8, "sdi-price");
+        // kresko.getTotalSDIDebt.eq(5760e18, "total-debt");
+        // staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).eq(4760e18);
+        // staticCall(kresko.getSDIPrice.selector, initialPrices).eq(1e8, "sdi-price");
 
-        // logSimple("#2 Cover 1000 KISS ($1,000)");
+        // printInfo("#2 Cover 1000 KISS ($1,000)");
 
         // ethOracle.setPrice(2666e8);
         // string memory newPrices = "USDC:1:8,ETH:2666:8,JPY:1:8,KISS:1:8,TSLA:1:8";
@@ -176,11 +179,11 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
 
         // totalCoverAfter.lt(totalCoverBefore, "total-cover-after");
 
-        // logSimple("#3 krETH price up to: $2,666", newPrices);
+        // printInfo("#3 krETH price up to: $2,666", newPrices);
 
         // changePrank(user0);
         // call(kresko.swapSCDP.selector, user0, krETH.addr, KISS.addr, krETH.balanceOf(user0), 0, newPrices);
-        // logSimple("#4 1 krETH debt repaid", newPrices);
+        // printInfo("#4 1 krETH debt repaid", newPrices);
     }
 
     function testGas() public prankedAddr(user0) {
@@ -294,11 +297,11 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         krJPY.krAsset.approve(address(kresko), type(uint256).max);
     }
 
-    function logSimple(string memory prefix) internal {
-        logSimple(prefix, initialPrices);
+    function printInfo(string memory prefix) internal {
+        printInfo(prefix, initialPrices);
     }
 
-    function logSimple(string memory prefix, string memory prices) internal {
+    function printInfo(string memory prefix, string memory prices) internal {
         prefix = prefix.and(" | ");
         prefix.and("*****************").clg();
 
@@ -311,17 +314,17 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         uint256 effectiveDebt = staticCall(kresko.getEffectiveSDIDebt.selector, prices);
         uint256 sdiDebtUSD = (effectiveDebt * sdiPrice) / 1e18;
 
-        sdiPrice.clg(prefix.and("SDI Price"), 8);
-        sdiTotalSupply.clg(prefix.and("SDI totalSupply"));
-        kresko.getTotalSDIDebt().clg(prefix.and("SCDP SDI Debt Amount"));
-        totalCover.clg(prefix.and("SCDP SDI Cover Amount"));
-        effectiveDebt.clg(prefix.and("SCDP Effective SDI Debt Amount"));
+        sdiPrice.dlg(prefix.and("SDI Price"), 8);
+        sdiTotalSupply.dlg(prefix.and("SDI totalSupply"));
+        kresko.getTotalSDIDebt().dlg(prefix.and("SCDP SDI Debt Amount"));
+        totalCover.dlg(prefix.and("SCDP SDI Cover Amount"));
+        effectiveDebt.dlg(prefix.and("SCDP Effective SDI Debt Amount"));
 
-        collateralUSD.clg(prefix.and("SCDP Collateral USD"), 8);
-        debtUSD.clg(prefix.and("SCDP KrAsset Debt USD"), 8);
-        ((uint256(totalCover) * sdiPrice) / 1e18).clg(prefix.and("SCDP SDI Cover USD"), 8);
-        sdiDebtUSD.clg(prefix.and("SCDP SDI Debt USD"), 8);
+        collateralUSD.dlg(prefix.and("SCDP Collateral USD"), 8);
+        debtUSD.dlg(prefix.and("SCDP KrAsset Debt USD"), 8);
+        ((uint256(totalCover) * sdiPrice) / 1e18).dlg(prefix.and("SCDP SDI Cover USD"), 8);
+        sdiDebtUSD.dlg(prefix.and("SCDP SDI Debt USD"), 8);
 
-        staticCall(kresko.getCollateralRatioSCDP.selector, prices).clg(prefix.and("SCDP CR %"), 2);
+        staticCall(kresko.getCollateralRatioSCDP.selector, prices).pct(prefix.and("SCDP CR %"));
     }
 }

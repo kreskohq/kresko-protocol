@@ -6,16 +6,15 @@ import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {VaultAsset} from "vault/VTypes.sol";
-import {ScriptBase} from "kresko-lib/utils/ScriptBase.sol";
+import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
+import {Help} from "kresko-lib/utils/Libs.sol";
 import {DeployLogicBase} from "scripts/deploy/base/DeployLogic.s.sol";
-import {$} from "scripts/deploy/base/DeployContext.s.sol";
-import {console2} from "forge-std/Console2.sol";
 
 /**
  * @dev Default asset and price configuration
  */
 abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
-    using $ for *;
+    using Help for *;
 
     constructor(string memory _mnemonicId) ScriptBase(_mnemonicId) {}
 
@@ -31,10 +30,12 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
     IERC20 internal USDT;
     /* ------------------------------------ . ----------------------------------- */
     // @todo  remove explicit state
+
     KrAssetInfo internal krETH;
     KrAssetInfo internal krBTC;
     KrAssetInfo internal krJPY;
     KrAssetInfo internal krEUR;
+
     /* ------------------------------------ . ----------------------------------- */
     address[2] internal feeds_eth;
     address[2] internal feeds_btc;
@@ -151,13 +152,13 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
     }
 
     /* ---------------------------------- users --------------------------------- */
-
     uint256 internal constant USER_COUNT = 6;
 
     function createUserConfig(uint32[USER_COUNT] memory _idxs) internal returns (UserCfg[] memory userCfg_) {
         userCfg_ = new UserCfg[](USER_COUNT);
 
         uint256[EXT_COUNT][] memory bals = new uint256[EXT_COUNT][](USER_COUNT);
+
         bals[0] = [uint256(100 ether), 10e8, 10000e18, 10000e18, 10000e6]; // deployer
         bals[1] = [uint256(0), 0, 0, 0, 0]; // nothing
         bals[2] = [uint256(100 ether), 10e8, 1e24, 1e24, 1e12]; // a lot
@@ -185,7 +186,7 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
         super.afterUserConfig(userCfg_);
     }
 
-    function configureSwap(address _kreskoAddr, AssetsOnChain memory _assetsOnChain) internal virtual override {
+    function configureSwap(address, AssetsOnChain memory) internal virtual override {
         super.afterDeployment();
     }
 

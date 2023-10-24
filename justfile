@@ -21,6 +21,7 @@ deploy-local:
 	forge script src/contracts/scripts/deploy/Run.s.sol:Local \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \
+	--broadcast \
 	--with-gas-price 100000000 \
 	--skip-simulation \
 	--ffi \

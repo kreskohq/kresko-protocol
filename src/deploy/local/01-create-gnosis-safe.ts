@@ -64,7 +64,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   //     [deployer, devOne, extOne],
   // );
 
-  logger.success('Multisig succesfully deployed through proxyFactory @', SafeProxy.address);
+  logger.success('Multisig succesfully deployed through factory @', SafeProxy.address);
   hre.Multisig = SafeProxy;
 };
 

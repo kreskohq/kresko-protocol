@@ -5,14 +5,14 @@ module.exports = {
       autorestart: false,
       watch_delay: 200,
       name: 'anvil',
-      script: './utils/localnet.sh',
+      script: 'just anvil-local',
     },
     {
       watch: ['sol/contracts/core'],
       autorestart: false,
       watch_delay: 200,
-      name: 'deploy',
-      script: './utils/localnet-deploy.sh',
+      name: 'deployment',
+      script: 'just deploy-local',
     },
     // {
     //   watch: ['sol/contracts', 'sol/scripts'],

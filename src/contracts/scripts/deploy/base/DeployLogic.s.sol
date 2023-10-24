@@ -5,9 +5,9 @@ pragma solidity ^0.8.0;
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {Vault} from "vault/Vault.sol";
 import {ERC20} from "kresko-lib/token/ERC20.sol";
-import {DeployContext} from "./DeployContext.s.sol";
+import {DeployStateHandlers} from "scripts/deploy/base/DeployState.s.sol";
 
-abstract contract DeployLogicBase is DeployContext {
+abstract contract DeployLogicBase is DeployStateHandlers {
     function createAssetConfig() internal virtual returns (AssetCfg memory assetCfg_);
 
     function createCoreConfig(address _admin, address _treasury) internal virtual returns (CoreConfig memory cfg_);
@@ -20,9 +20,9 @@ abstract contract DeployLogicBase is DeployContext {
         kresko = super.deployDiamondOneTx(_cfg);
         kreskoAddr_ = address(kresko);
 
-        proxyFactory = super.deployDeploymentFactory(_cfg.admin);
+        factory = super.deployDeploymentFactory(_cfg.admin);
 
-        super.afterCoreCreated(kresko, proxyFactory);
+        super.afterCoreCreated(kresko, factory);
     }
 
     function createVault(CoreConfig memory _cfg, address _kreskoAddr) internal returns (address vaultAddr_) {
@@ -36,7 +36,7 @@ abstract contract DeployLogicBase is DeployContext {
         CoreConfig memory _cfg,
         address _kreskoAddr,
         address _vaultAddr
-    ) internal senderCtx returns (KISSInfo memory kissInfo_) {
+    ) internal returns (KISSInfo memory kissInfo_) {
         kissInfo_ = super.deployKISS(_kreskoAddr, _vaultAddr, _cfg.admin);
 
         super.afterKISSCreated(kissInfo_, _vaultAddr);
@@ -45,7 +45,7 @@ abstract contract DeployLogicBase is DeployContext {
     function createKrAssets(
         CoreConfig memory _cfg,
         AssetCfg memory _assetCfg
-    ) internal senderCtx returns (KrAssetDeployInfo[] memory krAssetInfos_) {
+    ) internal returns (KrAssetDeployInfo[] memory krAssetInfos_) {
         require(_assetCfg.kra.length > 0, "createKrAssets: No KrAssets defined");
         krAssetInfos_ = new KrAssetDeployInfo[](_assetCfg.kra.length);
 
@@ -80,7 +80,7 @@ abstract contract DeployLogicBase is DeployContext {
         KrAssetDeployInfo[] memory _kraContracts,
         KISSInfo memory _kiss,
         address _kreskoAddr
-    ) internal virtual senderCtx returns (AssetsOnChain memory assetsOnChain_) {
+    ) internal virtual returns (AssetsOnChain memory assetsOnChain_) {
         require(_kraContracts[0].addr != address(0), "addAssets: krAssets not deployed");
         require(_kiss.addr != address(0), "addAssets: KISS not deployed");
         require(_kiss.vaultAddr != address(0), "addAssets: Vault not deployed");

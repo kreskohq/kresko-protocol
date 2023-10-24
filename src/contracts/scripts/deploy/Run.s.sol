@@ -9,7 +9,7 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
     uint32[USER_COUNT] testUsers = [0, 1, 2, 3, 4, 5];
 
     function run() external {
-        log = true;
+        enableLogger();
 
         address deployer = getAddr(0);
         address admin = getAddr(0);
@@ -50,7 +50,7 @@ contract Local is LocalDeployment("MNEMONIC_DEVNET") {
     uint32[USER_COUNT] testUsers = [0, 1, 2, 3, 4, 5];
 
     function run() external {
-        log = true;
+        enableLogger();
 
         address deployer = getAddr(0);
         address admin = getAddr(0);

@@ -255,12 +255,12 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
 abstract contract NonDiamondDeployUtils is ConfigurationUtils {
     MockSequencerUptimeFeed internal mockSeqFeed;
     GnosisSafeL2Mock internal mockSafe;
-    DeploymentFactory internal proxyFactory;
+    DeploymentFactory internal factory;
 
     bytes private KR_ASSET_IMPL = type(KreskoAsset).creationCode;
 
     modifier needsDeploymentFactory() {
-        require(address(proxyFactory) != address(0), "KreskoForge: Deploy DeploymentFactory first");
+        require(address(factory) != address(0), "KreskoForge: Deploy DeploymentFactory first");
         _;
     }
 
@@ -283,7 +283,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
     ) internal needsDeploymentFactory returns (KISSInfo memory kissInfo_) {
         require(kreskoAddr != address(0), "deployKISS: Kresko address is zero");
         require(vaultAddr != address(0), "deployKISS: Vault address is zero");
-        Deployment memory proxy = proxyFactory.create3ProxyAndLogic(
+        Deployment memory proxy = factory.create3ProxyAndLogic(
             type(KISS).creationCode,
             abi.encodeCall(KISS.initialize, ("Kresko: KISS", "KISS", 18, admin, kreskoAddr, vaultAddr)),
             getKISSSalt()
@@ -312,11 +312,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
             KreskoAsset.initialize,
             (name, symbol, 18, admin, address(kresko), underlyingAddr, treasury, 0, 0)
         );
-        (address predictedAddress, ) = proxyFactory.previewCreate2ProxyAndLogic(
-            KR_ASSET_IMPL,
-            KR_ASSET_INITIALIZER,
-            krAssetSalt
-        );
+        (address predictedAddress, ) = factory.previewCreate2ProxyAndLogic(KR_ASSET_IMPL, KR_ASSET_INITIALIZER, krAssetSalt);
 
         bytes memory ANCHOR_IMPL = abi.encodePacked(type(KreskoAssetAnchor).creationCode, abi.encode(predictedAddress));
         bytes memory ANCHOR_INITIALIZER = abi.encodeCall(
@@ -325,10 +321,10 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         );
 
         bytes[] memory batch = new bytes[](2);
-        batch[0] = abi.encodeCall(proxyFactory.create2ProxyAndLogic, (KR_ASSET_IMPL, KR_ASSET_INITIALIZER, krAssetSalt));
-        batch[1] = abi.encodeCall(proxyFactory.create2ProxyAndLogic, (ANCHOR_IMPL, ANCHOR_INITIALIZER, anchorSalt));
+        batch[0] = abi.encodeCall(factory.create2ProxyAndLogic, (KR_ASSET_IMPL, KR_ASSET_INITIALIZER, krAssetSalt));
+        batch[1] = abi.encodeCall(factory.create2ProxyAndLogic, (ANCHOR_IMPL, ANCHOR_INITIALIZER, anchorSalt));
 
-        Deployment[] memory proxies = proxyFactory.batch(batch).map(Conversions.toDeployment);
+        Deployment[] memory proxies = factory.batch(batch).map(Conversions.toDeployment);
         result_.addr = address(proxies[0].proxy);
         result_.krAsset = KreskoAsset(payable(address(proxies[0].proxy)));
         result_.anchor = KreskoAssetAnchor(payable(address(proxies[1].proxy)));

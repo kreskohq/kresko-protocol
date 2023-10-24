@@ -87,10 +87,10 @@ const deploy: DeployFunction = async function (hre) {
       const safeDeploymentFactoryFactory = await hre.ethers.getContractFactoryFromArtifact(
         safeDeploymentFactoryArtifact,
       );
-      const proxyFactory = await safeDeploymentFactoryFactory.deploy();
+      const factory = await safeDeploymentFactoryFactory.deploy();
       await hre.deployments.save('GnosisSafeProxyFactory', {
         abi: safeDeploymentFactoryArtifact.abi,
-        address: proxyFactory.address,
+        address: factory.address,
         args: [],
       });
 
