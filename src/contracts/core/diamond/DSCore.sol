@@ -92,6 +92,7 @@ library DSCore {
 
         emit OwnershipTransferred(address(0), _contractOwner);
 
+        Auth._grantRole(Role.DEFAULT_ADMIN, _contractOwner);
         Auth._grantRole(Role.ADMIN, _contractOwner);
 
         // only cut facets in
@@ -101,7 +102,7 @@ library DSCore {
         for (uint256 i; i < _initializers.length; i++) {
             exec(_initializers[i].initContract, _initializers[i].initData);
         }
-        // set initialized to after complete
+
         self.initialized = true;
     }
 

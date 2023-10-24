@@ -21,17 +21,17 @@ contract DiamondCutFacet is IDiamondCutFacet, IExtendedDiamondCutFacet, DSModifi
         FacetCut[] calldata _diamondCut,
         address _initializer,
         bytes calldata _calldata
-    ) external onlyRole(Role.ADMIN) {
+    ) external onlyRole(Role.DEFAULT_ADMIN) {
         DSCore.cut(_diamondCut, _initializer, _calldata);
     }
 
     /// @inheritdoc IExtendedDiamondCutFacet
-    function executeInitializer(address _initializer, bytes calldata _calldata) external onlyRole(Role.ADMIN) {
+    function executeInitializer(address _initializer, bytes calldata _calldata) external onlyRole(Role.DEFAULT_ADMIN) {
         DSCore.exec(_initializer, _calldata);
     }
 
     /// @inheritdoc IExtendedDiamondCutFacet
-    function executeInitializers(Initializer[] calldata _initializers) external onlyRole(Role.ADMIN) {
+    function executeInitializers(Initializer[] calldata _initializers) external onlyRole(Role.DEFAULT_ADMIN) {
         for (uint256 i; i < _initializers.length; ) {
             DSCore.exec(_initializers[i].initContract, _initializers[i].initData);
             unchecked {
