@@ -17,6 +17,8 @@ struct DiamondState {
     address self;
     /// @notice Diamond initialized
     bool initialized;
+    /// @notice Diamond initializing
+    uint8 initializing;
     /// @notice Domain field separator
     bytes32 diamondDomainSeparator;
     /// @notice Current owner of the diamond

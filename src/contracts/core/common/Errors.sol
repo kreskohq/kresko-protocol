@@ -22,6 +22,7 @@ library Errors {
     }
 
     error ADDRESS_HAS_NO_CODE(address);
+    error NOT_INITIALIZING();
     error COMMON_ALREADY_INITIALIZED();
     error MINTER_ALREADY_INITIALIZED();
     error SCDP_ALREADY_INITIALIZED();

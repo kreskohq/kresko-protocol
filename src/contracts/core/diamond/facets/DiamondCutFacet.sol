@@ -27,13 +27,13 @@ contract DiamondCutFacet is IDiamondCutFacet, IExtendedDiamondCutFacet, DSModifi
 
     /// @inheritdoc IExtendedDiamondCutFacet
     function executeInitializer(address _initializer, bytes calldata _calldata) external onlyRole(Role.ADMIN) {
-        DSCore.execute(_initializer, _calldata);
+        DSCore.exec(_initializer, _calldata);
     }
 
     /// @inheritdoc IExtendedDiamondCutFacet
     function executeInitializers(Initializer[] calldata _initializers) external onlyRole(Role.ADMIN) {
         for (uint256 i; i < _initializers.length; ) {
-            DSCore.execute(_initializers[i].initContract, _initializers[i].initData);
+            DSCore.exec(_initializers[i].initContract, _initializers[i].initData);
             unchecked {
                 i++;
             }

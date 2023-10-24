@@ -9,6 +9,7 @@ import {cs} from "common/State.sol";
 import {Percents, Role} from "common/Constants.sol";
 import {Errors} from "common/Errors.sol";
 import {Validations} from "common/Validations.sol";
+import {Auth} from "common/Auth.sol";
 
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
 import {SCDPInitArgs, SwapRouteSetter, SCDPParameters} from "scdp/STypes.sol";
@@ -19,7 +20,7 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, Modifiers {
     using Arrays for address[];
 
     /// @inheritdoc ISCDPConfigFacet
-    function initializeSCDP(SCDPInitArgs calldata args) external initializer(4) {
+    function initializeSCDP(SCDPInitArgs calldata args) external initializer(4) initializeAsAdmin {
         setMinCollateralRatioSCDP(args.minCollateralRatio);
         setLiquidationThresholdSCDP(args.liquidationThreshold);
         Validations.validateOraclePrecision(args.sdiPricePrecision);

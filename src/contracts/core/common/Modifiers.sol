@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
+import {ds} from "diamond/DState.sol";
 import {Errors} from "common/Errors.sol";
 import {Auth} from "common/Auth.sol";
-import {Constants, Enums} from "common/Constants.sol";
+import {Role, Constants, Enums} from "common/Constants.sol";
 import {Asset} from "common/Types.sol";
 import {cs, gs, CommonState} from "common/State.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
@@ -128,6 +129,19 @@ library LibModifiers {
 }
 
 contract Modifiers {
+    /**
+     * @dev Modifier that checks if the contract is initializing and if so, gives the caller the ADMIN role
+     */
+    modifier initializeAsAdmin() {
+        if (ds().initializing != Constants.INITIALIZING) revert Errors.NOT_INITIALIZING();
+        if (!Auth.hasRole(Role.ADMIN, msg.sender)) {
+            Auth._grantRole(Role.ADMIN, msg.sender);
+            _;
+            Auth._revokeRole(Role.ADMIN, msg.sender);
+        } else {
+            _;
+        }
+    }
     /**
      * @dev Modifier that checks that an account has a specific role. Reverts
      * with a standardized message including the required role.

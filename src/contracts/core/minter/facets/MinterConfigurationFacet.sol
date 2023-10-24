@@ -6,10 +6,10 @@ import {Modifiers} from "common/Modifiers.sol";
 import {Percents, Role} from "common/Constants.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
+import {Auth} from "common/Auth.sol";
 import {Validations} from "common/Validations.sol";
 
 import {DSModifiers} from "diamond/DSModifiers.sol";
-import {ds} from "diamond/DState.sol";
 
 import {IMinterConfigurationFacet} from "minter/interfaces/IMinterConfigurationFacet.sol";
 import {MEvent} from "minter/MEvent.sol";
@@ -27,7 +27,7 @@ contract MinterConfigurationFacet is DSModifiers, Modifiers, IMinterConfiguratio
     /*                                 Initialize                                 */
     /* -------------------------------------------------------------------------- */
 
-    function initializeMinter(MinterInitArgs calldata args) external initializer(3) {
+    function initializeMinter(MinterInitArgs calldata args) external initializer(3) initializeAsAdmin {
         setMinCollateralRatioMinter(args.minCollateralRatio);
         setLiquidationThresholdMinter(args.liquidationThreshold);
     }

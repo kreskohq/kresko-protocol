@@ -8,7 +8,7 @@ import {IDiamondCutFacet, IExtendedDiamondCutFacet} from "diamond/interfaces/IDi
 
 import {Meta} from "libs/Meta.sol";
 import {Auth} from "common/Auth.sol";
-import {Role} from "common/Constants.sol";
+import {Role, Constants} from "common/Constants.sol";
 
 import {ds, DiamondState} from "diamond/DState.sol";
 import {FacetCut, FacetCutAction, Initializer} from "diamond/DSTypes.sol";
@@ -25,6 +25,7 @@ library DSCore {
     error DIAMOND_INIT_ADDRESS_PROVIDED_BUT_INIT_DATA_WAS_EMPTY(address initializer);
     error DIAMOND_FUNCTION_ALREADY_EXISTS(address newFacet, address oldFacet, bytes4 func);
     error DIAMOND_INIT_FAILED(address initializer, bytes data);
+    error DIAMOND_NOT_INITIALIZING();
     error DIAMOND_ALREADY_INITIALIZED(uint256 initializerVersion, uint256 currentVersion);
     error DIAMOND_CUT_ACTION_WAS_NOT_ADD_REPLACE_REMOVE();
     error DIAMOND_FACET_ADDRESS_CANNOT_BE_ZERO_WHEN_ADDING_FUNCTIONS(bytes4[] selectors);
@@ -98,7 +99,7 @@ library DSCore {
 
         // initializers if there are any
         for (uint256 i; i < _initializers.length; i++) {
-            execute(_initializers[i].initContract, _initializers[i].initData);
+            exec(_initializers[i].initContract, _initializers[i].initData);
         }
         // set initialized to after complete
         self.initialized = true;
@@ -109,7 +110,7 @@ library DSCore {
      * @param _initializer Contract to delegatecall.
      * @param _calldata Data to pass into the delegatecall.
      */
-    function execute(address _initializer, bytes memory _calldata) internal {
+    function exec(address _initializer, bytes memory _calldata) internal {
         if (_initializer == address(0) && _calldata.length > 0) {
             revert DIAMOND_INIT_DATA_PROVIDED_BUT_INIT_ADDRESS_WAS_ZERO(_calldata);
         }
@@ -118,12 +119,13 @@ library DSCore {
             if (_calldata.length == 0) {
                 revert DIAMOND_INIT_ADDRESS_PROVIDED_BUT_INIT_DATA_WAS_EMPTY(_initializer);
             }
-
             Meta.enforceHasContractCode(_initializer);
 
+            ds().initializing = Constants.INITIALIZING;
             // solhint-disable-next-line avoid-low-level-calls
             (bool success, bytes memory error) = _initializer.delegatecall(_calldata);
             // pass along failure message from initializer if it reverts
+            ds().initializing = Constants.NOT_INITIALIZING;
 
             if (!success) {
                 if (error.length > 0) {
@@ -167,7 +169,7 @@ library DSCore {
         }
 
         emit DiamondCut(_diamondCut, _initializer, _calldata);
-        execute(_initializer, _calldata);
+        exec(_initializer, _calldata);
     }
 
     function addFunctions(DiamondState storage self, address _facetAddress, bytes4[] memory _functionSelectors) internal {

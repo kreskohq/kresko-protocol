@@ -91,6 +91,8 @@ library Constants {
     /// @dev Set the initial value to 1, (not hindering possible gas refunds by setting it to 0 on exit).
     uint8 internal constant NOT_ENTERED = 1;
     uint8 internal constant ENTERED = 2;
+    uint8 internal constant NOT_INITIALIZING = 1;
+    uint8 internal constant INITIALIZING = 2;
 
     bytes32 internal constant ZERO_BYTES32 = bytes32("");
     /// @dev The min oracle decimal precision

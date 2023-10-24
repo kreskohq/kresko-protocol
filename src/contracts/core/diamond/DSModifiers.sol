@@ -3,10 +3,12 @@ pragma solidity ^0.8.0;
 
 import {Meta} from "libs/Meta.sol";
 import {DSCore} from "diamond/DSCore.sol";
+import {Constants} from "common/Constants.sol";
 import {ds} from "diamond/DState.sol";
 
 abstract contract DSModifiers {
     modifier initializer(uint256 version) {
+        if (ds().initializing != Constants.INITIALIZING) revert DSCore.DIAMOND_NOT_INITIALIZING();
         if (version <= ds().storageVersion) revert DSCore.DIAMOND_ALREADY_INITIALIZED(version, ds().storageVersion);
         _;
     }
