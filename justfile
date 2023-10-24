@@ -1,5 +1,30 @@
 set dotenv-load
 
+alias l := local
+alias r := restart
+alias k := kill
+
+local:
+	pm2 ping
+	@echo "/* -------------------------------------------------------------------------- */"
+	@echo "/*                                 LAUNCHING                                  */"
+	@echo "/* -------------------------------------------------------------------------- */"
+	pm2 start utils/pm2.config.js --only anvil-local
+	pm2 start utils/pm2.config.js --only deploy-local
+	pm2 save
+	@echo "/* -------------------------------------------------------------------------- */"
+	@echo "/*                                  LAUNCHED                                  */"
+	@echo "/* -------------------------------------------------------------------------- */"
+
+kill: 
+	pm2 delete all && pm2 cleardump && pm2 flush && pm2 kill 
+
+restart:
+	pm2 restart all --update-env
+
+deps:
+	curl -L https://foundry.paradigm.xyz | bash
+	pnpm i -g pm2
 
 dry-local:
 	forge script src/contracts/scripts/deploy/Run.s.sol:Local \

@@ -14,8 +14,8 @@
   },
   "packageManager": "pnpm@8.6.0",
   "scripts": {
-    "dev:stop": "pm2 stop all && pm2 flush network && pm2 flush deploys && pm2 kill",
-    "dev": "pm2 start utils/pm2.config.js",
+    "dev:stop": "just kill",
+    "dev": "just local",
     "clean": "hardhat clean && forge clean",
     "recompile": "hardhat clean && hardhat compile",
     "compile": "hardhat compile",

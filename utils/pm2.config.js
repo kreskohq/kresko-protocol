@@ -3,23 +3,15 @@ module.exports = {
     {
       watch: false,
       autorestart: false,
-      // watch_delay: 200,
-      name: 'anvil',
+      name: 'anvil-local',
       script: 'just anvil-local',
     },
     {
       watch: false,
       autorestart: false,
-      // watch_delay: 200,
-      name: 'deployment',
+      wait_ready: true,
+      name: 'deploy-local',
       script: 'just deploy-local',
     },
-    // {
-    //   watch: ['sol/contracts', 'sol/scripts'],
-    //   autorestart: false,
-    //   watch_delay: 200,
-    //   name: 'web',
-    //   script: 'pnpm dev',
-    // },
   ],
 };
