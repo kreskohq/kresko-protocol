@@ -18,14 +18,13 @@ dry-arbitrum:
 
 
 deploy-local:
+	sleep 3
 	forge script src/contracts/scripts/deploy/Run.s.sol:Local \
+	-vvv \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \
 	--broadcast \
-	--with-gas-price 100000000 \
-	--skip-simulation \
-	--ffi \
-	-vvv
+	--ffi
 
 deploy-arbitrum:
 	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
@@ -42,7 +41,9 @@ anvil-fork:
 	--fork-block-number 140307500
 
 anvil-local:
-  anvil -m "$MNEMONIC_DEVNET" --code-size-limit "10000000000000"
+	anvil -m "$MNEMONIC_DEVNET" \
+	--code-size-limit "100000000000000000" \
+	--gas-limit "100000000"
 
 flats: 
 	forge flatten src/contracts/periphery/IKresko.sol > out/IKresko.sol && \
