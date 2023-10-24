@@ -21,9 +21,9 @@ const deploy: DeployFunction = async function (hre) {
       });
 
       const gnosisSafeDeploymentFactoryInfo = gnosisSafeDeployments.find(
-        i => i.contractName === 'GnosisSafeDeploymentFactory',
+        i => i.contractName === 'GnosisSafeProxyFactory',
       )!;
-      await hre.deployments.save('GnosisSafeDeploymentFactory', {
+      await hre.deployments.save('GnosisSafeProxyFactory', {
         abi: gnosisSafeDeploymentFactoryInfo.abi,
         address: gnosisSafeDeploymentFactoryInfo.networkAddresses.opgoerli,
       });
@@ -83,12 +83,12 @@ const deploy: DeployFunction = async function (hre) {
     case 'arbitrumGoerli':
     case 'hardhat': {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const safeDeploymentFactoryArtifact = require('../../utils/gnosis/json/GnosisSafeDeploymentFactory2.json');
+      const safeDeploymentFactoryArtifact = require('../../utils/gnosis/json/GnosisSafeProxyFactory2.json');
       const safeDeploymentFactoryFactory = await hre.ethers.getContractFactoryFromArtifact(
         safeDeploymentFactoryArtifact,
       );
       const proxyFactory = await safeDeploymentFactoryFactory.deploy();
-      await hre.deployments.save('GnosisSafeDeploymentFactory', {
+      await hre.deployments.save('GnosisSafeProxyFactory', {
         abi: safeDeploymentFactoryArtifact.abi,
         address: proxyFactory.address,
         args: [],

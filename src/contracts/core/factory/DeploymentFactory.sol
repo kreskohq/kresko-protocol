@@ -355,7 +355,7 @@ contract DeploymentFactory is ProxyAdmin, IDeploymentFactory {
 
     function deployCreate2(
         bytes memory creationCode,
-        bytes memory _calldata,
+        bytes calldata _calldata,
         bytes32 salt
     ) external payable onlyDeployerOrOwner returns (Deployment memory newDeployment) {
         newDeployment.implementation = salt.create2(creationCode);
@@ -374,7 +374,7 @@ contract DeploymentFactory is ProxyAdmin, IDeploymentFactory {
 
     function deployCreate3(
         bytes memory creationCode,
-        bytes memory _calldata,
+        bytes calldata _calldata,
         bytes32 salt
     ) external payable onlyDeployerOrOwner returns (Deployment memory newDeployment) {
         newDeployment.implementation = salt.create3(creationCode);

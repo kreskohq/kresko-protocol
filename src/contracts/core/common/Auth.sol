@@ -134,7 +134,6 @@ library Auth {
         uint256 owners = IGnosisSafeL2(_newCouncil).getOwners().length;
         if (owners < 5) revert Errors.MULTISIG_NOT_ENOUGH_OWNERS(_newCouncil, owners, 5);
 
-        // As this is called by the multisig - just check that it's not an EOA
         cs()._roles[Role.SAFETY_COUNCIL].members[msg.sender] = false;
         cs()._roleMembers[Role.SAFETY_COUNCIL].remove(msg.sender);
 

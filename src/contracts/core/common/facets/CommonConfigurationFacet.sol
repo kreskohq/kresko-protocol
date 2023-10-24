@@ -23,23 +23,11 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
 
     function initializeCommon(CommonInitArgs calldata args) external initializer(2) {
         cs().entered = Constants.NOT_ENTERED;
-        // Temporarily set ADMIN role for deployer
-        Auth._grantRole(Role.DEFAULT_ADMIN, msg.sender);
+
+        // Setup ADMIN role for configuration
         Auth._grantRole(Role.ADMIN, msg.sender);
-
-        // Grant the admin role to admin
-        Auth._grantRole(Role.DEFAULT_ADMIN, args.admin);
-        Auth._grantRole(Role.ADMIN, args.admin);
-
-        /**
-         * @notice Council can be set only by this specific function.
-         * Requirements:
-         *
-         * - address `_council` must implement ERC165 and a specific multisig interfaceId.
-         * - reverts if above is not true.
-         */
+        // Council must be a contract.
         Auth.setupSecurityCouncil(args.council);
-
         setFeeRecipient(args.treasury);
         setMinDebtValue(args.minDebtValue);
         setDefaultOraclePrecision(args.oracleDecimals);
@@ -50,8 +38,13 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         setGatingPhase(args.phase);
         setKreskianCollection(args.kreskian);
         setQuestForKreskCollection(args.questForKresk);
-
         ds().supportedInterfaces[type(IAuthorizationFacet).interfaceId] = true;
+        // Revoke admin role from deployer
+        Auth._revokeRole(Role.ADMIN, msg.sender);
+
+        // Setup the admin
+        Auth._grantRole(Role.DEFAULT_ADMIN, args.admin);
+        Auth._grantRole(Role.ADMIN, args.admin);
     }
 
     /// @inheritdoc ICommonConfigurationFacet
