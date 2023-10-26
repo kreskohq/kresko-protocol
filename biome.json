@@ -15,13 +15,14 @@
       "dist",
       "bin",
       "out",
+      "patches",
       "lib",
       "broadcast",
       "src/utils/gnosis/",
       "temp",
-      "./types",
-      "./deployments",
-      "./docs",
+      "types",
+      "deployments",
+      "docs",
       "pnpm-lock.yaml"
     ]
   },

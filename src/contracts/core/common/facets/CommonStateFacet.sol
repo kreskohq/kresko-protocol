@@ -2,9 +2,7 @@
 pragma solidity >=0.8.21;
 
 import {ICommonStateFacet} from "common/interfaces/ICommonStateFacet.sol";
-
 import {Redstone} from "libs/Redstone.sol";
-import {ds} from "diamond/DState.sol";
 
 import {Enums} from "common/Constants.sol";
 import {cs} from "common/State.sol";
