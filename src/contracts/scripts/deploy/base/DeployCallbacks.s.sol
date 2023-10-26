@@ -67,7 +67,7 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         coreCfg.minterLt.pct("Minter LT");
         coreCfg.scdpMcr.pct("SCDP MCR");
         coreCfg.scdpLt.pct("SCDP LT");
-        coreCfg.staleTime.clg("Oracle Stale Time");
+        coreCfg.staleTime.clg("Oracle Stale Price Time");
         coreCfg.oraclePrecision.clg("Oracle Price Precision");
         coreCfg.sdiPrecision.clg("SDI Price Precision");
         ("-------  Assets --------").clg();
@@ -145,14 +145,15 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         ("/* ------------------------------- Vault Asset ------------------------------ */").clg();
         _symbol.clg("Symbol");
         assetAddr.clg("Address");
+        _info.decimals.clg("Decimals");
         ("-------  Oracle --------").clg();
         address(_info.feed).clg("Feed");
         _ctx.vault.assetPrice(assetAddr).dlg("Price", 8);
-        _info.staleTime.clg("Stale Time");
+        _info.staleTime.clg("Stale Price Time");
         ("-------  Config --------").clg();
-        _info.maxDeposits.dlg("depositLimit", _info.decimals);
-        _info.decimals.clg("decimals");
-        _info.depositFee.pct("depositFee");
+        _info.maxDeposits.dlg("Max Deposit Amount", _info.decimals);
+        _info.depositFee.pct("Deposit Fee");
+        _info.withdrawFee.pct("Withdraw Fee");
     }
 
     function onComplete(State storage _ctx) internal override {
