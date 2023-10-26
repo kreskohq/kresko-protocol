@@ -68,6 +68,7 @@ anvil-fork:
 anvil-local:
 	anvil -m "$MNEMONIC_DEVNET" \
 	--code-size-limit "100000000000000000" \
+	--chain-id 1337 \
 	--gas-limit "100000000"
 
 flats: 
