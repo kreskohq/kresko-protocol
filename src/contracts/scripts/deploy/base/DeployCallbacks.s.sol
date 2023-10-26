@@ -5,12 +5,10 @@ pragma solidity ^0.8.19;
 import {RawPrice} from "common/Types.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
-import {console2} from "forge-std/Console2.sol";
 import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
 import {IDeployState} from "./IDeployState.sol";
 import {state} from "./DeployState.s.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
-import {Enums} from "common/Constants.sol";
 
 abstract contract DeployCallbacks is IDeployState, KreskoForgeUtils {
     function onConfigurationsCreated(
@@ -78,7 +76,7 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         userCfg.length.clg("Total Test Users: ");
     }
 
-    function onKISSCreated(State storage _ctx, KISSInfo memory _kiss) internal override {
+    function onKISSCreated(State storage _ctx, KISSInfo memory) internal override {
         Log.br();
         ("/* ------------------------------ Contracts ----------------------------- */").clg();
         Log.br();
