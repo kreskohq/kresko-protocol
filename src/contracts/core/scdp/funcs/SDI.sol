@@ -2,16 +2,17 @@
 pragma solidity >=0.8.21;
 
 import {WadRay} from "libs/WadRay.sol";
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
-import {usdWad, SDIPrice} from "common/funcs/Prices.sol";
-import {CError} from "common/CError.sol";
-import {SDIState} from "scdp/State.sol";
+import {wadUSD} from "common/funcs/Math.sol";
+import {SDIPrice} from "common/funcs/Prices.sol";
+import {Errors} from "common/Errors.sol";
+import {SDIState} from "scdp/SState.sol";
 
 library SDebtIndex {
-    using SafeERC20Permit for IERC20Permit;
+    using SafeTransfer for IERC20;
     using WadRay for uint256;
 
     function valueToSDI(uint256 valueIn, uint8 oracleDecimals) internal view returns (uint256) {
@@ -21,17 +22,16 @@ library SDebtIndex {
     /// @notice Cover by pulling assets.
     function cover(
         SDIState storage self,
-        address coverAssetAddr,
-        uint256 amount
+        address _assetAddr,
+        uint256 _amount
     ) internal returns (uint256 shares, uint256 value) {
-        if (amount == 0) revert CError.ZERO_AMOUNT(coverAssetAddr);
-        Asset storage asset = cs().assets[coverAssetAddr];
-        if (!asset.isSCDPCoverAsset) revert CError.ASSET_NOT_ENABLED(coverAssetAddr);
+        if (_amount == 0) revert Errors.ZERO_AMOUNT(Errors.id(_assetAddr));
+        Asset storage asset = cs().onlyCoverAsset(_assetAddr);
 
-        value = usdWad(amount, asset.price(), asset.decimals);
-        self.totalCover += (shares = valueToSDI(value, 8));
+        value = wadUSD(_amount, asset.decimals, asset.price(), cs().oracleDecimals);
+        self.totalCover += (shares = valueToSDI(value, cs().oracleDecimals));
 
-        IERC20Permit(coverAssetAddr).safeTransferFrom(msg.sender, self.coverRecipient, amount);
+        IERC20(_assetAddr).safeTransferFrom(msg.sender, self.coverRecipient, _amount);
     }
 
     /// @notice Returns the total effective debt amount of the SCDP.
@@ -50,11 +50,10 @@ library SDebtIndex {
         uint256 coverValue = self.totalCoverValue();
         uint256 coverAmount = coverValue != 0 ? coverValue.wadDiv(sdiPrice) : 0;
         uint256 totalDebt = self.totalDebt;
-        if (coverValue == 0) {
-            return totalDebt.wadMul(sdiPrice);
-        } else if (coverAmount >= totalDebt) {
-            return 0;
-        }
+
+        if (coverValue == 0) return totalDebt.wadMul(sdiPrice);
+        if (coverAmount >= totalDebt) return 0;
+
         return (totalDebt - coverAmount).wadMul(sdiPrice);
     }
 
@@ -80,11 +79,11 @@ library SDebtIndex {
 
     /// @notice Get total deposit value of `asset` in USD, oracle precision.
     function coverAssetValue(SDIState storage self, address _assetAddr) internal view returns (uint256) {
-        uint256 bal = IERC20Permit(_assetAddr).balanceOf(self.coverRecipient);
+        uint256 bal = IERC20(_assetAddr).balanceOf(self.coverRecipient);
         if (bal == 0) return 0;
 
         Asset storage asset = cs().assets[_assetAddr];
-        if (!asset.isSCDPCoverAsset) return 0;
+        if (!asset.isCoverAsset) return 0;
         return (bal * asset.price()) / 10 ** asset.decimals;
     }
 }

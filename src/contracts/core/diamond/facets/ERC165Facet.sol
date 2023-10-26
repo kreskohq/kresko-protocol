@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
 
-import {IERC165Facet} from "diamond/interfaces/IERC165Facet.sol";
-import {Role} from "common/Types.sol";
-import {ds, DiamondState} from "diamond/State.sol";
-import {DSModifiers} from "diamond/Modifiers.sol";
-import {CModifiers} from "common/Modifiers.sol";
+import {Modifiers} from "common/Modifiers.sol";
+import {Role} from "common/Constants.sol";
 
-contract ERC165Facet is IERC165Facet, DSModifiers, CModifiers {
+import {IERC165Facet} from "diamond/interfaces/IERC165Facet.sol";
+import {ds, DiamondState} from "diamond/DState.sol";
+import {DSModifiers} from "diamond/DSModifiers.sol";
+
+contract ERC165Facet is IERC165Facet, DSModifiers, Modifiers {
     /// @inheritdoc IERC165Facet
     function supportsInterface(bytes4 _interfaceId) external view override returns (bool) {
         return ds().supportedInterfaces[_interfaceId];

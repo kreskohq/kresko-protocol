@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {ProxyConnector} from "../redstone/ProxyConnector.sol";
 
-import {IDepositWithdrawFacet} from "minter/interfaces/IDepositWithdrawFacet.sol";
+import {IMinterDepositWithdrawFacet} from "minter/interfaces/IMinterDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "minter/interfaces/ICollateralReceiver.sol";
 
 contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
-    IDepositWithdrawFacet public kresko;
+    IMinterDepositWithdrawFacet public kresko;
     function(address, address, uint256, bytes memory) internal callbackLogic;
 
     address public account;
@@ -23,7 +23,7 @@ contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
     }
 
     constructor(address _kresko) {
-        kresko = IDepositWithdrawFacet(_kresko);
+        kresko = IMinterDepositWithdrawFacet(_kresko);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -111,8 +111,8 @@ contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
         _collateralAsset;
         userData = abi.decode(_userData, (Params));
         withdrawalAmountReceived = _withdrawalAmount;
-        IERC20Permit(userData.addr).transferFrom(_account, address(this), userData.val);
-        IERC20Permit(userData.addr).approve(address(kresko), userData.val);
+        IERC20(userData.addr).transferFrom(_account, address(this), userData.val);
+        IERC20(userData.addr).approve(address(kresko), userData.val);
         // redeposit all
         kresko.depositCollateral(_account, userData.addr, userData.val);
     }
@@ -133,7 +133,7 @@ contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
     ) internal {
         _userData;
         account = _account;
-        require(IERC20Permit(_collateralAsset).balanceOf(address(this)) == _withdrawalAmount, "wrong amount received");
+        require(IERC20(_collateralAsset).balanceOf(address(this)) == _withdrawalAmount, "wrong amount received");
     }
 
     function logicRedeposit(
@@ -144,7 +144,7 @@ contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
     ) internal {
         _userData;
         withdrawalAmountReceived = _withdrawalAmount;
-        IERC20Permit(_collateralAsset).approve(address(kresko), _withdrawalAmount);
+        IERC20(_collateralAsset).approve(address(kresko), _withdrawalAmount);
         // redeposit all
         kresko.depositCollateral(_account, _collateralAsset, _withdrawalAmount);
     }
@@ -157,7 +157,7 @@ contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
     ) internal {
         _userData;
         withdrawalAmountReceived = _withdrawalAmount;
-        IERC20Permit(_collateralAsset).approve(address(kresko), 1);
+        IERC20(_collateralAsset).approve(address(kresko), 1);
         // bare minimum redeposit
         kresko.depositCollateral(_account, _collateralAsset, 1);
     }

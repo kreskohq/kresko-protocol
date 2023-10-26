@@ -1,27 +1,27 @@
-import { assets } from '@config/deploy/arbitrumGoerli';
-import { WrapperBuilder } from '@redstone-finance/evm-connector';
-import { Kresko } from 'types/typechain';
+import type { Kresko } from '@/types/typechain'
+import { assets } from '@config/deploy/arbitrumGoerli'
+import { WrapperBuilder } from '@redstone-finance/evm-connector'
 
 export const wrapKresko = (contract: Kresko, signer?: any) =>
   WrapperBuilder.wrap(signer ? contract.connect(signer) : contract).usingSimpleNumericMock({
     mockSignersCount: 1,
     timestampMilliseconds: Date.now(),
     dataPoints: defaultRedstoneDataPoints,
-  }) as Kresko;
+  }) as Kresko
 
 type DataPoints = {
-  dataFeedId: string;
-  value: number;
-}[];
+  dataFeedId: string
+  value: number
+}[]
 export const wrapPrices = (contract: Kresko, prices: DataPoints, signer?: any) =>
   WrapperBuilder.wrap(signer ? contract.connect(signer) : contract).usingSimpleNumericMock({
     mockSignersCount: 1,
     timestampMilliseconds: Date.now(),
     dataPoints: prices,
-  }) as Kresko;
+  }) as Kresko
 
-export type TestAssetIds = TestTokenSymbols;
-export const redstoneMap = {
+export type TestAssetIds = TestTokenSymbols
+export const TickerMap = {
   krETH: 'ETH',
   krBTC: 'BTC',
   krTSLA: 'TSLA',
@@ -46,7 +46,7 @@ export const redstoneMap = {
   KrAsset3: 'KrAsset3',
   KrAsset4: 'KrAsset4',
   KrAsset5: 'KrAsset5',
-};
+}
 
 export const defaultRedstoneDataPoints: TestDataPackage[] = [
   { dataFeedId: 'DAI', value: 0 },
@@ -67,6 +67,6 @@ export const defaultRedstoneDataPoints: TestDataPackage[] = [
   { dataFeedId: 'KrAsset3', value: 0 },
   { dataFeedId: 'KrAsset4', value: 0 },
   { dataFeedId: 'KrAsset5', value: 0 },
-];
-export type TestDataPackage = { dataFeedId: AllUnderlyingIds; value: number };
-export type AllUnderlyingIds = TestAssetIds | 'ETH' | (typeof assets)[keyof typeof assets]['underlyingId'];
+]
+export type TestDataPackage = { dataFeedId: AllTickers; value: number }
+export type AllTickers = TestAssetIds | 'ETH' | typeof assets[keyof typeof assets]['ticker']

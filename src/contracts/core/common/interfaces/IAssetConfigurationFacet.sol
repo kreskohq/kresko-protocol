@@ -1,89 +1,63 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {Asset, FeedConfiguration, OracleType} from "common/Types.sol";
+import {Asset} from "common/Types.sol";
+import {Enums} from "common/Constants.sol";
 
 interface IAssetConfigurationFacet {
     /**
-     * @notice Adds a new asset to the system.
-     * @notice Performs validations according to the config set.
-     * @dev Use validatConfig or staticCall to validate config before calling this function.
-     * @param _assetAddr The asset address.
-     * @param _config The configuration for the asset.
-     * @param _feedConfig The feed configuration for the asset.
-     * @param _setFeeds Whether to actually set feeds or not.
-     * @custom:signature addAsset(address,(bytes12,address,uint8[2],uint16,uint16,uint16,uint16,uint16,uint128,uint128,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool),(uint8[2],address[2]),bool)
-     * @custom:selector 0x3027bfba
+     * @notice Adds a new asset to the common state.
+     * @notice Performs validations according to the `_config` provided.
+     * @dev Use validateAssetConfig / static call this for validation.
+     * @param _assetAddr Asset address.
+     * @param _config Configuration struct to save for the asset.
+     * @param _feeds Feed addresses, if both are address(0) they are ignored.
+     * @return Asset Result of addAsset.
+     * @custom:signature addAsset(address,(bytes32,address,,uint16,uint16,uint16,uint16,uint16,uint256,uint256,uint256,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool),address[2])
+     * @custom:selector 0x73320167
      */
-    function addAsset(address _assetAddr, Asset memory _config, FeedConfiguration memory _feedConfig, bool _setFeeds) external;
+    function addAsset(address _assetAddr, Asset memory _config, address[2] memory _feeds) external returns (Asset memory);
 
     /**
      * @notice Update asset config.
-     * @notice Performs validations according to the config set.
-     * @dev Use validatConfig or staticCall to validate config before calling this function.
+     * @notice Performs validations according to the `_config` set.
+     * @dev Use validateAssetConfig / static call this for validation.
      * @param _assetAddr The asset address.
-     * @param _config The configuration for the asset.
-     * @custom:selector 0xb10fd488
+     * @param _config Configuration struct to apply for the asset.
+     * @custom:signature updateAsset(address,(bytes32,address,,uint16,uint16,uint16,uint16,uint16,uint256,uint256,uint256,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool))
+     * @custom:selector 0xe2f08b19
      */
-    function updateAsset(address _assetAddr, Asset memory _config) external;
+    function updateAsset(address _assetAddr, Asset memory _config) external returns (Asset memory);
 
     /**
-     * @notice Set feeds for an asset Id.
-     * @param _assetId Asset id.
-     * @param _feedConfig List oracle configuration containing oracle identifiers and feed addresses.
-     * @custom:signature updateFeeds(bytes12,(uint8[2],address[2]))
-     * @custom:selector 0x4d58b9c3
+     * @notice  Updates the cFactor of a KreskoAsset. Convenience.
+     * @param _assetAddr The collateral asset.
+     * @param _newFactor The new collateral factor.
      */
-    function updateFeeds(bytes12 _assetId, FeedConfiguration memory _feedConfig) external;
+    function setAssetCFactor(address _assetAddr, uint16 _newFactor) external;
+
+    /**
+     * @notice Updates the kFactor of a KreskoAsset.
+     * @param _assetAddr The KreskoAsset.
+     * @param _newKFactor The new kFactor.
+     */
+    function setAssetKFactor(address _assetAddr, uint16 _newKFactor) external;
 
     /**
      * @notice Validate supplied asset config. Reverts with information if invalid.
      * @param _assetAddr The asset address.
-     * @param _config The configuration for the asset.
-     * @custom:signature validateAssetConfig(address,(bytes12,address,uint8[2],uint16,uint16,uint16,uint16,uint16,uint128,uint128,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool))
-     * @custom:selector 0x2fb2c6b5
+     * @param _config Configuration for the asset.
+     * @return bool True for convenience.
+     * @custom:signature validateAssetConfig(address,(bytes32,address,uint8[2],uint16,uint16,uint16,uint16,uint16,uint256,uint256,uint256,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool))
+     * @custom:selector 0xcadd46b6
      */
-    function validateAssetConfig(address _assetAddr, Asset memory _config) external view;
-
-    /**
-     * @notice Set chainlink feeds for assetIds.
-     * @dev Has modifiers: onlyRole.
-     * @param _assetIds List of asset id's.
-     * @param _feeds List of feed addresses.
-     */
-    function setChainlinkFeeds(bytes12[] calldata _assetIds, address[] calldata _feeds) external;
-
-    /**
-     * @notice Set api3 feeds for assetIds.
-     * @dev Has modifiers: onlyRole.
-     * @param _assetIds List of asset id's.
-     * @param _feeds List of feed addresses.
-     */
-    function setApi3Feeds(bytes12[] calldata _assetIds, address[] calldata _feeds) external;
-
-    /**
-     * @notice Set chain link feed for an asset.
-     * @param _assetId The asset (bytes12).
-     * @param _feedAddr The feed address.
-     * @custom:signature setChainLinkFeed(bytes12,address,address)
-     * @custom:selector 0x0a924d27
-     */
-    function setChainLinkFeed(bytes12 _assetId, address _feedAddr) external;
-
-    /**
-     * @notice Set api3 feed address for an asset.
-     * @param _assetId The asset (bytes12).
-     * @param _feedAddr The feed address.
-     * @custom:signature setApi3Feed(bytes12,address)
-     * @custom:selector 0x1e347859
-     */
-    function setApi3Feed(bytes12 _assetId, address _feedAddr) external;
+    function validateAssetConfig(address _assetAddr, Asset memory _config) external view returns (bool);
 
     /**
      * @notice Update oracle order for an asset.
      * @param _assetAddr The asset address.
      * @param _newOracleOrder List of 2 OracleTypes. 0 is primary and 1 is the reference.
-     * @custom:signature updateOracleOrder(address,uint8[2])
-     * @custom:selector 0x8b6a306c
+     * @custom:signature setAssetOracleOrder(address,uint8[2])
+     * @custom:selector 0x67029b02
      */
-    function updateOracleOrder(address _assetAddr, OracleType[2] memory _newOracleOrder) external;
+    function setAssetOracleOrder(address _assetAddr, Enums.OracleType[2] memory _newOracleOrder) external;
 }

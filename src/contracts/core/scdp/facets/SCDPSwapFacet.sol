@@ -1,57 +1,47 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {SafeERC20Permit, IERC20Permit} from "vendor/SafeERC20Permit.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {CModifiers} from "common/Modifiers.sol";
+import {Modifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
-import {CError} from "common/CError.sol";
+import {Errors} from "common/Errors.sol";
+import {Validations} from "common/Validations.sol";
 
 import {ISCDPSwapFacet} from "scdp/interfaces/ISCDPSwapFacet.sol";
-import {scdp} from "scdp/State.sol";
-import {SEvent} from "scdp/Events.sol";
+import {scdp} from "scdp/SState.sol";
+import {SEvent} from "scdp/SEvent.sol";
 
-contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
-    using SafeERC20Permit for IERC20Permit;
+contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
+    using SafeTransfer for IERC20;
     using WadRay for uint256;
     using PercentageMath for uint256;
 
     /// @inheritdoc ISCDPSwapFacet
-    function cumulateIncomeSCDP(address _depositAssetAddr, uint256 _incomeAmount) external nonReentrant returns (uint256) {
-        if (_incomeAmount == 0) revert CError.ZERO_AMOUNT(_depositAssetAddr);
-        Asset storage asset = cs().assets[_depositAssetAddr];
+    function cumulateIncomeSCDP(address _assetAddr, uint256 _incomeAmount) external nonReentrant returns (uint256) {
+        Asset storage asset = cs().onlyIncomeAsset(_assetAddr);
+        IERC20(_assetAddr).safeTransferFrom(msg.sender, address(this), _incomeAmount);
 
-        bool isValid = asset.isSCDPDepositAsset &&
-            asset.liquidityIndexSCDP != 0 &&
-            scdp().userDepositAmount(_depositAssetAddr, asset) != 0;
-        if (!isValid) revert CError.NOT_INCOME_ASSET(_depositAssetAddr);
-
-        IERC20Permit(_depositAssetAddr).safeTransferFrom(msg.sender, address(this), _incomeAmount);
-
-        emit SEvent.Income(_depositAssetAddr, _incomeAmount);
-        return scdp().cumulateIncome(_depositAssetAddr, asset, _incomeAmount);
+        emit SEvent.Income(_assetAddr, _incomeAmount);
+        return scdp().cumulateIncome(_assetAddr, asset, _incomeAmount);
     }
 
     /// @inheritdoc ISCDPSwapFacet
     function previewSwapSCDP(
-        address _assetIn,
-        address _assetOut,
+        address _assetInAddr,
+        address _assetOutAddr,
         uint256 _amountIn
     ) external view returns (uint256 amountOut, uint256 feeAmount, uint256 feeAmountProtocol) {
-        // Check that assets can be swapped, get the fee percentages.
-        if (!scdp().isSwapEnabled[_assetIn][_assetOut]) {
-            revert CError.SWAP_NOT_ENABLED(_assetIn, _assetOut);
-        } else if (_assetIn == _assetOut) {
-            revert CError.IDENTICAL_ASSETS();
-        }
+        Validations.ensureUnique(_assetInAddr, _assetOutAddr);
+        Validations.validateRoute(_assetInAddr, _assetOutAddr);
 
-        Asset storage assetIn = cs().assets[_assetIn];
-        if (!assetIn.isSCDPKrAsset) revert CError.INVALID_ASSET(_assetIn);
+        Asset storage assetIn = cs().onlySwapMintable(_assetInAddr);
+        Asset storage assetOut = cs().onlySwapMintable(_assetOutAddr);
 
-        Asset storage assetOut = cs().assets[_assetOut];
-        if (!assetOut.isSCDPKrAsset) revert CError.INVALID_ASSET(_assetIn);
         (uint256 feePercentage, uint256 protocolFee) = getSwapFees(assetIn, assetOut);
 
         // Get the fees from amount received.
@@ -65,29 +55,25 @@ contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
     /// @inheritdoc ISCDPSwapFacet
     function swapSCDP(
         address _receiver,
-        address _assetIn,
-        address _assetOut,
+        address _assetInAddr,
+        address _assetOutAddr,
         uint256 _amountIn,
         uint256 _amountOutMin
     ) external nonReentrant {
-        if (_amountIn == 0) {
-            revert CError.SWAP_ZERO_AMOUNT();
-        }
-        // Transfer assets into this contract.
-        IERC20Permit(_assetIn).safeTransferFrom(msg.sender, address(this), _amountIn);
+        if (_amountIn == 0) revert Errors.SWAP_ZERO_AMOUNT_IN(Errors.id(_assetInAddr));
         address receiver = _receiver == address(0) ? msg.sender : _receiver;
-        Asset storage assetIn = cs().assets[_assetIn];
+        IERC20(_assetInAddr).safeTransferFrom(msg.sender, address(this), _amountIn);
 
-        if (!assetIn.isSCDPKrAsset) revert CError.INVALID_ASSET(_assetIn);
+        Asset storage assetIn = cs().onlySwapMintable(_assetInAddr);
 
         emit SEvent.Swap(
             msg.sender,
-            _assetIn,
-            _assetOut,
+            _assetInAddr,
+            _assetOutAddr,
             _amountIn,
-            _assetOut == scdp().feeAsset
-                ? _swapFeeAssetOut(receiver, _assetIn, assetIn, _amountIn, _amountOutMin)
-                : _swap(receiver, _assetIn, assetIn, _assetOut, _amountIn, _amountOutMin)
+            _assetOutAddr == scdp().feeAsset
+                ? _swapFeeAssetOut(receiver, _assetInAddr, assetIn, _amountIn, _amountOutMin)
+                : _swap(receiver, _assetInAddr, assetIn, _assetOutAddr, _amountIn, _amountOutMin)
         );
     }
 
@@ -108,15 +94,10 @@ contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
         uint256 _amountIn,
         uint256 _amountOutMin
     ) private returns (uint256 amountOut) {
-        Asset storage assetOut = cs().assets[_assetOutAddr];
-        if (!assetOut.isSCDPKrAsset) revert CError.INVALID_ASSET(_assetOutAddr);
-
+        Validations.ensureUnique(_assetInAddr, _assetOutAddr);
+        Validations.validateRoute(_assetInAddr, _assetOutAddr);
+        Asset storage assetOut = cs().onlySwapMintable(_assetOutAddr);
         // Check that assets can be swapped, get the fee percentages.
-        if (!scdp().isSwapEnabled[_assetInAddr][_assetOutAddr]) {
-            revert CError.SWAP_NOT_ENABLED(_assetInAddr, _assetOutAddr);
-        } else if (_assetInAddr == _assetOutAddr) {
-            revert CError.IDENTICAL_ASSETS();
-        }
 
         (uint256 feePercentage, uint256 protocolFee) = getSwapFees(_assetIn, assetOut);
 
@@ -160,11 +141,8 @@ contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
         Asset storage assetOut = cs().assets[assetOutAddr];
 
         // Check that assets can be swapped, get the fee percentages.
-        if (!scdp().isSwapEnabled[_assetInAddr][assetOutAddr]) {
-            revert CError.SWAP_NOT_ENABLED(_assetInAddr, assetOutAddr);
-        } else if (_assetInAddr == assetOutAddr) {
-            revert CError.IDENTICAL_ASSETS();
-        }
+        Validations.ensureUnique(_assetInAddr, assetOutAddr);
+        Validations.validateRoute(_assetInAddr, assetOutAddr);
 
         // Get the fee percentages.
         (uint256 feePercentage, uint256 protocolFee) = getSwapFees(_assetIn, assetOut);
@@ -184,7 +162,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
             amountOut -= feeAmount;
         }
 
-        IERC20Permit(assetOutAddr).safeTransfer(_receiver, amountOut);
+        IERC20(assetOutAddr).safeTransfer(_receiver, amountOut);
 
         // State modifications done, check MCR and slippage.
         _checkAndPayFees(assetOutAddr, assetOut, amountOut, _amountOutMin, feeAmount, protocolFee);
@@ -207,9 +185,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
         Asset storage _assetOut,
         uint256 _amountIn
     ) private returns (uint256) {
-        if (_assetInAddr == _assetOutAddr) {
-            revert CError.IDENTICAL_ASSETS();
-        }
+        Validations.ensureUnique(_assetInAddr, _assetOutAddr);
         return
             scdp().handleAssetsOut(
                 _assetOutAddr,
@@ -229,13 +205,14 @@ contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
     ) private {
         // State modifications done, check MCR and slippage.
         if (_amountOut < _amountOutMin) {
-            revert CError.SWAP_SLIPPAGE(_amountOut, _amountOutMin);
+            revert Errors.RECEIVED_LESS_THAN_DESIRED(Errors.id(_payAssetAddr), _amountOut, _amountOutMin);
         }
+
         if (_feeAmount > 0) {
             address feeAssetAddr = scdp().feeAsset;
             _paySwapFees(feeAssetAddr, cs().assets[feeAssetAddr], _payAssetAddr, _payAsset, _feeAmount, _protocolFeePct);
         }
-        scdp().checkCollateralValue(scdp().minCollateralRatio);
+        scdp().ensureCollateralRatio(scdp().minCollateralRatio);
     }
 
     function _paySwapFees(
@@ -256,7 +233,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, CModifiers {
         }
 
         if (_feeAmount != 0) scdp().cumulateIncome(_feeAssetAddress, _feeAsset, _feeAmount);
-        if (protocolFeeTaken != 0) IERC20Permit(_feeAssetAddress).safeTransfer(cs().feeRecipient, protocolFeeTaken);
+        if (protocolFeeTaken != 0) IERC20(_feeAssetAddress).safeTransfer(cs().feeRecipient, protocolFeeTaken);
 
         emit SEvent.SwapFee(_feeAssetAddress, _payAssetAddress, _feeAmount, protocolFeeTaken);
     }

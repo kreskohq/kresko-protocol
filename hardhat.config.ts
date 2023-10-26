@@ -24,10 +24,7 @@ import 'hardhat-interface-generator';
 import { configDotenv } from 'dotenv';
 configDotenv();
 
-const mnemonic = process.env.MNEMONIC;
-if (!mnemonic) {
-  throw new Error('No mnemonic set');
-}
+const mnemonic = process.env.MNEMONIC_DEVNET || 'test test test test test test test test test test test junk';
 
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
@@ -68,13 +65,13 @@ const config: HardhatUserConfig = {
     artifacts: 'artifacts',
     cache: 'cache',
     tests: 'src/test/',
-    sources: 'src/contracts/core',
+    sources: 'src/contracts/core/',
     deploy: 'src/deploy/',
     deployments: 'deployments/',
   },
   diamondAbi: diamondAbiConfig,
   typechain: {
-    outDir: 'types/typechain',
+    outDir: 'src/types/typechain',
     target: 'ethers-v5',
     alwaysGenerateOverloads: false,
     dontOverrideCompile: false,

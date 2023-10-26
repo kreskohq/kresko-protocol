@@ -1,20 +1,45 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {IUniswapV2Factory} from "vendor/uniswap/v2-core/interfaces/IUniswapV2Factory.sol";
-import {IUniswapV2Router02} from "vendor/uniswap/v2-periphery/interfaces/IUniswapV2Router02.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
 import {IKrStaking} from "./interfaces/IKrStaking.sol";
 
-contract KrStakingHelper {
-    using SafeERC20Permit for IERC20Permit;
+interface IV2Factory {
+    function getPair(address tokenA, address tokenB) external view returns (address pair);
+}
 
-    IUniswapV2Router02 public immutable router;
-    IUniswapV2Factory public immutable factory;
+interface IV2Router {
+    function addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 amountADesired,
+        uint256 amountBDesired,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountA, uint256 amountB, uint256 liquidity);
+
+    function removeLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 liquidity,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountA, uint256 amountB);
+}
+
+contract KrStakingHelper {
+    using SafeTransfer for IERC20;
+
+    IV2Router public immutable router;
+    IV2Factory public immutable factory;
     IKrStaking public immutable staking;
 
-    constructor(IUniswapV2Router02 _router, IUniswapV2Factory _factory, IKrStaking _staking) {
+    constructor(IV2Router _router, IV2Factory _factory, IKrStaking _staking) {
         router = _router;
         factory = _factory;
         staking = _staking;
@@ -63,11 +88,11 @@ contract KrStakingHelper {
 
         require(found, "KR: !poolExists");
 
-        IERC20Permit(tokenA).safeTransferFrom(msg.sender, address(this), amountADesired);
-        IERC20Permit(tokenB).safeTransferFrom(msg.sender, address(this), amountBDesired);
+        IERC20(tokenA).safeTransferFrom(msg.sender, address(this), amountADesired);
+        IERC20(tokenB).safeTransferFrom(msg.sender, address(this), amountBDesired);
 
-        IERC20Permit(tokenA).approve(address(router), amountADesired);
-        IERC20Permit(tokenB).approve(address(router), amountBDesired);
+        IERC20(tokenA).approve(address(router), amountADesired);
+        IERC20(tokenB).approve(address(router), amountBDesired);
 
         (, , uint256 liquidity) = router.addLiquidity(
             tokenA,
@@ -80,7 +105,7 @@ contract KrStakingHelper {
             deadline
         );
 
-        IERC20Permit(pair).approve(address(staking), liquidity);
+        IERC20(pair).approve(address(staking), liquidity);
         staking.deposit(to, pid, liquidity);
 
         emit LiquidityAndStakeAdded(to, liquidity, pid);
@@ -114,7 +139,7 @@ contract KrStakingHelper {
 
         staking.withdrawFor(msg.sender, pid, liquidity, to);
 
-        IERC20Permit(pair).approve(address(router), liquidity);
+        IERC20(pair).approve(address(router), liquidity);
         router.removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline);
 
         emit LiquidityAndStakeRemoved(to, liquidity, pid);

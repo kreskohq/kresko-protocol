@@ -1,26 +1,32 @@
+import { AssetArgs, GnosisSafeDeployment, NetworkConfig, OracleType } from '@/types';
 import { price } from '@kreskolabs/lib/ext';
-import { AssetArgs, GnosisSafeDeployment, NetworkConfig, OracleType } from 'types';
+import { defaultSupplyLimit } from '@utils/test/mocks';
 import {
   CompatibilityFallbackHandler,
   CreateCall,
+  DeploymentFactory,
   GnosisSafe,
   GnosisSafeL2,
   MultiSend,
   MultiSendCallOnly,
-  ProxyFactory,
   SignMessageLib,
   SimulateTxAccessor,
 } from '../../src/utils/gnosis/gnosis-safe';
-import { defaultSupplyLimit } from '@utils/test/mocks';
 
-import { toBig } from '@utils/values';
 import {
   CommonInitArgsStruct,
   MinterInitArgsStruct,
   SCDPInitArgsStruct,
-} from 'types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+} from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { toBig } from '@utils/values';
 
+const fetchPrice = async (symbol: string) => {
+  if (!process.env.TWELVEDATA_API_KEY) {
+    return toBig(1, 8);
+  }
+  return toBig(await price.twelvedata(symbol), 8);
+};
 export const oracles = {
   ARB: {
     name: 'ARB/USD',
@@ -51,7 +57,7 @@ export const oracles = {
     name: 'ETHUSD',
     description: 'ETH/USD',
     chainlink: '0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08',
-    price: async () => toBig(await price.twelvedata('ETH/USD'), 8),
+    price: async () => fetchPrice('ETH/USD'),
     marketOpen: async () => {
       return true;
     },
@@ -76,7 +82,7 @@ export type AssetConfigExtended = AssetArgs & {
 };
 export const assets = {
   DAI: {
-    underlyingId: 'DAI',
+    ticker: 'DAI',
     name: 'Dai',
     symbol: 'DAI',
     decimals: 18,
@@ -93,12 +99,12 @@ export const assets = {
     mintAmount: 1_000_000,
   },
   WETH: {
-    underlyingId: 'ETH',
+    ticker: 'ETH',
     name: 'Wrapped Ether',
     symbol: 'WETH',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig(await price.twelvedata('ETH/USD'), 8),
+    getPrice: async () => fetchPrice('ETH/USD'),
     getMarketOpen: async () => true,
     feed: oracles.ETH.chainlink,
     collateralConfig: {
@@ -108,7 +114,7 @@ export const assets = {
   },
   // KRASSETS
   KISS: {
-    underlyingId: 'KISS',
+    ticker: 'KISS',
     name: 'Kresko Integrated Stable System',
     symbol: 'KISS',
     decimals: 18,
@@ -126,23 +132,24 @@ export const assets = {
       kFactor: 1.1e4,
       openFee: 0,
       closeFee: 0,
-      supplyLimit: defaultSupplyLimit,
+      maxDebtMinter: defaultSupplyLimit,
     },
     scdpKrAssetConfig: {
       swapInFeeSCDP: 0,
       swapOutFeeSCDP: 0.02e4,
       protocolFeeShareSCDP: 0.005e4,
       liqIncentiveSCDP: 1.05e4,
+      maxDebtSCDP: defaultSupplyLimit,
     },
     mintAmount: 50_000_000,
   },
   krBTC: {
-    underlyingId: 'BTC',
+    ticker: 'BTC',
     name: 'Bitcoin',
     symbol: 'krBTC',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig(await price.twelvedata('BTC/USD'), 8),
+    getPrice: async () => fetchPrice('BTC/USD'),
     getMarketOpen: async () => true,
     feed: oracles.BTC.chainlink,
     krAssetConfig: {
@@ -151,7 +158,7 @@ export const assets = {
       underlyingAddr: ZERO_ADDRESS,
       openFee: 0,
       closeFee: 0.02e4,
-      supplyLimit: defaultSupplyLimit,
+      maxDebtMinter: defaultSupplyLimit,
     },
     collateralConfig: {
       cFactor: 1e4,
@@ -160,12 +167,12 @@ export const assets = {
     mintAmount: 5,
   },
   krETH: {
-    underlyingId: 'ETH',
+    ticker: 'ETH',
     name: 'Ether',
     symbol: 'krETH',
     decimals: 18,
     oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
-    getPrice: async () => toBig(await price.twelvedata('ETH/USD'), 8),
+    getPrice: async () => fetchPrice('ETH/USD'),
     getMarketOpen: async () => {
       return true;
     },
@@ -176,7 +183,7 @@ export const assets = {
       underlyingAddr: ZERO_ADDRESS,
       openFee: 0,
       closeFee: 0.02e4,
-      supplyLimit: defaultSupplyLimit,
+      maxDebtMinter: defaultSupplyLimit,
     },
     collateralConfig: {
       cFactor: 1e4,
@@ -193,7 +200,7 @@ const gnosisSafeDeployments: GnosisSafeDeployment[] = [
   GnosisSafe,
   MultiSendCallOnly,
   MultiSend,
-  ProxyFactory,
+  DeploymentFactory,
   SignMessageLib,
   SimulateTxAccessor,
 ];
@@ -205,10 +212,10 @@ const commonInitAgs = (
   kreskian: ZERO_ADDRESS,
   phase: !gate ? 3 : 0, // 0 = phase 1, 1 = phase 2, 2 = phase 3, 3 = no gating (subject to change)
   minDebtValue: 10e8,
-  oracleDeviationPct: 0.1e4,
+  maxPriceDeviationPct: 0.1e4,
   sequencerGracePeriodTime: 3600,
   sequencerUptimeFeed: '0x4da69F028a5790fCCAfe81a75C0D24f46ceCDd69',
-  oracleTimeout: 6.5e4,
+  staleTime: 6.5e4,
 });
 
 export const minterInitArgs: MinterInitArgsStruct = {
@@ -218,7 +225,6 @@ export const minterInitArgs: MinterInitArgsStruct = {
 export const scdpInitArgs: SCDPInitArgsStruct = {
   minCollateralRatio: 5e4,
   liquidationThreshold: 2e4,
-  swapFeeRecipient: '',
   sdiPricePrecision: 8,
 };
 export const testnetConfigs: NetworkConfig = {

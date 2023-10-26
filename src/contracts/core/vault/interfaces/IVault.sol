@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {VaultAsset} from "vault/Types.sol";
+import {VaultAsset, VaultConfiguration} from "vault/VTypes.sol";
 
 interface IVault {
     /* -------------------------------------------------------------------------- */
@@ -12,30 +12,34 @@ interface IVault {
      * @notice This function deposits `assetsIn` of `asset`, regardless of the amount of vault shares minted.
      * @notice If depositFee > 0, `depositFee` of `assetsIn` is sent to the fee recipient.
      * @dev emits Deposit(caller, receiver, asset, assetsIn, sharesOut);
-     * @param asset Asset to deposit.
+     * @param assetAddr Asset to deposit.
      * @param assetsIn Amount of `asset` to deposit.
      * @param receiver Address to receive `sharesOut` of vault shares.
      * @return sharesOut Amount of vault shares minted for `assetsIn`.
      * @return assetFee Amount of fees paid in `asset`.
      */
-    function deposit(address asset, uint256 assetsIn, address receiver) external returns (uint256 sharesOut, uint256 assetFee);
+    function deposit(
+        address assetAddr,
+        uint256 assetsIn,
+        address receiver
+    ) external returns (uint256 sharesOut, uint256 assetFee);
 
     /**
      * @notice This function mints `sharesOut` of vault shares, regardless of the amount of `asset` received.
      * @notice If depositFee > 0, `depositFee` of `assetsIn` is sent to the fee recipient.
-     * @param asset Asset to deposit.
+     * @param assetAddr Asset to deposit.
      * @param sharesOut Amount of vault shares desired to mint.
      * @param receiver Address to receive `sharesOut` of shares.
      * @return assetsIn Assets used to mint `sharesOut` of vault shares.
      * @return assetFee Amount of fees paid in `asset`.
      * @dev emits Deposit(caller, receiver, asset, assetsIn, sharesOut);
      */
-    function mint(address asset, uint256 sharesOut, address receiver) external returns (uint256 assetsIn, uint256 assetFee);
+    function mint(address assetAddr, uint256 sharesOut, address receiver) external returns (uint256 assetsIn, uint256 assetFee);
 
     /**
      * @notice This function burns `sharesIn` of shares from `owner`, regardless of the amount of `asset` received.
      * @notice If withdrawFee > 0, `withdrawFee` of `assetsOut` is sent to the fee recipient.
-     * @param asset Asset to redeem.
+     * @param assetAddr Asset to redeem.
      * @param sharesIn Amount of vault shares to redeem.
      * @param receiver Address to receive the redeemed assets.
      * @param owner Owner of vault shares.
@@ -44,7 +48,7 @@ interface IVault {
      * @dev emits Withdraw(caller, receiver, asset, owner, assetsOut, sharesIn);
      */
     function redeem(
-        address asset,
+        address assetAddr,
         uint256 sharesIn,
         address receiver,
         address owner
@@ -53,7 +57,7 @@ interface IVault {
     /**
      * @notice This function withdraws `assetsOut` of assets, regardless of the amount of vault shares required.
      * @notice If withdrawFee > 0, `withdrawFee` of `assetsOut` is sent to the fee recipient.
-     * @param asset Asset to withdraw.
+     * @param assetAddr Asset to withdraw.
      * @param assetsOut Amount of `asset` desired to withdraw.
      * @param receiver Address to receive the withdrawn assets.
      * @param owner Owner of vault shares.
@@ -62,7 +66,7 @@ interface IVault {
      * @dev emits Withdraw(caller, receiver, asset, owner, assetsOut, sharesIn);
      */
     function withdraw(
-        address asset,
+        address assetAddr,
         uint256 assetsOut,
         address receiver,
         address owner
@@ -73,6 +77,12 @@ interface IVault {
     /* -------------------------------------------------------------------------- */
 
     /**
+     * @notice Returns the current vault configuration
+     * @return config Vault configuration struct
+     */
+    function getConfig() external view returns (VaultConfiguration memory config);
+
+    /**
      * @notice Returns the total value of all assets in the shares contract in USD WAD precision.
      */
     function totalAssets() external view returns (uint256 result);
@@ -80,12 +90,7 @@ interface IVault {
     /**
      * @notice Assets array used for iterating through the assets in the shares contract
      */
-    function assetList(uint256 index) external view returns (address asset);
-
-    /**
-     * @notice Fee recipient address
-     */
-    function feeRecipient() external view returns (address);
+    function assetList(uint256 index) external view returns (address assetAddr);
 
     /**
      * @notice Returns the asset struct for a given asset
@@ -94,88 +99,80 @@ interface IVault {
      */
     function assets(address) external view returns (VaultAsset memory asset);
 
+    function assetPrice(address assetAddr) external view returns (uint256);
+
     /**
      * @notice This function is used for previewing the amount of shares minted for `assetsIn` of `asset`.
-     * @param asset Supported asset address
+     * @param assetAddr Supported asset address
      * @param assetsIn Amount of `asset` in.
      * @return sharesOut Amount of vault shares minted.
      * @return assetFee Amount of fees paid in `asset`.
      */
-    function previewDeposit(address asset, uint256 assetsIn) external view returns (uint256 sharesOut, uint256 assetFee);
+    function previewDeposit(address assetAddr, uint256 assetsIn) external view returns (uint256 sharesOut, uint256 assetFee);
 
     /**
      * @notice This function is used for previewing `assetsIn` of `asset` required to mint `sharesOut` of vault shares.
-     * @param asset Supported asset address
+     * @param assetAddr Supported asset address
      * @param sharesOut Desired amount of vault shares to mint.
      * @return assetsIn Amount of `asset` required.
      * @return assetFee Amount of fees paid in `asset`.
      */
-    function previewMint(address asset, uint256 sharesOut) external view returns (uint256 assetsIn, uint256 assetFee);
+    function previewMint(address assetAddr, uint256 sharesOut) external view returns (uint256 assetsIn, uint256 assetFee);
 
     /**
      * @notice This function is used for previewing `assetsOut` of `asset` received for `sharesIn` of vault shares.
-     * @param asset Supported asset address
+     * @param assetAddr Supported asset address
      * @param sharesIn Desired amount of vault shares to burn.
      * @return assetsOut Amount of `asset` received.
      * @return assetFee Amount of fees paid in `asset`.
      */
-    function previewRedeem(address asset, uint256 sharesIn) external view returns (uint256 assetsOut, uint256 assetFee);
+    function previewRedeem(address assetAddr, uint256 sharesIn) external view returns (uint256 assetsOut, uint256 assetFee);
 
     /**
      * @notice This function is used for previewing `sharesIn` of vault shares required to burn for `assetsOut` of `asset`.
-     * @param asset Supported asset address
+     * @param assetAddr Supported asset address
      * @param assetsOut Desired amount of `asset` out.
      * @return sharesIn Amount of vault shares required.
      * @return assetFee Amount of fees paid in `asset`.
      */
-    function previewWithdraw(address asset, uint256 assetsOut) external view returns (uint256 sharesIn, uint256 assetFee);
+    function previewWithdraw(address assetAddr, uint256 assetsOut) external view returns (uint256 sharesIn, uint256 assetFee);
 
     /**
      * @notice Returns the maximum deposit amount of `asset`
-     * @param asset Supported asset address
+     * @param assetAddr Supported asset address
      * @return assetsIn Maximum depositable amount of assets.
      */
-    function maxDeposit(address asset) external view returns (uint256 assetsIn);
+    function maxDeposit(address assetAddr) external view returns (uint256 assetsIn);
 
     /**
      * @notice Returns the maximum mint using `asset`
-     * @param asset Supported asset address.
+     * @param assetAddr Supported asset address.
      * @param owner Owner of assets.
      * @return sharesOut Maximum mint amount.
      */
-    function maxMint(address asset, address owner) external view returns (uint256 sharesOut);
+    function maxMint(address assetAddr, address owner) external view returns (uint256 sharesOut);
 
     /**
      * @notice Returns the maximum redeemable amount for `user`
-     * @param asset Supported asset address.
+     * @param assetAddr Supported asset address.
      * @param owner Owner of vault shares.
      * @return sharesIn Maximum redeemable amount of `shares` (vault share balance)
      */
-    function maxRedeem(address asset, address owner) external view returns (uint256 sharesIn);
+    function maxRedeem(address assetAddr, address owner) external view returns (uint256 sharesIn);
 
     /**
      * @notice Returns the maximum redeemable amount for `user`
-     * @param asset Supported asset address.
+     * @param assetAddr Supported asset address.
      * @param owner Owner of vault shares.
      * @return amountOut Maximum amount of `asset` received.
      */
-    function maxWithdraw(address asset, address owner) external view returns (uint256 amountOut);
+    function maxWithdraw(address assetAddr, address owner) external view returns (uint256 amountOut);
 
     /**
-     * @notice Returns share/USD exchanage rate
-     * @return rate share/USD exchanage rate
+     * @notice Returns the exchange rate of one vault share to USD.
+     * @return rate Exchange rate of one vault share to USD in wad precision.
      */
     function exchangeRate() external view returns (uint256 rate);
-
-    /**
-     * @notice Returns the oracle decimals used for value calculations.
-     */
-    function oracleDecimals() external view returns (uint8);
-
-    /**
-     * @notice Returns the governance address.
-     */
-    function governance() external view returns (address);
 
     /* -------------------------------------------------------------------------- */
     /*                                    Admin                                   */
@@ -183,69 +180,70 @@ interface IVault {
 
     /**
      * @notice Adds a new asset to the vault
-     * @param asset Asset to add
+     * @param assetConfig Asset to add
      */
-    function addAsset(VaultAsset memory asset) external;
+    function addAsset(VaultAsset memory assetConfig) external returns (VaultAsset memory);
 
     /**
      * @notice Removes an asset from the vault
-     * @param asset Asset address to remove
+     * @param assetAddr Asset address to remove
      * emits assetRemoved(asset, block.timestamp);
      */
-    function removeAsset(address asset) external;
+    function removeAsset(address assetAddr) external;
 
     /**
      * @notice Current governance sets a new governance address
-     * @param _newGovernance The new governance address
+     * @param newGovernance The new governance address
      */
-    function setGovernance(address _newGovernance) external;
+    function setGovernance(address newGovernance) external;
 
     /**
      * @notice Current governance sets a new fee recipient address
-     * @param _newFeeRecipient The new fee recipient address
+     * @param newFeeRecipient The new fee recipient address
      */
-    function setFeeRecipient(address _newFeeRecipient) external;
+    function setFeeRecipient(address newFeeRecipient) external;
 
     /**
      * @notice Sets a new oracle for a asset
-     * @param asset Asset to set the oracle for
-     * @param oracle Oracle to set
+     * @param assetAddr Asset to set the oracle for
+     * @param feedAddr Feed to set
+     * @param newStaleTime Time in seconds for the feed to be considered stale
      */
-    function setOracle(address asset, address oracle) external;
+    function setAssetFeed(address assetAddr, address feedAddr, uint24 newStaleTime) external;
 
     /**
      * @notice Sets a new oracle decimals
-     * @param _oracleDecimals New oracle decimal precision
+     * @param newDecimals New oracle decimal precision
      */
-    function setOracleDecimals(uint8 _oracleDecimals) external;
+    function setFeedPricePrecision(uint8 newDecimals) external;
 
     /**
      * @notice Sets the max deposit amount for a asset
-     * @param asset Asset to set the max deposits for
-     * @param maxDeposits Max deposits to set
+     * @param assetAddr Asset to set the max deposits for
+     * @param newMaxDeposits Max deposits to set
      */
-    function setMaxDeposits(address asset, uint256 maxDeposits) external;
+    function setMaxDeposits(address assetAddr, uint248 newMaxDeposits) external;
 
     /**
      * @notice Sets the enabled status for a asset
-     * @param asset Asset to set the enabled status for
+     * @param assetAddr Asset to set the enabled status for
      * @param isEnabled Enabled status to set
      */
-    function setAssetEnabled(address asset, bool isEnabled) external;
+    function setAssetEnabled(address assetAddr, bool isEnabled) external;
 
     /**
      * @notice Sets the deposit fee for a asset
-     * @param asset Asset to set the deposit fee for
-     * @param fee Fee to set
+     * @param assetAddr Asset to set the deposit fee for
+     * @param newDepositFee Fee to set
      */
-    function setDepositFee(address asset, uint256 fee) external;
+    function setDepositFee(address assetAddr, uint16 newDepositFee) external;
 
     /**
      * @notice Sets the withdraw fee for a asset
-     * @param asset Asset to set the withdraw fee for
-     * @param fee Fee to set
+     * @param assetAddr Asset to set the withdraw fee for
+     * @param newWithdrawFee Fee to set
      */
-    function setWithdrawFee(address asset, uint256 fee) external;
+    function setWithdrawFee(address assetAddr, uint16 newWithdrawFee) external;
 
     /* -------------------------------------------------------------------------- */
     /*                                   Errors                                   */

@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {CError} from "common/CError.sol";
-import {Role, Action, SafetyState, Pause, Asset} from "common/Types.sol";
-import {CModifiers} from "common/Modifiers.sol";
+import {Errors} from "common/Errors.sol";
+import {Role, Enums} from "common/Constants.sol";
+import {SafetyState, Pause} from "common/Types.sol";
+import {Modifiers} from "common/Modifiers.sol";
 import {ISafetyCouncilFacet} from "common/interfaces/ISafetyCouncilFacet.sol";
 import {cs} from "common/State.sol";
-import {MEvent} from "minter/Events.sol";
+
+import {MEvent} from "minter/MEvent.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -15,22 +17,20 @@ import {MEvent} from "minter/Events.sol";
  * @title SafetyCouncilFacet - protocol safety controls
  * @notice `Role.SAFETY_COUNCIL` must be a multisig.
  */
-contract SafetyCouncilFacet is CModifiers, ISafetyCouncilFacet {
+contract SafetyCouncilFacet is Modifiers, ISafetyCouncilFacet {
     /// @inheritdoc ISafetyCouncilFacet
     function toggleAssetsPaused(
         address[] calldata _assets,
-        Action _action,
+        Enums.Action _action,
         bool _withDuration,
         uint256 _duration
     ) external override onlyRole(Role.SAFETY_COUNCIL) {
         /// @dev loop through `_assets` - be it krAsset or collateral
         for (uint256 i; i < _assets.length; i++) {
             address assetAddr = _assets[i];
-            // Revert if invalid address is supplied
-            Asset memory asset = cs().assets[assetAddr];
-            if (!asset.isCollateral && !asset.isKrAsset && !asset.isSCDPDepositAsset && !asset.isSCDPKrAsset) {
-                revert CError.INVALID_ASSET(assetAddr);
-            }
+            // Revert if asset is invalid
+            if (!cs().assets[assetAddr].exists()) revert Errors.ASSET_IS_VOID(Errors.id(assetAddr));
+
             // Get the safety state
             SafetyState memory safetyState = cs().safetyState[assetAddr][_action];
             // Flip the previous value
@@ -47,7 +47,7 @@ contract SafetyCouncilFacet is CModifiers, ISafetyCouncilFacet {
                 _withDuration ? block.timestamp + _duration : 0
             );
             // Emit the actions taken
-            emit MEvent.SafetyStateChange(_action, assetAddr, willPause ? "paused" : "unpaused");
+            emit MEvent.SafetyStateChange(_action, MEvent.symbol(assetAddr), assetAddr, willPause ? "paused" : "unpaused");
         }
     }
 
@@ -62,12 +62,12 @@ contract SafetyCouncilFacet is CModifiers, ISafetyCouncilFacet {
     }
 
     /// @inheritdoc ISafetyCouncilFacet
-    function safetyStateFor(address _asset, Action _action) external view override returns (SafetyState memory) {
-        return cs().safetyState[_asset][_action];
+    function safetyStateFor(address _assetAddr, Enums.Action _action) external view override returns (SafetyState memory) {
+        return cs().safetyState[_assetAddr][_action];
     }
 
     /// @inheritdoc ISafetyCouncilFacet
-    function assetActionPaused(Action _action, address _asset) external view returns (bool) {
-        return cs().safetyState[_asset][_action].pause.enabled;
+    function assetActionPaused(Enums.Action _action, address _assetAddr) external view returns (bool) {
+        return cs().safetyState[_assetAddr][_action].pause.enabled;
     }
 }

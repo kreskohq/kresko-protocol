@@ -4,9 +4,8 @@ pragma solidity >=0.8.21;
 import {AccessControlEnumerableUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {IERC165} from "vendor/IERC165.sol";
 
-import {Role} from "common/Types.sol";
-import {CError} from "common/CError.sol";
-
+import {Role} from "common/Constants.sol";
+import {Errors} from "common/Errors.sol";
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAssetAnchor} from "./IKreskoAssetAnchor.sol";
 import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
@@ -30,22 +29,21 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     /* -------------------------------------------------------------------------- */
     /*                                 Immutables                                 */
     /* -------------------------------------------------------------------------- */
-    constructor(IKreskoAsset _asset) payable ERC4626Upgradeable(_asset) {}
+    constructor(IKreskoAsset _asset) payable ERC4626Upgradeable(_asset) {
+        // _disableInitializers();
+    }
 
     /// @inheritdoc IKreskoAssetAnchor
     function initialize(IKreskoAsset _asset, string memory _name, string memory _symbol, address _admin) external initializer {
         // ERC4626
         __ERC4626Upgradeable_init(_asset, _name, _symbol);
-
         // Default admin setup
         _grantRole(Role.DEFAULT_ADMIN, _admin);
         _grantRole(Role.ADMIN, _admin);
-
-        _grantRole(Role.DEFAULT_ADMIN, msg.sender);
-        _grantRole(Role.ADMIN, msg.sender);
-
         // Setup the operator, which is the protocol linked to the main asset
         _grantRole(Role.OPERATOR, asset.kresko());
+
+        _asset.setAnchorToken(address(this));
     }
 
     /// @inheritdoc IERC165
@@ -82,6 +80,25 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         return super.convertToAssets(shares);
     }
 
+    function convertManyToShares(uint256[] calldata assets) external view returns (uint256[] memory shares) {
+        shares = new uint256[](assets.length);
+        for (uint256 i; i < assets.length; ) {
+            shares[i] = super.convertToShares(assets[i]);
+            i++;
+        }
+        return shares;
+    }
+
+    /// @inheritdoc IKreskoAssetIssuer
+    function convertManyToAssets(uint256[] calldata shares) external view returns (uint256[] memory assets) {
+        assets = new uint256[](shares.length);
+        for (uint256 i; i < shares.length; ) {
+            assets[i] = super.convertToAssets(shares[i]);
+            i++;
+        }
+        return assets;
+    }
+
     /// @inheritdoc IKreskoAssetIssuer
     function convertToShares(
         uint256 assets
@@ -93,7 +110,8 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     function issue(
         uint256 _assets,
         address _to
-    ) public virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) onlyRole(Role.OPERATOR) returns (uint256 shares) {
+    ) public virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) returns (uint256 shares) {
+        _onlyOperator();
         shares = super.issue(_assets, _to);
     }
 
@@ -101,42 +119,28 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
     function destroy(
         uint256 _assets,
         address _from
-    ) public virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) onlyRole(Role.OPERATOR) returns (uint256 shares) {
+    ) public virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) returns (uint256 shares) {
+        _onlyOperator();
         shares = super.destroy(_assets, _from);
     }
 
     /// @inheritdoc IKreskoAssetAnchor
     function wrap(uint256 assets) external {
-        if (msg.sender != address(asset) && !hasRole(Role.OPERATOR, msg.sender)) {
-            revert CError.INVALID_KRASSET_OPERATOR(msg.sender);
-        }
-
-        uint256 shares = previewIssue(assets);
-        if (shares == 0) {
-            revert CError.ZERO_SHARES_OUT(address(asset), assets);
-        }
-
+        _onlyOperatorOrAsset();
         // Mint anchor shares to the asset contract
-        _mint(address(asset), shares);
+        _mint(address(asset), convertToShares(assets));
     }
 
     /// @inheritdoc IKreskoAssetAnchor
     function unwrap(uint256 assets) external {
-        if (msg.sender != address(asset) && !hasRole(Role.OPERATOR, msg.sender)) {
-            revert CError.INVALID_KRASSET_OPERATOR(msg.sender);
-        }
-
-        uint256 shares = previewIssue(assets);
-        if (shares == 0) {
-            revert CError.ZERO_SHARES_OUT(address(asset), assets);
-        }
+        _onlyOperatorOrAsset();
         // Burn anchor shares from the asset contract
-        _burn(address(asset), shares);
+        _burn(address(asset), convertToShares(assets));
     }
 
     /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
     function deposit(uint256, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
-        revert("NOT_ALLOWED");
+        revert Errors.DEPOSIT_NOT_SUPPORTED();
     }
 
     /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
@@ -145,17 +149,28 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         address,
         address
     ) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
-        revert("NOT_ALLOWED");
+        revert Errors.WITHDRAW_NOT_SUPPORTED();
     }
 
     /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
     function redeem(uint256, address, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
-        revert("NOT_ALLOWED");
+        revert Errors.REDEEM_NOT_SUPPORTED();
     }
 
     /* -------------------------------------------------------------------------- */
     /*                            INTERNAL HOOKS LOGIC                            */
     /* -------------------------------------------------------------------------- */
+    function _onlyOperator() internal view {
+        if (!hasRole(Role.OPERATOR, msg.sender)) {
+            revert Errors.SENDER_NOT_OPERATOR(_anchorId(), msg.sender, asset.kresko());
+        }
+    }
+
+    function _onlyOperatorOrAsset() private view {
+        if (msg.sender != address(asset) && !hasRole(Role.OPERATOR, msg.sender)) {
+            revert Errors.INVALID_KRASSET_OPERATOR(_assetId(), msg.sender, getRoleMember(Role.OPERATOR, 0));
+        }
+    }
 
     function _beforeWithdraw(uint256 assets, uint256 shares) internal virtual override {
         super._beforeWithdraw(assets, shares);

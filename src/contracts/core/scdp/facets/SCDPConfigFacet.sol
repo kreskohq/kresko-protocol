@@ -1,89 +1,74 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
 
-import {SafeERC20Permit, IERC20Permit} from "vendor/SafeERC20Permit.sol";
 import {Arrays} from "libs/Arrays.sol";
-import {DSModifiers} from "diamond/Modifiers.sol";
-import {ds} from "diamond/State.sol";
-
-import {Role, Asset} from "common/Types.sol";
-import {DiamondEvent} from "common/Events.sol";
-import {CModifiers} from "common/Modifiers.sol";
+import {DSModifiers} from "diamond/DSModifiers.sol";
+import {Asset} from "common/Types.sol";
+import {Modifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
-import {Percents} from "common/Constants.sol";
-import {CError} from "common/CError.sol";
-import {MEvent} from "minter/Events.sol";
+import {Percents, Role} from "common/Constants.sol";
+import {Errors} from "common/Errors.sol";
+import {Validations} from "common/Validations.sol";
 
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
-import {SCDPInitArgs, PairSetter} from "scdp/Types.sol";
-import {scdp, sdi} from "scdp/State.sol";
-import {SEvent} from "scdp/Events.sol";
+import {SCDPInitArgs, SwapRouteSetter, SCDPParameters} from "scdp/STypes.sol";
+import {scdp, sdi} from "scdp/SState.sol";
+import {SEvent} from "scdp/SEvent.sol";
 
-contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
-    using SafeERC20Permit for IERC20Permit;
+contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, Modifiers {
     using Arrays for address[];
 
     /// @inheritdoc ISCDPConfigFacet
-    function initializeSCDP(SCDPInitArgs memory _init) external onlyOwner {
-        if (_init.minCollateralRatio < Percents.MIN_CR) {
-            revert CError.INVALID_MCR(_init.minCollateralRatio, Percents.MIN_CR);
-        } else if (_init.liquidationThreshold < Percents.MIN_CR) {
-            revert CError.INVALID_LT(_init.liquidationThreshold, Percents.MIN_CR);
-        } else if (_init.liquidationThreshold > _init.minCollateralRatio) {
-            revert CError.INVALID_LT(_init.liquidationThreshold, _init.minCollateralRatio);
-        } else if (_init.swapFeeRecipient == address(0)) {
-            revert CError.INVALID_FEE_RECIPIENT(_init.swapFeeRecipient);
-        } else if (_init.sdiPricePrecision < 8) {
-            revert CError.INVALID_DECIMALS(address(0xD1), _init.sdiPricePrecision);
-        }
-        scdp().minCollateralRatio = _init.minCollateralRatio;
-        scdp().liquidationThreshold = _init.liquidationThreshold;
-        scdp().swapFeeRecipient = _init.swapFeeRecipient;
-        scdp().maxLiquidationRatio = _init.liquidationThreshold + Percents.ONE;
-        sdi().sdiPricePrecision = _init.sdiPricePrecision;
-
-        emit DiamondEvent.Initialized(msg.sender, ds().storageVersion++);
+    function initializeSCDP(SCDPInitArgs calldata args) external initializer(4) initializeAsAdmin {
+        setMinCollateralRatioSCDP(args.minCollateralRatio);
+        setLiquidationThresholdSCDP(args.liquidationThreshold);
+        Validations.validateOraclePrecision(args.sdiPricePrecision);
+        sdi().sdiPricePrecision = args.sdiPricePrecision;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function getCurrentParametersSCDP() external view override returns (SCDPInitArgs memory) {
+    function getParametersSCDP() external view override returns (SCDPParameters memory) {
         return
-            SCDPInitArgs({
-                swapFeeRecipient: scdp().swapFeeRecipient,
+            SCDPParameters({
+                feeAsset: scdp().feeAsset,
                 minCollateralRatio: scdp().minCollateralRatio,
                 liquidationThreshold: scdp().liquidationThreshold,
+                maxLiquidationRatio: scdp().maxLiquidationRatio,
                 sdiPricePrecision: sdi().sdiPricePrecision
             });
     }
 
-    function setFeeAssetSCDP(address asset) external onlyRole(Role.ADMIN) {
-        scdp().feeAsset = asset;
+    function setFeeAssetSCDP(address _assetAddr) external onlyRole(Role.ADMIN) {
+        cs().onlySharedCollateral(_assetAddr);
+        scdp().feeAsset = _assetAddr;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setMinCollateralRatioSCDP(uint32 _mcr) external onlyRole(Role.ADMIN) {
-        if (_mcr < Percents.MIN_CR) {
-            revert CError.INVALID_MCR(_mcr, Percents.MIN_CR);
-        }
-        scdp().minCollateralRatio = _mcr;
+    function setMinCollateralRatioSCDP(uint32 _newMCR) public onlyRole(Role.ADMIN) {
+        Validations.validateMinCollateralRatio(_newMCR, scdp().liquidationThreshold);
+
+        emit SEvent.SCDPMinCollateralRatioUpdated(scdp().minCollateralRatio, _newMCR);
+        scdp().minCollateralRatio = _newMCR;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setLiquidationThresholdSCDP(uint32 _lt) external onlyRole(Role.ADMIN) {
-        if (_lt < Percents.MIN_CR) {
-            revert CError.INVALID_LT(_lt, Percents.MIN_CR);
-        } else if (_lt > scdp().minCollateralRatio) {
-            revert CError.INVALID_LT(_lt, scdp().minCollateralRatio);
-        }
-        scdp().liquidationThreshold = _lt;
-        scdp().maxLiquidationRatio = _lt + Percents.ONE;
+    function setLiquidationThresholdSCDP(uint32 _newLT) public onlyRole(Role.ADMIN) {
+        Validations.validateLiquidationThreshold(_newLT, scdp().minCollateralRatio);
+
+        uint32 newMLR = _newLT + Percents.ONE;
+
+        emit SEvent.SCDPLiquidationThresholdUpdated(scdp().liquidationThreshold, _newLT, newMLR);
+        emit SEvent.SCDPMaxLiquidationRatioUpdated(scdp().maxLiquidationRatio, newMLR);
+
+        scdp().liquidationThreshold = _newLT;
+        scdp().maxLiquidationRatio = newMLR;
     }
 
-    function setMaxLiquidationRatioSCDP(uint32 _mlr) external onlyRole(Role.ADMIN) {
-        if (_mlr < scdp().liquidationThreshold) {
-            revert CError.INVALID_MLR(_mlr, scdp().liquidationThreshold);
-        }
-        scdp().maxLiquidationRatio = _mlr;
+    function setMaxLiquidationRatioSCDP(uint32 _newMLR) external onlyRole(Role.ADMIN) {
+        Validations.validateMaxLiquidationRatio(_newMLR, scdp().liquidationThreshold);
+
+        emit SEvent.SCDPMaxLiquidationRatioUpdated(scdp().maxLiquidationRatio, _newMLR);
+        scdp().maxLiquidationRatio = _newMLR;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -91,116 +76,110 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, CModifiers {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc ISCDPConfigFacet
-    function updateDepositLimitSCDP(
-        address _assetAddr,
-        uint128 _newDepositLimitSCDP
-    ) external isSCDPDepositAsset(_assetAddr) onlyRole(Role.ADMIN) {
-        cs().assets[_assetAddr].depositLimitSCDP = _newDepositLimitSCDP;
+    function setDepositLimitSCDP(address _assetAddr, uint256 _newDepositLimitSCDP) external onlyRole(Role.ADMIN) {
+        Asset storage asset = cs().onlySharedCollateral(_assetAddr);
+        asset.depositLimitSCDP = _newDepositLimitSCDP;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function updateLiquidationIncentiveSCDP(
-        address _assetAddr,
-        uint16 _newLiqIncentiveSCDP
-    ) public isSCDPKrAsset(_assetAddr) onlyRole(Role.ADMIN) {
-        if (_newLiqIncentiveSCDP < Percents.HUNDRED) {
-            revert CError.INVALID_LIQ_INCENTIVE(_assetAddr, _newLiqIncentiveSCDP, Percents.HUNDRED);
-        } else if (_newLiqIncentiveSCDP > Percents.MAX_LIQ_INCENTIVE) {
-            revert CError.INVALID_LIQ_INCENTIVE(_assetAddr, _newLiqIncentiveSCDP, Percents.MAX_LIQ_INCENTIVE);
-        }
+    function setKrAssetLiqIncentiveSCDP(address _assetAddr, uint16 _newLiqIncentiveSCDP) external onlyRole(Role.ADMIN) {
+        Validations.validateLiqIncentive(_assetAddr, _newLiqIncentiveSCDP);
+        Asset storage asset = cs().onlySwapMintable(_assetAddr);
 
-        cs().assets[_assetAddr].liqIncentiveSCDP = _newLiqIncentiveSCDP;
-        emit MEvent.LiquidationIncentiveMultiplierUpdated(_assetAddr, _newLiqIncentiveSCDP);
+        emit SEvent.SCDPLiquidationIncentiveUpdated(
+            Errors.symbol(_assetAddr),
+            _assetAddr,
+            asset.liqIncentiveSCDP,
+            _newLiqIncentiveSCDP
+        );
+        asset.liqIncentiveSCDP = _newLiqIncentiveSCDP;
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setDepositAssetSCDP(address _assetAddr, bool _enabled) external onlyRole(Role.ADMIN) {
-        Asset storage asset = cs().assets[_assetAddr];
-        if (_enabled && asset.isSCDPDepositAsset) {
-            revert CError.ASSET_ALREADY_ENABLED(_assetAddr);
-        } else if (!_enabled && !asset.isSCDPDepositAsset) {
-            revert CError.ASSET_ALREADY_DISABLED(_assetAddr);
-        }
-        if (_enabled) {
-            scdp().collaterals.pushUnique(_assetAddr);
-        } else {
+    function setAssetIsSharedCollateralSCDP(address _assetAddr, bool _enabled) external onlyRole(Role.ADMIN) {
+        Asset storage asset = cs().onlyExistingAsset(_assetAddr);
+        if (_enabled && asset.isSharedCollateral) revert Errors.ASSET_ALREADY_ENABLED(Errors.id(_assetAddr));
+        if (!_enabled && !asset.isSharedCollateral) revert Errors.ASSET_ALREADY_DISABLED(Errors.id(_assetAddr));
+        asset.isSharedCollateral = _enabled;
+
+        if (!Validations.validateSCDPDepositAsset(_assetAddr, asset)) {
             asset.depositLimitSCDP = 0;
+            return;
         }
-        asset.isSCDPDepositAsset = _enabled;
+        scdp().collaterals.pushUnique(_assetAddr);
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setKrAssetSCDP(address _assetAddr, bool _enabled) external onlyRole(Role.ADMIN) {
-        Asset storage asset = cs().assets[_assetAddr];
-        if (_enabled && asset.isKrAsset) {
-            revert CError.ASSET_ALREADY_ENABLED(_assetAddr);
-        } else if (!_enabled && !asset.isKrAsset) {
-            revert CError.ASSET_ALREADY_DISABLED(_assetAddr);
-        }
-        if (_enabled) {
-            scdp().collaterals.pushUnique(_assetAddr);
-            scdp().krAssets.pushUnique(_assetAddr);
-        } else {
-            if (asset.toRebasingAmount(scdp().assetData[_assetAddr].debt) != 0) revert CError.INVALID_ASSET(_assetAddr);
+    function setAssetIsSwapMintableSCDP(address _assetAddr, bool _enabled) external onlyRole(Role.ADMIN) {
+        Asset storage asset = cs().onlyExistingAsset(_assetAddr);
+        if (_enabled && asset.isSwapMintable) revert Errors.ASSET_ALREADY_ENABLED(Errors.id(_assetAddr));
+        if (!_enabled && !asset.isSwapMintable) revert Errors.ASSET_ALREADY_DISABLED(Errors.id(_assetAddr));
+
+        asset.isSwapMintable = _enabled;
+
+        if (!Validations.validateSCDPKrAsset(_assetAddr, asset)) {
+            if (asset.toRebasingAmount(scdp().assetData[_assetAddr].debt) != 0) {
+                revert Errors.CANNOT_REMOVE_SWAPPABLE_ASSET_THAT_HAS_DEBT(Errors.id(_assetAddr));
+            }
             scdp().krAssets.removeExisting(_assetAddr);
             asset.liqIncentiveSCDP = 0;
+            return;
         }
-        asset.isSCDPKrAsset = _enabled;
+        scdp().collaterals.pushUnique(_assetAddr);
+        scdp().krAssets.pushUnique(_assetAddr);
     }
 
-    function setCollateralSCDP(address _assetAddr, bool _enabled) external onlyRole(Role.ADMIN) {
-        Asset storage asset = cs().assets[_assetAddr];
-        if (_enabled && asset.isSCDPCollateral) {
-            revert CError.ASSET_ALREADY_ENABLED(_assetAddr);
-        } else if (!_enabled && !asset.isSCDPCollateral) {
-            revert CError.ASSET_ALREADY_DISABLED(_assetAddr);
-        }
+    function setAssetIsSharedOrSwappedCollateralSCDP(address _assetAddr, bool _enabled) external onlyRole(Role.ADMIN) {
+        Asset storage asset = cs().onlyExistingAsset(_assetAddr);
+        if (_enabled && asset.isSharedOrSwappedCollateral) revert Errors.ASSET_ALREADY_ENABLED(Errors.id(_assetAddr));
+        if (!_enabled && !asset.isSharedOrSwappedCollateral) revert Errors.ASSET_ALREADY_DISABLED(Errors.id(_assetAddr));
+
         if (_enabled) {
             scdp().collaterals.pushUnique(_assetAddr);
         } else {
-            if (scdp().userDepositAmount(_assetAddr, asset) != 0) revert CError.INVALID_ASSET(_assetAddr);
+            if (scdp().userDepositAmount(_assetAddr, asset) != 0) {
+                revert Errors.CANNOT_REMOVE_COLLATERAL_THAT_HAS_USER_DEPOSITS(Errors.id(_assetAddr));
+            }
             scdp().collaterals.removeExisting(_assetAddr);
             asset.depositLimitSCDP = 0;
         }
-        asset.isSCDPCollateral = _enabled;
+        asset.isSharedOrSwappedCollateral = _enabled;
     }
 
     /* -------------------------------------------------------------------------- */
     /*                                    Swap                                    */
     /* -------------------------------------------------------------------------- */
     /// @inheritdoc ISCDPConfigFacet
-    function setSwapFee(
-        address _krAsset,
+    function setAssetSwapFeesSCDP(
+        address _assetAddr,
         uint16 _openFee,
         uint16 _closeFee,
         uint16 _protocolFee
     ) external onlyRole(Role.ADMIN) {
-        if (_openFee > Percents.TWENTY_FIVE) {
-            revert CError.INVALID_SCDP_FEE(_krAsset, _openFee, Percents.TWENTY_FIVE);
-        } else if (_closeFee > Percents.TWENTY_FIVE) {
-            revert CError.INVALID_SCDP_FEE(_krAsset, _closeFee, Percents.TWENTY_FIVE);
-        } else if (_protocolFee > Percents.FIFTY) {
-            revert CError.INVALID_PROTOCOL_FEE(_krAsset, _protocolFee, Percents.FIFTY);
-        }
-        cs().assets[_krAsset].swapInFeeSCDP = _openFee;
-        cs().assets[_krAsset].swapOutFeeSCDP = _closeFee;
-        cs().assets[_krAsset].protocolFeeShareSCDP = _protocolFee;
-        emit SEvent.FeeSet(_krAsset, _openFee, _closeFee, _protocolFee);
+        Validations.validateFees(_assetAddr, _openFee, _closeFee);
+        Validations.validateFees(_assetAddr, _protocolFee, _protocolFee);
+
+        cs().assets[_assetAddr].swapInFeeSCDP = _openFee;
+        cs().assets[_assetAddr].swapOutFeeSCDP = _closeFee;
+        cs().assets[_assetAddr].protocolFeeShareSCDP = _protocolFee;
+
+        emit SEvent.FeeSet(_assetAddr, _openFee, _closeFee, _protocolFee);
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setSwapPairs(PairSetter[] calldata _pairs) external onlyRole(Role.ADMIN) {
+    function setSwapRoutesSCDP(SwapRouteSetter[] calldata _pairs) external onlyRole(Role.ADMIN) {
         for (uint256 i; i < _pairs.length; i++) {
-            scdp().isSwapEnabled[_pairs[i].assetIn][_pairs[i].assetOut] = _pairs[i].enabled;
-            scdp().isSwapEnabled[_pairs[i].assetOut][_pairs[i].assetIn] = _pairs[i].enabled;
+            scdp().isRoute[_pairs[i].assetIn][_pairs[i].assetOut] = _pairs[i].enabled;
+            scdp().isRoute[_pairs[i].assetOut][_pairs[i].assetIn] = _pairs[i].enabled;
+
             emit SEvent.PairSet(_pairs[i].assetIn, _pairs[i].assetOut, _pairs[i].enabled);
             emit SEvent.PairSet(_pairs[i].assetOut, _pairs[i].assetIn, _pairs[i].enabled);
         }
     }
 
     /// @inheritdoc ISCDPConfigFacet
-    function setSwapPairsSingle(PairSetter calldata _pair) external onlyRole(Role.ADMIN) {
-        scdp().isSwapEnabled[_pair.assetIn][_pair.assetOut] = _pair.enabled;
+    function setSingleSwapRouteSCDP(SwapRouteSetter calldata _pair) external onlyRole(Role.ADMIN) {
+        scdp().isRoute[_pair.assetIn][_pair.assetOut] = _pair.enabled;
         emit SEvent.PairSet(_pair.assetIn, _pair.assetOut, _pair.enabled);
     }
 }

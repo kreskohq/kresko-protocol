@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
 
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
-import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
-import {CError} from "common/CError.sol";
+import {IERC20Permit} from "kresko-lib/token/IERC20Permit.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+import {ERC20Upgradeable} from "kresko-lib/token/ERC20Upgradeable.sol";
+
+import {FixedPointMath} from "libs/FixedPointMath.sol";
+import {Errors} from "common/Errors.sol";
 
 import {IKreskoAsset} from "./IKreskoAsset.sol";
 import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
@@ -17,11 +18,13 @@ import {IERC4626Upgradeable} from "./IERC4626Upgradeable.sol";
 /// @notice Minimal ERC4626 tokenized Vault implementation.
 /// @notice Kresko:
 /// Adds issue/destroy functions that are called when KreskoAssets are minted/burned through the protocol.
+/// @notice shares = anchor tokens
+/// @notice assets = underlying KreskoAssets
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/mixins/ERC4626.sol)
 /// @author Kresko (https://www.kresko.fi)
 abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
-    using SafeERC20Permit for IKreskoAsset;
-    using FixedPointMathLib for uint256;
+    using SafeTransfer for IKreskoAsset;
+    using FixedPointMath for uint256;
 
     /* -------------------------------------------------------------------------- */
     /*                                   Events                                   */
@@ -72,9 +75,7 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
      * Issues the equivalent amount of assets to user
      */
     function issue(uint256 assets, address to) public virtual returns (uint256 shares) {
-        if (msg.sender != asset.kresko()) revert CError.INVALID_OPERATOR(msg.sender, asset.kresko());
-        // Check for rounding error since we round down in previewDeposit.
-        if ((shares = previewIssue(assets)) == 0) revert CError.ZERO_SHARES_OUT(address(this), assets);
+        shares = convertToShares(assets);
 
         // Mint shares to kresko
         _mint(asset.kresko(), shares);
@@ -89,12 +90,10 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
     /**
      * @notice When new KreskoAssets are burned:
      * Destroys the equivalent amount of anchor tokens from Kresko
-     * Destorys the equivalent amount of assets from user
+     * Destroys the equivalent amount of assets from user
      */
     function destroy(uint256 assets, address from) public virtual returns (uint256 shares) {
-        if (msg.sender != asset.kresko()) revert CError.INVALID_OPERATOR(msg.sender, asset.kresko());
-        // Check for rounding error since we round down in previewDeposit.
-        if ((shares = previewIssue(assets)) == 0) revert CError.ZERO_SHARES_IN(address(this), assets);
+        shares = convertToShares(assets);
 
         _beforeWithdraw(assets, shares);
 
@@ -112,49 +111,51 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
 
     function totalAssets() public view virtual returns (uint256);
 
-    function convertToShares(uint256 assets) public view virtual returns (uint256) {
+    function convertToShares(uint256 assets) public view virtual returns (uint256 shares) {
         uint256 supply = _totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
-        return supply == 0 ? assets : assets.mulDivDown(supply, totalAssets());
+        shares = supply == 0 ? assets : assets.mulDivDown(supply, totalAssets());
+        if (shares == 0) revert Errors.ZERO_SHARES_FROM_ASSETS(_assetId(), assets, _anchorId());
     }
 
-    function convertToAssets(uint256 shares) public view virtual returns (uint256) {
+    function convertToAssets(uint256 shares) public view virtual returns (uint256 assets) {
         uint256 supply = _totalSupply; // Saves an extra SLOAD if _totalSupply is non-zero.
 
-        return supply == 0 ? shares : shares.mulDivDown(totalAssets(), supply);
+        assets = supply == 0 ? shares : shares.mulDivDown(totalAssets(), supply);
+        if (assets == 0) revert Errors.ZERO_ASSETS_FROM_SHARES(_anchorId(), shares, _assetId());
     }
 
-    /// @notice amount of shares for amount of @param assets
+    /// @return shares for amount of @param assets
     function previewIssue(uint256 assets) public view virtual returns (uint256) {
         return convertToShares(assets);
     }
 
-    /// @notice amount of assets for amount of @param shares
-    function previewDestroy(uint256 shares) public view virtual returns (uint256) {
-        return convertToAssets(shares);
-    }
-
-    /// @notice amount of shares for amount of @param assets
+    /// @return shares for amount of @param assets
     function previewDeposit(uint256 assets) public view virtual returns (uint256) {
         return convertToShares(assets);
     }
 
-    /// @notice amount of assets for amount of @param shares
+    /// @return assets for amount of @param shares
+    function previewDestroy(uint256 shares) public view virtual returns (uint256) {
+        return convertToAssets(shares);
+    }
+
+    /// @return assets for amount of @param shares
+    function previewRedeem(uint256 shares) public view virtual returns (uint256) {
+        return convertToAssets(shares);
+    }
+
+    /// @return assets for amount of @param shares
     function previewMint(uint256 shares) public view virtual returns (uint256) {
         uint256 supply = _totalSupply; // Saves an extra SLOAD if _totalSupply is non-zero.
 
         return supply == 0 ? shares : shares.mulDivUp(totalAssets(), supply);
     }
 
-    /// @notice amount of shares for amount of @param assets
+    /// @return shares for amount of @param assets
     function previewWithdraw(uint256 assets) public view virtual returns (uint256) {
         uint256 supply = _totalSupply; // Saves an extra SLOAD if _totalSupply is non-zero.
 
         return supply == 0 ? assets : assets.mulDivUp(supply, totalAssets());
-    }
-
-    /// @notice amount of assets for amount of @param shares
-    function previewRedeem(uint256 shares) public view virtual returns (uint256) {
-        return convertToAssets(shares);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -186,21 +187,12 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
     }
 
     /* -------------------------------------------------------------------------- */
-    /*                            INTERNAL HOOKS LOGIC                            */
-    /* -------------------------------------------------------------------------- */
-
-    function _beforeWithdraw(uint256 assets, uint256 shares) internal virtual {}
-
-    function _afterDeposit(uint256 assets, uint256 shares) internal virtual {}
-
-    /* -------------------------------------------------------------------------- */
     /*                               EXTERNAL USE                                 */
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IERC4626Upgradeable
     function deposit(uint256 assets, address receiver) public virtual returns (uint256 shares) {
-        // Check for rounding error since we round down in previewDeposit.
-        if ((shares = previewDeposit(assets)) == 0) revert CError.ZERO_SHARES_OUT(address(this), assets);
+        shares = previewDeposit(assets);
 
         // Need to transfer before minting or ERC777s could reenter.
         asset.safeTransferFrom(msg.sender, address(this), assets);
@@ -256,9 +248,7 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
                 _allowances[owner][msg.sender] = allowed - shares;
             }
         }
-
-        // Check for rounding error since we round down in previewRedeem.
-        if ((assets = previewRedeem(shares)) == 0) revert CError.ZERO_ASSETS_IN(address(this), shares);
+        assets = previewRedeem(shares);
 
         _beforeWithdraw(assets, shares);
 
@@ -268,4 +258,20 @@ abstract contract ERC4626Upgradeable is IERC4626Upgradeable, ERC20Upgradeable {
 
         asset.safeTransfer(receiver, assets);
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                            INTERNAL HOOKS LOGIC                            */
+    /* -------------------------------------------------------------------------- */
+
+    function _anchorId() internal view returns (Errors.ID memory) {
+        return Errors.ID(symbol, address(this));
+    }
+
+    function _assetId() internal view returns (Errors.ID memory) {
+        return Errors.id(address(asset));
+    }
+
+    function _beforeWithdraw(uint256 assets, uint256 shares) internal virtual {}
+
+    function _afterDeposit(uint256 assets, uint256 shares) internal virtual {}
 }

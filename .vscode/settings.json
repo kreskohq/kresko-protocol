@@ -12,7 +12,15 @@
     "mochawesome-report": true,
     "**/deployments/**": true,
     "packages/contracts/pnpm-lock.yaml": true,
-    "node_modules/**": true
+    "node_modules/**": true,
+    "docs/**/*": true
+  },
+
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.biome": true
+    }
   },
   "editor.formatOnSave": true,
   "solidity.linter": "solhint",
@@ -21,37 +29,10 @@
   "solidity.monoRepoSupport": false,
   "solidity.compilerPackage": "solc",
   "solidity.formatter": "prettier",
-  "solidity.sources": "",
-  "solidity.initExclude": ["test"],
-  "solidity.libs": ["node_modules", "lib"],
+  "solidity.sources": "src/contracts",
+  "solidity.libs": ["lib"],
   "solidity.libSources": ["src", "contracts"],
   "solidity.enabledAsYouTypeCompilationErrorCheck": false,
-  "solidity.remappings": [
-    "ds-test/=lib/forge-std/lib/ds-test/src/",
-    "forge-std/=lib/forge-std/src/",
-    "solmate/=lib/solmate/src/",
-    "libs/=src/contracts/libs/",
-    "ds-test/=lib/forge-std/lib/ds-test/src/",
-    "forge-std/=lib/forge-std/src/",
-    "solmate/=lib/solmate/src/",
-    "libs/=src/contracts/core/libs/",
-    "diamond/=src/contracts/core/diamond/",
-    "minter/=src/contracts/core/minter/",
-    "vendor/=src/contracts/core/vendor/",
-    "oracle/=src/contracts/core/oracle/",
-    "scdp/=src/contracts/core/scdp/",
-    "vault/=src/contracts/core/vault/",
-    "common/=src/contracts/core/common/",
-    "test/=src/contracts/test/",
-    "mocks/=src/contracts/core/test/mocks",
-    "kresko-asset/=src/contracts/core/kresko-asset/",
-    "kiss/=src/contracts/core/kiss/",
-    "kresko-helpers/=lib/kresko-foundry-helpers/src/",
-    "periphery/=src/contracts/periphery/",
-    "@openzeppelin/=lib/openzeppelin-contracts/",
-    "@oz-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
-    "@oz/=lib/openzeppelin-contracts/contracts/"
-  ],
   "solidity.defaultCompiler": "remote",
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#373a44",
