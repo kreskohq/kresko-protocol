@@ -1,13 +1,13 @@
-import { type AssetArgs, type AssetConfig, OracleType } from '@/types';
-import type { MockERC20 } from '@/types/typechain';
+import { type AssetArgs, type AssetConfig, OracleType } from '@/types'
+import type { MockERC20 } from '@/types/typechain'
 import type {
   AssetStruct,
   FeedConfigurationStruct,
-} from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
-import { ZERO_ADDRESS } from '@kreskolabs/lib';
-import { WrapperBuilder } from '@redstone-finance/evm-connector';
-import { defaultRedstoneDataPoints, wrapKresko } from '@utils/redstone';
-import { formatBytesString } from '@utils/values';
+} from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
+import { ZERO_ADDRESS } from '@kreskolabs/lib'
+import { WrapperBuilder } from '@redstone-finance/evm-connector'
+import { defaultRedstoneDataPoints, wrapKresko } from '@utils/redstone'
+import { formatBytesString } from '@utils/values'
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -16,28 +16,28 @@ export const updateTestAsset = async <T extends MockERC20 | KreskoAsset>(
   asset: TestAsset<T, 'mock'>,
   args: TestAssetUpdate,
 ) => {
-  const { deployer } = await hre.ethers.getNamedSigners();
-  const { newPrice, ...assetStruct } = args;
+  const { deployer } = await hre.ethers.getNamedSigners()
+  const { newPrice, ...assetStruct } = args
   if (newPrice) {
-    asset.setPrice(newPrice);
-    asset.config.args.price = newPrice;
+    asset.setPrice(newPrice)
+    asset.config.args.price = newPrice
   }
-  const newAssetConfig = { ...asset.config.assetStruct, ...assetStruct };
-  await wrapKresko(hre.Diamond, deployer).updateAsset(asset.address, newAssetConfig);
-  asset.config.assetStruct = newAssetConfig;
-  return asset;
-};
+  const newAssetConfig = { ...asset.config.assetStruct, ...assetStruct }
+  await wrapKresko(hre.Diamond, deployer).updateAsset(asset.address, newAssetConfig)
+  asset.config.assetStruct = newAssetConfig
+  return asset
+}
 export const getAssetConfig = async (
   asset: { symbol: Function; decimals: Function },
   config: AssetArgs,
 ): Promise<AssetConfig> => {
   if (!config.krAssetConfig && !config.collateralConfig && !config.scdpDepositConfig && !config.scdpKrAssetConfig)
-    throw new Error('No config provided');
-  const configuredDataPoint = defaultRedstoneDataPoints.find(i => i.dataFeedId === config.ticker);
+    throw new Error('No config provided')
+  const configuredDataPoint = defaultRedstoneDataPoints.find(i => i.dataFeedId === config.ticker)
   if (!configuredDataPoint)
-    throw new Error(`No configured price for asset: ${config.symbol} | ticker: ${config.ticker}`);
+    throw new Error(`No configured price for asset: ${config.symbol} | ticker: ${config.ticker}`)
 
-  const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()]);
+  const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()])
 
   const assetStruct: AssetStruct = {
     ticker: formatBytesString(config.ticker, 32),
@@ -63,42 +63,42 @@ export const getAssetConfig = async (
     decimals: decimals,
     isSharedOrSwappedCollateral: !!config.scdpDepositConfig || !!config.scdpKrAssetConfig,
     isCoverAsset: false,
-  };
+  }
 
   if (assetStruct.isMinterMintable) {
     if (assetStruct.anchor == ZERO_ADDRESS || assetStruct.anchor == null) {
-      throw new Error('KrAsset anchor cannot be zero address');
+      throw new Error('KrAsset anchor cannot be zero address')
     }
     if (assetStruct.kFactor === 0) {
-      throw new Error('KrAsset kFactor cannot be zero');
+      throw new Error('KrAsset kFactor cannot be zero')
     }
   }
 
   if (assetStruct.isMinterCollateral) {
     if (assetStruct.factor === 0) {
-      throw new Error('Colalteral factor cannot be zero');
+      throw new Error('Colalteral factor cannot be zero')
     }
     if (assetStruct.liqIncentive === 0) {
-      throw new Error('Collateral liquidation incentive cannot be zero');
+      throw new Error('Collateral liquidation incentive cannot be zero')
     }
   }
 
   if (assetStruct.isSwapMintable) {
     if (assetStruct.liqIncentiveSCDP === 0) {
-      throw new Error('KrAsset liquidation incentive cannot be zero');
+      throw new Error('KrAsset liquidation incentive cannot be zero')
     }
   }
 
   if (!config.feed) {
-    throw new Error('No feed provided');
+    throw new Error('No feed provided')
   }
 
   const feedConfig: FeedConfigurationStruct = {
     oracleIds: assetStruct.oracles,
     feeds: assetStruct.oracles[0] === OracleType.Redstone ? [ZERO_ADDRESS, config.feed] : [config.feed, ZERO_ADDRESS],
-  };
-  return { args: config, assetStruct, feedConfig, extendedInfo: { decimals, symbol } };
-};
+  }
+  return { args: config, assetStruct, feedConfig, extendedInfo: { decimals, symbol } }
+}
 
 export const wrapContractWithSigner = <T>(contract: T, signer: SignerWithAddress) =>
   // @ts-expect-error
@@ -106,4 +106,4 @@ export const wrapContractWithSigner = <T>(contract: T, signer: SignerWithAddress
     mockSignersCount: 1,
     timestampMilliseconds: Date.now(),
     dataPoints: defaultRedstoneDataPoints,
-  }) as T;
+  }) as T

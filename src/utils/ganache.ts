@@ -1,7 +1,7 @@
-import { spawn } from 'child_process';
-import { RPC_URL } from '@kreskolabs/configs/ext';
-import dotenv from 'dotenv';
-dotenv.config();
+import { spawn } from 'child_process'
+import { RPC_URL } from '@kreskolabs/configs/ext'
+import dotenv from 'dotenv'
+dotenv.config()
 
 const options = {
   wallet: {
@@ -22,7 +22,7 @@ const options = {
   chain: {
     allowUnlimitedContractSize: false,
   },
-};
+}
 
 const server = spawn('ganache-cli', [
   '--fork',
@@ -38,8 +38,8 @@ const server = spawn('ganache-cli', [
   options.miner.defaultGasPrice.toString(),
   '--port',
   options.server.port.toString(),
-]);
+])
 
 server.stdout.on('data', (data: any) => {
-  console.log(`${data}`);
-});
+  console.log(`${data}`)
+})

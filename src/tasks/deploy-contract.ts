@@ -1,11 +1,11 @@
-import { getLogger } from '@utils/logging';
-import { task } from 'hardhat/config';
-import { TASK_DEPLOY_CONTRACT } from './names';
+import { getLogger } from '@utils/logging'
+import { task } from 'hardhat/config'
+import { TASK_DEPLOY_CONTRACT } from './names'
 
-const logger = getLogger(TASK_DEPLOY_CONTRACT);
+const logger = getLogger(TASK_DEPLOY_CONTRACT)
 
 task(TASK_DEPLOY_CONTRACT, 'deploy something', async (_, _hre) => {
-  logger.log(`Deploying contract...`);
+  logger.log(`Deploying contract...`)
   // const { deployer } = await hre.ethers.getNamedSigners();
   // const { admin } = await getDeploymentUsers(hre);
 
@@ -87,4 +87,4 @@ task(TASK_DEPLOY_CONTRACT, 'deploy something', async (_, _hre) => {
   //   KreskoAsset: result[0][0],
   //   KreskoAssetAnchor: result[1][0],
   // };
-});
+})

@@ -1,25 +1,25 @@
-import { testnetConfigs } from '@config/deploy/arbitrumGoerli';
-import { createKrAsset } from '@scripts/create-krasset';
-import { getLogger } from '@utils/logging';
-import type { DeployFunction } from 'hardhat-deploy/types';
+import { testnetConfigs } from '@config/deploy/arbitrumGoerli'
+import { createKrAsset } from '@scripts/create-krasset'
+import { getLogger } from '@utils/logging'
+import type { DeployFunction } from 'hardhat-deploy/types'
 
-const logger = getLogger('Create KrAsset');
+const logger = getLogger('Create KrAsset')
 
 const deploy: DeployFunction = async function (hre) {
-  const assets = testnetConfigs[hre.network.name].assets.filter(a => !!a.krAssetConfig || !!a.scdpKrAssetConfig);
+  const assets = testnetConfigs[hre.network.name].assets.filter(a => !!a.krAssetConfig || !!a.scdpKrAssetConfig)
 
   for (const krAsset of assets) {
     if (krAsset.symbol === 'KISS') {
-      logger.warn(`Skip: ${krAsset.symbol}`);
-      continue;
+      logger.warn(`Skip: ${krAsset.symbol}`)
+      continue
     }
-    const isDeployed = await hre.deployments.getOrNull(krAsset.symbol);
-    if (isDeployed != null) continue;
+    const isDeployed = await hre.deployments.getOrNull(krAsset.symbol)
+    if (isDeployed != null) continue
     // Deploy the asset
     if (!krAsset.krAssetConfig?.underlyingAddr)
-      throw new Error(`Underlying address should be zero address if it does not exist (${krAsset.symbol})`);
+      throw new Error(`Underlying address should be zero address if it does not exist (${krAsset.symbol})`)
 
-    logger.log(`Create: ${krAsset.name} (${krAsset.symbol})`);
+    logger.log(`Create: ${krAsset.name} (${krAsset.symbol})`)
     await createKrAsset(
       krAsset.symbol,
       krAsset.name ? krAsset.name : krAsset.symbol,
@@ -28,28 +28,28 @@ const deploy: DeployFunction = async function (hre) {
       hre.users.treasury.address,
       0,
       0,
-    );
-    logger.log(`Success: ${krAsset.name}.`);
+    )
+    logger.log(`Success: ${krAsset.name}.`)
   }
 
-  logger.success('Done.');
-};
+  logger.success('Done.')
+}
 
 deploy.skip = async hre => {
-  const logger = getLogger('deploy-tokens');
-  const krAssets = testnetConfigs[hre.network.name].assets.filter(a => !!a.krAssetConfig || !!a.scdpKrAssetConfig);
+  const logger = getLogger('deploy-tokens')
+  const krAssets = testnetConfigs[hre.network.name].assets.filter(a => !!a.krAssetConfig || !!a.scdpKrAssetConfig)
   if (!krAssets.length) {
-    logger.log('Skip: No krAssets configured.');
-    return true;
+    logger.log('Skip: No krAssets configured.')
+    return true
   }
   if (await hre.deployments.getOrNull(krAssets[krAssets.length - 1].symbol)) {
-    logger.log('Skip: Create krAssets, already created.');
-    return true;
+    logger.log('Skip: Create krAssets, already created.')
+    return true
   }
-  return false;
-};
+  return false
+}
 
-deploy.tags = ['local', 'all', 'tokens', 'krassets'];
-deploy.dependencies = ['core'];
+deploy.tags = ['local', 'all', 'tokens', 'krassets']
+deploy.dependencies = ['core']
 
-export default deploy;
+export default deploy

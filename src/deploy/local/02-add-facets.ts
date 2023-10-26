@@ -5,50 +5,50 @@ import {
   getSCDPInitializer,
   minterFacets,
   scdpFacets,
-} from '@config/deploy';
-import { ZERO_ADDRESS } from '@kreskolabs/lib';
-import { addFacets } from '@scripts/add-facets';
-import { getLogger } from '@utils/logging';
-import type { DeployFunction } from 'hardhat-deploy/dist/types';
+} from '@config/deploy'
+import { ZERO_ADDRESS } from '@kreskolabs/lib'
+import { addFacets } from '@scripts/add-facets'
+import { getLogger } from '@utils/logging'
+import type { DeployFunction } from 'hardhat-deploy/dist/types'
 
-const logger = getLogger('common-facets');
+const logger = getLogger('common-facets')
 
 const deploy: DeployFunction = async function (hre) {
   if (!hre.Diamond.address) {
-    throw new Error('Diamond not deployed');
+    throw new Error('Diamond not deployed')
   }
-  await hre.deploy('MockSequencerUptimeFeed');
+  await hre.deploy('MockSequencerUptimeFeed')
 
-  const commonInit = (await getCommonInitializer(hre)).args;
-  if (commonInit.council === ZERO_ADDRESS) throw new Error('Council address not set');
+  const commonInit = (await getCommonInitializer(hre)).args
+  if (commonInit.council === ZERO_ADDRESS) throw new Error('Council address not set')
   await addFacets({
     names: commonFacets,
     initializerName: 'CommonConfigurationFacet',
     initializerFunction: 'initializeCommon',
     initializerArgs: commonInit,
-  });
-  logger.success('Added: Common facets');
+  })
+  logger.success('Added: Common facets')
 
   await addFacets({
     names: minterFacets,
     initializerName: 'MinterConfigurationFacet',
     initializerFunction: 'initializeMinter',
     initializerArgs: (await getMinterInitializer(hre)).args,
-  });
-  logger.success('Added: Minter facets');
+  })
+  logger.success('Added: Minter facets')
 
   await addFacets({
     names: scdpFacets,
     initializerName: 'SCDPConfigFacet',
     initializerFunction: 'initializeSCDP',
     initializerArgs: (await getSCDPInitializer(hre)).args,
-  });
+  })
 
-  logger.success('Added: SCDP facets.');
-};
+  logger.success('Added: SCDP facets.')
+}
 
-deploy.tags = ['all', 'local', 'core', 'facets'];
-deploy.dependencies = ['diamond', 'safe'];
-deploy.skip = async hre => hre.network.live;
+deploy.tags = ['all', 'local', 'core', 'facets']
+deploy.dependencies = ['diamond', 'safe']
+deploy.skip = async hre => hre.network.live
 
-export default deploy;
+export default deploy

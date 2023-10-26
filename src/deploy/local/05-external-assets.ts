@@ -1,21 +1,21 @@
-import { testnetConfigs } from '@config/deploy/arbitrumGoerli';
-import { TASK_DEPLOY_TOKEN } from '@tasks';
-import { getLogger } from '@utils/logging';
-import type { DeployFunction } from 'hardhat-deploy/dist/types';
+import { testnetConfigs } from '@config/deploy/arbitrumGoerli'
+import { TASK_DEPLOY_TOKEN } from '@tasks'
+import { getLogger } from '@utils/logging'
+import type { DeployFunction } from 'hardhat-deploy/dist/types'
 
-const logger = getLogger('deploy-tokens');
+const logger = getLogger('deploy-tokens')
 
 const deploy: DeployFunction = async hre => {
-  const assets = testnetConfigs[hre.network.name].assets.filter(a => !!a.collateralConfig && !a.krAssetConfig);
+  const assets = testnetConfigs[hre.network.name].assets.filter(a => !!a.collateralConfig && !a.krAssetConfig)
   for (const collateral of assets) {
-    const isDeployed = await hre.deployments.getOrNull(collateral.symbol);
+    const isDeployed = await hre.deployments.getOrNull(collateral.symbol)
 
     if (collateral.symbol === 'WETH') {
-      continue;
+      continue
     }
-    if (isDeployed != null) continue;
+    if (isDeployed != null) continue
 
-    logger.log(`Create: External Token ${collateral.name}`);
+    logger.log(`Create: External Token ${collateral.name}`)
 
     await hre.run(TASK_DEPLOY_TOKEN, {
       name: collateral.name,
@@ -23,27 +23,27 @@ const deploy: DeployFunction = async hre => {
       log: true,
       amount: collateral.mintAmount,
       decimals: collateral.decimals,
-    });
-    logger.log(`Created: External Token ${collateral.name}`);
+    })
+    logger.log(`Created: External Token ${collateral.name}`)
   }
 
-  logger.success('Created external tokens.');
-};
+  logger.success('Created external tokens.')
+}
 
-deploy.tags = ['all', 'local', 'tokens', 'external-assets'];
+deploy.tags = ['all', 'local', 'tokens', 'external-assets']
 
 deploy.skip = async hre => {
-  const assets = testnetConfigs[hre.network.name].assets.filter(a => !!a.collateralConfig && !a.krAssetConfig);
+  const assets = testnetConfigs[hre.network.name].assets.filter(a => !!a.collateralConfig && !a.krAssetConfig)
   if (!assets.length) {
-    logger.log('Skip: Create External Assets, no external assets configured');
-    return true;
+    logger.log('Skip: Create External Assets, no external assets configured')
+    return true
   }
 
   if (await hre.deployments.getOrNull(assets[assets.length - 1].symbol)) {
-    logger.log('Skip: Create External Assets, already created');
-    return true;
+    logger.log('Skip: Create External Assets, already created')
+    return true
   }
-  return false;
-};
+  return false
+}
 
-export default deploy;
+export default deploy

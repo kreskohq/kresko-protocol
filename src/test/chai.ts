@@ -1,4 +1,4 @@
-import chai from 'chai';
+import chai from 'chai'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // chai.use(require("chai-bn")(BigNumber));
@@ -7,4 +7,4 @@ import chai from 'chai';
 // chai.config.includeStack = true;
 // chai.use(chaiAsPromised);
 
-export const expect = chai.expect;
+export const expect = chai.expect
