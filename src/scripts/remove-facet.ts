@@ -1,6 +1,6 @@
 import { getLogger } from '@utils/logging';
 import { Contract } from 'ethers';
-import { FacetCutAction, type FacetCut } from 'hardhat-deploy/dist/types';
+import { type FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
 
 type Args = {
   name: string;

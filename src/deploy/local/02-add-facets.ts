@@ -6,10 +6,10 @@ import {
   minterFacets,
   scdpFacets,
 } from '@config/deploy';
-import { getLogger } from '@utils/logging';
-import { addFacets } from '@scripts/add-facets';
-import type { DeployFunction } from 'hardhat-deploy/dist/types';
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { addFacets } from '@scripts/add-facets';
+import { getLogger } from '@utils/logging';
+import type { DeployFunction } from 'hardhat-deploy/dist/types';
 
 const logger = getLogger('common-facets');
 

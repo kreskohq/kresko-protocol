@@ -6,7 +6,7 @@ import type {
 } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { Errors } from '@utils/errors';
 import { getInternalEvent } from '@utils/events';
-import { mintRepayFixture, type MintRepayFixture } from '@utils/test/fixtures';
+import { type MintRepayFixture, mintRepayFixture } from '@utils/test/fixtures';
 import { fromScaledAmount, toScaledAmount } from '@utils/test/helpers/calculations';
 import { withdrawCollateral } from '@utils/test/helpers/collaterals';
 import { burnKrAsset, getDebtIndexAdjustedBalance, mintKrAsset } from '@utils/test/helpers/krassets';

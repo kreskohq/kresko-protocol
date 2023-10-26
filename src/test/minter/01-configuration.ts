@@ -1,5 +1,5 @@
 import { expect } from '@test/chai';
-import { defaultFixture, type DefaultFixture } from '@utils/test/fixtures';
+import { type DefaultFixture, defaultFixture } from '@utils/test/fixtures';
 
 import type { KrAssetConfig } from '@/types';
 import type { AssetStruct } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';

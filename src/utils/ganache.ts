@@ -1,5 +1,5 @@
-import { RPC_URL } from '@kreskolabs/configs/ext';
 import { spawn } from 'child_process';
+import { RPC_URL } from '@kreskolabs/configs/ext';
 import dotenv from 'dotenv';
 dotenv.config();
 

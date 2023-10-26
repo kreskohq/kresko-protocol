@@ -1,7 +1,7 @@
 import type { Kresko } from '@/types/typechain';
 import { expect } from '@test/chai';
 import { wrapKresko } from '@utils/redstone';
-import { assetValuesFixture, type AssetValuesFixture } from '@utils/test/fixtures';
+import { type AssetValuesFixture, assetValuesFixture } from '@utils/test/fixtures';
 import optimizations from '@utils/test/helpers/optimizations';
 import { toBig } from '@utils/values';
 

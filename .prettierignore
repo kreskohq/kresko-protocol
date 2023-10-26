@@ -17,7 +17,7 @@ deployments/
 src/contracts/vendor/
 docs/
 # files
-**/**/*.ts
+**.ts
 coverage.json
 .solcover.js
 /src/**/*.json

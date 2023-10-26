@@ -1,6 +1,6 @@
 import { testnetConfigs } from '@config/deploy/arbitrumGoerli';
-import { getLogger } from '@utils/logging';
 import { TASK_MINT_OPTIMAL } from '@tasks';
+import { getLogger } from '@utils/logging';
 import { wrapKresko } from '@utils/redstone';
 import { fromBig, toBig } from '@utils/values';
 import type { DeployFunction } from 'hardhat-deploy/dist/types';

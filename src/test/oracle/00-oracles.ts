@@ -1,7 +1,7 @@
 import { OracleType } from '@/types';
 import { expect } from '@test/chai';
 import { defaultRedstoneDataPoints, wrapPrices } from '@utils/redstone';
-import { defaultFixture, type DefaultFixture } from '@utils/test/fixtures';
+import { type DefaultFixture, defaultFixture } from '@utils/test/fixtures';
 import { testCollateralConfig } from '@utils/test/mocks';
 import { toBig } from '@utils/values';
 

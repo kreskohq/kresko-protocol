@@ -1,7 +1,7 @@
+import { writeFileSync } from 'fs';
 import { getOutDir } from '@scripts/task-utils';
 import { ERC20ABI } from '@utils/abi';
 import { getLogger } from '@utils/logging';
-import { writeFileSync } from 'fs';
 import type { Deployment } from 'hardhat-deploy/dist/types';
 import { task } from 'hardhat/config';
 import type { TaskArguments } from 'hardhat/types';

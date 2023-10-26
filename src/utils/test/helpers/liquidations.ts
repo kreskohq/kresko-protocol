@@ -1,9 +1,9 @@
 import { wrapKresko } from '@utils/redstone';
 import optimized from '@utils/test/helpers/optimizations';
+import { fromBig, toBig } from '@utils/values';
 import hre from 'hardhat';
 import { depositCollateral, depositMockCollateral } from './collaterals';
 import { mintKrAsset } from './krassets';
-import { fromBig, toBig } from '@utils/values';
 export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collateral: any, log = false) => {
   const [maxLiquidatableValue, krAssetPrice] = await Promise.all([
     hre.Diamond.getMaxLiqValue(user.address, krAsset.address, collateral.address),

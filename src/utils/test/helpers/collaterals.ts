@@ -1,9 +1,9 @@
-import { MockERC20__factory, type MockERC20, type MockOracle } from '@/types/typechain';
-import { smock, type FakeContract, type MockContract } from '@defi-wonderland/smock';
+import { type MockERC20, MockERC20__factory, type MockOracle } from '@/types/typechain';
+import { type FakeContract, type MockContract, smock } from '@defi-wonderland/smock';
 import { envCheck } from '@utils/env';
 import { wrapKresko } from '@utils/redstone';
 import { toBig } from '@utils/values';
-import { testCollateralConfig, type InputArgs } from '../mocks';
+import { type InputArgs, testCollateralConfig } from '../mocks';
 import { getAssetConfig, updateTestAsset } from './general';
 import optimized from './optimizations';
 import { getFakeOracle, setPrice } from './oracle';

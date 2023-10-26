@@ -5,7 +5,7 @@ import { Action } from '@/types';
 import type { SafetyStateChangeEventObject } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 import { getInternalEvent } from '@utils/events';
 import { executeContractCallWithSigners } from '@utils/gnosis/utils/execution';
-import { defaultFixture, type DefaultFixture } from '@utils/test/fixtures';
+import { type DefaultFixture, defaultFixture } from '@utils/test/fixtures';
 import { expect } from 'chai';
 
 describe('Safety Council', () => {

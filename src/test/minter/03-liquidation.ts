@@ -2,7 +2,7 @@ import type { LiquidationOccurredEvent } from '@/types/typechain/hardhat-diamond
 import { expect } from '@test/chai';
 import { Errors } from '@utils/errors';
 import { getNamedEvent } from '@utils/events';
-import { liquidationsFixture, type LiquidationFixture } from '@utils/test/fixtures';
+import { type LiquidationFixture, liquidationsFixture } from '@utils/test/fixtures';
 import { depositMockCollateral } from '@utils/test/helpers/collaterals';
 import { getLiqAmount, liquidate } from '@utils/test/helpers/liquidations';
 import optimized from '@utils/test/helpers/optimizations';

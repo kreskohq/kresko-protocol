@@ -1,6 +1,6 @@
-import { toBig } from '@utils/values';
 import { type AssetArgs, OracleType } from '@/types';
 import { MAX_U256 } from '@kreskolabs/lib';
+import { toBig } from '@utils/values';
 
 export type InputArgs = {
   user: SignerWithAddress;

@@ -9,7 +9,7 @@ import { getSCDPInitializer } from '@config/deploy';
 import { Errors } from '@utils/errors';
 import { getNamedEvent } from '@utils/events';
 import { wrapKresko } from '@utils/redstone';
-import { scdpFixture, type SCDPFixture } from '@utils/test/fixtures';
+import { type SCDPFixture, scdpFixture } from '@utils/test/fixtures';
 import { depositCollateral } from '@utils/test/helpers/collaterals';
 import { mintKrAsset } from '@utils/test/helpers/krassets';
 import { RAY, toBig } from '@utils/values';

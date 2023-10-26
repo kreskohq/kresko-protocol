@@ -1,6 +1,6 @@
 import { ZERO_ADDRESS } from '@kreskolabs/lib';
 import { getLogger } from '@utils/logging';
-import { FacetCutAction, type FacetCut } from 'hardhat-deploy/dist/types';
+import { type FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
 import { task, types } from 'hardhat/config';
 import type { TaskArguments } from 'hardhat/types';
 import { TASK_ADD_FACET } from './names';

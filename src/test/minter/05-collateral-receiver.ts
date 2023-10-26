@@ -1,4 +1,4 @@
-import { defaultFixture, type DefaultFixture } from '@utils/test/fixtures';
+import { type DefaultFixture, defaultFixture } from '@utils/test/fixtures';
 import { getMaxWithdrawal } from '@utils/test/helpers/collaterals';
 import optimized from '@utils/test/helpers/optimizations';
 import { Role } from '@utils/test/roles';

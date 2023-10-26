@@ -1,3 +1,4 @@
+import { SmockFacet2__factory, SmockFacet__factory, SmockInit__factory } from '@/types/typechain';
 import { smock } from '@defi-wonderland/smock';
 import { addFacet } from '@scripts/add-facet';
 import { removeFacet } from '@scripts/remove-facet';
@@ -5,7 +6,6 @@ import { expect } from '@test/chai';
 import { diamondFixture } from '@utils/test/fixtures';
 import { wrapContractWithSigner } from '@utils/test/helpers/general';
 import { type FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types';
-import { SmockFacet2__factory, SmockFacet__factory, SmockInit__factory } from '@/types/typechain';
 
 describe('Diamond', () => {
   beforeEach(async function () {
