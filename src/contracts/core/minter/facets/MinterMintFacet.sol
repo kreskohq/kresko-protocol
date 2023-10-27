@@ -36,6 +36,7 @@ contract MinterMintFacet is IMinterMintFacet, Modifiers {
         Asset storage asset = cs().onlyMinterMintable(_krAsset, Enums.Action.Borrow);
 
         MinterState storage s = ms();
+
         if (!asset.marketStatus()) revert Errors.MARKET_CLOSED(Errors.id(_krAsset), asset.ticker.toString());
 
         uint256 newSupply = IKreskoAsset(_krAsset).totalSupply() + _mintAmount;

@@ -14,4 +14,4 @@ module.exports = {
       script: 'just deploy-local',
     },
   ],
-};
+}
