@@ -1,4 +1,4 @@
-import type { SolcUserConfig } from 'hardhat/types';
+import type { SolcUserConfig } from 'hardhat/types'
 
 const oldCompilerSettings = {
   settings: {
@@ -13,7 +13,7 @@ const oldCompilerSettings = {
       },
     },
   },
-};
+}
 export const compilers: { compilers: SolcUserConfig[] } = {
   compilers: [
     {
@@ -68,4 +68,4 @@ export const compilers: { compilers: SolcUserConfig[] } = {
       },
     },
   ],
-};
+}

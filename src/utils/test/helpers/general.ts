@@ -4,10 +4,10 @@ import type {
   AssetStruct,
   FeedConfigurationStruct,
 } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
-import { ZERO_ADDRESS } from '@kreskolabs/lib'
 import { WrapperBuilder } from '@redstone-finance/evm-connector'
 import { defaultRedstoneDataPoints, wrapKresko } from '@utils/redstone'
 import { formatBytesString } from '@utils/values'
+import { zeroAddress } from 'viem'
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -58,7 +58,7 @@ export const getAssetConfig = async (
     maxDebtMinter: config.krAssetConfig?.maxDebtMinter ?? 0,
     closeFee: config.krAssetConfig?.closeFee ?? 0,
     openFee: config.krAssetConfig?.openFee ?? 0,
-    anchor: config.krAssetConfig?.anchor ?? ZERO_ADDRESS,
+    anchor: config.krAssetConfig?.anchor ?? zeroAddress,
     liquidityIndexSCDP: 0,
     decimals: decimals,
     isSharedOrSwappedCollateral: !!config.scdpDepositConfig || !!config.scdpKrAssetConfig,
@@ -66,7 +66,7 @@ export const getAssetConfig = async (
   }
 
   if (assetStruct.isMinterMintable) {
-    if (assetStruct.anchor == ZERO_ADDRESS || assetStruct.anchor == null) {
+    if (assetStruct.anchor == zeroAddress || assetStruct.anchor == null) {
       throw new Error('KrAsset anchor cannot be zero address')
     }
     if (assetStruct.kFactor === 0) {
@@ -95,7 +95,7 @@ export const getAssetConfig = async (
 
   const feedConfig: FeedConfigurationStruct = {
     oracleIds: assetStruct.oracles,
-    feeds: assetStruct.oracles[0] === OracleType.Redstone ? [ZERO_ADDRESS, config.feed] : [config.feed, ZERO_ADDRESS],
+    feeds: assetStruct.oracles[0] === OracleType.Redstone ? [zeroAddress, config.feed] : [config.feed, zeroAddress],
   }
   return { args: config, assetStruct, feedConfig, extendedInfo: { decimals, symbol } }
 }

@@ -5,8 +5,8 @@ import { task, types } from 'hardhat/config'
 
 import type { AssetArgs } from '@/types'
 import type { KISS, MockERC20 } from '@/types/typechain'
-import { ZERO_ADDRESS } from '@kreskolabs/lib'
 import { TickerMap } from '@utils/redstone'
+import { zeroAddress } from 'viem'
 import { TASK_ADD_ASSET } from './names'
 type AddAssetArgs = {
   address: string
@@ -16,17 +16,17 @@ type AddAssetArgs = {
 
 const logger = getLogger(TASK_ADD_ASSET)
 task(TASK_ADD_ASSET)
-  .addParam('address', 'address of the asset', ZERO_ADDRESS, types.string)
+  .addParam('address', 'address of the asset', zeroAddress, types.string)
   .addParam('assetConfig', 'configuration for the asset', '', types.json)
   .setAction(async function (taskArgs: AddAssetArgs, hre) {
     const { address } = taskArgs
     if (!taskArgs.assetConfig?.feed) throw new Error('Asset config is empty')
 
     const config = taskArgs.assetConfig
-    if (!config.feed || config.feed === ZERO_ADDRESS) {
+    if (!config.feed || config.feed === zeroAddress) {
       throw new Error(`Invalid feed address: ${config.feed}, Asset: ${config.symbol}`)
     }
-    if (address == ZERO_ADDRESS) {
+    if (address == zeroAddress) {
       throw new Error(`Invalid address: ${address}, Asset: ${config.symbol}`)
     }
     const isMinterMintable = config.krAssetConfig || config.scdpKrAssetConfig

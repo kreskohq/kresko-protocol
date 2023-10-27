@@ -1,6 +1,6 @@
 // solhint-disable no-empty-blocks
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.21;
+pragma solidity 0.8.21;
 
 import {AccessControlEnumerableUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
@@ -260,6 +260,8 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         _mint(_to, _amount);
 
         IKreskoAssetAnchor(anchor).wrap(_amount);
+
+        emit Wrap(address(this), underlying, _to, _amount);
     }
 
     /// @inheritdoc IKreskoAsset
@@ -294,6 +296,8 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         } else {
             payable(msg.sender).safeTransferETH(_amount);
         }
+
+        emit Unwrap(address(this), underlying, msg.sender, _amount);
     }
 
     receive() external payable {
@@ -312,6 +316,8 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
         _mint(msg.sender, amount);
         IKreskoAssetAnchor(anchor).wrap(amount);
+
+        emit Wrap(address(this), address(0), msg.sender, amount);
     }
 
     /* -------------------------------------------------------------------------- */

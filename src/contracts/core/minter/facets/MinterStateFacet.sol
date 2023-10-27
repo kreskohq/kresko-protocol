@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.21;
+pragma solidity 0.8.21;
 
 import {ms} from "minter/MState.sol";
 import {cs} from "common/State.sol";

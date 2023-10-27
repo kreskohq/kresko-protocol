@@ -1,8 +1,8 @@
-import { ZERO_ADDRESS } from '@kreskolabs/lib'
 import { expect } from '@test/chai'
 import { getAnchorNameAndSymbol } from '@utils/strings'
 import { kreskoAssetFixture } from '@utils/test/fixtures'
 import { Role } from '@utils/test/roles'
+import { zeroAddress } from 'viem'
 
 const name = 'Ether'
 const symbol = 'krETH'
@@ -11,7 +11,7 @@ describe('KreskoAsset', function () {
   let f: Awaited<ReturnType<typeof kreskoAssetFixture>>
 
   beforeEach(async function () {
-    f = await kreskoAssetFixture({ name, symbol, underlyingToken: ZERO_ADDRESS })
+    f = await kreskoAssetFixture({ name, symbol, underlyingToken: zeroAddress })
   })
 
   describe('KreskoAsset', function () {

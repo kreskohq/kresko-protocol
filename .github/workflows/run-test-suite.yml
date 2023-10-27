@@ -49,8 +49,9 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - run: cp .env.example .env
+
       - run: npm run test:ci
         env:
-          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
           MNEMONIC_DEVNET: ${{ secrets.MNEMONIC_DEVNET }}

@@ -1,30 +1,30 @@
-import type { FuncNames } from '@/types';
-import type { CreateOpts, PrepareProxyFunction, PreparedProxy } from '@/types/functions';
-import { getLogger } from '@utils/logging';
-import { fromBig } from '@utils/values';
-import { Contract, type ContractReceipt, type ContractTransaction } from 'ethers';
-import { BigNumber, Overrides } from 'ethers/lib/ethers';
-import type { Receipt } from 'hardhat-deploy/types';
+import type { FuncNames } from '@/types'
+import type { CreateOpts, PrepareProxyFunction, PreparedProxy } from '@/types/functions'
+import { getLogger } from '@utils/logging'
+import { fromBig } from '@utils/values'
+import { Contract, type ContractReceipt, type ContractTransaction } from 'ethers'
+import { BigNumber, Overrides } from 'ethers/lib/ethers'
+import type { Receipt } from 'hardhat-deploy/types'
 
 const getFactoryAndDeployBytes = async <ContractName extends keyof TC>(
   name: ContractName,
   options: { deploymentName?: string; constructorArgs?: any[] },
 ) => {
-  const factory = await hre.ethers.getContractFactory(name);
-  const deploymentId = options?.deploymentName ?? name;
+  const factory = await hre.ethers.getContractFactory(name)
+  const deploymentId = options?.deploymentName ?? name
   const deployTx = options.constructorArgs?.length
     ? factory.getDeployTransaction(...options.constructorArgs)
-    : factory.getDeployTransaction();
+    : factory.getDeployTransaction()
 
-  if (!deployTx.data) throw new Error(`No deployment data: ${name}`);
+  if (!deployTx.data) throw new Error(`No deployment data: ${name}`)
   return {
     factory,
     deploymentId,
     iface: factory.interface,
     creationCode: deployTx.data,
     deployTx,
-  };
-};
+  }
+}
 
 const prepareProxyDeploy = async <
   ContractName extends keyof TC,
@@ -33,20 +33,20 @@ const prepareProxyDeploy = async <
 >(
   preparedProxies: PreparedProxy<ContractName, InitFunction, DeterministicType>[],
   options?: {
-    from?: string;
-    log?: boolean;
+    from?: string
+    log?: boolean
   },
 ) => {
-  if (!hre.DeploymentFactory?.address) throw new Error('DeploymentFactory not deployed');
-  const txData = preparedProxies.map(d => d.calldata);
+  if (!hre.DeploymentFactory?.address) throw new Error('DeploymentFactory not deployed')
+  const txData = preparedProxies.map(d => d.calldata)
 
-  const isBatch = txData.length > 1;
-  const isSingle = txData.length === 1;
-  if (!isSingle && !isBatch) throw new Error('Invalid data length');
+  const isBatch = txData.length > 1
+  const isSingle = txData.length === 1
+  if (!isSingle && !isBatch) throw new Error('Invalid data length')
 
-  const logger = getLogger('deploy-proxy-batch', options?.log);
+  const logger = getLogger('deploy-proxy-batch', options?.log)
 
-  const count = txData.length;
+  const count = txData.length
 
   const preparedTx = await commonUtils.prepareTx(hre.DeploymentFactory, {
     logger,
@@ -55,7 +55,7 @@ const prepareProxyDeploy = async <
     txGasEstimator: () =>
       !isBatch ? preparedProxies[0].estimateGas() : hre.DeploymentFactory.estimateGas.batch(txData),
     ...options,
-  });
+  })
 
   return {
     logger,
@@ -67,25 +67,25 @@ const prepareProxyDeploy = async <
     from: preparedTx.from,
     proxies: preparedProxies,
     preparedTx,
-  };
-};
+  }
+}
 
 const prepareProxy: PrepareProxyFunction = async (name, options) => {
-  if (!hre.DeploymentFactory) throw new Error('DeploymentFactory not deployed');
-  const { factory, creationCode, iface, deploymentId } = await proxyUtils.getFactory(name, options);
+  if (!hre.DeploymentFactory) throw new Error('DeploymentFactory not deployed')
+  const { factory, creationCode, iface, deploymentId } = await proxyUtils.getFactory(name, options)
 
   const initializerCalldata = options.initializer
     ? iface.encodeFunctionData(String(options.initializer), options.initializerArgs ?? [])
-    : '0x';
+    : '0x'
 
   const salt =
     options.salt && !hre.ethers.utils.isBytesLike(options.salt)
       ? hre.ethers.utils.formatBytes32String(options.salt)
-      : options.salt;
+      : options.salt
 
-  let calldata = '0x';
-  let create: (overrides?: Overrides) => Promise<ContractTransaction>;
-  let estimateGas: () => Promise<BigNumber>;
+  let calldata = '0x'
+  let create: (overrides?: Overrides) => Promise<ContractTransaction>
+  let estimateGas: () => Promise<BigNumber>
 
   const commonData = {
     deploymentId,
@@ -96,15 +96,15 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
       abi: factory.interface.format('full') as any,
     },
     deployedImplementationBytecode: creationCode,
-  } as const;
+  } as const
   if (!options.type) {
     calldata = hre.DeploymentFactory.interface.encodeFunctionData('createProxyAndLogic', [
       creationCode,
       initializerCalldata,
-    ]);
+    ])
 
-    estimateGas = () => hre.DeploymentFactory.estimateGas.createProxyAndLogic(creationCode, initializerCalldata);
-    create = overrides => hre.DeploymentFactory.createProxyAndLogic(creationCode, initializerCalldata, overrides);
+    estimateGas = () => hre.DeploymentFactory.estimateGas.createProxyAndLogic(creationCode, initializerCalldata)
+    create = overrides => hre.DeploymentFactory.createProxyAndLogic(creationCode, initializerCalldata, overrides)
 
     return {
       ...commonData,
@@ -113,25 +113,24 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
       calldata,
       saltBytes32: salt,
       args: options,
-    };
+    }
   } else if (options.type === 'create2') {
-    if (!salt) throw new Error('create2 needs a salt value');
+    if (!salt) throw new Error('create2 needs a salt value')
 
     calldata = hre.DeploymentFactory.interface.encodeFunctionData('create2ProxyAndLogic', [
       creationCode,
       initializerCalldata,
       salt,
-    ]);
+    ])
 
-    estimateGas = () => hre.DeploymentFactory.estimateGas.create2ProxyAndLogic(creationCode, initializerCalldata, salt);
-    create = overrides =>
-      hre.DeploymentFactory.create2ProxyAndLogic(creationCode, initializerCalldata, salt, overrides);
+    estimateGas = () => hre.DeploymentFactory.estimateGas.create2ProxyAndLogic(creationCode, initializerCalldata, salt)
+    create = overrides => hre.DeploymentFactory.create2ProxyAndLogic(creationCode, initializerCalldata, salt, overrides)
 
     const [proxyAddress, implementationAddress] = await hre.DeploymentFactory.previewCreate2ProxyAndLogic(
       creationCode,
       initializerCalldata,
       salt,
-    );
+    )
     return {
       ...commonData,
       create,
@@ -141,21 +140,20 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
       implementationAddress,
       saltBytes32: salt,
       args: options,
-    };
+    }
   } else if (options.type === 'create3') {
-    if (!salt) throw new Error('create3 needs a salt value');
+    if (!salt) throw new Error('create3 needs a salt value')
 
     calldata = hre.DeploymentFactory.interface.encodeFunctionData('create3ProxyAndLogic', [
       creationCode,
       initializerCalldata,
       salt,
-    ]);
+    ])
 
-    estimateGas = () => hre.DeploymentFactory.estimateGas.create3ProxyAndLogic(creationCode, initializerCalldata, salt);
-    create = overrides =>
-      hre.DeploymentFactory.create3ProxyAndLogic(creationCode, initializerCalldata, salt, overrides);
+    estimateGas = () => hre.DeploymentFactory.estimateGas.create3ProxyAndLogic(creationCode, initializerCalldata, salt)
+    create = overrides => hre.DeploymentFactory.create3ProxyAndLogic(creationCode, initializerCalldata, salt, overrides)
 
-    const [proxyAddress, implementationAddress] = await hre.DeploymentFactory.previewCreate3ProxyAndLogic(salt);
+    const [proxyAddress, implementationAddress] = await hre.DeploymentFactory.previewCreate3ProxyAndLogic(salt)
 
     return {
       ...commonData,
@@ -166,9 +164,9 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
       implementationAddress,
       saltBytes32: salt,
       args: options,
-    };
-  } else throw new Error('Invalid proxy type');
-};
+    }
+  } else throw new Error('Invalid proxy type')
+}
 
 const saveProxyDeployment = async <
   ContractName extends keyof TC,
@@ -181,10 +179,10 @@ const saveProxyDeployment = async <
   context?: { logger: ReturnType<typeof getLogger>; log?: boolean },
   abi?: any[],
 ) => {
-  const deployed = parseDeployedProxy(receipt, prepared, proxy, abi);
+  const deployed = parseDeployedProxy(receipt, prepared, proxy, abi)
   if (!deployed.proxyStruct.proxy || !deployed.proxyStruct.implementation)
-    throw new Error('Missing proxy or implementation address');
-  const logger = context?.logger ?? getLogger('deploy-proxy', context?.log);
+    throw new Error('Missing proxy or implementation address')
+  const logger = context?.logger ?? getLogger('deploy-proxy', context?.log)
 
   await hre.deployments.save(deployed.deploymentId, {
     receipt: deployed.receipt,
@@ -201,7 +199,7 @@ const saveProxyDeployment = async <
     bytecode: deployed.bytecode,
     deployedBytecode: deployed.deployedBytecode,
     transactionHash: deployed.receipt.transactionHash,
-  });
+  })
 
   const logResult = [
     `\n******** Deployment Saved ✅ *******`,
@@ -214,19 +212,19 @@ const saveProxyDeployment = async <
     `Constructor: ${deployed.constructorArgs ?? 'none'}`,
     `Initializer: ${String(deployed.initializer) || 'none'}`,
     `Args: ${deployed.initializerArgs ?? 'none'}`,
-  ];
+  ]
   if (deployed.deterministic)
     logResult.push(
       `---------------------------------------`,
       `Salt: ${deployed.deterministic.saltBytes32} (bytes32)`,
       `Salt: ${deployed.deterministic.saltString} (string)`,
       `Type: ${deployed.deterministic.type}`,
-    );
+    )
 
-  logResult.push(`***************************************`);
-  logger.log(logResult.join('\n'));
-  return await hre.deployments.get(deployed.deploymentId);
-};
+  logResult.push(`***************************************`)
+  logger.log(logResult.join('\n'))
+  return await hre.deployments.get(deployed.deploymentId)
+}
 
 const parseDeployedProxy = <
   ContractName extends keyof TC,
@@ -261,45 +259,45 @@ const parseDeployedProxy = <
     ...prepared.args,
     from: receipt.from,
   },
-});
+})
 /* ************* Transaction 🟠 ************* */
 const prepareTx = async (
   target: Contract,
   options: {
-    bal?: boolean;
-    action?: string;
-    name?: keyof TC;
-    from?: string;
-    log?: boolean;
-    logger?: ReturnType<typeof getLogger>;
-    txGasEstimator?: (...args: any | any[]) => Promise<BigNumber>;
-    gasUsed?: BigNumber;
-    gasPrice?: BigNumber;
+    bal?: boolean
+    action?: string
+    name?: keyof TC
+    from?: string
+    log?: boolean
+    logger?: ReturnType<typeof getLogger>
+    txGasEstimator?: (...args: any | any[]) => Promise<BigNumber>
+    gasUsed?: BigNumber
+    gasPrice?: BigNumber
   },
 ) => {
-  const { deployer } = await hre.getNamedAccounts();
-  const from = options?.from ?? deployer;
-  const logger = options.logger ? options.logger : getLogger('tx-info', options?.log);
+  const { deployer } = await hre.getNamedAccounts()
+  const from = options?.from ?? deployer
+  const logger = options.logger ? options.logger : getLogger('tx-info', options?.log)
 
-  let gasUsedEstimate = options.gasUsed || BigNumber.from(0);
-  let gasPriceEstimate = options.gasPrice || BigNumber.from(0);
-  let senderBalanceBig = options.bal ? BigNumber.from(0) : BigNumber.from(1);
+  let gasUsedEstimate = options.gasUsed || BigNumber.from(0)
+  let gasPriceEstimate = options.gasPrice || BigNumber.from(0)
+  let senderBalanceBig = options.bal ? BigNumber.from(0) : BigNumber.from(1)
 
-  const promises = [];
-  if (gasUsedEstimate.eq(0) && options.txGasEstimator) promises.push(options.txGasEstimator());
-  else promises.push(new Promise<BigNumber>(rs => rs(gasUsedEstimate)));
+  const promises = []
+  if (gasUsedEstimate.eq(0) && options.txGasEstimator) promises.push(options.txGasEstimator())
+  else promises.push(new Promise<BigNumber>(rs => rs(gasUsedEstimate)))
 
-  if (senderBalanceBig.eq(0)) promises.push(hre.ethers.provider.getBalance(from));
-  else promises.push(new Promise<BigNumber>(rs => rs(BigNumber.from(0))));
+  if (senderBalanceBig.eq(0)) promises.push(hre.ethers.provider.getBalance(from))
+  else promises.push(new Promise<BigNumber>(rs => rs(BigNumber.from(0))))
 
-  if (gasPriceEstimate.eq(0)) promises.push(hre.ethers.provider.getGasPrice());
-  else promises.push(new Promise<BigNumber>(rs => rs(gasPriceEstimate)));
-  [gasUsedEstimate, senderBalanceBig, gasPriceEstimate] = await Promise.all(promises);
+  if (gasPriceEstimate.eq(0)) promises.push(hre.ethers.provider.getGasPrice())
+  else promises.push(new Promise<BigNumber>(rs => rs(gasPriceEstimate)))
+  ;[gasUsedEstimate, senderBalanceBig, gasPriceEstimate] = await Promise.all(promises)
 
-  const senderBalance = fromBig(senderBalanceBig).toFixed(5);
-  const gasPriceEstimateGwei = fromBig(gasPriceEstimate, 9);
-  const gasLimit = gasUsedEstimate.mul(1020).div(1000);
-  const txCostEstimate = fromBig(gasUsedEstimate.mul(gasPriceEstimate)).toFixed(5);
+  const senderBalance = fromBig(senderBalanceBig).toFixed(5)
+  const gasPriceEstimateGwei = fromBig(gasPriceEstimate, 9)
+  const gasLimit = gasUsedEstimate.mul(1020).div(1000)
+  const txCostEstimate = fromBig(gasUsedEstimate.mul(gasPriceEstimate)).toFixed(5)
 
   logger.log(
     [
@@ -319,7 +317,7 @@ const prepareTx = async (
     ]
       .filter(Boolean)
       .join('\n'),
-  );
+  )
 
   return {
     name: options.name,
@@ -334,30 +332,30 @@ const prepareTx = async (
     from,
     logger,
     log: options.log,
-  };
-};
+  }
+}
 
 type TxSummary = {
-  receipt: ContractReceipt;
-  senderBalanceBig: BigNumber;
-  senderBalance: string;
-  startTime: number;
-  gasPriceUsed: BigNumber;
-  gasPriceUsedGwei: number;
-  gasUsedEstimate: BigNumber;
-  gasPriceEstimate: BigNumber;
-  gasUsed: BigNumber;
-  gasLimit: BigNumber;
-  gasRemaining: BigNumber;
-  gasRemainingPct: BigNumber;
-  txCost: BigNumber;
-  txCostEstimate: string;
-  duration: number;
-  from: string;
-  name?: string;
-  logger: ReturnType<typeof getLogger>;
-  log?: boolean;
-};
+  receipt: ContractReceipt
+  senderBalanceBig: BigNumber
+  senderBalance: string
+  startTime: number
+  gasPriceUsed: BigNumber
+  gasPriceUsedGwei: number
+  gasUsedEstimate: BigNumber
+  gasPriceEstimate: BigNumber
+  gasUsed: BigNumber
+  gasLimit: BigNumber
+  gasRemaining: BigNumber
+  gasRemainingPct: BigNumber
+  txCost: BigNumber
+  txCostEstimate: string
+  duration: number
+  from: string
+  name?: string
+  logger: ReturnType<typeof getLogger>
+  log?: boolean
+}
 
 export const commonUtils = {
   prepareTx,
@@ -365,17 +363,17 @@ export const commonUtils = {
     tx: Promise<ContractTransaction>,
     args: Awaited<ReturnType<typeof prepareTx>>,
   ): Promise<TxSummary> => {
-    const txResult = await tx;
-    args.logger.log([`\n******* Transaction Sent 🟡 ********`, `Hash: ${txResult.hash}`].join('\n'));
+    const txResult = await tx
+    args.logger.log([`\n******* Transaction Sent 🟡 ********`, `Hash: ${txResult.hash}`].join('\n'))
 
-    const duration = Date.now() - args.startTime;
-    const receipt = await txResult.wait();
-    const txCost = receipt.gasUsed?.mul(receipt.effectiveGasPrice ?? 0);
+    const duration = Date.now() - args.startTime
+    const receipt = await txResult.wait()
+    const txCost = receipt.gasUsed?.mul(receipt.effectiveGasPrice ?? 0)
 
-    const gasRemaining = args.gasLimit.sub(receipt.gasUsed ?? 0);
-    const gasRemainingPct = gasRemaining.mul(100).div(args.gasLimit);
+    const gasRemaining = args.gasLimit.sub(receipt.gasUsed ?? 0)
+    const gasRemainingPct = gasRemaining.mul(100).div(args.gasLimit)
 
-    const gasPriceUsed = receipt.effectiveGasPrice ?? args.gasPriceEstimate;
+    const gasPriceUsed = receipt.effectiveGasPrice ?? args.gasPriceEstimate
 
     args.logger.log(
       [
@@ -397,7 +395,7 @@ export const commonUtils = {
         `Script duration: ${duration}ms${duration > 1000 ? ` (${Math.floor(duration / 1000)}s)` : ''}`,
         `***************************************`,
       ].join('\n'),
-    );
+    )
 
     return {
       receipt,
@@ -409,13 +407,13 @@ export const commonUtils = {
       gasRemainingPct,
       txCost,
       ...args,
-    };
+    }
   },
-};
+}
 export const proxyUtils = {
   getFactory: getFactoryAndDeployBytes,
   prepare: prepareProxy,
   prepareDeploy: prepareProxyDeploy,
   save: saveProxyDeployment,
   parseDeploy: parseDeployedProxy,
-};
+}

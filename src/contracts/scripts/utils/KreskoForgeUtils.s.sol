@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.21;
+pragma solidity 0.8.21;
 // solhint-disable var-name-mixedcase
 // solhint-disable no-empty-blocks
 import {Asset} from "common/Types.sol";

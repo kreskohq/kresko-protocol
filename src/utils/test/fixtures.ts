@@ -3,12 +3,12 @@ import { SmockCollateralReceiver, SmockCollateralReceiver__factory } from '@/typ
 import type { Kresko } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
 import type { AllTokenSymbols } from '@config/deploy'
 import { type MockContract, smock } from '@defi-wonderland/smock'
-import { ZERO_ADDRESS } from '@kreskolabs/lib'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { createKrAsset } from '@scripts/create-krasset'
 import { wrapKresko } from '@utils/redstone'
 import { MaxUint128, toBig } from '@utils/values'
 import type { Facet } from 'hardhat-deploy/types'
+import { zeroAddress } from 'viem'
 import { addMockExtAsset, depositCollateral } from './helpers/collaterals'
 import { wrapContractWithSigner } from './helpers/general'
 import { addMockKreskoAsset, leverageKrAsset, mintKrAsset } from './helpers/krassets'
@@ -257,7 +257,7 @@ export const kreskoAssetFixture = hre.deployments.createFixture<
     opts?.symbol,
     opts?.name,
     18,
-    opts.underlyingToken ?? ZERO_ADDRESS,
+    opts.underlyingToken ?? zeroAddress,
     hre.users.treasury.address,
     0,
     0,

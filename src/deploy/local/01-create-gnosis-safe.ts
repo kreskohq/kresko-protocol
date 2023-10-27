@@ -1,8 +1,8 @@
-import { ZERO_ADDRESS } from '@kreskolabs/lib'
 import { getNamedEvent } from '@utils/events'
 import { getLogger } from '@utils/logging'
 import type { DeployFunction } from 'hardhat-deploy/dist/types'
 import type { HardhatRuntimeEnvironment } from 'hardhat/types'
+import { zeroAddress } from 'viem'
 
 // import { executeContractCallWithSigners } from "@utils/gnosis";
 
@@ -28,12 +28,12 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const creationArgs = [
     safeUsers.map(user => user.address),
     3,
-    ZERO_ADDRESS,
+    zeroAddress,
     '0x',
-    ZERO_ADDRESS,
-    ZERO_ADDRESS,
+    zeroAddress,
+    zeroAddress,
     0,
-    ZERO_ADDRESS,
+    zeroAddress,
   ] as const
 
   // Encoded params for setup

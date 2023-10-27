@@ -1,6 +1,5 @@
 import type { FuncArgs, FuncNames, IsUndefined } from '@/types';
-import { commonUtils } from '@config/hardhat/extensions/utils';
-import { getLogger } from '@kreskolabs/lib/meta';
+import { getLogger } from '@utils/logging';
 import type { BytesLike, ContractTransaction, Overrides } from 'ethers';
 import type { DeployOptions, Deployment, Receipt } from 'hardhat-deploy/types';
 

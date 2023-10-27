@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.21;
+pragma solidity 0.8.21;
 
 import {IAccessControlEnumerable} from "@oz/access/extensions/IAccessControlEnumerable.sol";
 import {IERC20Permit} from "kresko-lib/token/IERC20Permit.sol";
@@ -10,6 +10,9 @@ interface ISyncable {
 }
 
 interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
+    event Wrap(address indexed asset, address underlying, address indexed to, uint256 amount);
+    event Unwrap(address indexed asset, address underlying, address indexed to, uint256 amount);
+
     /**
      * @notice Rebase information
      * @param positive supply increasing/reducing rebase

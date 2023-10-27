@@ -1,6 +1,6 @@
 import { type AssetArgs, OracleType } from '@/types'
-import { MAX_U256 } from '@kreskolabs/lib'
 import { toBig } from '@utils/values'
+import { maxUint256 } from 'viem'
 
 export type InputArgs = {
   user: SignerWithAddress
@@ -22,7 +22,7 @@ export const defaultDecimals = 18
 export const defaultDepositAmount = toBig(10, defaultDecimals)
 export const defaultMintAmount = toBig(100, defaultDecimals)
 
-export const defaultSupplyLimit = MAX_U256
+export const defaultSupplyLimit = maxUint256
 export const defaultCloseFee = 0.02e4 // 2%
 export const defaultOpenFee = 0 // 0%
 

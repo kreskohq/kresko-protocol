@@ -1,50 +1,48 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // Deployment
-import '@nomicfoundation/hardhat-foundry';
-import type { HardhatUserConfig } from 'hardhat/config';
-import 'tsconfig-paths/register';
+import '@nomicfoundation/hardhat-foundry'
+import type { HardhatUserConfig } from 'hardhat/config'
+import 'tsconfig-paths/register'
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
 /* -------------------------------------------------------------------------- */
 
-import 'hardhat-diamond-abi';
-// note: hardhat-diamond-abi should always be exported before typechain if used together
-import '@nomicfoundation/hardhat-chai-matchers';
-import '@nomiclabs/hardhat-ethers';
-import '@typechain/hardhat';
-import 'hardhat-deploy';
-import 'hardhat-deploy-ethers';
-import 'hardhat-interface-generator';
-// import "hardhat-watcher";
+// note: hardhat-diamond-abi should always be imported before typechain - if used together
+import '@nomiclabs/hardhat-ethers'
+import 'hardhat-diamond-abi'
+import '@typechain/hardhat'
+import '@nomicfoundation/hardhat-chai-matchers'
+import 'hardhat-deploy'
+import 'hardhat-deploy-ethers'
 
 /* -------------------------------------------------------------------------- */
 /*                                   Dotenv                                   */
 /* -------------------------------------------------------------------------- */
-import { configDotenv } from 'dotenv';
-configDotenv();
+import { configDotenv } from 'dotenv'
+configDotenv()
 
-const mnemonic = process.env.MNEMONIC_DEVNET || 'test test test test test test test test test test test junk';
+const mnemonic = process.env.MNEMONIC_DEVNET || 'test test test test test test test test test test test junk'
 
-/* -------------------------------------------------------------------------- */
-/*                                    Tasks                                   */
-/* -------------------------------------------------------------------------- */
-import 'src/tasks';
 /* -------------------------------------------------------------------------- */
 /*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
-import { compilers, diamondAbiConfig, handleForking, networks, users } from '@config/hardhat';
+import { compilers, diamondAbiConfig, handleForking, networks, users } from '@config/hardhat'
 /* -------------------------------------------------------------------------- */
 /*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
-import '@config/hardhat/extensions';
+import '@config/hardhat/extensions'
+/* -------------------------------------------------------------------------- */
+/*                                    Tasks                                   */
+/* -------------------------------------------------------------------------- */
+import 'src/tasks'
 
 /* -------------------------------------------------------------------------- */
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 
 if (process.env.EXPORT) {
-  console.log('exporting..');
+  console.log('exporting..')
 }
 
 const config: HardhatUserConfig = {
@@ -79,6 +77,6 @@ const config: HardhatUserConfig = {
     tsNocheck: true,
     externalArtifacts: [],
   },
-};
+}
 
-export default config;
+export default config

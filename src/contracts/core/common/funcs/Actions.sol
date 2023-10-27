@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.21;
+pragma solidity 0.8.21;
 
 import {sdi} from "scdp/SState.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {Asset} from "common/Types.sol";
 import {Errors} from "common/Errors.sol";
+import {Strings} from "libs/Strings.sol";
+
+using Strings for bytes32;
 
 /* -------------------------------------------------------------------------- */
 /*                                   Actions                                  */
@@ -38,10 +41,12 @@ function burnSCDP(Asset storage _asset, uint256 _burnAmount, address _fromAddr) 
 }
 
 /// @notice Mint kresko assets from SCDP swap.
+/// @notice Reverts if market for asset is not open.
 /// @param _asset the asset requested
 /// @param _mintAmount the asset amount requested
 /// @param _toAddr the account to mint the assets to
 function mintSCDP(Asset storage _asset, uint256 _mintAmount, address _toAddr) returns (uint256 issued) {
+    if (!_asset.marketStatus()) revert Errors.MARKET_CLOSED(Errors.id(_asset.anchor), _asset.ticker.toString());
     issued = mintKrAsset(_mintAmount, _toAddr, _asset.anchor);
     unchecked {
         sdi().totalDebt += _asset.debtAmountToSDI(issued, false);
