@@ -67,6 +67,22 @@ export const defaultRedstoneDataPoints: TestDataPackage[] = [
   { dataFeedId: 'KrAsset3', value: 0 },
   { dataFeedId: 'KrAsset4', value: 0 },
   { dataFeedId: 'KrAsset5', value: 0 },
+  { dataFeedId: 'IS_MARKET_KrAsset_OPEN', value: 1 },
+  { dataFeedId: 'IS_MARKET_KrAsset2_OPEN', value: 1 },
+  { dataFeedId: 'IS_MARKET_KrAsset3_OPEN', value: 1 },
+  { dataFeedId: 'IS_MARKET_KrAsset4_OPEN', value: 1 },
+  { dataFeedId: 'IS_MARKET_KrAsset5_OPEN', value: 1 },
 ];
+
+export type TestMarketStatusSymbols =
+  | 'IS_MARKET_KrAsset_OPEN'
+  | 'IS_MARKET_KrAsset2_OPEN'
+  | 'IS_MARKET_KrAsset3_OPEN'
+  | 'IS_MARKET_KrAsset4_OPEN'
+  | 'IS_MARKET_KrAsset5_OPEN';
 export type TestDataPackage = { dataFeedId: AllUnderlyingIds; value: number };
-export type AllUnderlyingIds = TestAssetIds | 'ETH' | (typeof assets)[keyof typeof assets]['underlyingId'];
+export type AllUnderlyingIds =
+  | TestAssetIds
+  | 'ETH'
+  | (typeof assets)[keyof typeof assets]['underlyingId']
+  | TestMarketStatusSymbols;
