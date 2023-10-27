@@ -42,7 +42,7 @@ library Assets {
     }
 
     function marketStatus(Asset storage self) internal view returns (bool) {
-        string memory assetTicker = string(abi.encodePacked(self.underlyingId));
+        string memory assetTicker = string(abi.encodePacked(self.ticker));
         bytes32 marketStatusTickerId = bytes32(abi.encodePacked("IS_MARKET_", assetTicker, "_OPEN"));
         return Redstone.getPrice(marketStatusTickerId) == 0 ? false : true;
     }
