@@ -174,7 +174,7 @@ Stop the network
 just k
 ```
 
-## Notes about the usage of [ERC-2535](https://eips.ethereum.org/EIPS/eip-2535) (Diamond)
+## About [ERC-2535](https://eips.ethereum.org/EIPS/eip-2535) (Diamonds) and things
 
 ### General
 
@@ -216,7 +216,7 @@ _https://eip2535diamonds.substack.com/p/how-eip2535-diamonds-reduces-gas_
 
 ### Contributions
 
-Contributions to Kresko Protocol are encouraged, feel free to open an issue or pull request. <br/> All contributions are licensed under BUSL1.1.
+Contributions to Kresko Protocol are encouraged, feel free to open an issue or pull request. <br/> All contributions are licensed under BUSL-1.1.
 
 ### Contact
 
