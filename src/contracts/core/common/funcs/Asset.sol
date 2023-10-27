@@ -55,8 +55,10 @@ library CAsset {
         return Redstone.getPrice(self.underlyingId);
     }
 
-    function marketStatus(Asset storage) internal pure returns (bool) {
-        return true;
+    function marketStatus(Asset storage self) internal view returns (bool) {
+        string memory assetTicker = string(abi.encodePacked(self.underlyingId));
+        bytes32 marketStatusTickerId = bytes32(abi.encodePacked("IS_MARKET_", assetTicker, "_OPEN"));
+        return Redstone.getPrice(marketStatusTickerId) == 0 ? false : true;
     }
 
     /* -------------------------------------------------------------------------- */
