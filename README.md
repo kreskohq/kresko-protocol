@@ -18,13 +18,13 @@ just not installed: `npx just <command>`.
 
 ## Quick Setup
 
-Install missing tools (pnpm, foundry, pm2) and dependencies (npm, forge) and perform local deployment run:
+Install missing tools (pnpm, foundry, pm2) and dependencies (npm, forge) and run dry deploy
 
 ```sh
 just setup
 ```
 
-Without dry runs:
+Only tools & deps can be installed with
 
 ```sh
 just deps
@@ -32,7 +32,7 @@ just deps
 
 ## Manual Setup
 
-Create .env file from example:
+Create .env file from example
 
 ```sh
 cp .env.example .env
@@ -46,7 +46,7 @@ cp .env.example .env
 npm i -g pnpm
 ```
 
-PM2 is required for anvil & forge development network:
+PM2 is required for anvil & forge development network
 
 ```sh
 pnpm i -g pm2
@@ -54,7 +54,7 @@ pnpm i -g pm2
 
 #### Node
 
-Use the node version in .nvmrc:
+Use the node version in .nvmrc
 
 ```sh
 nvm use
@@ -94,13 +94,11 @@ forge build
 
 Check your setup by running the forge deployment script
 
-no just installed:
-
 ```sh
 pnpm f:dry
 ```
 
-just installed:
+or
 
 ```sh
 just d
@@ -122,11 +120,11 @@ pnpm hh:dry
 
 ### Testing
 
-**NOTE:** Primary test coverage uses hardhat. Forge tests are a work in progress.
+**NOTE:** Primary test coverage uses hardhat. Forge tests are a work in progress
 
 #### Hardhat
 
-Run tests with against a local deployment fixture:
+Run tests with against a local deployment fixture
 
 ```sh
 pnpm hh:test
@@ -142,7 +140,7 @@ forge test
 
 #### Hardhat
 
-Local network:
+Spins up hardhat node and runs deployment
 
 ```sh
 pnpm hh:dev
@@ -152,25 +150,25 @@ pnpm hh:dev
 
 (requires PM2: `pnpm i -g pm2`)
 
-Local network:
+Spins up anvil and runs deployment
 
 ```sh
 just l
 ```
 
-Observe deployment status:
+Observe deployment script logs
 
 ```sh
 pm2 logs 1
 ```
 
-Restart the network:
+Restart the network
 
 ```sh
 just r
 ```
 
-Stop the network:
+Stop the network
 
 ```sh
 just k
