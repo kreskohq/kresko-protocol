@@ -4,15 +4,40 @@ This repository contains the code for the Kresko Protocol. Kresko Protocol suppo
 
 [![run test suite](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml/badge.svg?branch=develop)](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml?branch=develop)
 
-## Usage
+# Usage
 
-A [justfile](https://github.com/casey/just) exists for running foundry things. Use with (just installed) `just <command>` or (not installed) `npx just <command>`.
+A [justfile](https://github.com/casey/just) exists for running foundry things.
+Usage (just installed) `just <command>` or (not installed) `npx just <command>`.
 
-### Setup
+# Setup
 
-Create a new .env file `cp .env.example .env`
+## Quick Setup
 
-#### Dependencies
+Install missing tools (pnpm, foundry, pm2) and dependencies (npm, forge) and perform local deployment run:
+
+```sh
+just setup
+```
+
+## Manual Setup
+
+Install pnpm: `npm i -g pnpm`
+
+Use the node version in .nvmrc: `nvm use`
+
+Create .env file from example: `cp .env.example .env`
+
+## Dependencies
+
+### Quick Install
+
+Install all deps using just:
+
+```sh
+just deps
+```
+
+### Manual
 
 Install forge dependencies
 
