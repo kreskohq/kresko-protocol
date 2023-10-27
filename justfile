@@ -32,6 +32,7 @@ restart:
 	pm2 restart all --update-env
 
 deps:
+	pnpm i 
 	curl -L https://foundry.paradigm.xyz | bash
 	pnpm i -g pm2
 

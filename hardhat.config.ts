@@ -15,7 +15,6 @@ import '@typechain/hardhat'
 import '@nomicfoundation/hardhat-chai-matchers'
 import 'hardhat-deploy'
 import 'hardhat-deploy-ethers'
-import 'hardhat-interface-generator'
 
 /* -------------------------------------------------------------------------- */
 /*                                   Dotenv                                   */
