@@ -70,12 +70,6 @@ devDependencies:
   '@types/mocha':
     specifier: ^10.0.2
     version: 10.0.2
-  '@types/node':
-    specifier: ^18.18.0
-    version: 18.18.3
-  '@types/prettier':
-    specifier: 2.7.3
-    version: 2.7.3
   chai:
     specifier: ^4.3.10
     version: 4.3.10
@@ -89,23 +83,23 @@ devDependencies:
     specifier: 2.17.1
     version: 2.17.1(ts-node@10.9.1)(typescript@5.2.2)
   hardhat-deploy:
-    specifier: ^0.11.29
-    version: 0.11.37
+    specifier: 0.11.29
+    version: 0.11.29
   hardhat-deploy-ethers:
     specifier: 0.4.0-next.1
-    version: 0.4.0-next.1(@nomiclabs/hardhat-ethers@2.2.3)(hardhat-deploy@0.11.37)(hardhat@2.17.1)
+    version: 0.4.0-next.1(@nomiclabs/hardhat-ethers@2.2.3)(hardhat-deploy@0.11.29)(hardhat@2.17.1)
   hardhat-diamond-abi:
-    specifier: ^3.0.1
+    specifier: 3.0.1
     version: 3.0.1(hardhat@2.17.1)
   hardhat-interface-generator:
     specifier: ^0.0.6
     version: 0.0.6(hardhat@2.17.1)
-  hardhat-watcher:
-    specifier: ^2.5.0
-    version: 2.5.0(hardhat@2.17.1)
   husky:
     specifier: ^6.0.0
     version: 6.0.0
+  just-install:
+    specifier: ^1.0.11
+    version: 1.0.11
   lint-staged:
     specifier: ^11.2.6
     version: 11.2.6
@@ -3003,7 +2997,7 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /hardhat-deploy-ethers@0.4.0-next.1(@nomiclabs/hardhat-ethers@2.2.3)(hardhat-deploy@0.11.37)(hardhat@2.17.1):
+  /hardhat-deploy-ethers@0.4.0-next.1(@nomiclabs/hardhat-ethers@2.2.3)(hardhat-deploy@0.11.29)(hardhat@2.17.1):
     resolution: {integrity: sha512-e+Tz1elQhMdUsCTVY7bIRHWPR1zElsT6/FvHJnpVXjaKBmLXWmmn2IHq0qQHfjKu5gZ93nuiM66XCkaHhSVGRA==}
     peerDependencies:
       '@nomiclabs/hardhat-ethers': ^2.2.1
@@ -3012,11 +3006,11 @@ packages:
     dependencies:
       '@nomiclabs/hardhat-ethers': 2.2.3(ethers@5.7.2)(hardhat@2.17.1)
       hardhat: 2.17.1(ts-node@10.9.1)(typescript@5.2.2)
-      hardhat-deploy: 0.11.37
+      hardhat-deploy: 0.11.29
     dev: true
 
-  /hardhat-deploy@0.11.37:
-    resolution: {integrity: sha512-pohPSEEo/X9Yfv0Fc0kXBQW6JO0LNOILBGCP69Ci1COJvLht1hLjAtXt/hccyvD9qY/uwJAM75fmsf41Y9N7lg==}
+  /hardhat-deploy@0.11.29:
+    resolution: {integrity: sha512-9F+MRFkEocelzB8d+SDDCcTL7edBYAj2S63ldknvfIIBSajeB6q1/jm+dlK1GjcWzAzw7EVoxtjJXzxAxZfZcg==}
     dependencies:
       '@ethersproject/abi': 5.7.0
       '@ethersproject/abstract-signer': 5.7.0
@@ -3069,15 +3063,6 @@ packages:
       hardhat: ^2.0.0
     dependencies:
       abi2solidity: 0.1.2
-      hardhat: 2.17.1(ts-node@10.9.1)(typescript@5.2.2)
-    dev: true
-
-  /hardhat-watcher@2.5.0(hardhat@2.17.1):
-    resolution: {integrity: sha512-Su2qcSMIo2YO2PrmJ0/tdkf+6pSt8zf9+4URR5edMVti6+ShI8T3xhPrwugdyTOFuyj8lKHrcTZNKUFYowYiyA==}
-    peerDependencies:
-      hardhat: ^2.0.0
-    dependencies:
-      chokidar: 3.5.3
       hardhat: 2.17.1(ts-node@10.9.1)(typescript@5.2.2)
     dev: true
 
@@ -3471,6 +3456,13 @@ packages:
   /jsonparse@1.3.1:
     resolution: {integrity: sha512-POQXvpdL69+CluYsillJ7SUhKvytYjW9vG/GKpnf+xP8UWgYEM/RaMzHHofbALDiKbbP1W8UEYmgGl39WkPZsg==}
     engines: {'0': node >= 0.2.0}
+    dev: true
+
+  /just-install@1.0.11:
+    resolution: {integrity: sha512-3nW53hWK9muHUTXthiTcUqFkd5FXDad7YLoDWJonVhPUZxX8PgCVGvaI8AQ5gqJZ45MBd/hdqg5XPIWPh9Bk/g==}
+    engines: {node: '>=8.5'}
+    hasBin: true
+    requiresBuild: true
     dev: true
 
   /keccak@3.0.4:

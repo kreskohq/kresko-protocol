@@ -8,7 +8,7 @@ This repository contains the code for the Kresko Protocol. Kresko Protocol suppo
 
 ### Setup
 
-(**OPTIONAL**) create .env file `cp .env.example .env`
+Create a new .env file `cp .env.example .env`
 
 #### Dependencies
 
@@ -19,40 +19,45 @@ forge install
 ```
 
 Install node dependencies
-(_Authorized npm token is required in .npmrc for some internal packages. This will be lifted later._)<br/>
 
 ```sh
 pnpm i
+```
+
+Required for development network using anvil & forge:
+
+```sh
+pnpm i -g pm2
 ```
 
 ### Compiling
 
 #### Foundry
 
-Compile the contracts using foundry
+Compile the contracts
 
 ```sh
-forge build
+pnpm f:compile
 ```
 
-Check your setup by running the local forge deployment
+Check your setup by running the forge deployment script
 
 ```sh
-forge script src/contracts/scripts/devnet/Devnet.s.sol:WithLocal
+pnpm f:dry
 ```
 
 #### Hardhat
 
-Compile the contracts using hardhat
+Compile the contracts
 
 ```sh
-pnpm compile
+pnpm hh:compile
 ```
 
-Check your setup by running the local hardhat deployment
+Check your setup by running the hardhat deployment script
 
 ```sh
-pnpm run deploy --tags local
+pnpm hh:dry
 ```
 
 ### Testing
@@ -64,55 +69,33 @@ pnpm run deploy --tags local
 Run tests with against a local deployment fixture:
 
 ```sh
-pnpm test
+pnpm hh:test
 ```
 
 #### Foundry
 
 ```sh
-forge test --ffi
+pnpm f:test
 ```
 
 ### Deployment
 
 #### Hardhat
 
-To local network:
+Local network:
 
 ```sh
-pnpm local
-```
-
-To live network:
-
-```sh
-pnpm deploy --network <network>
+pnpm hh:local
 ```
 
 #### Foundry
 
-Local
+(requires PM2: `pnpm i -g pm2`)
+
+Local network:
 
 ```sh
-forge script src/contracts/scripts/devnet/Devnet.s.sol:WithLocal
-```
-
-### Forking
-
-- value of `process.env.FORKING` maps to network key and it's setup within `hardhat-configs/networks`
-- set a specific block with `process.env.FORKING_BLOCKNUMBER`
-- HRE is extended with helpers to get live deployments within the forked network (https://github.com/wighawag/hardhat-deploy#companionnetworks)
-
-Run deploy in fork
-
-```sh
-pnpm fork:deploy
-```
-
-Run tests with `--grep Forking`
-
-```sh
-pnpm fork:test
+pnpm f:dev
 ```
 
 ## Notes about the usage of [ERC-2535](https://eips.ethereum.org/EIPS/eip-2535) (Diamond)
