@@ -180,6 +180,12 @@ Stop the network
 just k
 ```
 
+## VSCode extensions
+
+- Patterns in this repository have broken lsp support with these extensions: [hardhat](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity), [solidity](https://marketplace.visualstudio.com/items?itemName=JuanBlanco.solidity).
+
+- Recommendation is to rather use this fork: [vsc-solidity](https://marketplace.visualstudio.com/items?itemName=0xp.vsc-solidity).
+
 ## About [ERC-2535](https://eips.ethereum.org/EIPS/eip-2535) (Diamonds) and things
 
 ### General
