@@ -6,8 +6,13 @@ This repository contains the code for the Kresko Protocol. Kresko Protocol suppo
 
 # Usage
 
-A [justfile](https://github.com/casey/just) exists for running foundry things.
-Usage (just installed) `just <command>` or (not installed) `npx just <command>`.
+A [justfile](https://github.com/casey/just) exists for running things.
+
+### Using just commands
+
+just installed: `just <command>`.
+
+just not installed: `npx just <command>`.
 
 # Setup
 
@@ -19,25 +24,51 @@ Install missing tools (pnpm, foundry, pm2) and dependencies (npm, forge) and per
 just setup
 ```
 
-## Manual Setup
-
-Install pnpm: `npm i -g pnpm`
-
-Use the node version in .nvmrc: `nvm use`
-
-Create .env file from example: `cp .env.example .env`
-
-## Dependencies
-
-### Quick Install
-
-Install all deps using just:
+Without dry runs:
 
 ```sh
 just deps
 ```
 
-### Manual
+## Manual Setup
+
+Create .env file from example:
+
+```sh
+cp .env.example .env
+```
+
+### Tools
+
+#### pnpm
+
+```sh
+npm i -g pnpm
+```
+
+PM2 is required for anvil & forge development network:
+
+```sh
+pnpm i -g pm2
+```
+
+#### Node
+
+Use the node version in .nvmrc:
+
+```sh
+nvm use
+```
+
+#### Foundry
+
+Install foundry:
+
+```sh
+curl -L https://foundry.paradigm.xyz | bash && foundryup
+```
+
+### Dependencies
 
 Install forge dependencies
 
@@ -49,12 +80,6 @@ Install node dependencies
 
 ```sh
 pnpm i
-```
-
-Required for development network using anvil & forge:
-
-```sh
-pnpm i -g pm2
 ```
 
 ### Compiling
