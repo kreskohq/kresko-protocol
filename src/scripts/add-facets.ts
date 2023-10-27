@@ -1,9 +1,9 @@
-import { ZERO_ADDRESS } from '@kreskolabs/lib'
 import { getLogger } from '@utils/logging'
 import { Contract } from 'ethers'
 import hre from 'hardhat'
 import { mergeABIs } from 'hardhat-deploy/dist/src/utils'
 import { type FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types'
+import { zeroAddress } from 'viem'
 type Args = {
   names: readonly (keyof TC)[]
   initializerName?: keyof TC
@@ -94,7 +94,7 @@ export async function addFacets({
     /* -------------------------------------------------------------------------- */
 
     // #5.1 Initialize the `diamondCut` initializer argument to do nothing.
-    let initializer: DiamondCutInitializer = [ZERO_ADDRESS, '0x']
+    let initializer: DiamondCutInitializer = [zeroAddress, '0x']
 
     if (initializerName && FacetCuts.length) {
       // #5.2 If `initializerName` is supplied, try to get the existing deployment

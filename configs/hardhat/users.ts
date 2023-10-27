@@ -1,6 +1,6 @@
-import type { HardhatUserConfig } from 'hardhat/config';
+import type { HardhatUserConfig } from 'hardhat/config'
 
-const DEPLOYER_INDEX = process.env.DEPLOYER_INDEX == null ? 0 : parseInt(process.env.DEPLOYER_INDEX);
+const DEPLOYER_INDEX = process.env.DEPLOYER_INDEX == null ? 0 : parseInt(process.env.DEPLOYER_INDEX)
 export const hardhatUsers = {
   admin: {
     default: process.env.ADMIN ?? 0,
@@ -74,5 +74,5 @@ export const hardhatUsers = {
   extTwo: {
     default: 45,
   },
-};
-export const users: HardhatUserConfig['namedAccounts'] = hardhatUsers;
+}
+export const users: HardhatUserConfig['namedAccounts'] = hardhatUsers

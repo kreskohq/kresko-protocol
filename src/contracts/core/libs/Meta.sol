@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable no-inline-assembly */
 
-pragma solidity >=0.8.21;
+pragma solidity 0.8.21;
 import {Errors} from "common/Errors.sol";
 
 library Meta {

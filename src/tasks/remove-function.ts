@@ -1,13 +1,13 @@
-import { ZERO_ADDRESS } from '@kreskolabs/lib'
 import { getLogger } from '@utils/logging'
 import { type FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types'
 import { task, types } from 'hardhat/config'
 import type { TaskArguments } from 'hardhat/types'
+import { zeroAddress } from 'viem'
 import { TASK_REMOVE_FUNCTION } from './names'
 
 task(TASK_REMOVE_FUNCTION)
   .addParam('name', 'Artifact/Contract name of the facet')
-  .addOptionalParam('initAddress', 'Address to delegatecall to when adding the facet', ZERO_ADDRESS, types.string)
+  .addOptionalParam('initAddress', 'Address to delegatecall to when adding the facet', zeroAddress, types.string)
   .addOptionalParam('initParams', 'Address to delegatecall to when adding the facet', '0x', types.string)
   .setAction(async function ({ name, initAddress, initParams }: TaskArguments, hre) {
     const logger = getLogger(TASK_REMOVE_FUNCTION)

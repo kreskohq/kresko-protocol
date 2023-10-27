@@ -1,12 +1,12 @@
 interface DiamondAbiUserConfig {
-  name: string;
-  include?: string[];
-  exclude?: string[];
-  filter?: (abiElement: any, index: number, abi: any[], fullyQualifiedName: string) => boolean;
-  strict?: boolean;
+  name: string
+  include?: string[]
+  exclude?: string[]
+  filter?: (abiElement: any, index: number, abi: any[], fullyQualifiedName: string) => boolean
+  strict?: boolean
 }
 
-const cache = new Map<string, boolean>();
+const cache = new Map<string, boolean>()
 export const diamondAbiConfig: DiamondAbiUserConfig[] = [
   {
     name: 'Kresko',
@@ -15,10 +15,10 @@ export const diamondAbiConfig: DiamondAbiUserConfig[] = [
     strict: false,
     filter(abiElement) {
       if (cache.has(abiElement.name)) {
-        return false;
+        return false
       }
-      cache.set(abiElement.name, true);
-      return true;
+      cache.set(abiElement.name, true)
+      return true
     },
   },
-];
+]

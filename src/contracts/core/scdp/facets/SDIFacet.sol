@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.21;
+pragma solidity 0.8.21;
 
 import {Strings} from "libs/Strings.sol";
 import {SDIPrice} from "common/funcs/Prices.sol";
@@ -100,7 +100,7 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
     }
 
     function setCoverRecipientSDI(address _newCoverRecipient) external onlyRole(Role.ADMIN) {
-        if (_newCoverRecipient == address(0)) revert Errors.ZERO_ADDRESS();
+        if (_newCoverRecipient == address(0)) revert Errors.zeroAddress();
         sdi().coverRecipient = _newCoverRecipient;
     }
 }

@@ -1,6 +1,6 @@
 // solhint-disable no-empty-blocks
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.21;
+pragma solidity 0.8.21;
 
 import {AccessControlEnumerableUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
@@ -76,7 +76,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
     /// @inheritdoc IKreskoAsset
     function setAnchorToken(address _anchor) external {
-        if (_anchor == address(0)) revert Errors.ZERO_ADDRESS();
+        if (_anchor == address(0)) revert Errors.zeroAddress();
 
         // allows easy initialization from anchor itself
         if (anchor != address(0)) _checkRole(Role.ADMIN);
@@ -100,7 +100,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
     /// @inheritdoc IKreskoAsset
     function setFeeRecipient(address _feeRecipient) public onlyRole(Role.ADMIN) {
-        if (_feeRecipient == address(0)) revert Errors.ZERO_ADDRESS();
+        if (_feeRecipient == address(0)) revert Errors.zeroAddress();
         wrapping.feeRecipient = payable(_feeRecipient);
     }
 

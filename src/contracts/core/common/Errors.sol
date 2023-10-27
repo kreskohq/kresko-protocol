@@ -159,7 +159,7 @@ library Errors {
     error ZERO_ASSETS_FROM_SHARES(ID, uint256 shares, ID);
     error ZERO_ASSETS_OUT(ID, uint256 shares);
     error ZERO_ASSETS_IN(ID, uint256 shares);
-    error ZERO_ADDRESS();
+    error zeroAddress();
     error ZERO_DEPOSIT(ID);
     error ZERO_AMOUNT(ID);
     error ZERO_WITHDRAW(ID);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.21;
+pragma solidity 0.8.21;
 import {Strings} from "libs/Strings.sol";
 import {RawPrice} from "common/Types.sol";
 import {IAssetStateFacet} from "common/interfaces/IAssetStateFacet.sol";
