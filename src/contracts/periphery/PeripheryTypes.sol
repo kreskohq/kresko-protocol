@@ -5,6 +5,34 @@ pragma solidity ^0.8.0;
 import {Asset, RawPrice} from "common/Types.sol";
 
 library Fe {
+    function getProtocol(FAsset[] memory assets) internal view returns (FType.Protocol memory);
+
+    function getAssets() internal view returns (FType.FAsset[] memory);
+
+    function getAsset(address addr) internal view returns (FType.FAsset memory);
+
+    function getMinter() internal view returns (FType.Minter memory);
+
+    function getSCDP() internal view returns (FType.SCDP memory);
+
+    function getSDebts(address addr) internal view returns (FType.SDebt[] memory);
+
+    function getGate() internal view returns (FType.Gate memory);
+
+    function getMUser(address addr) internal view returns (FType.MUser memory);
+
+    function getBalance(address addr, address token) internal view returns (FType.Balance memory);
+
+    function getMDeposits(address addr) internal view returns (FType.MDeposit[] memory);
+
+    function getMDebts(address addr) internal view returns (FType.MDebt[] memory);
+
+    function getSUser(address addr) internal view returns (FType.SUser memory);
+
+    function getSDeposits(address addr) internal view returns (FType.SDeposit[] memory);
+}
+
+library FType {
     struct Protocol {
         FAsset[] assets;
         Minter minter;
@@ -18,22 +46,20 @@ library Fe {
         Gate gate;
     }
 
-    struct Gate {
-        address kreskian;
-        address questForKresk;
-        uint8 phase;
-        uint8[] restrictions;
+    struct User {
+        address addr;
+        Balance[] bals;
+        MUser minter;
+        SUser scdp;
     }
 
-    struct FAsset {
+    struct Balance {
         address addr;
-        string name;
+        address token;
         string symbol;
-        uint256 tSupply;
-        uint256 price;
-        bool open;
-        RawPrice priceRaw;
-        Asset asset;
+        uint256 amount;
+        uint256 val;
+        uint8 decimals;
     }
 
     struct Minter {
@@ -55,20 +81,22 @@ library Fe {
         SDebt[] debts;
     }
 
-    struct Balance {
-        address addr;
-        address token;
-        string symbol;
-        uint256 amount;
-        uint256 val;
-        uint8 decimals;
+    struct Gate {
+        address kreskian;
+        address questForKresk;
+        uint8 phase;
+        uint8[] restrictions;
     }
 
-    struct User {
+    struct FAsset {
         address addr;
-        Balance[] bals;
-        MUser minter;
-        SUser scdp;
+        string name;
+        string symbol;
+        uint256 tSupply;
+        uint256 price;
+        bool open;
+        RawPrice priceRaw;
+        Asset asset;
     }
 
     struct MUser {
