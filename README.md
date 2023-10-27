@@ -178,13 +178,13 @@ just k
 
 ### General
 
-- All external functions are contained in the facets, `hardhat-diamond-abi` will combine their ABI to a separate artifact (Kresko.json) after compile.
+- External functionality lives in Facets, Use IKresko.sol or the artifact generated using `hardhat-diamond-abi` for aggregate ABI.
 
-- Core logic is mostly defined inside library functions. These internal functions are attached to the minter storage struct for ease of use.
+- Logic (mostly) lives inside internal library functions. These libraries are then attached globally to structs for convenience.
 
-- Storage is used through a inline assembly pointer inside free function. To access the storage (+ attached internal lib functions) simply call the free function anywhere within the diamond.
+- Storage is accessed with inline assembly slot pointer assignment. To access the storage (+ attached library functions) simply call these storage getter functions anywhere.
 
-- Note that Staking, AMM and KreskoAsset contracts do not live inside the diamond scope.
+- Vault, Factory and KreskoAsset contracts do not live inside the diamond scope.
 
 ### State
 
@@ -200,11 +200,11 @@ just k
 
 #### Yay
 
-- To add new state variables to DiamondStorage pattern in eg. MinterStorage (ms), add them to the end of the struct. This makes sense because it is not possible for existing facets to overwrite state variables at new storage locations.
+- To add new state variables to the DiamondStorage pattern (eg. MinterState or ms), add them to the end of the struct so it is not possible for existing functions to overwrite state variables at new storage locations.
 
-- New state variables can be added to the ends of structs that are used in mappings.
+- Above also applies to structs inside mappings.
 
-- The names of state variables can be changed, but that might be confusing if different facets are using different names for the same storage locations.
+- State variable names can be changed - but it might be confusing if different facets use different names for the same storage.
 
 _Learning references_
 
