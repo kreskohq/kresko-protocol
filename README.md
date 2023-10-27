@@ -6,6 +6,8 @@ This repository contains the code for the Kresko Protocol. Kresko Protocol suppo
 
 ## Usage
 
+A [justfile](https://github.com/casey/just) exists for running foundry things. Use with (just installed) `just <command>` or (not installed) `npx just <command>`.
+
 ### Setup
 
 Create a new .env file `cp .env.example .env`
@@ -37,13 +39,21 @@ pnpm i -g pm2
 Compile the contracts
 
 ```sh
-pnpm f:compile
+forge build
 ```
 
 Check your setup by running the forge deployment script
 
+no just installed:
+
 ```sh
 pnpm f:dry
+```
+
+just installed:
+
+```sh
+just d
 ```
 
 #### Hardhat
@@ -75,7 +85,7 @@ pnpm hh:test
 #### Foundry
 
 ```sh
-pnpm f:test
+forge test
 ```
 
 ### Deployment
@@ -85,7 +95,7 @@ pnpm f:test
 Local network:
 
 ```sh
-pnpm hh:local
+pnpm hh:dev
 ```
 
 #### Foundry
@@ -95,7 +105,25 @@ pnpm hh:local
 Local network:
 
 ```sh
-pnpm f:dev
+just l
+```
+
+Observe deployment status:
+
+```sh
+pm2 logs 1
+```
+
+Restart the network:
+
+```sh
+just r
+```
+
+Stop the network:
+
+```sh
+just k
 ```
 
 ## Notes about the usage of [ERC-2535](https://eips.ethereum.org/EIPS/eip-2535) (Diamond)

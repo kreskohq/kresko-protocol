@@ -1,8 +1,17 @@
 set dotenv-load
 
+alias d := dry-local
 alias l := local
 alias r := restart
 alias k := kill
+
+dry-local:
+	forge script src/contracts/scripts/deploy/Run.s.sol:Local \
+	--with-gas-price 100000000 \
+	--skip-simulation \
+	--ffi \
+	-vvv
+
 
 local:
 	pm2 ping
@@ -26,12 +35,6 @@ deps:
 	curl -L https://foundry.paradigm.xyz | bash
 	pnpm i -g pm2
 
-dry-local:
-	forge script src/contracts/scripts/deploy/Run.s.sol:Local \
-	--with-gas-price 100000000 \
-	--skip-simulation \
-	--ffi \
-	-vvv
 
 dry-arbitrum:
 	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
