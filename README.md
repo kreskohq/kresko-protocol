@@ -65,7 +65,13 @@ nvm use
 Install foundry:
 
 ```sh
-curl -L https://foundry.paradigm.xyz | bash && foundryup
+curl -L https://foundry.paradigm.xyz | bash
+```
+
+and
+
+```sh
+foundryup
 ```
 
 ### Dependencies
