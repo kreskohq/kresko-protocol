@@ -72,7 +72,7 @@ library Validations {
         address _assetAddr,
         Asset memory _config
     ) internal view returns (string memory symbol, string memory tickerStr, uint8 decimals) {
-        if (_assetAddr == address(0)) revert Errors.zeroAddress();
+        if (_assetAddr == address(0)) revert Errors.ZERO_ADDRESS();
 
         symbol = IERC20(_assetAddr).symbol();
         if (cs().assets[_assetAddr].exists()) revert Errors.ASSET_ALREADY_EXISTS(Errors.ID(symbol, _assetAddr));
@@ -88,7 +88,7 @@ library Validations {
         address _assetAddr,
         Asset memory _config
     ) internal view returns (string memory symbol, string memory tickerStr, Asset storage asset) {
-        if (_assetAddr == address(0)) revert Errors.zeroAddress();
+        if (_assetAddr == address(0)) revert Errors.ZERO_ADDRESS();
 
         symbol = IERC20(_assetAddr).symbol();
         asset = cs().assets[_assetAddr];

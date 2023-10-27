@@ -76,7 +76,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
     /// @inheritdoc IKreskoAsset
     function setAnchorToken(address _anchor) external {
-        if (_anchor == address(0)) revert Errors.zeroAddress();
+        if (_anchor == address(0)) revert Errors.ZERO_ADDRESS();
 
         // allows easy initialization from anchor itself
         if (anchor != address(0)) _checkRole(Role.ADMIN);
@@ -100,7 +100,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
     /// @inheritdoc IKreskoAsset
     function setFeeRecipient(address _feeRecipient) public onlyRole(Role.ADMIN) {
-        if (_feeRecipient == address(0)) revert Errors.zeroAddress();
+        if (_feeRecipient == address(0)) revert Errors.ZERO_ADDRESS();
         wrapping.feeRecipient = payable(_feeRecipient);
     }
 

@@ -100,7 +100,7 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
     }
 
     function setCoverRecipientSDI(address _newCoverRecipient) external onlyRole(Role.ADMIN) {
-        if (_newCoverRecipient == address(0)) revert Errors.zeroAddress();
+        if (_newCoverRecipient == address(0)) revert Errors.ZERO_ADDRESS();
         sdi().coverRecipient = _newCoverRecipient;
     }
 }
