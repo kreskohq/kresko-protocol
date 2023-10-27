@@ -1,10 +1,10 @@
-import { ZERO_ADDRESS } from '@kreskolabs/lib'
 import { createKrAsset } from '@scripts/create-krasset'
 import { expect } from '@test/chai'
 import { wrapKresko } from '@utils/redstone'
 import { defaultMintAmount } from '@utils/test/mocks'
 import { Role } from '@utils/test/roles'
 import { toBig } from '@utils/values'
+import { zeroAddress } from 'viem'
 
 describe('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset
@@ -14,7 +14,7 @@ describe('KreskoAsset', () => {
     if (result.Diamond) {
       hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'))
     }
-    KreskoAsset = (await createKrAsset('krSYMBOL', 'Kresko Asset: SYMBOL', 18, ZERO_ADDRESS)).KreskoAsset
+    KreskoAsset = (await createKrAsset('krSYMBOL', 'Kresko Asset: SYMBOL', 18, zeroAddress)).KreskoAsset
     // Grant minting rights for test deployer
     await KreskoAsset.grantRole(Role.OPERATOR, hre.addr.deployer)
   })

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-extra-non-null-assertion */
 import type { TypedDataSigner } from '@ethersproject/abstract-signer';
-import { ZERO_ADDRESS } from '@kreskolabs/lib';
+import { zeroAddress } from 'viem';
 import { BigNumber, type BigNumberish, Contract, Signer } from 'ethers';
 
 export const EIP712_SAFE_TX_TYPE = {
@@ -152,8 +152,8 @@ export const buildSafeTransaction = (template: {
     safeTxGas: template.safeTxGas || 0,
     baseGas: template.baseGas || 0,
     gasPrice: template.gasPrice || 0,
-    gasToken: template.gasToken || ZERO_ADDRESS,
-    refundReceiver: template.refundReceiver || ZERO_ADDRESS,
+    gasToken: template.gasToken || zeroAddress,
+    refundReceiver: template.refundReceiver || zeroAddress,
     nonce: template.nonce,
   };
 };

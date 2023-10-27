@@ -6,10 +6,10 @@ import {
   minterFacets,
   scdpFacets,
 } from '@config/deploy'
-import { ZERO_ADDRESS } from '@kreskolabs/lib'
 import { addFacets } from '@scripts/add-facets'
 import { getLogger } from '@utils/logging'
 import type { DeployFunction } from 'hardhat-deploy/dist/types'
+import { zeroAddress } from 'viem'
 
 const logger = getLogger('common-facets')
 
@@ -20,7 +20,7 @@ const deploy: DeployFunction = async function (hre) {
   await hre.deploy('MockSequencerUptimeFeed')
 
   const commonInit = (await getCommonInitializer(hre)).args
-  if (commonInit.council === ZERO_ADDRESS) throw new Error('Council address not set')
+  if (commonInit.council === zeroAddress) throw new Error('Council address not set')
   await addFacets({
     names: commonFacets,
     initializerName: 'CommonConfigurationFacet',

@@ -26,7 +26,7 @@
       "@test-utils": ["src/utils/test"]
     }
   },
-  "exclude": ["**/@kreskolabs/lib/**/*.d.ts", "temp", "docs", "node_modules/**/*.ts", "cache/**/*", "out"],
+  "exclude": ["temp", "docs", "node_modules", "cache", "out", "lib", "artifacts", "broadcast"],
   "include": ["hardhat.config.ts", "src", "configs", "utils"],
   "ts-node": {
     "files": true,

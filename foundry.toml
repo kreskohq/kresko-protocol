@@ -5,6 +5,7 @@ libs = ['lib']
 script = 'src/contracts/scripts'
 test = 'src/contracts/test'
 cache_path = 'cache/forge'
+ffi = true
 fs_permissions = [{ access = "read-write", path = "./"}]
 remappings = [
     '@openzeppelin/=lib/kresko-foundry-helpers/lib/openzeppelin-contracts/',
@@ -29,6 +30,7 @@ remappings = [
     'mocks-misc/=src/contracts/mocks/',
     "mocks/=src/contracts/core/test/mocks"
 ]
+solc = '0.8.21'
 evm_version = 'paris'
 via_ir = false
 optimizer = true
@@ -46,11 +48,12 @@ optimizer_runs = 1000
 # "stackAllocation" = true
 [rpc_endpoints]
 arbitrum = "${RPC_ARBITRUM_ALCHEMY}"
+arbitrumSepolia = "${RPC_ARBITRUM_SEPOLIA_ALCHEMY}"
 arbitrumGoerli = "${RPC_ARBITRUM_GOERLI_ALCHEMY}"
-arbitrumNova = "${RPC_ARBITRUM_NOVA}"
 mainnet = "${RPC_MAINNET_ALCHEMY}"
 goerli = "${RPC_GOERLI_ALCHEMY}"
 sepolia = "${RPC_SEPOLIA_ALCHEMY}"
+arbitrumNova = "${RPC_ARBITRUM_NOVA}"
 optimism = "${RPC_OPTIMISM_ALCHEMY}"
 optimismGoerli = "${RPC_OPTIMISM_GOERLI_ALCHEMY}"
 bsc = "${RPC_BSC}"
@@ -73,7 +76,8 @@ zkSyncTestnet = "${RPC_ZKSYNC_TESTNET}"
 [etherscan]
 arbitrum = { key = "${ETHERSCAN_API_KEY_ARBITRUM}", chain = 42161, url = "https://api.arbiscan.io/api" }
 arbitrumNova = { key = "${ETHERSCAN_API_KEY_ARBITRUM_NOVA}", chain = 42170, url = "https://api-nova.arbiscan.io/api" }
-arbitrumGoerli = { key = "${ETHERSCAN_API_KEY_ARBITRUM}", chain = 421613, url = "https://api-goerli.arbiscan.io/api" }
+arbitrumGoerli = { key = "${ETHERSCAN_API_KEY_ARBITRUM_GOERLI}", chain = 421613, url = "https://api-goerli.arbiscan.io/api" }
+arbitrumSepolia = { key = "${ETHERSCAN_API_KEY_ARBITRUM_SEPOLIA}", chain = 421614, url = "https://api-sepolia.arbiscan.io/api" }
 mainnet = { key = "${ETHERSCAN_API_KEY_MAINNET}" }
 goerli = { key = "${ETHERSCAN_API_KEY_GOERLI}", url = "https://api-goerli.etherscan.io/api" }
 sepolia = { key = "${ETHERSCAN_API_KEY_SEPOLIA}", chain = 11155111, url = "https://api-sepolia.etherscan.io/api" }

@@ -1,6 +1,4 @@
-import { RPC_URL, ETHERSCAN, INFURA_API_KEY } from '@kreskolabs/configs/ext';
-import type { HttpNetworkConfig, NetworksUserConfig } from 'hardhat/types';
-import * as chains from 'viem/chains';
+import type { HttpNetworkConfig, NetworksUserConfig } from 'hardhat/types'
 
 export const networks = (mnemonic: string): NetworksUserConfig => ({
   hardhat: {
@@ -13,7 +11,7 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     allowUnlimitedContractSize: true,
     initialBaseFeePerGas: process.env.CI ? 0 : undefined,
     gasPrice: process.env.CI ? 1 : undefined,
-    chainId: chains.hardhat.id,
+    chainId: 31337,
     tags: ['local'],
     hardfork: 'merge',
   },
@@ -22,146 +20,128 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
       mnemonic,
       count: 100,
     },
-    chainId: chains.hardhat.id,
+    chainId: 1337,
     tags: ['local'],
   },
   ethereum: {
     accounts: { mnemonic },
-    url: RPC_URL().mainnet.infura,
+    url: rpc('mainnet'),
     chainId: 1,
     tags: ['ethereum'],
     verify: {
-      etherscan: ETHERSCAN.mainnet.config,
+      etherscan: etherscan('mainnet'),
     },
   },
   goerli: {
     accounts: { mnemonic },
-    url: RPC_URL().goerli.alchemy,
-    chainId: chains.goerli.id,
+    url: rpc('goerli'),
+    chainId: 5,
     tags: ['goerli'],
     verify: {
-      etherscan: ETHERSCAN.goerli.config,
+      etherscan: etherscan('goerli'),
     },
   },
   sepolia: {
     accounts: { mnemonic },
-    url: RPC_URL().sepolia.alchemy,
+    url: rpc('sepolia'),
     chainId: 11155111,
     tags: ['sepolia'],
     verify: {
-      etherscan: ETHERSCAN.sepolia.config,
+      etherscan: etherscan('sepolia'),
     },
   },
   arbitrum: {
     accounts: { mnemonic },
-    url: RPC_URL().arbitrum.alchemy,
-    chainId: chains.arbitrum.id,
+    url: rpc('arbitrum'),
+    chainId: 42161,
     tags: ['arbitrum'],
     verify: {
-      etherscan: ETHERSCAN.arbitrum.config,
+      etherscan: etherscan('arbitrum'),
     },
   },
   arbitrumGoerli: {
     accounts: { mnemonic },
-    url: RPC_URL().arbitrumGoerli.alchemy,
-    chainId: chains.arbitrumGoerli.id,
+    url: rpc('arbitrum_goerli'),
+    chainId: 421613,
     verify: {
-      etherscan: ETHERSCAN.arbitrumGoerli.config,
+      etherscan: etherscan('arbitrum_goerli'),
     },
   },
   arbitrumSepolia: {
     accounts: { mnemonic },
-    url: RPC_URL().arbitrumGoerli.alchemy,
+    url: rpc('arbitrum_sepolia'),
     chainId: 421614,
     verify: {
-      etherscan: ETHERSCAN.arbitrumGoerli.config,
+      etherscan: etherscan('arbitrum_sepolia'),
     },
   },
   arbitrumNova: {
     accounts: { mnemonic },
-    url: RPC_URL().arbitrumNova.default,
-    chainId: chains.arbitrumNova.id,
+    url: rpc('arbitrum_nova'),
+    chainId: 42170,
     tags: ['arbitrumNova'],
     verify: {
-      etherscan: ETHERSCAN.arbitrumNova.config,
+      etherscan: etherscan('arbitrum_nova'),
     },
   },
   optimism: {
     accounts: { mnemonic, count: 100 },
-    url: RPC_URL().optimism.alchemy,
-    chainId: chains.optimism.id,
+    url: rpc('optimism'),
+    chainId: 10,
     saveDeployments: true,
     tags: ['optimism'],
     verify: {
-      etherscan: ETHERSCAN.optimism.config,
+      etherscan: etherscan('optimism'),
     },
   },
   opgoerli: {
     accounts: { mnemonic, count: 100 },
-    url: RPC_URL().optimismGoerli.alchemy,
-    chainId: chains.optimismGoerli.id,
+    url: rpc('optimism_goerli'),
+    chainId: 420,
     gasPrice: 100000,
     verify: {
-      etherscan: ETHERSCAN.optimismGoerli.config,
+      etherscan: etherscan('optimism_goerli'),
     },
     hardfork: 'merge',
   },
   polygon: {
     accounts: { mnemonic },
-    url: RPC_URL().polygon.default,
-    chainId: chains.polygon.id,
+    url: rpc('polygon'),
+    chainId: 137,
     tags: ['polygon'],
     verify: {
-      etherscan: ETHERSCAN.polygon.config,
+      etherscan: etherscan('polygon'),
     },
   },
   polygonMumbai: {
     accounts: { mnemonic },
-    url: RPC_URL().polygonMumbai.alchemy,
-    chainId: chains.polygonMumbai.id,
+    url: rpc('polygon_mumbai'),
+    chainId: 80001,
     tags: ['polygonMumbai'],
     verify: {
-      etherscan: ETHERSCAN.polygonMumbai.config,
+      etherscan: etherscan('polygon_mumbai'),
     },
   },
   polygonZkEvm: {
     accounts: { mnemonic },
-    url: RPC_URL().polygonZkEvm.default,
-    chainId: chains.polygonZkEvm.id,
+    url: rpc('polygon_zkevm'),
+    chainId: 1101,
     tags: ['polygonZkEvm'],
     verify: {
-      etherscan: ETHERSCAN.polygonZkEvm.config,
+      etherscan: etherscan('polygon_zkevm'),
     },
   },
   polygonZkEvmTestnet: {
     accounts: { mnemonic },
-    url: RPC_URL().polygonZkEvmTestnet.alchemy,
-    chainId: chains.polygonZkEvmTestnet.id,
+    url: rpc('polygon_zkevm_testnet'),
+    chainId: 1442,
     tags: ['polygonZkEvmTestnet'],
     verify: {
-      etherscan: ETHERSCAN.polygonZkEvmTestnet.config,
+      etherscan: etherscan('polygon_zkevm_testnet'),
     },
   },
   ...networksPartialConfig(mnemonic),
-});
-
-export const handleForking = (networkConfig: ReturnType<typeof networks>) => {
-  return process.env.FORKING !== undefined
-    ? {
-        ...networkConfig,
-        hardhat: {
-          ...networkConfig.hardhat,
-          forking: {
-            url: (networkConfig[process.env.FORKING] as HttpNetworkConfig).url,
-            blockNumber: process.env.FORKING_BLOCKNUMBER ? parseInt(process.env.FORKING_BLOCKNUMBER) : undefined,
-          },
-          companionNetworks: {
-            live: process.env.FORKING,
-          },
-        },
-      }
-    : networkConfig;
-};
+})
 
 export const networksPartialConfig = (mnemonic: string) => ({
   xdai: {
@@ -178,15 +158,6 @@ export const networksPartialConfig = (mnemonic: string) => ({
     chainId: 1313161554,
     url: `https://mainnet.aurora.dev`,
     tags: ['aurora'],
-  },
-  auroraTestnet: {
-    accounts: {
-      mnemonic,
-    },
-    chainId: 1313161555,
-    url: `https://aurora-testnet.infura.io/v3/${INFURA_API_KEY()}`,
-    tags: ['auroraTestnet'],
-    gasPrice: 0,
   },
   avalanche: {
     accounts: { mnemonic },
@@ -255,4 +226,40 @@ export const networksPartialConfig = (mnemonic: string) => ({
     chainId: 1666700000,
     tags: ['harmonyTestnet'],
   },
-});
+})
+
+export const handleForking = (networkConfig: ReturnType<typeof networks>) => {
+  return process.env.FORKING !== undefined
+    ? {
+        ...networkConfig,
+        hardhat: {
+          ...networkConfig.hardhat,
+          forking: {
+            url: (networkConfig[process.env.FORKING] as HttpNetworkConfig).url,
+            blockNumber: process.env.FORKING_BLOCKNUMBER ? parseInt(process.env.FORKING_BLOCKNUMBER) : undefined,
+          },
+          companionNetworks: {
+            live: process.env.FORKING,
+          },
+        },
+      }
+    : networkConfig
+}
+
+const rpc = (network: string) => {
+  if (process.env.ALCHEMY_API_KEY) {
+    return process.env[`RPC_${network.toUpperCase()}_ALCHEMY`] ?? process.env[`RPC_${network.toUpperCase()}`]
+  } else {
+    return process.env[`RPC_${network.toUpperCase()}`]
+  }
+}
+
+const etherscan = (network: string) => {
+  const apiKey = process.env[`ETHERSCAN_API_KEY_${network.toUpperCase()}`]
+  if (apiKey) {
+    return {
+      apiKey,
+      apiUrl: process.env[`ETHERSCAN_API_URL_${network.toUpperCase()}`],
+    }
+  }
+}

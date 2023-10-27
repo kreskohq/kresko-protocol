@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.8.21;
+pragma solidity 0.8.21;
 
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {IMinterLiquidationFacet} from "minter/interfaces/IMinterLiquidationFacet.sol";

@@ -1,13 +1,13 @@
-import { ZERO_ADDRESS } from '@kreskolabs/lib'
 import { expect } from '@test/chai'
 import { kreskoAssetFixture } from '@utils/test/fixtures'
 import { Role } from '@utils/test/roles'
+import { zeroAddress } from 'viem'
 
 describe('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset
 
   beforeEach(async function () {
-    ;({ KreskoAsset } = await kreskoAssetFixture({ name: 'Ether', symbol: 'krETH', underlyingToken: ZERO_ADDRESS }))
+    ;({ KreskoAsset } = await kreskoAssetFixture({ name: 'Ether', symbol: 'krETH', underlyingToken: zeroAddress }))
     this.mintAmount = 125
     this.owner = hre.users.deployer
     await KreskoAsset.grantRole(Role.OPERATOR, this.owner.address)

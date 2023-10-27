@@ -2,6 +2,20 @@ import { BigNumber } from 'ethers/lib/ethers'
 import { concat, formatUnits, parseUnits, stringToBytes, toHex } from 'viem'
 export const HashZero = '0x0000000000000000000000000000000000000000000000000000000000000000'
 export const MaxUint128 = '340282366920938463463374607431768211455'
+export const priceTW = async (symbol: string) => {
+  const result = await fetch(
+    `https://api.twelvedata.com/price?symbol=${symbol}&prepost=true&apikey=${process.env.TWELVEDATA_API_KEY}`,
+  )
+  const data = (await result.json()) as { price: string }
+  return toFixed(Number(data.price), 2).toString()
+}
+
+export const toFixed = (number: number, precision: number) => {
+  const multiplier = 10 ** (precision + 1)
+  const wholeNumber = Math.floor(number * multiplier)
+
+  return (Math.round(wholeNumber / 10) * 10) / multiplier
+}
 export function formatBytesString(text: string, length: number): string {
   // Get the bytes
   const bytes = stringToBytes(text)
