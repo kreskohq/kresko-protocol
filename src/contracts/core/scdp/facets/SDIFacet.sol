@@ -2,37 +2,28 @@
 pragma solidity >=0.8.21;
 
 import {Strings} from "libs/Strings.sol";
-import {Role} from "common/Types.sol";
 import {SDIPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
-import {EMPTY_BYTES12} from "common/Constants.sol";
-import {CModifiers} from "common/Modifiers.sol";
-import {CError} from "common/CError.sol";
+import {Role} from "common/Constants.sol";
+import {Modifiers} from "common/Modifiers.sol";
+import {Errors} from "common/Errors.sol";
+import {Validations} from "common/Validations.sol";
 import {Asset} from "common/Types.sol";
 
-import {DSModifiers} from "diamond/Modifiers.sol";
+import {DSModifiers} from "diamond/DSModifiers.sol";
 
-import {sdi, scdp} from "scdp/State.sol";
+import {sdi, scdp} from "scdp/SState.sol";
 import {ISDIFacet} from "scdp/interfaces/ISDIFacet.sol";
 
-contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
-    using Strings for bytes12;
+contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
     using Strings for bytes32;
 
-    function initialize(address _coverRecipient) external onlyOwner {
-        sdi().coverRecipient = _coverRecipient;
-    }
-
-    /* -------------------------------------------------------------------------- */
-    /*                                    Views                                   */
-    /* -------------------------------------------------------------------------- */
-    /// @notice Simply returns the total supply of SDI.
     function totalSDI() external view returns (uint256) {
         return sdi().totalSDI();
     }
 
     function getTotalSDIDebt() external view returns (uint256) {
-        return uint256(sdi().totalDebt);
+        return sdi().totalDebt;
     }
 
     function getEffectiveSDIDebt() external view returns (uint256) {
@@ -86,16 +77,9 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
     /* -------------------------------------------------------------------------- */
 
     function enableCoverAssetSDI(address _assetAddr) external onlyRole(Role.ADMIN) {
-        Asset storage asset = cs().assets[_assetAddr];
-        if (asset.underlyingId == EMPTY_BYTES12) {
-            revert CError.INVALID_ASSET(_assetAddr);
-        } else if (asset.pushedPrice().price == 0) {
-            revert CError.NO_PUSH_PRICE(asset.underlyingId.toString());
-        } else if (asset.isSCDPCoverAsset) {
-            revert CError.ASSET_ALREADY_ENABLED(_assetAddr);
-        }
+        Asset storage asset = Validations.validateSDICoverAsset(_assetAddr);
 
-        asset.isSCDPCoverAsset = true;
+        asset.isCoverAsset = true;
         bool shouldPushToAssets = true;
         for (uint256 i; i < sdi().coverAssets.length; i++) {
             if (sdi().coverAssets[i] == _assetAddr) {
@@ -108,17 +92,15 @@ contract SDIFacet is ISDIFacet, DSModifiers, CModifiers {
     }
 
     function disableCoverAssetSDI(address _assetAddr) external onlyRole(Role.ADMIN) {
-        if (!cs().assets[_assetAddr].isSCDPCoverAsset) {
-            revert CError.ASSET_ALREADY_DISABLED(_assetAddr);
+        if (!cs().assets[_assetAddr].isCoverAsset) {
+            revert Errors.ASSET_ALREADY_DISABLED(Errors.id(_assetAddr));
         }
 
-        cs().assets[_assetAddr].isSCDPCoverAsset = false;
+        cs().assets[_assetAddr].isCoverAsset = false;
     }
 
     function setCoverRecipientSDI(address _newCoverRecipient) external onlyRole(Role.ADMIN) {
-        if (_newCoverRecipient == address(0)) {
-            revert CError.ZERO_ADDRESS();
-        }
+        if (_newCoverRecipient == address(0)) revert Errors.ZERO_ADDRESS();
         sdi().coverRecipient = _newCoverRecipient;
     }
 }

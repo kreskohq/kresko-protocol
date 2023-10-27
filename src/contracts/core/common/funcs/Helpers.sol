@@ -15,7 +15,7 @@ function collateralAmountToValues(
     uint256 _amount
 ) view returns (uint256 value, uint256 valueAdjusted, uint256 price) {
     price = self.price();
-    value = toWad(self.decimals, _amount).wadMul(price);
+    value = toWad(_amount, self.decimals).wadMul(price);
     valueAdjusted = value.percentMul(self.factor);
 }
 

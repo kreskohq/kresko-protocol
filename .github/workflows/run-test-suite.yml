@@ -51,19 +51,6 @@ jobs:
 
       - run: npm run test:ci
         env:
-          FEED_VALIDATOR: ${{ secrets.FEED_VALIDATOR }}
-          FEED_VALIDATOR_PK: ${{ secrets.FEED_VALIDATOR_PK }}
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
-          FEE_RECIPIENT_ADDRESS: ${{ secrets.FEE_RECIPIENT_ADDRESS }}
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
-          FUNDER: ${{ secrets.FUNDER }}
-          MNEMONIC: ${{ secrets.MNEMONIC }}
-          TREASURY: ${{ secrets.TREASURY }}
-          MULTISIG: ${{ secrets.MULTISIG }}
-          OPERATOR: ${{ secrets.OPERATOR }}
-          ADMIN: ${{ secrets.ADMIN }}
-          BURN_FEE: 0.015e4
-          LIQUIDATION_INCENTIVE: 1.05e4
-          MINIMUM_COLLATERALIZATION_RATIO: 1.5e4
-          MINIMUM_DEBT_VALUE: 10
-          LIQUIDATION_THRESHOLD: 1.4e4
+          MNEMONIC_DEVNET: ${{ secrets.MNEMONIC_DEVNET }}

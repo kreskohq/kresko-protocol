@@ -14,12 +14,13 @@ broadcast/
 cache/
 build/
 out/
+broadcast/
 node_modules/
 deployments/hardhat
 deployments/localhost
 deployments/anvil
-types/typechain
-types/contracts
+src/types/typechain
+src/types/contracts
 _bin
 bin
 lib

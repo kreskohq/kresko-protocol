@@ -6,14 +6,13 @@ import {ISCDPStateFacet} from "scdp/interfaces/ISCDPStateFacet.sol";
 import {ISCDPFacet} from "scdp/interfaces/ISCDPFacet.sol";
 import {ISDIFacet} from "scdp/interfaces/ISDIFacet.sol";
 import {ISCDPSwapFacet} from "scdp/interfaces/ISCDPSwapFacet.sol";
-import {IBurnFacet} from "minter/interfaces/IBurnFacet.sol";
-import {IBurnHelperFacet} from "periphery/facets/IBurnHelperFacet.sol";
-import {IConfigurationFacet} from "minter/interfaces/IConfigurationFacet.sol";
-import {IMintFacet} from "minter/interfaces/IMintFacet.sol";
-import {IDepositWithdrawFacet} from "minter/interfaces/IDepositWithdrawFacet.sol";
-import {IStateFacet} from "minter/interfaces/IStateFacet.sol";
-import {ILiquidationFacet} from "minter/interfaces/ILiquidationFacet.sol";
-import {IAccountStateFacet} from "minter/interfaces/IAccountStateFacet.sol";
+import {IMinterBurnFacet} from "minter/interfaces/IMinterBurnFacet.sol";
+import {IMinterConfigurationFacet} from "minter/interfaces/IMinterConfigurationFacet.sol";
+import {IMinterMintFacet} from "minter/interfaces/IMinterMintFacet.sol";
+import {IMinterDepositWithdrawFacet} from "minter/interfaces/IMinterDepositWithdrawFacet.sol";
+import {IMinterStateFacet} from "minter/interfaces/IMinterStateFacet.sol";
+import {IMinterLiquidationFacet} from "minter/interfaces/IMinterLiquidationFacet.sol";
+import {IMinterAccountStateFacet} from "minter/interfaces/IMinterAccountStateFacet.sol";
 import {IAuthorizationFacet} from "common/interfaces/IAuthorizationFacet.sol";
 import {ISafetyCouncilFacet} from "common/interfaces/ISafetyCouncilFacet.sol";
 import {ICommonConfigurationFacet} from "common/interfaces/ICommonConfigurationFacet.sol";
@@ -22,13 +21,15 @@ import {IAssetStateFacet} from "common/interfaces/IAssetStateFacet.sol";
 import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFacet.sol";
 import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
-import {IDiamondOwnershipFacet} from "diamond/interfaces/IDiamondOwnershipFacet.sol";
+import {IDiamondStateFacet} from "diamond/interfaces/IDiamondStateFacet.sol";
+
+// import {IMinterBurnHelperFacet} from "periphery/facets/IMinterBurnHelperFacet.sol";
 
 // solhint-disable-next-line no-empty-blocks
 interface IKresko is
     IDiamondCutFacet,
     IDiamondLoupeFacet,
-    IDiamondOwnershipFacet,
+    IDiamondStateFacet,
     IAuthorizationFacet,
     ICommonConfigurationFacet,
     ICommonStateFacet,
@@ -39,15 +40,15 @@ interface IKresko is
     ISCDPConfigFacet,
     ISCDPStateFacet,
     ISDIFacet,
-    IBurnFacet,
-    IBurnHelperFacet,
+    IMinterBurnFacet,
     ISafetyCouncilFacet,
-    IConfigurationFacet,
-    IMintFacet,
-    IStateFacet,
-    IDepositWithdrawFacet,
-    IAccountStateFacet,
-    ILiquidationFacet
+    IMinterConfigurationFacet,
+    IMinterMintFacet,
+    IMinterStateFacet,
+    IMinterDepositWithdrawFacet,
+    IMinterAccountStateFacet,
+    IMinterLiquidationFacet
+    // IMinterBurnHelperFacet,
 {
 
 }

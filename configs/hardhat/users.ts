@@ -1,58 +1,34 @@
 import type { HardhatUserConfig } from 'hardhat/config';
 
-if (!process.env.OPERATOR) {
-  throw new Error('OPERATOR not set');
-}
-if (!process.env.MNEMONIC) {
-  throw new Error('MNEMONIC not set');
-}
-if (!process.env.FEED_VALIDATOR_PK) {
-  throw new Error('FEED_VALIDATOR_PK not set');
-}
-if (!process.env.TREASURY) {
-  throw new Error('TREASURY not set');
-}
-if (!process.env.FUNDER) {
-  throw new Error('FUNDER not set');
-}
-if (!process.env.MULTISIG) {
-  throw new Error('MULTISIG not set');
-}
-
+const DEPLOYER_INDEX = process.env.DEPLOYER_INDEX == null ? 0 : parseInt(process.env.DEPLOYER_INDEX);
 export const hardhatUsers = {
-  // Dynamic
   admin: {
-    default: 0,
-    420: process.env.MULTISIG,
+    default: process.env.ADMIN ?? 0,
+  },
+  deployer: {
+    default: DEPLOYER_INDEX,
+  },
+  operator: {
+    default: DEPLOYER_INDEX,
   },
   multisig: {
     default: 0,
-    420: process.env.MULTISIG,
+    1: '0x31d866AAf9D8588B1295e3A34B6B714a62fE2989',
+    10: '0x22426D3995a56646b5cbA56283159CEC883E68dB',
+    137: '0x389297F0d8C489954D65e04ff0690FC54E57Dad6',
+    42161: '0x389297F0d8C489954D65e04ff0690FC54E57Dad6',
     421613: '0x83b92b8A21d56941cB9d056B36E0cC2aDa15f1E1',
   },
   treasury: {
-    default: process.env.TREASURY,
+    default: process.env.TREASURY ?? 10,
   },
-  feedValidator: {
-    default: `privatekey://${process.env.FEED_VALIDATOR_PK}`,
-  },
-  testnetFunder: {
-    default: process.env.FUNDER,
-  },
-  // Derivative addresses
-  deployer: {
-    default: 0,
-  },
-  owner: {
-    default: 2,
-  },
+  /* ------------------------------- test users ------------------------------- */
   liquidator: {
-    default: 4,
+    default: 9,
   },
-  nonadmin: {
-    default: 5,
+  notAdmin: {
+    default: 30,
   },
-  // Test users
   userOne: {
     default: 31,
   },
@@ -68,59 +44,35 @@ export const hardhatUsers = {
   userFive: {
     default: 35,
   },
-  testUserOne: {
+  userSix: {
     default: 36,
   },
-  testUserTwo: {
+  userSeven: {
     default: 37,
   },
-  testUserThree: {
+  userEight: {
     default: 38,
   },
-  testUserFour: {
+  userNine: {
     default: 39,
   },
-  testUserFive: {
+  userTen: {
     default: 40,
   },
-  testUserSix: {
+  userEleven: {
     default: 41,
   },
-  testUserSeven: {
+  userTwelve: {
     default: 42,
   },
-  testUserEight: {
+  devOne: {
     default: 43,
   },
-  testUserNine: {
+  extOne: {
     default: 44,
   },
-  testUserTen: {
-    default: 45,
-  },
-  testUserExtra: {
-    default: 46,
-  },
-  devOne: {
-    default: 47,
-  },
-  devTwo: {
-    default: 48,
-  },
-  extOne: {
-    default: 49,
-  },
   extTwo: {
-    default: 50,
-  },
-  extThree: {
-    default: 51,
-  },
-  funder: {
-    default: 52,
-  },
-  scdpSwapFeeRecipient: {
-    default: 53,
+    default: 45,
   },
 };
 export const users: HardhatUserConfig['namedAccounts'] = hardhatUsers;

@@ -1,6 +1,6 @@
 # Kresko Protocol
 
-This repository contains the core smart contract code for Kresko protocol, which supports the creation and management of crypto-backed synthetic assets. Prices for synthetic assets are committed on chain by trusted oracles. Kresko uses a proxy system so that contract upgrades are not disruptive to protocol functionality. This is a usage and integration guide that assumes familiarity with the basic economic mechanics as described in the litepaper.
+This repository contains the code for the Kresko Protocol. Kresko Protocol supports creating and managing crypto-backed synthetic assets. Prices for synthetic assets are derived from combination of oracle providers (on-demand/push). Protocol uses the [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535) architecture. It enables composability through flexibile storage patterns while allowing users to access all core functionality with a single contract address. This is a usage and integration guide that assumes familiarity with Solidity (and EIP-2535), Foundry, Hardhat and [core concepts](https://kresko.gitbook.io/kresko-docs/) of Kresko.
 
 [![run test suite](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml/badge.svg?branch=develop)](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml?branch=develop)
 
@@ -8,47 +8,58 @@ This repository contains the core smart contract code for Kresko protocol, which
 
 ### Setup
 
-<b>_You need a authorized npm token in .npmrc to install required internal dependencies, this will be lifted later on._</b> <br/>
+(**OPTIONAL**) create .env file `cp .env.example .env`
 
-Install dependencies with an authorized .npmrc:
+#### Dependencies
+
+Install forge dependencies
+
+```sh
+forge install
+```
+
+Install node dependencies
+(_Authorized npm token is required in .npmrc for some internal packages. This will be lifted later._)<br/>
 
 ```sh
 pnpm i
 ```
 
-### Testing
+### Compiling
 
-Create local .env file:
+#### Foundry
 
-```sh
-cp .env.example .env
-```
-
-Minimum required values:
+Compile the contracts using foundry
 
 ```sh
-MNEMONIC=some mnemonic
-LIQUIDATION_INCENTIVE=1.05
-LIQUIDATION_THRESHOLD=1.4
-MINIMUM_COLLATERALIZATION_RATIO=1.5
-MINIMUM_DEBT_VALUE=10
-ALCHEMY_API_KEY=alchemy api key
-TWELVE_DATA_API_KEY=twelve data api key
-TREASURY=0x0000000000000000000000000000000000000001
-MULTISIG=0x0000000000000000000000000000000000000002
-OPERATOR=0x0000000000000000000000000000000000000003
-ADMIN=0x0000000000000000000000000000000000000004
-FEED_VALIDATOR=0x0000000000000000000000000000000000000005
-FEED_VALIDATOR_PK=some private key
-FUNDER=0x0000000000000000000000000000000000000006
-
+forge build
 ```
 
-Ensure a working setup by performing a dry-run of the local deployment setup:
+Check your setup by running the local forge deployment
+
+```sh
+forge script src/contracts/scripts/devnet/Devnet.s.sol:WithLocal
+```
+
+#### Hardhat
+
+Compile the contracts using hardhat
+
+```sh
+pnpm compile
+```
+
+Check your setup by running the local hardhat deployment
 
 ```sh
 pnpm run deploy --tags local
 ```
+
+### Testing
+
+**NOTE:** Primary test coverage uses hardhat. Forge tests are a work in progress.
+
+#### Hardhat
 
 Run tests with against a local deployment fixture:
 
@@ -56,7 +67,15 @@ Run tests with against a local deployment fixture:
 pnpm test
 ```
 
+#### Foundry
+
+```sh
+forge test --ffi
+```
+
 ### Deployment
+
+#### Hardhat
 
 To local network:
 
@@ -68,6 +87,14 @@ To live network:
 
 ```sh
 pnpm deploy --network <network>
+```
+
+#### Foundry
+
+Local
+
+```sh
+forge script src/contracts/scripts/devnet/Devnet.s.sol:WithLocal
 ```
 
 ### Forking

@@ -1,30 +1,30 @@
-import { MockContract } from '@defi-wonderland/smock';
-import { toBig } from '@utils/values';
-import hre from 'hardhat';
+import type { MockContract } from '@defi-wonderland/smock'
+import { toBig } from '@utils/values'
+import hre from 'hardhat'
 
-const keccak256 = hre.ethers.utils.keccak256;
-const hexZeroPad = hre.ethers.utils.hexZeroPad;
-const hexStripZeros = hre.ethers.utils.hexStripZeros;
-const getStorageAt = hre.ethers.provider.getStorageAt;
+const keccak256 = hre.ethers.utils.keccak256
+const hexZeroPad = hre.ethers.utils.hexZeroPad
+const hexStripZeros = hre.ethers.utils.hexStripZeros
+const getStorageAt = hre.ethers.provider.getStorageAt
 
 function increaseHexBy(hex: string, index: number) {
-  return toBig(hex, 0).add(index).toHexString();
+  return toBig(hex, 0).add(index).toHexString()
 }
 
 async function getMappingArray(slot: string, key: string) {
-  const paddedSlot = hexZeroPad(slot, 32);
-  const paddedKey = hexZeroPad(key, 32);
-  const indexKey = paddedKey + paddedSlot.slice(2);
-  const itemSlot = keccak256(indexKey);
-  return [keccak256(itemSlot), Number(await getStorageAt(hre.Diamond.address, itemSlot))] as const;
+  const paddedSlot = hexZeroPad(slot, 32)
+  const paddedKey = hexZeroPad(key, 32)
+  const indexKey = paddedKey + paddedSlot.slice(2)
+  const itemSlot = keccak256(indexKey)
+  return [keccak256(itemSlot), Number(await getStorageAt(hre.Diamond.address, itemSlot))] as const
 }
 
 async function getNestedMappingItem(slot: string, key: string, innerKey: string) {
-  const paddedSlot = hexZeroPad(slot, 32);
-  const paddedKey = hexZeroPad(key, 32);
-  const paddedInnerKey = hexZeroPad(innerKey, 32);
-  const indexKey = keccak256(paddedInnerKey + keccak256(paddedKey + paddedSlot.slice(2)).slice(2));
-  return await getStorageAt(hre.Diamond.address, indexKey);
+  const paddedSlot = hexZeroPad(slot, 32)
+  const paddedKey = hexZeroPad(key, 32)
+  const paddedInnerKey = hexZeroPad(innerKey, 32)
+  const indexKey = keccak256(paddedInnerKey + keccak256(paddedKey + paddedSlot.slice(2)).slice(2))
+  return await getStorageAt(hre.Diamond.address, indexKey)
 }
 
 export const slots = {
@@ -39,46 +39,46 @@ export const slots = {
   liquidationThreshold: 15,
   kreskoAssetStorageStart: 208,
   kreskoAssetIsRebased: 208,
-};
+}
 
 export async function getAccountCollateralAssets(address: string) {
   try {
     const [dataSlot, length] = await getMappingArray(
       increaseHexBy(slots.minter, slots.depositedCollateralAssets),
       address,
-    );
-    if (!length) return [];
+    )
+    if (!length) return []
 
     return Promise.all(
       Array.from({ length }).map(async (_, i) => {
-        const data = await getStorageAt(hre.Diamond.address, increaseHexBy(dataSlot, i));
-        return hre.ethers.utils.getAddress(hexStripZeros(data));
+        const data = await getStorageAt(hre.Diamond.address, increaseHexBy(dataSlot, i))
+        return hre.ethers.utils.getAddress(hexStripZeros(data))
       }),
-    );
+    )
   } catch {
-    return [];
+    return []
   }
 }
 export async function getAccountMintedAssets(address: string) {
   try {
-    const [dataSlot, length] = await getMappingArray(increaseHexBy(slots.minter, slots.mintedKreskoAssets), address);
-    if (!length) return [];
+    const [dataSlot, length] = await getMappingArray(increaseHexBy(slots.minter, slots.mintedKreskoAssets), address)
+    if (!length) return []
 
     return Promise.all(
       Array.from({ length }).map(async (_, i) => {
-        const data = await getStorageAt(hre.Diamond.address, increaseHexBy(dataSlot, i));
-        return hre.ethers.utils.getAddress(hexStripZeros(data));
+        const data = await getStorageAt(hre.Diamond.address, increaseHexBy(dataSlot, i))
+        return hre.ethers.utils.getAddress(hexStripZeros(data))
       }),
-    );
+    )
   } catch {
-    return [];
+    return []
   }
 }
 export async function getAccountCollateralAmount<T extends Omit<TestKrAsset, 'deployed'>>(
   address: string,
   asset: string | any,
 ) {
-  return hre.Diamond.getAccountCollateralAmount(address, typeof asset === 'string' ? asset : asset.address);
+  return hre.Diamond.getAccountCollateralAmount(address, typeof asset === 'string' ? asset : asset.address)
   // try {
   //   let assetAddress: string = '';
   //   if (typeof asset === 'string') {
@@ -100,7 +100,7 @@ export async function getAccountCollateralAmount<T extends Omit<TestKrAsset, 'de
   // }
 }
 export async function getAccountDebtAmount(address: string, krAsset: TestKrAsset) {
-  return hre.Diamond.getAccountDebtAmount(address, krAsset.address);
+  return hre.Diamond.getAccountDebtAmount(address, krAsset.address)
   // try {
   //   if ((await getIsRebased(krAsset.contract))[0]) {
   //     return await hre.Diamond.getAccountDebtAmount(address, krAsset.address);
@@ -116,8 +116,8 @@ export async function getAccountDebtAmount(address: string, krAsset: TestKrAsset
   // }
 }
 
-export async function getMinCollateralRatio() {
-  return hre.Diamond.getMinCollateralRatio();
+export async function getMinCollateralRatioMinter() {
+  return hre.Diamond.getMinCollateralRatioMinter()
   // try {
   //     const data = await getStorageAt(hre.Diamond.address, increaseHexBy(slots.minter, slots.minCollateralRatio));
   //     return BigNumber.from(hexStripZeros(data));
@@ -126,7 +126,7 @@ export async function getMinCollateralRatio() {
   // }
 }
 export async function getMinDebtValue() {
-  return hre.Diamond.getMinDebtValue();
+  return hre.Diamond.getMinDebtValue()
   // try {
   //     const data = await getStorageAt(hre.Diamond.address, increaseHexBy(slots.minter, slots.minDebtValue));
   //     return BigNumber.from(hexStripZeros(data));
@@ -134,8 +134,8 @@ export async function getMinDebtValue() {
   //     return BigNumber.from(0);
   // }
 }
-export async function getLiquidationThreshold() {
-  return hre.Diamond.getLiquidationThreshold();
+export async function getLiquidationThresholdMinter() {
+  return hre.Diamond.getLiquidationThresholdMinter()
   // try {
   //     const data = await getStorageAt(hre.Diamond.address, increaseHexBy(slots.minter, slots.liquidationThreshold));
   //     return BigNumber.from(hexStripZeros(data));
@@ -143,8 +143,8 @@ export async function getLiquidationThreshold() {
   //     return BigNumber.from(0);
   // }
 }
-export async function getMaxLiquidationRatio() {
-  return hre.Diamond.getMaxLiquidationRatio();
+export async function getMaxLiquidationRatioMinter() {
+  return hre.Diamond.getMaxLiquidationRatioMinter()
   // try {
   //     const data = await getStorageAt(hre.Diamond.address, increaseHexBy(slots.minter, slots.maxLiquidationRatio));
   //     return BigNumber.from(hexStripZeros(data));
@@ -153,40 +153,40 @@ export async function getMaxLiquidationRatio() {
   // }
 }
 export async function getIsRebased<T extends KreskoAsset | ERC20Upgradeable>(asset: MockContract<T>) {
-  let denominator = toBig(0);
-  let isRebased = false;
-  let isPositive = false;
+  let denominator = toBig(0)
+  let isRebased = false
+  let isPositive = false
 
   // @ts-expect-error
-  if (typeof asset.isRebased !== 'function') return [Boolean(false), isPositive, denominator] as const;
+  if (typeof asset.isRebased !== 'function') return [Boolean(false), isPositive, denominator] as const
 
   try {
-    isPositive = Boolean(Number(await getStorageAt(asset.address, slots.kreskoAssetIsRebased)));
+    isPositive = Boolean(Number(await getStorageAt(asset.address, slots.kreskoAssetIsRebased)))
     try {
-      denominator = toBig(hexStripZeros(await getStorageAt(asset.address, slots.kreskoAssetIsRebased + 1)), 0);
+      denominator = toBig(hexStripZeros(await getStorageAt(asset.address, slots.kreskoAssetIsRebased + 1)), 0)
     } catch {}
-    isRebased = denominator.gt(toBig(1));
+    isRebased = denominator.gt(toBig(1))
   } catch {
     // @ts-expect-error
-    isRebased = await asset.isRebased();
+    isRebased = await asset.isRebased()
   }
-  return [isRebased, isPositive, denominator] as const;
+  return [isRebased, isPositive, denominator] as const
 }
 
 export async function getAccountDepositIndex(address: string, asset: string) {
   try {
-    const assets = await getAccountCollateralAssets(address);
-    return assets.indexOf(asset);
+    const assets = await getAccountCollateralAssets(address)
+    return assets.indexOf(asset)
   } catch {
-    return hre.Diamond.getAccountDepositIndex(address, asset);
+    return hre.Diamond.getAccountDepositIndex(address, asset)
   }
 }
 export async function getAccountMintIndex(address: string, asset: string) {
   try {
-    const assets = await getAccountMintedAssets(address);
-    return assets.indexOf(asset);
+    const assets = await getAccountMintedAssets(address)
+    return assets.indexOf(asset)
   } catch {
-    return hre.Diamond.getAccountMintIndex(address, asset);
+    return hre.Diamond.getAccountMintIndex(address, asset)
   }
 }
 
@@ -196,10 +196,10 @@ export default {
   getAccountCollateralAssets,
   getAccountDebtAmount,
   getAccountCollateralAmount,
-  getMaxLiquidationRatio,
-  getMinCollateralRatio,
+  getMaxLiquidationRatioMinter,
+  getMinCollateralRatioMinter,
   getMinDebtValue,
-  getLiquidationThreshold,
+  getLiquidationThresholdMinter,
   getAccountDepositIndex,
   getAccountMintIndex,
-};
+}

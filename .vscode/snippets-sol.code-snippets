@@ -1,32 +1,122 @@
 {
-    "console.log": {
-        "prefix": "clg",
-        "description": "console.log",
-        "scope": "solidity",
-        "body": ["console.log($1);"]
-    },
-    "spdxpragma": {
-        "prefix": "spdxpragma",
-        "description": "spdxpragma",
-        "scope": "solidity",
-        "body": ["// SPDX-License-Identifier: MIT", "pragma solidity >=0.8.19;"]
-    },
-    "hhc": {
-        "prefix": "hhc",
-        "description": "hhc",
-        "scope": "solidity",
-        "body": ["import \"hardhat/console.sol\";"]
-    },
-    "natfunc": {
-        "prefix": "natfunc",
-        "description": "natfunc",
-        "scope": "solidity",
-        "body": ["/**", "* @notice $1", "* @dev $2", "* @param $3", "*/"]
-    },
-    "natcontract": {
-        "prefix": "natcontract",
-        "description": "natcontract",
-        "scope": "solidity",
-        "body": ["/** ", "* @title $1", "* @author Kresko", "* @notice $2", "* @dev $3", "*/"]
-    }
+  "kresko: default spdx and pragma": {
+    "prefix": "kresko_spdx_pragma",
+    "description": "Add default SPDX license identifier and pragma solidity version.",
+    "scope": "solidity",
+    "body": ["// SPDX-License-Identifier: ${2:BUSL-1.1}", "pragma solidity ${1:^0.8.0};", ""]
+  },
+  "kresko: stub natspec for function": {
+    "prefix": "kresko_natspec_function",
+    "description": "Function natspec template",
+    "scope": "solidity",
+    "body": ["/**", "* @notice $1", "* @dev $2", "* @param $3", "*/"]
+  },
+  "kresko: stub natspec for contract": {
+    "prefix": "kresko_natspec_contract",
+    "description": "Contract natspec template.",
+    "scope": "solidity",
+    "body": ["/** ", "* @title $1", "* @author Kresko", "* @notice $2", "* @dev $3", "*/"]
+  },
+  "kresko: disable solhint rules in forge test/script": {
+    "prefix": "kresko_solhint_disable",
+    "description": "Disable solhint rules in forge files",
+    "scope": "solidity",
+    "body": [
+      "// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console"
+    ]
+  },
+  "kresko: forge test template with workspace tools": {
+    "isFileTemplate": true,
+    "prefix": "kresko_forge_test_template",
+    "body": [
+      "// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console",
+      "// SPDX-License-Identifier: MIT",
+      "pragma solidity ^0.8.0;",
+      "",
+      "import {TestBase} from \"kresko-lib/utils/TestBase.t.sol\";",
+      "import {Help, Log} from \"kresko-lib/utils/Libs.sol\";",
+      "import {ShortAssert} from \"kresko-lib/utils/ShortAssert.sol\";",
+      "",
+      "contract NewTest is TestBase(\"MNEMONIC_DEVNET\") {",
+      "    using Help for *;",
+      "    using ShortAssert for *;",
+      "    using Log for *;",
+      "",
+      "    address internal addr;",
+      "    uint256 internal value;",
+      "",
+      "    function setUp() public {",
+      "        console2.log(\"setup\");",
+      "        addr = address(0x123);",
+      "        value = 1;",
+      "    }",
+      "",
+      "    function testSomething() public {",
+      "        value.eq(1);",
+      "        addr.eq(address(0x123));",
+      "    }",
+      "}"
+    ],
+    "description": "Base for a new forge test using workspace utils"
+  },
+
+  "kresko: forge test template with protocol deployment": {
+    "isFileTemplate": true,
+    "prefix": "kresko_forge_test_protocol_template",
+    "body": [
+      "// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console",
+      "// SPDX-License-Identifier: MIT",
+      "pragma solidity ^0.8.0;",
+      "",
+      "import {ShortAssert} from \"kresko-lib/utils/ShortAssert.sol\";",
+      "import {Help, Log} from \"kresko-lib/utils/Libs.sol\";",
+      "import {TestBase} from \"kresko-lib/utils/TestBase.t.sol\";",
+      "import {KreskoForgeUtils} from \"scripts/utils/KreskoForgeUtils.s.sol\";",
+      "",
+      "contract NewKreskoTest is TestBase(\"MNEMONIC_DEVNET\"), KreskoForgeUtils {",
+      "    using ShortAssert for *;",
+      "    using Help for *;",
+      "    using Log for *;",
+      "",
+      "    MockConfig usdConfig = MockConfig({symbol: \"USDC\", price: 1e8, setFeeds: true, dec: 18, feedDec: 8});",
+      "    MockConfig krETHConfig = MockConfig({symbol: \"krETH\", price: 2000e8, setFeeds: true, dec: 18, feedDec: 8});",
+      "    MockTokenInfo internal usdc;",
+      "    KrAssetInfo internal krETH;",
+      "",
+      "    string usdcPrice = \"USDC:1:8\";",
+      "    string ethPrice = \"ETH:2000:8\";",
+      "    string initialPrices = \"USDC:1:8,ETH:2000:8\";",
+      "",
+      "    function setUp() public users(address(11), address(22), address(33)) {",
+      "        deployCfg = CoreConfig({",
+      "            admin: TEST_ADMIN,",
+      "            seqFeed: getMockSeqFeed(),",
+      "            minterMcr: 150e2,",
+      "            minterLt: 140e2,",
+      "            scdpMcr: 200e2,",
+      "            scdpLt: 150e2,",
+      "            sdiPrecision: 8,",
+      "            oraclePrecision: 8,",
+      "            staleTime: 86401,",
+      "            council: getMockSafe(TEST_ADMIN),",
+      "            treasury: TEST_TREASURY",
+      "        });",
+      "        prank(deployCfg.admin);",
+      "        kresko = deployDiamond(deployCfg);",
+      "        factory = deployDeploymentFactory(TEST_ADMIN);",
+      "        vm.warp(3601);",
+      "        usdc = mockCollateral(bytes32(\"USDC\"), usdConfig, ext_full);",
+      "        krETH = mockKrAsset(bytes32(\"ETH\"), address(0), krETHConfig, kr_default, deployCfg);",
+      "    }",
+      "",
+      "    function testSomething() public {",
+      "        usdc.config.ticker.eq(\"USDC\");",
+      "        krETH.config.ticker.eq(\"ETH\");",
+      "        kresko.getPushPrice(usdc.addr).answer.dlg(\"USDC price\", 8);",
+      "        kresko.getPushPrice(krETH.addr).answer.dlg(\"krETH price\", 8);",
+      "    }",
+      "}"
+    ],
+    "description": "Base for a new forge test using minimal protocol deployment"
+  }
 }

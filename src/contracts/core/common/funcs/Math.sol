@@ -14,77 +14,74 @@ using PercentageMath for uint16;
 
 /**
  * @notice Calculate amount for value provided with possible incentive multiplier for value.
- * @param _incentiveMultiplier The incentive multiplier (>= 1e18).
- * @param _price The price in USD for the output asset.
- * @param _repayValue Value to be converted to amount.
+ * @param _value Value to convert into amount.
+ * @param _price The price to apply.
+ * @param _multiplier Multiplier to apply, 1e4 = 100.00% precision.
  */
-function valueToAmount(uint16 _incentiveMultiplier, uint256 _price, uint256 _repayValue) pure returns (uint256) {
-    // Seize amount = (repay amount USD * liquidation incentive / collateral price USD).
-    // Denominate seize amount in collateral type
-    // Apply liquidation incentive multiplier
-    return _repayValue.percentMul(_incentiveMultiplier).wadDiv(_price);
+function valueToAmount(uint256 _value, uint256 _price, uint16 _multiplier) pure returns (uint256) {
+    return _value.percentMul(_multiplier).wadDiv(_price);
 }
 
 /**
- * @notice For a given collateral asset and amount, returns a wad represenatation.
- * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.
- *   If decimals > 18, there may be a loss of precision.
- * @param _decimals The collateral asset's number of decimals
- * @param _amount The amount of the collateral asset.
- * @return A fp of amount scaled according to the collateral asset's decimals.
+ * @notice Converts decimal precision of `_amount` to wad decimal precision, which is 18 decimals.
+ * @dev Multiplies if precision is less and divides if precision is greater than 18 decimals.
+ * @param _amount Amount to convert.
+ * @param _decimals Decimal precision for `_amount`.
+ * @return uint256 Amount converted to wad precision.
  */
-function toWad(uint256 _decimals, uint256 _amount) pure returns (uint256) {
-    // Initially, use the amount as the raw value for the fixed point.
-    // which internally uses 18 decimals.
-    // Most collateral assets will have 18 decimals.
+function toWad(uint256 _amount, uint8 _decimals) pure returns (uint256) {
+    // Most tokens use 18 decimals.
+    if (_decimals == 18 || _amount == 0) return _amount;
 
-    // Handle cases where the collateral asset's decimal amount is not 18.
     if (_decimals < 18) {
-        // If the decimals are less than 18, multiply the amount
-        // to get the correct wad value.
-        // E.g. 1 full token of a 17 decimal token will  cause the
-        // initial setting of amount to be 0.1, so we multiply
-        // by 10 ** (18 - 17) = 10 to get it to 0.1 * 10 = 1.
+        // Multiply for decimals less than 18 to get a wad value out.
+        // If the token has 17 decimals, multiply by 10 ** (18 - 17) = 10
+        // Results in a value of 1e18.
         return _amount * (10 ** (18 - _decimals));
-    } else if (_decimals > 18) {
-        // If the decimals are greater than 18, divide the amount
-        // to get the correct fixed point value.
-        // Note because wad numbers are 18 decimals, this results
-        // in loss of precision. E.g. if the collateral asset has 19
-        // decimals and the deposit amount is only 1 uint, this will divide
-        // 1 by 10 ** (19 - 18), resulting in 1 / 10 = 0
-        return _amount / (10 ** (_decimals - 18));
     }
-    return _amount;
+
+    // Divide for decimals greater than 18 to get a wad value out.
+    // Loses precision, eg. 1 wei of token with 19 decimals:
+    // Results in 1 / 10 ** (19 - 18) =  1 / 10 = 0.
+    return _amount / (10 ** (_decimals - 18));
+}
+
+function toWad(int256 _amount, uint8 _decimals) pure returns (uint256) {
+    return toWad(uint256(_amount), _decimals);
 }
 
 /**
- * @notice For a given collateral asset and wad amount, returns the collateral amount.
- * @dev If the collateral asset has decimals other than 18, the amount is scaled appropriately.
- *   If decimals < 18, there may be a loss of precision.
- * @param _decimals The collateral asset's number of decimals
- * @param _wadAmount The wad amount of the collateral asset.
- * @return An amount that is compatible with the collateral asset's decimals.
+ * @notice  Converts wad precision `_amount`  to wad decimal precision, which is 18 decimals.
+ * @dev Multiplies if precision is greater and divides if precision is less than 18 decimals.
+ * @param _wadAmount Wad precision amount to convert.
+ * @param _decimals Decimal precision for the result.
+ * @return uint256 Amount converted to `_decimals` precision.
  */
-function fromWad(uint256 _decimals, uint256 _wadAmount) pure returns (uint256) {
-    // Initially, use the rawValue, which internally uses 18 decimals.
-    // Most collateral assets will have 18 decimals.
-    // Handle cases where the collateral asset's decimal amount is not 18.
+function fromWad(uint256 _wadAmount, uint8 _decimals) pure returns (uint256) {
+    // Most tokens use 18 decimals.
+    if (_decimals == 18 || _wadAmount == 0) return _wadAmount;
+
     if (_decimals < 18) {
-        // If the decimals are less than 18, divide the depositAmount
-        // to get the correct collateral amount.
-        // E.g. 1 full token will result in amount being 1e18 at this point,
-        // so if the token has 17 decimals, divide by 10 ** (18 - 17) = 10
-        // to get a value of 1e17.
-        // This may result in a loss of precision.
+        // Divide if decimals are less than 18 to get the correct amount out.
+        // If token has 17 decimals, dividing by 10 ** (18 - 17) = 10
+        // Results in a value of 1e17, which can lose precision.
         return _wadAmount / (10 ** (18 - _decimals));
-    } else if (_decimals > 18) {
-        // If the decimals are greater than 18, multiply the depositAmount
-        // to get the correct fixed point value.
-        // E.g. 1 full token will result in amount being 1e18 at this point,
-        // so if the token has 19 decimals, multiply by 10 ** (19 - 18) = 10
-        // to get a value of 1e19.
-        return _wadAmount * (10 ** (_decimals - 18));
     }
-    return _wadAmount;
+    // Multiply for decimals greater than 18 to get the correct amount out.
+    // If the token has 19 decimals, multiply by 10 ** (19 - 18) = 10
+    // Results in a value of 1e19.
+    return _wadAmount * (10 ** (_decimals - 18));
+}
+
+/**
+ * @notice Get the value of `_amount` and convert to 18 decimal precision.
+ * @param _amount Amount of tokens to calculate.
+ * @param _amountDecimal Precision of `_amount`.
+ * @param _price Price to use.
+ * @param _priceDecimals Precision of `_price`.
+ * @return uint256 Value of `_amount` in 18 decimal precision.
+ */
+function wadUSD(uint256 _amount, uint8 _amountDecimal, uint256 _price, uint8 _priceDecimals) pure returns (uint256) {
+    if (_amount == 0 || _price == 0) return 0;
+    return toWad(_amount, _amountDecimal).wadMul(toWad(_price, _priceDecimals));
 }

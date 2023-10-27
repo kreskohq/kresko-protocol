@@ -1,31 +1,42 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
 
-import {Role} from "common/Types.sol";
-import {CModifiers} from "common/Modifiers.sol";
-import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
-import {ds} from "diamond/State.sol";
-import {FacetCut} from "diamond/Types.sol";
-import {DSModifiers} from "diamond/Modifiers.sol";
-import {initializeDiamondCut} from "diamond/funcs/Cuts.sol";
+import {Role} from "common/Constants.sol";
+import {Modifiers} from "common/Modifiers.sol";
+
+import {IDiamondCutFacet, IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
+import {FacetCut, Initializer} from "diamond/DSTypes.sol";
+import {DSModifiers} from "diamond/DSModifiers.sol";
+import {DSCore} from "diamond/DSCore.sol";
 
 /**
  * @title EIP2535-pattern upgrades.
+ * @author Nick Mudge
  * @author Kresko
- * @notice The storage area is in the main proxy diamond storage.
+ * @notice Reference implementation of diamondCut. Extended to allow executing initializers without cuts.
  */
-contract DiamondCutFacet is IDiamondCutFacet, DSModifiers, CModifiers {
+contract DiamondCutFacet is IDiamondCutFacet, IExtendedDiamondCutFacet, DSModifiers, Modifiers {
     /// @inheritdoc IDiamondCutFacet
     function diamondCut(
         FacetCut[] calldata _diamondCut,
-        address _init,
+        address _initializer,
         bytes calldata _calldata
-    ) external onlyRole(Role.ADMIN) {
-        ds().cut(_diamondCut, _init, _calldata);
+    ) external onlyRole(Role.DEFAULT_ADMIN) {
+        DSCore.cut(_diamondCut, _initializer, _calldata);
     }
 
-    /// @inheritdoc IDiamondCutFacet
-    function upgradeState(address _init, bytes calldata _calldata) external onlyRole(Role.ADMIN) {
-        initializeDiamondCut(_init, _calldata);
+    /// @inheritdoc IExtendedDiamondCutFacet
+    function executeInitializer(address _initializer, bytes calldata _calldata) external onlyRole(Role.DEFAULT_ADMIN) {
+        DSCore.exec(_initializer, _calldata);
+    }
+
+    /// @inheritdoc IExtendedDiamondCutFacet
+    function executeInitializers(Initializer[] calldata _initializers) external onlyRole(Role.DEFAULT_ADMIN) {
+        for (uint256 i; i < _initializers.length; ) {
+            DSCore.exec(_initializers[i].initContract, _initializers[i].initData);
+            unchecked {
+                i++;
+            }
+        }
     }
 }

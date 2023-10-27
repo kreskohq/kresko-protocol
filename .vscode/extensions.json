@@ -3,12 +3,7 @@
   // Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
 
   // List of extensions which should be recommended for users of this workspace.
-  "recommendations": [
-    "esbenp.prettier-vscode",
-    "dbaeumer.vscode-eslint",
-    "stackbreak.comment-divider",
-    "0xp.vsc-solidity"
-  ],
+  "recommendations": ["esbenp.prettier-vscode", "biomejs.biome", "stackbreak.comment-divider", "0xp.vsc-solidity"],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
-  "unwantedRecommendations": ["NomicFoundation.hardhat-solidity", "JuanBlanco.solidity"]
+  "unwantedRecommendations": ["dbaeumer.vscode-eslint", "NomicFoundation.hardhat-solidity", "JuanBlanco.solidity"]
 }

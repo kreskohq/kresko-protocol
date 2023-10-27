@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.21;
+
 import {EnumerableSet} from "libs/EnumerableSet.sol";
-import {Asset, SafetyState, RoleData, Action, Oracle, OracleType} from "common/Types.sol";
+import {LibModifiers} from "common/Modifiers.sol";
+import {Enums} from "common/Constants.sol";
+import {Asset, SafetyState, RoleData, Oracle} from "common/Types.sol";
+
+using LibModifiers for CommonState global;
 
 struct CommonState {
     /* -------------------------------------------------------------------------- */
@@ -10,9 +15,9 @@ struct CommonState {
     /// @notice asset address -> asset data
     mapping(address => Asset) assets;
     /// @notice asset -> oracle type -> oracle
-    mapping(bytes32 => mapping(OracleType => Oracle)) oracles;
+    mapping(bytes32 => mapping(Enums.OracleType => Oracle)) oracles;
     /// @notice asset -> action -> state
-    mapping(address => mapping(Action => SafetyState)) safetyState;
+    mapping(address => mapping(Enums.Action => SafetyState)) safetyState;
     /// @notice The recipient of protocol fees.
     address feeRecipient;
     /// @notice The minimum USD value of an individual synthetic asset debt position.
@@ -24,10 +29,10 @@ struct CommonState {
     address sequencerUptimeFeed;
     /// @notice grace period of sequencer in seconds
     uint32 sequencerGracePeriodTime;
-    /// @notice timeout for oracle in seconds
-    uint32 oracleTimeout;
-    /// @notice The oracle deviation percentage between the main oracle and fallback oracle.
-    uint16 oracleDeviationPct;
+    /// @notice Time in seconds for a feed to be considered stale
+    uint32 staleTime;
+    /// @notice The max deviation percentage between primary and secondary price.
+    uint16 maxPriceDeviationPct;
     /// @notice Offchain oracle decimals
     uint8 oracleDecimals;
     /// @notice Flag tells if there is a need to perform safety checks on user actions

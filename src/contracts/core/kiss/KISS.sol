@@ -5,10 +5,11 @@ pragma solidity >=0.8.21;
 import {AccessControlEnumerableUpgradeable, AccessControlUpgradeable} from "@oz-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {IAccessControl} from "@oz/access/IAccessControl.sol";
 import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
-import {ERC20Upgradeable} from "vendor/ERC20Upgradeable.sol";
-import {SafeERC20Upgradeable} from "vendor/SafeERC20Upgradeable.sol";
-import {Role} from "common/Types.sol";
-import {CError} from "common/CError.sol";
+import {ERC20Upgradeable} from "kresko-lib/token/ERC20Upgradeable.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+
+import {Role} from "common/Constants.sol";
+import {Errors} from "common/Errors.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {IERC165} from "vendor/IERC165.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
@@ -23,7 +24,7 @@ import {IVault} from "vault/interfaces/IVault.sol";
  * @author Kresko
  */
 contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnumerableUpgradeable {
-    using SafeERC20Upgradeable for ERC20Upgradeable;
+    using SafeTransfer for ERC20Upgradeable;
 
     address public kresko;
     address public vKISS;
@@ -36,14 +37,9 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         address kresko_,
         address vKISS_
     ) external initializer {
-        // Few sanity checks, we do not want EOA's here
-        if (kresko_.code.length == 0) revert CError.NOT_A_CONTRACT(kresko_);
-        if (admin_.code.length == 0) revert CError.NOT_A_CONTRACT(admin_);
+        if (kresko_.code.length == 0) revert Errors.NOT_A_CONTRACT(kresko_);
 
-        // ERC20
-        name = name_;
-        symbol = symbol_;
-        decimals = dec_;
+        __ERC20Upgradeable_init(name_, symbol_, dec_);
 
         // Setup the admin
         _grantRole(Role.DEFAULT_ADMIN, admin_);
@@ -55,12 +51,10 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
 
         // Setup vault
         vKISS = vKISS_;
-
-        renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     modifier onlyContract() {
-        if (msg.sender.code.length == 0) revert CError.NOT_A_CONTRACT(msg.sender);
+        if (msg.sender.code.length == 0) revert Errors.NOT_A_CONTRACT(msg.sender);
         _;
     }
 
@@ -82,48 +76,48 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
 
     /// @inheritdoc IVaultExtender
     function vaultDeposit(
-        address _asset,
+        address _assetAddr,
         uint256 _assets,
         address _receiver
     ) external returns (uint256 sharesOut, uint256 assetFee) {
-        ERC20Upgradeable(_asset).safeTransferFrom(msg.sender, address(this), _assets);
-        (sharesOut, assetFee) = IVault(vKISS).deposit(_asset, _assets, address(this));
+        ERC20Upgradeable(_assetAddr).safeTransferFrom(msg.sender, address(this), _assets);
+        (sharesOut, assetFee) = IVault(vKISS).deposit(_assetAddr, _assets, address(this));
         _mint(_receiver, sharesOut);
     }
 
     /// @inheritdoc IVaultExtender
     function vaultMint(
-        address _asset,
+        address _assetAddr,
         uint256 _shares,
         address _receiver
     ) external returns (uint256 assetsIn, uint256 assetFee) {
-        (assetsIn, assetFee) = IVault(vKISS).previewMint(_asset, _shares);
-        ERC20Upgradeable(_asset).safeTransferFrom(msg.sender, address(this), assetsIn);
-        IVault(vKISS).mint(_asset, _shares, address(this));
+        (assetsIn, assetFee) = IVault(vKISS).previewMint(_assetAddr, _shares);
+        ERC20Upgradeable(_assetAddr).safeTransferFrom(msg.sender, address(this), assetsIn);
+        IVault(vKISS).mint(_assetAddr, _shares, address(this));
         _mint(_receiver, _shares);
     }
 
     /// @inheritdoc IVaultExtender
     function vaultWithdraw(
-        address _asset,
+        address _assetAddr,
         uint256 _assets,
         address _receiver,
         address _owner
     ) external returns (uint256 sharesIn, uint256 assetFee) {
-        (sharesIn, assetFee) = IVault(vKISS).previewWithdraw(_asset, _assets);
+        (sharesIn, assetFee) = IVault(vKISS).previewWithdraw(_assetAddr, _assets);
         withdrawFrom(_owner, address(this), sharesIn);
-        IVault(vKISS).withdraw(_asset, _assets, _receiver, address(this));
+        IVault(vKISS).withdraw(_assetAddr, _assets, _receiver, address(this));
     }
 
     /// @inheritdoc IVaultExtender
     function vaultRedeem(
-        address _asset,
+        address _assetAddr,
         uint256 _shares,
         address _receiver,
         address _owner
     ) external returns (uint256 assetsOut, uint256 assetFee) {
         withdrawFrom(_owner, address(this), _shares);
-        (assetsOut, assetFee) = IVault(vKISS).redeem(_asset, _shares, _receiver, address(this));
+        (assetsOut, assetFee) = IVault(vKISS).redeem(_assetAddr, _shares, _receiver, address(this));
     }
 
     /// @inheritdoc IVaultExtender
@@ -162,9 +156,7 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         bytes32 _role,
         address _to
     ) public override(IKISS, AccessControlUpgradeable, IAccessControl) onlyRole(Role.ADMIN) {
-        if (_role == Role.OPERATOR) {
-            if (_to.code.length == 0) revert CError.NOT_A_CONTRACT(_to);
-        }
+        if (_role == Role.OPERATOR && _to.code.length == 0) revert Errors.NOT_A_CONTRACT(_to);
         _grantRole(_role, _to);
     }
 
@@ -183,7 +175,17 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     }
 
     /// @inheritdoc IKreskoAssetIssuer
+    function convertManyToShares(uint256[] calldata assets) external pure returns (uint256[] calldata shares) {
+        return assets;
+    }
+
+    /// @inheritdoc IKreskoAssetIssuer
     function convertToAssets(uint256 shares) external pure returns (uint256) {
+        return shares;
+    }
+
+    /// @inheritdoc IKreskoAssetIssuer
+    function convertManyToAssets(uint256[] calldata shares) external pure returns (uint256[] calldata assets) {
         return shares;
     }
 
@@ -202,9 +204,9 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     /* -------------------------------------------------------------------------- */
     /*                                  internal                                  */
     /* -------------------------------------------------------------------------- */
-    function _withdraw(address _from, address _to, uint256 _amount) internal {
-        _burn(_from, _amount);
-        ERC20Upgradeable(vKISS).transfer(_to, _amount);
+    function _withdraw(address from, address to, uint256 amount) internal {
+        _burn(from, amount);
+        ERC20Upgradeable(vKISS).transfer(to, amount);
     }
 
     /**
@@ -216,6 +218,6 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
      */
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
         super._beforeTokenTransfer(from, to, amount);
-        if (paused()) revert CError.PAUSED(address(this));
+        if (paused()) revert Errors.PAUSED(address(this));
     }
 }

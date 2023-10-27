@@ -3,12 +3,12 @@ pragma solidity >=0.8.21;
 
 import {AccessControlUpgradeable} from "@oz-upgradeable/access/AccessControlUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@oz-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import {SafeERC20Permit} from "vendor/SafeERC20Permit.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IKrStaking} from "./interfaces/IKrStaking.sol";
 
 contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrStaking {
-    using SafeERC20Permit for IERC20Permit;
+    using SafeTransfer for IERC20;
 
     // keccak256("kresko.operator.role")
     bytes32 public constant OPERATOR_ROLE = 0x8952ae23cc3fea91b9dba0cefa16d18a26ca2bf124b54f42b5d04bce3aacecd2;
@@ -57,38 +57,34 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
     function initialize(
         address[] calldata _rewardTokens,
         uint256[] calldata _rewardPerBlocks,
-        IERC20Permit _depositToken,
+        IERC20 _depositToken,
         uint128 _allocPoint,
         uint128 _startBlock,
         address _admin,
         address _operator
     ) external initializer {
-        require(_rewardPerBlocks.length == _rewardTokens.length, "Reward tokens must have a rewardPerBlock value");
-
-        __AccessControl_init();
-        __ReentrancyGuard_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
-        _setupRole(OPERATOR_ROLE, _operator);
-        _setupRole(OPERATOR_ROLE, msg.sender);
-
-        // Set initial reward tokens and allocations
-        for (uint256 i; i < _rewardTokens.length; i++) {
-            rewardPerBlockFor[_rewardTokens[i]] = _rewardPerBlocks[i];
-        }
-
-        // Push the initial pool in.
-        _poolInfo.push(
-            PoolInfo({
-                depositToken: _depositToken,
-                allocPoint: _allocPoint,
-                lastRewardBlock: _startBlock,
-                accRewardPerShares: new uint256[](_rewardTokens.length),
-                rewardTokens: _rewardTokens
-            })
-        );
-
-        totalAllocPoint += _allocPoint;
+        // if (_rewardPerBlocks.length == _rewardTokens.length) {
+        //     revert("KR: arrayLengthMismatch");
+        // }
+        // __ReentrancyGuard_init();
+        // _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        // _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+        // _grantRole(OPERATOR_ROLE, _operator);
+        // // Set initial reward tokens and allocations
+        // for (uint256 i; i < _rewardTokens.length; i++) {
+        //     rewardPerBlockFor[_rewardTokens[i]] = _rewardPerBlocks[i];
+        // }
+        // // Push the initial pool in.
+        // _poolInfo.push(
+        //     PoolInfo({
+        //         depositToken: _depositToken,
+        //         allocPoint: _allocPoint,
+        //         lastRewardBlock: _startBlock,
+        //         accRewardPerShares: new uint256[](_rewardTokens.length),
+        //         rewardTokens: _rewardTokens
+        //     })
+        // );
+        // totalAllocPoint += _allocPoint;
     }
 
     /**
@@ -101,7 +97,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
      * @notice Ensures no pool exists with this depositToken
      * @param _depositToken to check
      */
-    modifier ensurePoolDoesNotExist(IERC20Permit _depositToken) {
+    modifier ensurePoolDoesNotExist(IERC20 _depositToken) {
         for (uint256 i; i < _poolInfo.length; i++) {
             require(address(_poolInfo[i].depositToken) != address(_depositToken), "KR: poolExists");
         }
@@ -276,7 +272,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
     /// @inheritdoc IKrStaking
     function addPool(
         address[] calldata _rewardTokens,
-        IERC20Permit _depositToken,
+        IERC20 _depositToken,
         uint128 _allocPoint,
         uint128 _startBlock
     ) external payable onlyRole(OPERATOR_ROLE) ensurePoolDoesNotExist(_depositToken) {
@@ -336,7 +332,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
 
     /// @inheritdoc IKrStaking
     function rescueNonPoolToken(
-        IERC20Permit _tokenToRescue,
+        IERC20 _tokenToRescue,
         uint256 _amount
     ) external payable onlyRole(OPERATOR_ROLE) ensurePoolDoesNotExist(_tokenToRescue) {
         _tokenToRescue.safeTransfer(msg.sender, _amount);
@@ -360,7 +356,7 @@ contract KrStaking is AccessControlUpgradeable, ReentrancyGuardUpgradeable, IKrS
             uint256 pending = rewardDebt - user.rewardDebts[rewardIndex];
 
             if (pending > 0) {
-                IERC20Permit(pool.rewardTokens[rewardIndex]).safeTransfer(recipient, pending);
+                IERC20(pool.rewardTokens[rewardIndex]).safeTransfer(recipient, pending);
                 emit ClaimRewards(recipient, pool.rewardTokens[rewardIndex], pending);
             }
         }

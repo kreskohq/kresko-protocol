@@ -2,7 +2,7 @@
 /* solhint-disable no-inline-assembly */
 
 pragma solidity >=0.8.21;
-import {CError} from "common/CError.sol";
+import {Errors} from "common/Errors.sol";
 
 library Meta {
     bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
@@ -24,7 +24,6 @@ library Meta {
         if (msg.sender == address(this)) {
             bytes memory array = msg.data;
             uint256 index = msg.data.length;
-            /// @solidity memory-safe-assembly
             assembly {
                 // Load the 32 bytes word from memory with the address on the lower 20 bytes, and mask those.
                 sender_ := and(mload(add(array, index)), 0xffffffffffffffffffffffffffffffffffffffff)
@@ -41,7 +40,7 @@ library Meta {
             contractSize := extcodesize(_contract)
         }
         if (contractSize == 0) {
-            revert CError.ADDRESS_HAS_NO_CODE(_contract);
+            revert Errors.ADDRESS_HAS_NO_CODE(_contract);
         }
     }
 }

@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.4;
 
-import "./RedstoneConstants.sol";
-import "./CalldataExtractor.sol";
+import {RedstoneConstants} from "./RedstoneConstants.sol";
+import {CalldataExtractor} from "./CalldataExtractor.sol";
 
 /**
  * @title The base contract for forwarding redstone payload to other contracts

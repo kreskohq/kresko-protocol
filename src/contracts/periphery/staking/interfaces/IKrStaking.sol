@@ -1,7 +1,22 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+
+/**
+ * @author Kresko
+ * @title Events
+ * @notice Staking Event definitions
+ */
+library StakingEvent {
+    event LiquidityAndStakeAdded(address indexed to, uint256 indexed amount, uint256 indexed pid);
+    event LiquidityAndStakeRemoved(address indexed to, uint256 indexed amount, uint256 indexed pid);
+    event Deposit(address indexed user, uint256 indexed pid, uint256 indexed amount);
+    event Withdraw(address indexed user, uint256 indexed pid, uint256 indexed amount);
+    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 indexed amount);
+    event ClaimRewards(address indexed user, address indexed rewardToken, uint256 indexed amount);
+    event ClaimRewardsMulti(address indexed to);
+}
 
 interface IKrStaking {
     struct UserInfo {
@@ -10,7 +25,7 @@ interface IKrStaking {
     }
 
     struct PoolInfo {
-        IERC20Permit depositToken; // Address of LP token contract.
+        IERC20 depositToken; // Address of LP token contract.
         uint128 allocPoint; // How many allocation points assigned to this pool.
         uint128 lastRewardBlock; // Last block number that rewards distribution occurs.
         uint256[] accRewardPerShares; // Accumulated rewards per share, times 1e12.
@@ -97,7 +112,7 @@ interface IKrStaking {
      * @notice A rescue function for missent tokens / airdrops
      * @notice This cannot withdraw any deposits due `ensurePoolDoesNotExist` modifier.
      */
-    function rescueNonPoolToken(IERC20Permit _tokenToRescue, uint256 _amount) external payable;
+    function rescueNonPoolToken(IERC20 _tokenToRescue, uint256 _amount) external payable;
 
     /**
      * @notice Set new allocations for a pool
@@ -117,7 +132,7 @@ interface IKrStaking {
      */
     function addPool(
         address[] calldata _rewardTokens,
-        IERC20Permit _depositToken,
+        IERC20 _depositToken,
         uint128 _allocPoint,
         uint128 _startBlock
     ) external payable;

@@ -3,7 +3,7 @@ pragma solidity >=0.8.21;
 
 import {IAccessControlEnumerable} from "@oz/access/extensions/IAccessControlEnumerable.sol";
 import {IERC165} from "vendor/IERC165.sol";
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {IERC20Permit} from "kresko-lib/token/IERC20Permit.sol";
 
 import {IKreskoAssetIssuer} from "./IKreskoAssetIssuer.sol";
 import {IKreskoAsset} from "./IKreskoAsset.sol";

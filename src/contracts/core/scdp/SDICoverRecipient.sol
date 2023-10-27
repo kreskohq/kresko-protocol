@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {IERC20Permit} from "vendor/IERC20Permit.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 
 contract SDICoverRecipient {
     address public owner;
@@ -15,7 +15,7 @@ contract SDICoverRecipient {
         require(msg.sender == owner, "not-owner");
         require(recipient.code.length != 0, "recipient-eoa");
         if (address(token) == address(0)) payable(recipient).transfer(amount);
-        else IERC20Permit(token).transfer(recipient, amount);
+        else IERC20(token).transfer(recipient, amount);
     }
 
     function changeOwner(address _owner) external {
