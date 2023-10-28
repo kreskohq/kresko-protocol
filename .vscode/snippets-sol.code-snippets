@@ -28,6 +28,7 @@
   "kresko: forge test template with workspace tools": {
     "isFileTemplate": true,
     "prefix": "kresko_forge_test_template",
+    "scope": "solidity",
     "body": [
       "// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console",
       "// SPDX-License-Identifier: MIT",
@@ -63,6 +64,7 @@
   "kresko: forge test template with protocol deployment": {
     "isFileTemplate": true,
     "prefix": "kresko_forge_test_protocol_template",
+    "scope": "solidity",
     "body": [
       "// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console",
       "// SPDX-License-Identifier: MIT",
