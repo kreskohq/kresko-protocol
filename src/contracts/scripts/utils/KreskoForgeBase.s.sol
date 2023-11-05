@@ -36,12 +36,14 @@ import {KISS} from "kiss/KISS.sol";
 import {Vault} from "vault/Vault.sol";
 import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
 
+import {PeripheryFacet} from "periphery/facets/PeripheryFacet.sol";
+
 abstract contract KreskoForgeBase is
     IKreskoForgeTypes,
     RedstoneScript("./utils/getRedstonePayload.js"),
     FacetScript("./utils/getFunctionSelectors.sh")
 {
-    uint256 internal constant FACET_COUNT = 22;
+    uint256 internal constant FACET_COUNT = 23;
     uint256 internal constant INITIALIZER_COUNT = 3;
     address internal constant TEST_ADMIN = address(0xABABAB);
     address public constant TEST_TREASURY = address(0xFEE);
@@ -69,6 +71,9 @@ abstract contract KreskoForgeBase is
         initializers[1] = minterFacets(_cfg, facets);
         /* ---------------------------------- SCDP ---------------------------------- */
         initializers[2] = scdpFacets(_cfg, facets);
+        /* ---------------------------- Periphery --------------------------- */
+        peripheryFacets(_cfg, facets);
+
         (kresko_ = IKresko(address(new Diamond(_cfg.admin, facets, initializers))));
         __current_kresko = address(kresko_); // @note mandatory
     }
@@ -240,6 +245,14 @@ abstract contract KreskoForgeBase is
                 configurationFacetAddress,
                 abi.encodeWithSelector(SCDPConfigFacet.initializeSCDP.selector, getSCDPInitArgs(_cfg))
             );
+    }
+
+    function peripheryFacets(CoreConfig memory, FacetCut[] memory _facets) internal {
+        _facets[22] = FacetCut({
+            facetAddress: address(new PeripheryFacet()),
+            action: FacetCutAction.Add,
+            functionSelectors: getSelectorsFromArtifact("PeripheryFacet")
+        });
     }
 
     function deployDiamondOneTx(CoreConfig memory _cfg) internal returns (IKresko kresko_) {

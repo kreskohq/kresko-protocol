@@ -9,10 +9,10 @@ import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 
 import {DSModifiers} from "diamond/DSModifiers.sol";
-import {IMinterBurnHelperFacet} from "./IMinterBurnHelperFacet.sol";
 import {MEvent} from "minter/MEvent.sol";
 import {ms, MinterState} from "minter/MState.sol";
 import {handleMinterFee} from "minter/funcs/MFees.sol";
+import {IMinterBurnHelperFacet} from "periphery/interfaces/IMinterBurnHelperFacet.sol";
 
 /**
  * @author Kresko

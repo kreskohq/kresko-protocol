@@ -1,12 +1,12 @@
 [profile.default]
-src = 'src/contracts/core'
+src = 'src/contracts'
 out = 'out/foundry'
 libs = ['lib']
 script = 'src/contracts/scripts'
 test = 'src/contracts/test'
 cache_path = 'cache/forge'
 ffi = true
-fs_permissions = [{ access = "read-write", path = "./"}]
+fs_permissions = [{ access = "read-write", path = "./" }]
 remappings = [
     '@openzeppelin/=lib/kresko-foundry-helpers/lib/openzeppelin-contracts/',
     '@oz-upgradeable/=lib/kresko-foundry-helpers/lib/openzeppelin-contracts-upgradeable/contracts/',
@@ -24,11 +24,11 @@ remappings = [
     "libs/=src/contracts/core/libs/",
     'forge-std/=lib/forge-std/src/',
     'factory/=src/contracts/core/factory/',
-    "periphery/=src/contracts/periphery/",
+    "periphery/=src/contracts/core/periphery/",
     'scripts/=src/contracts/scripts/',
     'test/=src/contracts/test/',
     'mocks-misc/=src/contracts/mocks/',
-    "mocks/=src/contracts/core/test/mocks"
+    "mocks/=src/contracts/core/test/mocks",
 ]
 solc = '0.8.21'
 evm_version = 'paris'
