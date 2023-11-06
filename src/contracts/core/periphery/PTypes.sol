@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import {Asset, RawPrice} from "common/Types.sol";
+import {VaultAsset} from "vault/VTypes.sol";
 
 library PType {
     struct AssetData {
@@ -28,6 +29,7 @@ library PType {
         uint256 valDebt;
         uint256 valDebtOg;
         uint256 valDebtOgAdj;
+        uint256 sdiPrice;
         uint256 cr;
         uint256 crOg;
         uint256 crOgAdj;
@@ -77,14 +79,13 @@ library PType {
         uint16 CR;
         STotals totals;
         SDeposit[] deposits;
-        SDebt[] debts;
+        PAssetEntry[] debts;
     }
 
     struct Gate {
         address kreskian;
         address questForKresk;
         uint8 phase;
-        uint8[] restrictions;
     }
 
     struct PAsset {
@@ -99,31 +100,15 @@ library PType {
     }
 
     struct MAccount {
+        MTotals totals;
+        PAssetEntry[] deposits;
+        PAssetEntry[] debts;
+    }
+
+    struct MTotals {
         uint256 valColl;
         uint256 valDebt;
         uint16 cr;
-        MDeposit[] deposits;
-        MDebt[] debts;
-    }
-
-    struct MDebt {
-        address addr;
-        string symbol;
-        uint256 amount;
-        uint256 val;
-        uint256 valAdj;
-        uint256 price;
-        Asset config;
-    }
-
-    struct MDeposit {
-        address addr;
-        string symbol;
-        uint256 amount;
-        uint256 val;
-        uint256 valAdj;
-        uint256 price;
-        Asset config;
     }
 
     struct SAccountTotals {
@@ -134,19 +119,8 @@ library PType {
 
     struct SAccount {
         address addr;
-        string symbol;
         SAccountTotals totals;
-        SAccountDeposit[] deposits;
-    }
-
-    struct SAccountDeposit {
-        address addr;
-        string symbol;
-        uint256 price;
-        uint256 amount;
-        uint256 amountFees;
-        uint256 val;
-        uint256 valFees;
+        PAssetEntry[] deposits;
     }
 
     struct SDeposit {
@@ -161,10 +135,12 @@ library PType {
         uint256 price;
         Asset config;
     }
-    struct SDebt {
+
+    struct PAssetEntry {
         address addr;
         string symbol;
         uint256 amount;
+        uint256 amountAdj;
         uint256 val;
         uint256 valAdj;
         uint256 price;

@@ -5,7 +5,7 @@ import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
 import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
 import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
-import {PeripheryFacet} from "periphery/facets/PeripheryFacet.sol";
+import {DataFacet} from "periphery/facets/DataFacet.sol";
 import {PType} from "periphery/PTypes.sol";
 
 contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
@@ -103,7 +103,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
     }
 
     function testProtocolDatas() public {
-        PeripheryFacet frontend = PeripheryFacet(address(kresko));
+        DataFacet frontend = DataFacet(address(kresko));
         (, bytes memory data) = address(kresko).call(
             abi.encodePacked(abi.encodeWithSelector(frontend.getProtocolData.selector), redstoneCallData)
         );
@@ -213,7 +213,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
     function testUserDatas() public {
         /* ------------------------------ user0 ----------------------------- */
         (, bytes memory data) = address(kresko).call(
-            abi.encodePacked(abi.encodeWithSelector(PeripheryFacet.getAccountData.selector, user0), redstoneCallData)
+            abi.encodePacked(abi.encodeWithSelector(DataFacet.getAccountData.selector, user0), redstoneCallData)
         );
         PType.Account memory account = abi.decode(data, (PType.Account));
         account.addr.eq(user0, "account.addr");
@@ -255,11 +255,11 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account.scdp.deposits[0].price.eq(1e8, "account0.scdp.deposits[0].token");
         account.scdp.deposits[0].amount.eq(0, "account0.scdp.deposits[0].amount");
         account.scdp.deposits[0].val.eq(0, "account0.scdp.deposits[0].val");
-        account.scdp.deposits[0].valFees.eq(0, "account0.scdp.deposits[0].valFees");
+        account.scdp.deposits[0].valAdj.eq(0, "account0.scdp.deposits[0].valFees");
 
         /* ------------------------------ user2 ----------------------------- */
         (, bytes memory data2) = address(kresko).call(
-            abi.encodePacked(abi.encodeWithSelector(PeripheryFacet.getAccountData.selector, user2), redstoneCallData)
+            abi.encodePacked(abi.encodeWithSelector(DataFacet.getAccountData.selector, user2), redstoneCallData)
         );
         PType.Account memory account2 = abi.decode(data2, (PType.Account));
         account2.addr.eq(user2, "account2.addr");
@@ -301,6 +301,6 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account2.scdp.deposits[0].price.eq(1e8, "account2.scdp.deposits[0].token");
         account2.scdp.deposits[0].amount.eq(1000e18, "account2.scdp.deposits[0].amount");
         account2.scdp.deposits[0].val.eq(1000e8, "account2.scdp.deposits[0].val");
-        account2.scdp.deposits[0].valFees.eq(1000e8, "account2.scdp.deposits[0].valFees");
+        account2.scdp.deposits[0].valAdj.eq(1000e8, "account2.scdp.deposits[0].valFees");
     }
 }

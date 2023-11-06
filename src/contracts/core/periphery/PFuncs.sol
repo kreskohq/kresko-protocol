@@ -12,6 +12,10 @@ import {rawPrice} from "common/funcs/Prices.sol";
 import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {ms} from "minter/MState.sol";
+import {IVault} from "vault/interfaces/IVault.sol";
+import {VaultAsset} from "vault/VTypes.sol";
+import {Enums} from "common/Constants.sol";
+import {IERC1155} from "common/interfaces/IERC1155.sol";
 
 // solhint-disable code-complexity
 
@@ -109,19 +113,20 @@ library PFunc {
         result.debts = getSDebts();
     }
 
-    function getSDebts() internal view returns (PType.SDebt[] memory results) {
+    function getSDebts() internal view returns (PType.PAssetEntry[] memory results) {
         address[] memory krAssets = scdp().krAssets;
-        results = new PType.SDebt[](krAssets.length);
+        results = new PType.PAssetEntry[](krAssets.length);
 
         for (uint256 i; i < krAssets.length; i++) {
             address addr = krAssets[i];
 
             PType.AssetData memory data = getSAssetData(addr);
 
-            results[i] = PType.SDebt({
+            results[i] = PType.PAssetEntry({
                 addr: addr,
                 symbol: IERC20(addr).symbol(),
                 amount: data.amountDebt,
+                amountAdj: data.amountDebt,
                 val: data.valDebt,
                 valAdj: data.valDebtAdj,
                 price: data.price,
@@ -332,24 +337,25 @@ library PFunc {
     }
 
     function getMAccount(address _account) internal view returns (PType.MAccount memory result) {
-        result.valColl = ms().accountTotalCollateralValue(_account);
-        result.valDebt = ms().accountTotalDebtValue(_account);
-        result.cr = uint16(result.valDebt == 0 ? 0 : result.valColl.percentDiv(result.valDebt));
+        result.totals.valColl = ms().accountTotalCollateralValue(_account);
+        result.totals.valDebt = ms().accountTotalDebtValue(_account);
+        result.totals.cr = uint16(result.totals.valDebt == 0 ? 0 : result.totals.valColl.percentDiv(result.totals.valDebt));
         result.deposits = getMDeposits(_account);
         result.debts = getMDebts(_account);
     }
 
-    function getMDeposits(address _account) internal view returns (PType.MDeposit[] memory result) {
+    function getMDeposits(address _account) internal view returns (PType.PAssetEntry[] memory result) {
         address[] memory collaterals = ms().collaterals;
-        result = new PType.MDeposit[](collaterals.length);
+        result = new PType.PAssetEntry[](collaterals.length);
 
         for (uint256 i; i < collaterals.length; i++) {
             address addr = collaterals[i];
             PType.AssetData memory data = getMAssetData(_account, addr);
-            result[i] = PType.MDeposit({
+            result[i] = PType.PAssetEntry({
                 addr: addr,
                 symbol: IERC20(addr).symbol(),
                 amount: data.amountColl,
+                amountAdj: 0,
                 val: data.valColl,
                 valAdj: data.valCollAdj,
                 price: data.price,
@@ -358,18 +364,19 @@ library PFunc {
         }
     }
 
-    function getMDebts(address _account) internal view returns (PType.MDebt[] memory result) {
+    function getMDebts(address _account) internal view returns (PType.PAssetEntry[] memory result) {
         address[] memory krAssets = ms().krAssets;
-        result = new PType.MDebt[](krAssets.length);
+        result = new PType.PAssetEntry[](krAssets.length);
 
         for (uint256 i; i < krAssets.length; i++) {
             address addr = krAssets[i];
             PType.AssetData memory data = getMAssetData(_account, addr);
 
-            result[i] = PType.MDebt({
+            result[i] = PType.PAssetEntry({
                 addr: addr,
                 symbol: IERC20(addr).symbol(),
                 amount: data.amountDebt,
+                amountAdj: 0,
                 val: data.valDebt,
                 valAdj: data.valDebtAdj,
                 price: data.price,
@@ -387,15 +394,15 @@ library PFunc {
     function getSAccountTotals(
         address _account,
         address[] memory _assets
-    ) internal view returns (uint256 totalVal, uint256 totalValFees, PType.SAccountDeposit[] memory datas) {
+    ) internal view returns (uint256 totalVal, uint256 totalValFees, PType.PAssetEntry[] memory datas) {
         address[] memory assets = scdp().collaterals;
-        datas = new PType.SAccountDeposit[](_assets.length);
+        datas = new PType.PAssetEntry[](_assets.length);
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            PType.SAccountDeposit memory assetData = getSAccountDeposit(_account, asset);
+            PType.PAssetEntry memory assetData = getSAccountDeposit(_account, asset);
 
             totalVal += assetData.val;
-            totalValFees += assetData.valFees;
+            totalValFees += assetData.valAdj;
 
             for (uint256 j; j < _assets.length; ) {
                 if (asset == _assets[j]) {
@@ -412,19 +419,42 @@ library PFunc {
         }
     }
 
-    function getSAccountDeposit(
-        address _account,
-        address _assetAddr
-    ) internal view returns (PType.SAccountDeposit memory result) {
+    function getSAccountDeposit(address _account, address _assetAddr) internal view returns (PType.PAssetEntry memory result) {
         Asset storage asset = cs().assets[_assetAddr];
-        result.amountFees = scdp().accountScaledDeposits(_account, _assetAddr, asset);
         result.amount = asset.toRebasingAmount(scdp().depositsPrincipal[_account][_assetAddr]);
-        if (result.amountFees < result.amount) {
-            result.amount = result.amountFees;
+        result.amountAdj = scdp().accountScaledDeposits(_account, _assetAddr, asset);
+        if (result.amountAdj < result.amount) {
+            result.amount = result.amountAdj;
         }
         (result.val, result.price) = asset.collateralAmountToValueWithPrice(result.amount, true);
-        result.valFees = asset.collateralAmountToValue(result.amountFees, true);
+        result.valAdj = asset.collateralAmountToValue(result.amountAdj, true);
+
         result.symbol = IERC20(_assetAddr).symbol();
         result.addr = _assetAddr;
+    }
+
+    function getPhaseEligibility(address _user) internal view returns (uint8 phase, bool eligibleForCurrentPhase) {
+        phase = gs().phase;
+        if (phase <= 2) {
+            if (IERC1155(gs().kreskian).balanceOf(_user, 0) > 0) {
+                eligibleForCurrentPhase = true;
+                phase = 2;
+            }
+        }
+        if (phase == 1) {
+            IERC1155 questForKresk = IERC1155(gs().questForKresk);
+            if (questForKresk.balanceOf(_user, 2) > 0 && questForKresk.balanceOf(_user, 3) > 0) {
+                eligibleForCurrentPhase = true;
+                phase = 1;
+            }
+        } else if (phase == 0) {
+            if (IERC1155(gs().questForKresk).balanceOf(_user, 3) > 0) {
+                eligibleForCurrentPhase = true;
+                phase = 0;
+            }
+        } else {
+            phase = 32;
+            eligibleForCurrentPhase = true;
+        }
     }
 }

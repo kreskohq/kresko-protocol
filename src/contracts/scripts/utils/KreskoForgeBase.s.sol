@@ -36,7 +36,7 @@ import {KISS} from "kiss/KISS.sol";
 import {Vault} from "vault/Vault.sol";
 import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
 
-import {PeripheryFacet} from "periphery/facets/PeripheryFacet.sol";
+import {DataFacet} from "periphery/facets/DataFacet.sol";
 
 abstract contract KreskoForgeBase is
     IKreskoForgeTypes,
@@ -249,9 +249,9 @@ abstract contract KreskoForgeBase is
 
     function peripheryFacets(CoreConfig memory, FacetCut[] memory _facets) internal {
         _facets[22] = FacetCut({
-            facetAddress: address(new PeripheryFacet()),
+            facetAddress: address(new DataFacet()),
             action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("PeripheryFacet")
+            functionSelectors: getSelectorsFromArtifact("DataFacet")
         });
     }
 

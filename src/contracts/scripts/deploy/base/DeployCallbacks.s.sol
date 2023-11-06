@@ -9,6 +9,8 @@ import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
 import {IDeployState} from "./IDeployState.sol";
 import {state} from "./DeployState.s.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
+import {DataV1} from "periphery/DataV1.sol";
+import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 
 abstract contract DeployCallbacks is IDeployState, KreskoForgeUtils {
     function onConfigurationsCreated(
@@ -81,9 +83,12 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         ("/* ------------------------------ Contracts ----------------------------- */").clg();
         Log.br();
         address(_ctx.kresko).clg("Diamond");
+        address(_ctx.kresko).clg("DataV1");
         address(_ctx.vault).clg("Vault");
         address(_ctx.kiss).clg("KISS");
         address(_ctx.factory).clg("Deployment Factory");
+        _ctx.dataProvider = new DataV1(IDataFacet(_ctx.kresko), address(_ctx.vault), address(_ctx.kiss));
+        address(_ctx.dataProvider).clg("Data provider");
     }
 
     function onKrAssetAdded(State storage _ctx, KrAssetInfo memory _info) internal override {

@@ -8,6 +8,7 @@ import {Deployment} from "factory/DeploymentFactory.sol";
 import {Vault} from "vault/Vault.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
+import {IDataV1} from "periphery/IDataV1.sol";
 import {Asset} from "common/Types.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
@@ -31,6 +32,7 @@ interface IDeployState is IKreskoForgeTypes {
         AssetCfg assetCfg;
         UserCfg[] userCfg;
         AssetsOnChain assetsOnChain;
+        IDataV1 dataProvider;
         KISS kiss;
         IKresko kresko;
         Vault vault;

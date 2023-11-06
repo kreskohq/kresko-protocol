@@ -2,36 +2,40 @@
 pragma solidity 0.8.21;
 
 import {PType} from "periphery/PTypes.sol";
-import {IPeripheryFacet} from "periphery/interfaces/IPeripheryFacet.sol";
+import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 import {PFunc} from "periphery/PFuncs.sol";
 
-contract PeripheryFacet is IPeripheryFacet {
-    /// @inheritdoc IPeripheryFacet
+contract DataFacet is IDataFacet {
+    /// @inheritdoc IDataFacet
     function getProtocolData() external view returns (PType.Protocol memory) {
         return PFunc.getProtocol();
     }
 
-    /// @inheritdoc IPeripheryFacet
+    /// @inheritdoc IDataFacet
     function getAccountData(address _account) external view returns (PType.Account memory) {
         return PFunc.getAccount(_account);
     }
 
-    /// @inheritdoc IPeripheryFacet
+    /// @inheritdoc IDataFacet
     function getDataMinter() external view returns (PType.Minter memory) {
         return PFunc.getMinter();
     }
 
-    /// @inheritdoc IPeripheryFacet
+    /// @inheritdoc IDataFacet
     function getDataSCDP() external view returns (PType.SCDP memory) {
         return PFunc.getSCDP();
     }
 
-    /// @inheritdoc IPeripheryFacet
+    /// @inheritdoc IDataFacet
     function getTotalsSCDP() external view returns (PType.STotals memory result) {
         (result, ) = PFunc.getSData();
     }
 
-    /// @inheritdoc IPeripheryFacet
+    function getAccountGatingPhase(address _account) external view returns (uint8 phase, bool eligibleForCurrentPhase) {
+        return PFunc.getPhaseEligibility(_account);
+    }
+
+    /// @inheritdoc IDataFacet
     function getAccountsMinter(address[] memory _accounts) external view returns (PType.MAccount[] memory result) {
         result = new PType.MAccount[](_accounts.length);
 
@@ -44,12 +48,12 @@ contract PeripheryFacet is IPeripheryFacet {
         }
     }
 
-    /// @inheritdoc IPeripheryFacet
+    /// @inheritdoc IDataFacet
     function getAccountSCDP(address _account) external view returns (PType.SAccount memory) {
         return PFunc.getSAccount(_account, PFunc.getSDepositAssets());
     }
 
-    /// @inheritdoc IPeripheryFacet
+    /// @inheritdoc IDataFacet
     function getAccountsSCDP(
         address[] memory _accounts,
         address[] memory _assets
@@ -65,12 +69,12 @@ contract PeripheryFacet is IPeripheryFacet {
         }
     }
 
-    /// @inheritdoc IPeripheryFacet
+    /// @inheritdoc IDataFacet
     function getAssetDataSCDP(address _assetAddr) external view returns (PType.AssetData memory results) {
         return PFunc.getSAssetData(_assetAddr);
     }
 
-    /// @inheritdoc IPeripheryFacet
+    /// @inheritdoc IDataFacet
     function getAssetDatasSCDP(address[] memory _assets) external view returns (PType.AssetData[] memory results) {
         // address[] memory collateralAssets = scdp().collaterals;
         results = new PType.AssetData[](_assets.length);
