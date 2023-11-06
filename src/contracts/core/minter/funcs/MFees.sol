@@ -35,7 +35,7 @@ using Arrays for address[];
  */
 function handleMinterFee(Asset storage _krAsset, address _account, uint256 _mintAmount, Enums.MinterFee _feeType) {
     // Calculate the value of the fee according to the value of the krAssets being minted.
-    uint256 feeValue = _krAsset.uintUSD(_mintAmount).percentMul(
+    uint256 feeValue = _krAsset.krAssetUSD(_mintAmount).percentMul(
         _feeType == Enums.MinterFee.Open ? _krAsset.openFee : _krAsset.closeFee
     );
 

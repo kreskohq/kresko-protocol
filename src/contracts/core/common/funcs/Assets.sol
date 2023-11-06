@@ -30,8 +30,15 @@ library Assets {
     /**
      * @notice Get value for @param _assetAmount of @param self in uint256
      */
-    function uintUSD(Asset storage self, uint256 _amount) internal view returns (uint256) {
+    function krAssetUSD(Asset storage self, uint256 _amount) internal view returns (uint256) {
         return self.price().wadMul(_amount);
+    }
+
+    /**
+     * @notice Get value for @param _assetAmount of @param self in uint256
+     */
+    function assetUSD(Asset storage self, uint256 _amount) internal view returns (uint256) {
+        return self.collateralAmountToValue(_amount, true);
     }
 
     /**
@@ -120,7 +127,7 @@ library Assets {
      */
     function debtAmountToValue(Asset storage self, uint256 _amount, bool _ignoreKFactor) internal view returns (uint256 value) {
         if (_amount == 0) return 0;
-        value = self.uintUSD(_amount);
+        value = self.krAssetUSD(_amount);
 
         if (!_ignoreKFactor) {
             value = value.percentMul(self.kFactor);
@@ -181,7 +188,7 @@ library Assets {
      * @param _debtAmount The debt amount (uint256).
      */
     function ensureMinDebtValue(Asset storage _asset, address _krAsset, uint256 _debtAmount) internal view {
-        uint256 positionValue = _asset.uintUSD(_debtAmount);
+        uint256 positionValue = _asset.krAssetUSD(_debtAmount);
         uint256 minDebtValue = cs().minDebtValue;
         if (positionValue < minDebtValue)
             revert Errors.MINT_VALUE_LESS_THAN_MIN_DEBT_VALUE(Errors.id(_krAsset), positionValue, minDebtValue);

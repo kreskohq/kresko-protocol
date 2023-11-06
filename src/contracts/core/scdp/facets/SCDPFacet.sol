@@ -74,7 +74,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
             );
         }
 
-        uint256 seizedAmount = fromWad(repayAsset.uintUSD(_repayAmount).wadDiv(seizeAsset.price()), seizeAsset.decimals);
+        uint256 seizedAmount = fromWad(repayAsset.krAssetUSD(_repayAmount).wadDiv(seizeAsset.price()), seizeAsset.decimals);
 
         if (seizedAmount == 0) {
             revert Errors.ZERO_REPAY(Errors.id(_repayAssetAddr), _repayAmount, seizedAmount);

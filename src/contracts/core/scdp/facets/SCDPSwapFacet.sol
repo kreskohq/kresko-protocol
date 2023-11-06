@@ -46,7 +46,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
 
         // Get the fees from amount received.
         feeAmount = _amountIn.percentMul(feePercentage);
-        amountOut = assetIn.uintUSD(_amountIn - feeAmount).wadDiv(assetOut.price());
+        amountOut = assetIn.krAssetUSD(_amountIn - feeAmount).wadDiv(assetOut.price());
 
         feeAmountProtocol = feeAmount.percentMul(protocolFee);
         feeAmount -= feeAmountProtocol;

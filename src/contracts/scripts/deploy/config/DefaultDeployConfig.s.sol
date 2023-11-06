@@ -54,10 +54,10 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
     uint256 constant price_jpy = 0.0067e8;
     /* ------------------------------------ . ----------------------------------- */
     // @todo can probably delete these aswell
-    string constant price_eth_rs = "ETH:1590:8";
-    string constant price_btc_rs = "BTC:27662:8";
-    string constant price_eur_rs = "EUR:1.06:8";
-    string constant price_dai_rs = "DAI:1:8";
+    string constant price_eth_rs = "ETH:1911:8";
+    string constant price_btc_rs = "BTC:35159.01:8";
+    string constant price_eur_rs = "EUR:1.07:8";
+    string constant price_dai_rs = "DAI:0.9998:8";
     string constant price_usdc_rs = "USDC:1:8";
     string constant price_usdt_rs = "USDT:1:8";
     string constant price_jpy_rs = "JPY:0.0067:8";

@@ -19,14 +19,15 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
     using Log for *;
 
     MockTokenInfo internal usdc;
+    MockTokenInfo internal wbtc;
     MockTokenInfo internal dai;
     KrAssetInfo internal krETH;
     KrAssetInfo internal krJPY;
     KrAssetInfo internal krTSLA;
     DataV1 internal dataV1;
-    uint256 constant ASSET_COUNT = 5;
+    uint256 constant ASSET_COUNT = 6;
 
-    string initialPrices = "USDC:1:8,DAI:0.99:8,ETH:2000:8,TSLA:100:8,JPY:0.0067:8";
+    string initialPrices = "USDC:1:8,BTC:35179:8,DAI:0.99:8,ETH:2000:8,TSLA:100:8,JPY:0.0067:8";
     bytes redstoneCallData;
 
     function setUp() public users(address(11), address(22), address(33)) {
@@ -61,6 +62,11 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
             MockConfig({symbol: "DAI", price: 0.99e8, setFeeds: true, dec: 18, feedDec: 8}),
             ext_default
         );
+        wbtc = mockCollateral(
+            bytes32("BTC"),
+            MockConfig({symbol: "WBTC", price: 35179e8, setFeeds: true, dec: 8, feedDec: 8}),
+            ext_default
+        );
         krETH = mockKrAsset(
             bytes32("ETH"),
             address(0),
@@ -86,6 +92,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         usdc.mock.mint(user0, 100e18);
         usdc.mock.mint(user1, 10000e18);
         usdc.mock.mint(user2, 10000e18);
+        wbtc.mock.mint(user0, 1e8);
         dai.mock.mint(user2, 10000e18);
 
         vkiss = new Vault("vKISS", "vKISS", 18, 8, deployCfg.treasury, deployCfg.seqFeed);
@@ -97,7 +104,9 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
 
         prank(user0);
         usdc.mock.approve(address(kresko), type(uint256).max);
+        wbtc.mock.approve(address(kresko), type(uint256).max);
         kresko.depositCollateral(user0, usdc.addr, 50e18);
+        kresko.depositCollateral(user0, wbtc.addr, 0.1e8);
         call(kresko.mintKreskoAsset.selector, user0, krETH.addr, 0.01e18, initialPrices);
 
         prank(user1);
@@ -137,14 +146,17 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         protocol.assets[1].symbol.eq("DAI", "symbol1");
         protocol.assets[1].price.eq(0.99e8, "price1");
 
-        protocol.assets[2].symbol.eq("krETH", "symbol2");
-        protocol.assets[2].price.eq(2000e8, "price2");
+        protocol.assets[2].symbol.eq("WBTC", "symbol2");
+        protocol.assets[2].price.eq(35179e8, "price2");
 
-        protocol.assets[3].symbol.eq("krJPY", "symbol3");
-        protocol.assets[3].price.eq(0.0067e8, "price3");
+        protocol.assets[3].symbol.eq("krETH", "symbol3");
+        protocol.assets[3].price.eq(2000e8, "price3");
 
-        protocol.assets[4].symbol.eq("krTSLA", "symbol4");
-        protocol.assets[4].price.eq(100e8, "price4");
+        protocol.assets[4].symbol.eq("krJPY", "symbol4");
+        protocol.assets[4].price.eq(0.0067e8, "price4");
+
+        protocol.assets[5].symbol.eq("krTSLA", "symbol5");
+        protocol.assets[5].price.eq(100e8, "price5");
 
         protocol.minter.MCR.eq(150e2, "minter.mcr");
         protocol.minter.LT.eq(140e2, "minter.lt");
@@ -233,24 +245,33 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         PType.Account memory account = dataV1.getAccount(user0, redstoneCallData).protocol;
         account.addr.eq(user0, "account.addr");
 
-        account.minter.deposits.length.eq(4, "user0.minter.deposits.length");
+        account.bals[0].symbol.eq("USDC", "account.bals[0].symbol");
+        account.bals[1].symbol.eq("DAI", "account.bals[1].symbol");
+        account.bals[2].symbol.eq("WBTC", "account.bals[2].symbol");
+        account.bals[2].val.eq(3166110000000, "account.bals[2].val");
+
+        account.minter.deposits.length.eq(5, "user0.minter.deposits.length");
 
         account.minter.deposits[0].symbol.eq("USDC", "account0.minter.deposits[0].symbol");
-        account.minter.deposits[0].amount.eq(49.6e18, "account0.minter.deposits[0].amount");
-        account.minter.deposits[0].val.eq(49.6e8, "account0.minter.deposits[0].val");
-        account.minter.deposits[0].valAdj.eq(49.6e8, "account0.minter.deposits[0].valAdj");
+        account.minter.deposits[0].amount.eq(50e18, "account0.minter.deposits[0].amount");
+        account.minter.deposits[0].val.eq(50e8, "account0.minter.deposits[0].val");
+        account.minter.deposits[0].valAdj.eq(50e8, "account0.minter.deposits[0].valAdj");
 
         account.minter.deposits[1].symbol.eq("DAI", "account0.minter.deposits[1].symbol");
         account.minter.deposits[1].amount.eq(0, "account0.minter.deposits[1].amount");
         account.minter.deposits[1].val.eq(0, "account0.minter.deposits[1].val");
 
-        account.minter.deposits[2].symbol.eq("krETH", "account0.minter.deposits[2].symbol");
-        account.minter.deposits[2].amount.eq(0, "account0.minter.deposits[2].amount");
-        account.minter.deposits[2].val.eq(0, "account0.minter.deposits[2].val");
+        account.minter.deposits[2].symbol.eq("WBTC", "account0.minter.deposits[2].symbol");
+        account.minter.deposits[2].amount.eq(9998863, "account0.minter.deposits[2].amount");
+        account.minter.deposits[2].val.eq(351750001477, "account0.minter.deposits[2].val");
 
-        account.minter.deposits[3].symbol.eq("krJPY", "account0.minter.deposits[3].symbol");
+        account.minter.deposits[3].symbol.eq("krETH", "account0.minter.deposits[3].symbol");
         account.minter.deposits[3].amount.eq(0, "account0.minter.deposits[3].amount");
         account.minter.deposits[3].val.eq(0, "account0.minter.deposits[3].val");
+
+        account.minter.deposits[4].symbol.eq("krJPY", "account0.minter.deposits[4].symbol");
+        account.minter.deposits[4].amount.eq(0, "account0.minter.deposits[4].amount");
+        account.minter.deposits[4].val.eq(0, "account0.minter.deposits[4].val");
 
         account.minter.debts.length.eq(2, "account0.minter.deposits.length");
 
@@ -276,7 +297,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         PType.Account memory account2 = dataV1.getAccount(user2, redstoneCallData).protocol;
         account2.addr.eq(user2, "account2.addr");
 
-        account2.minter.deposits.length.eq(4, "account2.minter.deposits.length");
+        account2.minter.deposits.length.eq(5, "account2.minter.deposits.length");
 
         account2.minter.deposits[0].symbol.eq("USDC", "account2.minter.deposits[0].symbol");
         account2.minter.deposits[0].amount.eq(5000e18, "account2.minter.deposits[0].amount");
@@ -287,13 +308,17 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account2.minter.deposits[1].amount.gt(1900e18, "account2.minter.deposits[1].amount");
         account2.minter.deposits[1].val.gt(1900e8, "account2.minter.deposits[1].val");
 
-        account2.minter.deposits[2].symbol.eq("krETH", "account2.minter.deposits[2].symbol");
+        account2.minter.deposits[2].symbol.eq("WBTC", "account2.minter.deposits[2].symbol");
         account2.minter.deposits[2].amount.eq(0, "account2.minter.deposits[2].amount");
         account2.minter.deposits[2].val.eq(0, "account2.minter.deposits[2].val");
 
-        account2.minter.deposits[3].symbol.eq("krJPY", "account2.minter.deposits[3].symbol");
+        account2.minter.deposits[3].symbol.eq("krETH", "account2.minter.deposits[3].symbol");
         account2.minter.deposits[3].amount.eq(0, "account2.minter.deposits[3].amount");
         account2.minter.deposits[3].val.eq(0, "account2.minter.deposits[3].val");
+
+        account2.minter.deposits[4].symbol.eq("krJPY", "account2.minter.deposits[4].symbol");
+        account2.minter.deposits[4].amount.eq(0, "account2.minter.deposits[4].amount");
+        account2.minter.deposits[4].val.eq(0, "account2.minter.deposits[4].val");
 
         account2.minter.debts.length.eq(2, "account2.minter.deposits.length");
 

@@ -235,7 +235,7 @@ library PFunc {
         Asset storage asset = cs().assets[_assetAddr];
         result.addr = _account;
         result.amount = token.balanceOf(_account);
-        result.val = asset.exists() ? asset.uintUSD(result.amount) : 0;
+        result.val = asset.exists() ? asset.collateralAmountToValue(result.amount, true) : 0;
         result.token = _assetAddr;
         result.name = token.name();
         result.decimals = token.decimals();

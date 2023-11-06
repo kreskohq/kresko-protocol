@@ -19,7 +19,7 @@ contract AssetStateFacet is IAssetStateFacet {
 
     /// @inheritdoc IAssetStateFacet
     function getValue(address _assetAddr, uint256 _amount) external view returns (uint256) {
-        return cs().assets[_assetAddr].uintUSD(_amount);
+        return cs().assets[_assetAddr].assetUSD(_amount);
     }
 
     /// @inheritdoc IAssetStateFacet

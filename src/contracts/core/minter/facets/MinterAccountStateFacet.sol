@@ -151,7 +151,7 @@ contract MinterAccountStateFacet is IMinterAccountStateFacet {
         Asset storage asset = cs().assets[_krAsset];
 
         // Calculate the value of the fee according to the value of the krAsset
-        uint256 feeValue = asset.uintUSD(_kreskoAssetAmount).percentMul(
+        uint256 feeValue = asset.krAssetUSD(_kreskoAssetAmount).percentMul(
             _feeType == Enums.MinterFee.Open ? asset.openFee : asset.closeFee
         );
 
