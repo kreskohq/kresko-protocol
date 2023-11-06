@@ -7,6 +7,11 @@ import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
 import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
 import {DataFacet} from "periphery/facets/DataFacet.sol";
 import {PType} from "periphery/PTypes.sol";
+import {DataV1} from "periphery/DataV1.sol";
+import {Vault} from "vault/Vault.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
+import {VaultAsset} from "vault/VTypes.sol";
+import {IDataV1} from "periphery/IDataV1.sol";
 
 contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
     using ShortAssert for *;
@@ -18,6 +23,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
     KrAssetInfo internal krETH;
     KrAssetInfo internal krJPY;
     KrAssetInfo internal krTSLA;
+    DataV1 internal dataV1;
     uint256 constant ASSET_COUNT = 5;
 
     string initialPrices = "USDC:1:8,DAI:0.99:8,ETH:2000:8,TSLA:100:8,JPY:0.0067:8";
@@ -82,6 +88,13 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         usdc.mock.mint(user2, 10000e18);
         dai.mock.mint(user2, 10000e18);
 
+        vkiss = new Vault("vKISS", "vKISS", 18, 8, deployCfg.treasury, deployCfg.seqFeed);
+
+        vkiss.addAsset(
+            VaultAsset(usdc.asToken, IAggregatorV3(address(usdc.feedAddr)), 80000, 0, 0, 0, type(uint248).max, true)
+        );
+        vkiss.addAsset(VaultAsset(dai.asToken, IAggregatorV3(address(usdc.feedAddr)), 80000, 0, 0, 0, type(uint248).max, true));
+
         prank(user0);
         usdc.mock.approve(address(kresko), type(uint256).max);
         kresko.depositCollateral(user0, usdc.addr, 50e18);
@@ -100,15 +113,16 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         kresko.depositCollateral(user2, dai.addr, 2000e18);
         call(kresko.depositSCDP.selector, user2, usdc.addr, 1000e18, initialPrices);
         call(kresko.mintKreskoAsset.selector, user2, krETH.addr, 1.5e18, initialPrices);
+
+        dataV1 = new DataV1(DataFacet(address(kresko)), address(vkiss), address(vkiss));
     }
 
     function testProtocolDatas() public {
-        DataFacet frontend = DataFacet(address(kresko));
-        (, bytes memory data) = address(kresko).call(
-            abi.encodePacked(abi.encodeWithSelector(frontend.getProtocolData.selector), redstoneCallData)
-        );
-        PType.Protocol memory protocol = abi.decode(data, (PType.Protocol));
-
+        // (, bytes memory data) = address(dataV1).staticcall(
+        //     abi.encodePacked(abi.encodeWithSelector(dataV1.getGlobalsRs.selector), redstoneCallData)
+        // );
+        // PType.Protocol memory protocol = abi.decode(data, (IDataV1.DGlobal)).protocol;
+        PType.Protocol memory protocol = dataV1.getGlobals(redstoneCallData).protocol;
         protocol.maxPriceDeviationPct.eq(5e2, "maxPriceDeviationPct");
         protocol.oracleDecimals.eq(8, "oracleDecimals");
         protocol.staleTime.eq(86401, "staleTime");
@@ -212,10 +226,11 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
 
     function testUserDatas() public {
         /* ------------------------------ user0 ----------------------------- */
-        (, bytes memory data) = address(kresko).call(
-            abi.encodePacked(abi.encodeWithSelector(DataFacet.getAccountData.selector, user0), redstoneCallData)
-        );
-        PType.Account memory account = abi.decode(data, (PType.Account));
+        // (, bytes memory data) = address(dataV1).staticcall(
+        //     abi.encodePacked(abi.encodeWithSelector(dataV1.getAccountRs.selector, user0), redstoneCallData)
+        // );
+        // PType.Account memory account = abi.decode(data, (IDataV1.DAccount)).protocol;
+        PType.Account memory account = dataV1.getAccount(user0, redstoneCallData).protocol;
         account.addr.eq(user0, "account.addr");
 
         account.minter.deposits.length.eq(4, "user0.minter.deposits.length");
@@ -258,10 +273,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account.scdp.deposits[0].valAdj.eq(0, "account0.scdp.deposits[0].valFees");
 
         /* ------------------------------ user2 ----------------------------- */
-        (, bytes memory data2) = address(kresko).call(
-            abi.encodePacked(abi.encodeWithSelector(DataFacet.getAccountData.selector, user2), redstoneCallData)
-        );
-        PType.Account memory account2 = abi.decode(data2, (PType.Account));
+        PType.Account memory account2 = dataV1.getAccount(user2, redstoneCallData).protocol;
         account2.addr.eq(user2, "account2.addr");
 
         account2.minter.deposits.length.eq(4, "account2.minter.deposits.length");

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {ProxyConnector} from "../redstone/ProxyConnector.sol";
+import {ProxyConnector} from "vendor/redstone/ProxyConnector.sol";
 
 import {IMinterDepositWithdrawFacet} from "minter/interfaces/IMinterDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "minter/interfaces/ICollateralReceiver.sol";

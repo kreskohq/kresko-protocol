@@ -71,7 +71,11 @@ interface IDataV1 {
         uint8 phase;
     }
 
-    function getGlobals() external view returns (DGlobal memory);
+    function getGlobals(bytes memory redstoneData) external view returns (DGlobal memory);
 
-    function getAccount(address _account) external view returns (DAccount memory);
+    function getGlobalsRs() external view returns (DGlobal memory result);
+
+    function getAccount(address _account, bytes memory redstoneData) external view returns (DAccount memory);
+
+    function getAccountRs(address _account) external view returns (DAccount memory result);
 }

@@ -10,8 +10,11 @@ import {VaultAsset} from "vault/VTypes.sol";
 import {Enums} from "common/Constants.sol";
 import {RawPrice} from "common/Types.sol";
 import {PType} from "periphery/PTypes.sol";
+import {ProxyConnector} from "vendor/redstone/ProxyConnector.sol";
 
-contract DataV1 is IDataV1 {
+// solhint-disable avoid-low-level-calls, var-name-mixedcase
+
+contract DataV1 is ProxyConnector, IDataV1 {
     address public immutable VAULT;
     IDataFacet public immutable DIAMOND;
     address public immutable KISS;
@@ -27,14 +30,52 @@ contract DataV1 is IDataV1 {
         KISS = _KISS;
     }
 
-    function getGlobals() external view override returns (DGlobal memory result) {
-        result.protocol = DIAMOND.getProtocolData();
+    function getGlobals(bytes memory redstoneData) external view override returns (DGlobal memory result) {
+        (bool success, bytes memory data) = address(DIAMOND).staticcall(
+            abi.encodePacked(abi.encodeWithSelector(DIAMOND.getProtocolData.selector), redstoneData)
+        );
+        require(success, "DataV1: getProtocolData failed");
+
+        result.protocol = abi.decode(data, (PType.Protocol));
+
         result.vault = getVault();
         result.collections = getCollectionData(address(1));
     }
 
-    function getAccount(address _account) external view returns (DAccount memory result) {
-        result.protocol = DIAMOND.getAccountData(_account);
+    function getGlobalsRs() external view returns (DGlobal memory result) {
+        result.protocol = abi.decode(
+            proxyCalldataView(address(DIAMOND), abi.encodeWithSelector(DIAMOND.getProtocolData.selector)),
+            (PType.Protocol)
+        );
+
+        result.vault = getVault();
+        result.collections = getCollectionData(address(1));
+    }
+
+    function getAccountRs(address _account) external view returns (DAccount memory result) {
+        result.protocol = abi.decode(
+            proxyCalldataView(address(DIAMOND), abi.encodeWithSelector(DIAMOND.getAccountData.selector, _account)),
+            (PType.Account)
+        );
+
+        result.vault.addr = VAULT;
+        result.vault.name = IERC20(VAULT).name();
+        result.vault.amount = IERC20(VAULT).balanceOf(_account);
+        result.vault.price = IVault(VAULT).exchangeRate();
+        result.vault.oracleDecimals = 18;
+        result.vault.symbol = IERC20(VAULT).symbol();
+        result.vault.decimals = IERC20(VAULT).decimals();
+
+        result.collections = getCollectionData(address(1));
+    }
+
+    function getAccount(address _account, bytes memory redstoneData) external view returns (DAccount memory result) {
+        (bool success, bytes memory data) = address(DIAMOND).staticcall(
+            abi.encodePacked(abi.encodeWithSelector(DIAMOND.getAccountData.selector, _account), redstoneData)
+        );
+        require(success, "DataV1: getAccount failed");
+
+        result.protocol = abi.decode(data, (PType.Account));
 
         result.vault.addr = VAULT;
         result.vault.name = IERC20(VAULT).name();
