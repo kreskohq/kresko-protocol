@@ -4,6 +4,7 @@ import {
   getMinterInitializer,
   getSCDPInitializer,
   minterFacets,
+  peripheryFacets,
   scdpFacets,
 } from '@config/deploy'
 import { addFacets } from '@scripts/add-facets'
@@ -43,8 +44,12 @@ const deploy: DeployFunction = async function (hre) {
     initializerFunction: 'initializeSCDP',
     initializerArgs: (await getSCDPInitializer(hre)).args,
   })
-
   logger.success('Added: SCDP facets.')
+  await addFacets({
+    names: peripheryFacets,
+  })
+
+  logger.success('Added: Periphery facets.')
 }
 
 deploy.tags = ['all', 'local', 'core', 'facets']

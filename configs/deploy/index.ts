@@ -21,7 +21,7 @@ export const commonFacets = [
   'AssetConfigurationFacet',
   'SafetyCouncilFacet',
 ] as const
-
+export const peripheryFacets = ['DataFacet'] as const
 export const minterFacets = [
   'MinterAccountStateFacet',
   'MinterBurnFacet',

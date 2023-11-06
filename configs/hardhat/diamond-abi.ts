@@ -11,7 +11,7 @@ export const diamondAbiConfig: DiamondAbiUserConfig[] = [
   {
     name: 'Kresko',
     include: ['facets/*', 'MEvent', 'SEvent'],
-    exclude: ['vendor', 'test/*', 'interfaces/*', 'krasset/*', 'KrStaking', 'periphery/*'],
+    exclude: ['vendor', 'test/*', 'interfaces/*', 'krasset/*', 'KrStaking'],
     strict: false,
     filter(abiElement) {
       if (cache.has(abiElement.name)) {

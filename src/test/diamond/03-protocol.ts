@@ -5,6 +5,7 @@ import {
   getMinterInitializer,
   getSCDPInitializer,
   minterFacets,
+  peripheryFacets,
   scdpFacets,
 } from '@config/deploy'
 import { expect } from '@test/chai'
@@ -22,7 +23,7 @@ describe('Diamond', () => {
         functionSelectors,
       }))
       const expectedFacets = await Promise.all(
-        [...diamondFacets, ...minterFacets, ...scdpFacets, ...commonFacets].map(async name => {
+        [...diamondFacets, ...minterFacets, ...scdpFacets, ...commonFacets, ...peripheryFacets].map(async name => {
           const deployment = await hre.deployments.get(name)
           return {
             facetAddress: deployment.address,
