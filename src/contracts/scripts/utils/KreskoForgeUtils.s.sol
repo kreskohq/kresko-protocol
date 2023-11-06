@@ -204,7 +204,6 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
 
         if (_identity.krAsset) {
             config_.isMinterMintable = true;
-
             config_.openFee = 0.02e4;
             config_.closeFee = 0.02e4;
         }

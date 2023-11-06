@@ -201,6 +201,14 @@ contract Vault is IVault, ERC20 {
         return _assets[assetAddr];
     }
 
+    /// @inheritdoc IVault
+    function allAssets() external view returns (VaultAsset[] memory result) {
+        result = new VaultAsset[](assetList.length);
+        for (uint256 i; i < assetList.length; i++) {
+            result[i] = _assets[assetList[i]];
+        }
+    }
+
     function assetPrice(address assetAddr) external view returns (uint256) {
         return _assets[assetAddr].price(_config);
     }

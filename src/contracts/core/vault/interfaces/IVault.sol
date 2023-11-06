@@ -88,6 +88,11 @@ interface IVault {
     function totalAssets() external view returns (uint256 result);
 
     /**
+     * @notice Array of all assets
+     */
+    function allAssets() external view returns (VaultAsset[] memory assets);
+
+    /**
      * @notice Assets array used for iterating through the assets in the shares contract
      */
     function assetList(uint256 index) external view returns (address assetAddr);

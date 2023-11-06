@@ -6,7 +6,6 @@
   },
   "files": {
     "ignore": [
-      ".vscode",
       "node_modules",
       "artifacts",
       "build",
@@ -40,6 +39,14 @@
       "trailingComma": "all",
       "semicolons": "asNeeded",
       "arrowParentheses": "asNeeded"
+    }
+  },
+  "json": {
+    "formatter": {
+      "enabled": true
+    },
+    "parser": {
+      "allowComments": true
     }
   },
   "linter": {

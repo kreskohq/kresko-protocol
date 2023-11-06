@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {Asset} from "common/Types.sol";
+
 /**
  * @notice SCDP initializer configuration.
  * @param minCollateralRatio The minimum collateralization ratio.
@@ -40,37 +40,6 @@ struct SCDPAssetData {
     uint256 debt;
     uint128 totalDeposits;
     uint128 swapDeposits;
-}
-
-// give me 256 bits in three
-// 128 + 128 = 256
-
-struct GlobalData {
-    uint256 collateralValue;
-    uint256 collateralValueAdjusted;
-    uint256 debtValue;
-    uint256 debtValueAdjusted;
-    uint256 effectiveDebtValue;
-    uint256 cr;
-    uint256 crDebtValue;
-    uint256 crDebtValueAdjusted;
-}
-
-/**
- * Periphery asset data
- */
-struct AssetData {
-    address addr;
-    uint256 depositAmount;
-    uint256 depositValue;
-    uint256 depositValueAdjusted;
-    uint256 debtAmount;
-    uint256 debtValue;
-    uint256 debtValueAdjusted;
-    uint256 swapDeposits;
-    Asset asset;
-    uint256 assetPrice;
-    string symbol;
 }
 
 struct UserAssetData {

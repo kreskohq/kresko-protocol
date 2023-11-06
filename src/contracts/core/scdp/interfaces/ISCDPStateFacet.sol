@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {GlobalData} from "scdp/STypes.sol";
 
 interface ISCDPStateFacet {
     /**
@@ -112,10 +111,4 @@ interface ISCDPStateFacet {
     function getSwapEnabledSCDP(address _assetIn, address _assetOut) external view returns (bool);
 
     function getCollateralRatioSCDP() external view returns (uint256);
-
-    /**
-     * @notice Get pool collateral values and debt values with CR.
-     * @return GlobalData struct
-     */
-    function getStatisticsSCDP() external view returns (GlobalData memory);
 }

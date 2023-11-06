@@ -22,8 +22,9 @@ import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFac
 import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
 import {IDiamondStateFacet} from "diamond/interfaces/IDiamondStateFacet.sol";
+import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 
-// import {IMinterBurnHelperFacet} from "periphery/facets/IMinterBurnHelperFacet.sol";
+// import {IMinterBurnHelperFacet} from "periphery/interfaces/IMinterBurnHelperFacet.sol";
 
 // solhint-disable-next-line no-empty-blocks
 interface IKresko is
@@ -47,7 +48,8 @@ interface IKresko is
     IMinterStateFacet,
     IMinterDepositWithdrawFacet,
     IMinterAccountStateFacet,
-    IMinterLiquidationFacet
+    IMinterLiquidationFacet,
+    IDataFacet
     // IMinterBurnHelperFacet,
 {
 

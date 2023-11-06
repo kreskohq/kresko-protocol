@@ -6,9 +6,7 @@ import {WadRay} from "libs/WadRay.sol";
 import {Asset} from "common/Types.sol";
 import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
 import {cs} from "common/State.sol";
-
 import {scdp} from "scdp/SState.sol";
-import {UserAssetData} from "scdp/STypes.sol";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Helpers                                  */
@@ -63,44 +61,4 @@ function totalDebtValuesAtRatioSCDP(uint32 _ratio) view returns (uint256 value, 
         value = value.percentMul(_ratio);
         valueAdjusted = valueAdjusted.percentMul(_ratio);
     }
-}
-
-function accountTotalDepositValues(
-    address _account,
-    address[] memory _assetData
-) view returns (uint256 totalValue, uint256 totalScaledValue, UserAssetData[] memory datas) {
-    address[] memory assets = scdp().collaterals;
-    datas = new UserAssetData[](_assetData.length);
-    for (uint256 i; i < assets.length; ) {
-        address asset = assets[i];
-        UserAssetData memory assetData = accountDepositAmountsAndValues(_account, asset);
-
-        totalValue += assetData.depositValue;
-        totalScaledValue += assetData.scaledDepositValue;
-
-        for (uint256 j; j < _assetData.length; ) {
-            if (asset == _assetData[j]) {
-                datas[j] = assetData;
-            }
-            unchecked {
-                j++;
-            }
-        }
-
-        unchecked {
-            i++;
-        }
-    }
-}
-
-function accountDepositAmountsAndValues(address _account, address _assetAddr) view returns (UserAssetData memory result) {
-    Asset storage asset = cs().assets[_assetAddr];
-    result.scaledDepositAmount = scdp().accountScaledDeposits(_account, _assetAddr, asset);
-    result.depositAmount = asset.toRebasingAmount(scdp().depositsPrincipal[_account][_assetAddr]);
-    if (result.scaledDepositAmount < result.depositAmount) {
-        result.depositAmount = result.scaledDepositAmount;
-    }
-    (result.depositValue, result.assetPrice) = asset.collateralAmountToValueWithPrice(result.depositAmount, true);
-    result.scaledDepositValue = asset.collateralAmountToValue(result.scaledDepositAmount, true);
-    result.asset = _assetAddr;
 }
