@@ -45,12 +45,12 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
     address[2] internal feeds_usdc;
     address[2] internal feeds_jpy;
     /* ------------------------------------ . ----------------------------------- */
-    uint256 constant price_eth = 2000e8;
-    uint256 constant price_btc = 27662e8;
-    uint256 constant price_dai = 1e8;
-    uint256 constant price_eur = 1.06e8;
+    uint256 constant price_eth = 1911e8;
+    uint256 constant price_btc = 35159.01e8;
+    uint256 constant price_dai = 0.9998e8;
+    uint256 constant price_eur = 1.07e8;
     uint256 constant price_usdc = 1e8;
-    uint256 constant price_usdt = 1e8;
+    uint256 constant price_usdt = 1.0006e8;
     uint256 constant price_jpy = 0.0067e8;
     /* ------------------------------------ . ----------------------------------- */
     // @todo can probably delete these aswell
