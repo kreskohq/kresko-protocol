@@ -83,7 +83,6 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         ("/* ------------------------------ Contracts ----------------------------- */").clg();
         Log.br();
         address(_ctx.kresko).clg("Diamond");
-        address(_ctx.kresko).clg("DataV1");
         address(_ctx.vault).clg("Vault");
         address(_ctx.kiss).clg("KISS");
         address(_ctx.factory).clg("Deployment Factory");

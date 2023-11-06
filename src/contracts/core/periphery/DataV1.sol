@@ -9,6 +9,7 @@ import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {Enums} from "common/Constants.sol";
 import {RawPrice} from "common/Types.sol";
+import {PType} from "periphery/PTypes.sol";
 
 contract DataV1 is IDataV1 {
     address public immutable VAULT;
@@ -45,6 +46,10 @@ contract DataV1 is IDataV1 {
 
         result.collections = getCollectionData(address(1));
         (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(msg.sender);
+    }
+
+    function getBalances(address _account, address[] memory _tokens) external view returns (PType.Balance[] memory result) {
+        result = DIAMOND.getBalances(_account, _tokens);
     }
 
     function getCollectionData(address _account) public view returns (DCollection[] memory result) {

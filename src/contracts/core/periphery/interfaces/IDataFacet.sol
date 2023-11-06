@@ -11,6 +11,8 @@ interface IDataFacet {
 
     function getDataSCDP() external view returns (PType.SCDP memory);
 
+    function getBalances(address _account, address[] memory _tokens) external view returns (PType.Balance[] memory);
+
     function getTotalsSCDP() external view returns (PType.STotals memory);
 
     function getAccountsMinter(address[] memory _accounts) external view returns (PType.MAccount[] memory);
