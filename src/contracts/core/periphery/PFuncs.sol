@@ -16,12 +16,15 @@ import {IVault} from "vault/interfaces/IVault.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {Enums} from "common/Constants.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
+import {Arrays} from "libs/Arrays.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 
 // solhint-disable code-complexity
 
 library PFunc {
     using PercentageMath for *;
     using WadRay for uint256;
+    using Arrays for address[];
 
     function find(address[] memory _elements, address _elementToFind) internal pure returns (bool found) {
         for (uint256 i; i < _elements.length; ) {
@@ -81,6 +84,10 @@ library PFunc {
         result.safetyStateSet = cs().safetyStateSet;
         result.sequencerGracePeriodTime = cs().sequencerGracePeriodTime;
         result.isSequencerUp = isSequencerUp(cs().sequencerUptimeFeed, cs().sequencerGracePeriodTime);
+        (, , uint256 startedAt, , ) = IAggregatorV3(cs().sequencerUptimeFeed).latestRoundData();
+        result.sequencerStartedAt = uint32(startedAt);
+        result.timestamp = uint32(block.timestamp);
+        result.blockNr = uint32(block.number);
         result.gate = getGate();
     }
 
@@ -130,6 +137,7 @@ library PFunc {
                 val: data.valDebt,
                 valAdj: data.valDebtAdj,
                 price: data.price,
+                index: -1,
                 config: data.config
             });
         }
@@ -351,6 +359,7 @@ library PFunc {
         for (uint256 i; i < collaterals.length; i++) {
             address addr = collaterals[i];
             PType.AssetData memory data = getMAssetData(_account, addr);
+            Arrays.FindResult memory findResult = ms().depositedCollateralAssets[_account].find(addr);
             result[i] = PType.PAssetEntry({
                 addr: addr,
                 symbol: IERC20(addr).symbol(),
@@ -359,6 +368,7 @@ library PFunc {
                 val: data.valColl,
                 valAdj: data.valCollAdj,
                 price: data.price,
+                index: findResult.exists ? int256(findResult.index) : -1,
                 config: data.config
             });
         }
@@ -371,7 +381,7 @@ library PFunc {
         for (uint256 i; i < krAssets.length; i++) {
             address addr = krAssets[i];
             PType.AssetData memory data = getMAssetData(_account, addr);
-
+            Arrays.FindResult memory findResult = ms().depositedCollateralAssets[_account].find(addr);
             result[i] = PType.PAssetEntry({
                 addr: addr,
                 symbol: IERC20(addr).symbol(),
@@ -380,6 +390,7 @@ library PFunc {
                 val: data.valDebt,
                 valAdj: data.valDebtAdj,
                 price: data.price,
+                index: findResult.exists ? int256(findResult.index) : -1,
                 config: data.config
             });
         }
@@ -431,6 +442,7 @@ library PFunc {
 
         result.symbol = IERC20(_assetAddr).symbol();
         result.addr = _assetAddr;
+        result.index = -1;
     }
 
     function getPhaseEligibility(address _user) internal view returns (uint8 phase, bool eligibleForCurrentPhase) {

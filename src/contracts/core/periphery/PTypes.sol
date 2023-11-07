@@ -43,6 +43,9 @@ library PType {
         uint32 sequencerGracePeriodTime;
         uint16 maxPriceDeviationPct;
         uint8 oracleDecimals;
+        uint32 sequencerStartedAt;
+        uint32 timestamp;
+        uint32 blockNr;
         bool isSequencerUp;
         bool safetyStateSet;
         Gate gate;
@@ -144,6 +147,7 @@ library PType {
         uint256 val;
         uint256 valAdj;
         uint256 price;
+        int256 index;
         Asset config;
     }
 }
