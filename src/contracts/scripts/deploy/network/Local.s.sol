@@ -121,6 +121,7 @@ abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
 
     function setupUsers(UserCfg[] memory _userCfg, AssetsOnChain memory _assetsOnChain) internal override {
         vm.warp(vm.unixTime());
+        broadcastWith(getAddr(0));
         MockSequencerUptimeFeed(state().cfg.seqFeed).setAnswers(0, 1699456910, 1699456910);
         createDeployerBalances(getAddr(0));
         createMinterUser(getAddr(4));
