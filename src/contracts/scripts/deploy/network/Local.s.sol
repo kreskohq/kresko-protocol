@@ -15,6 +15,10 @@ import {SwapRouteSetter} from "scdp/STypes.sol";
 import {Help} from "kresko-lib/utils/Libs.sol";
 import {DefaultDeployConfig} from "scripts/deploy/config/DefaultDeployConfig.s.sol";
 import {StdCheats} from "forge-std/StdCheats.sol";
+import {VaultAsset} from "vault/VTypes.sol";
+import {state} from "scripts/deploy/base/DeployState.s.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
+import {console2} from "forge-std/console2.sol";
 
 using Help for string;
 
@@ -116,6 +120,10 @@ abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
     }
 
     function setupUsers(UserCfg[] memory _userCfg, AssetsOnChain memory _assetsOnChain) internal override {
+        vm.warp(vm.unixTime());
+        createDeployerBalances(getAddr(0));
+        createMinterUser(getAddr(4));
+        createMinterUser(getAddr(5));
         unchecked {
             for (uint256 i; i < _userCfg.length; i++) {
                 if (_userCfg[i].addr != address(0)) {
@@ -136,5 +144,56 @@ abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
         }
 
         super.afterComplete();
+    }
+
+    function createMinterUser(address _account) private {
+        State storage s = state();
+        mintKiss(_account, 2_000e18);
+        MockERC20 wbtc = s.getMockToken["WBTC"];
+        MockERC20 dai = s.getMockToken["DAI"];
+        wbtc.mint(_account, 0.1e8);
+        dai.mint(_account, 10000e18);
+
+        broadcastWith(_account);
+        wbtc.approve(address(s.kresko), type(uint256).max);
+        dai.approve(address(s.kresko), type(uint256).max);
+        s.kresko.depositCollateral(_account, address(wbtc), 0.1e8);
+        s.kresko.depositCollateral(_account, address(dai), 10000e18);
+
+        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krETH"], 0.01 ether, initialPrices);
+        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krJPY"], 10000 ether, initialPrices);
+    }
+
+    function mintKiss(address _account, uint256 _amount) private returns (uint256 amountOut) {
+        State storage s = state();
+        VaultAsset memory fromAsset = s.getVAsset["USDC"];
+
+        MockERC20(address(fromAsset.token)).mint(_account, _amount);
+
+        broadcastWith(_account);
+        fromAsset.token.approve(address(s.kiss), type(uint256).max);
+        (amountOut, ) = s.kiss.vaultDeposit(address(fromAsset.token), _amount, _account);
+    }
+
+    function createDeployerBalances(address _account) private {
+        State storage s = state();
+        mintKiss(_account, 10_000e18);
+        uint256 liquidity = mintKiss(_account, 50_000e18);
+
+        MockERC20 wbtc = s.getMockToken["WBTC"];
+        MockERC20 dai = s.getMockToken["DAI"];
+        wbtc.mint(_account, 0.1e8);
+        dai.mint(_account, 10000e18);
+
+        broadcastWith(_account);
+        wbtc.approve(address(s.kresko), type(uint256).max);
+        dai.approve(address(s.kresko), type(uint256).max);
+        s.kresko.depositCollateral(_account, address(wbtc), 0.1e8);
+        s.kresko.depositCollateral(_account, address(dai), 10000e18);
+        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krETH"], 0.01 ether, initialPrices);
+        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krJPY"], 10000 ether, initialPrices);
+
+        s.kiss.approve(address(s.kresko), type(uint256).max);
+        s.kresko.depositSCDP(_account, address(s.kiss), liquidity);
     }
 }

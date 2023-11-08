@@ -176,8 +176,8 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
                 ExtAssetInfo memory asset = _ctx.assetsOnChain.ext[i];
                 uint256 balance = asset.token.balanceOf(_ctx.userCfg[j].addr);
                 balance.dlg(asset.symbol, asset.config.decimals);
-                // emit Log.log_named_decimal_uint(asset.symbol, balance, asset.config.decimals);
             }
+            _ctx.kiss.balanceOf(_ctx.userCfg[j].addr).dlg("KISS", 18);
         }
         Log.hr();
     }

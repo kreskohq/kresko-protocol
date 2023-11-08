@@ -15,6 +15,7 @@ import {IERC165} from "vendor/IERC165.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
 import {IVaultExtender} from "vault/interfaces/IVaultExtender.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
+import {console2} from "forge-std/console2.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -81,7 +82,10 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         address _receiver
     ) external returns (uint256 sharesOut, uint256 assetFee) {
         ERC20Upgradeable(_assetAddr).safeTransferFrom(msg.sender, address(this), _assets);
+
+        ERC20Upgradeable(_assetAddr).approve(vKISS, _assets);
         (sharesOut, assetFee) = IVault(vKISS).deposit(_assetAddr, _assets, address(this));
+
         _mint(_receiver, sharesOut);
     }
 
@@ -93,7 +97,10 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     ) external returns (uint256 assetsIn, uint256 assetFee) {
         (assetsIn, assetFee) = IVault(vKISS).previewMint(_assetAddr, _shares);
         ERC20Upgradeable(_assetAddr).safeTransferFrom(msg.sender, address(this), assetsIn);
+
+        ERC20Upgradeable(_assetAddr).approve(vKISS, assetsIn);
         IVault(vKISS).mint(_assetAddr, _shares, address(this));
+
         _mint(_receiver, _shares);
     }
 
