@@ -69,6 +69,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
             scdp().krAssets.push(_assetAddr);
         }
         if (_config.isSwapMintable || _config.isSharedCollateral) {
+            _config.isSharedOrSwappedCollateral = true;
             scdp().isEnabled[_assetAddr] = true;
             scdp().collaterals.push(_assetAddr);
         }
@@ -169,7 +170,9 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         if (asset.isSharedCollateral || asset.isSwapMintable) {
             asset.isSharedOrSwappedCollateral = true;
             scdp().collaterals.pushUnique(_assetAddr);
-        } // no deleting collaterals here
+        } else {
+            asset.isSharedOrSwappedCollateral = false;
+        }
 
         Validations.validateRawAssetPrice(_assetAddr);
 

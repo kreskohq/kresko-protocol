@@ -161,11 +161,13 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         }
 
         if (_type.scdpDepositable) {
+            kissInfo_.config.isSharedOrSwappedCollateral = true;
             kissInfo_.config.isSharedCollateral = true;
             kissInfo_.config.depositLimitSCDP = type(uint128).max;
         }
 
         if (_type.scdpKrAsset) {
+            kissInfo_.config.isSharedOrSwappedCollateral = true;
             kissInfo_.config.isSwapMintable = true;
             kissInfo_.config.swapInFeeSCDP = 0.02e4;
             kissInfo_.config.swapOutFeeSCDP = 0.02e4;
