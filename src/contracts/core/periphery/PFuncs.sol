@@ -381,7 +381,7 @@ library PFunc {
         for (uint256 i; i < krAssets.length; i++) {
             address addr = krAssets[i];
             PType.AssetData memory data = getMAssetData(_account, addr);
-            Arrays.FindResult memory findResult = ms().depositedCollateralAssets[_account].find(addr);
+            Arrays.FindResult memory findResult = ms().mintedKreskoAssets[_account].find(addr);
             result[i] = PType.PAssetEntry({
                 addr: addr,
                 symbol: IERC20(addr).symbol(),
