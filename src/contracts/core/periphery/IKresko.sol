@@ -23,6 +23,7 @@ import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
 import {IDiamondStateFacet} from "diamond/interfaces/IDiamondStateFacet.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
+import {IErrorsEvents} from "periphery/IErrorsEvents.sol";
 
 // import {IMinterBurnHelperFacet} from "periphery/interfaces/IMinterBurnHelperFacet.sol";
 
@@ -49,7 +50,8 @@ interface IKresko is
     IMinterDepositWithdrawFacet,
     IMinterAccountStateFacet,
     IMinterLiquidationFacet,
-    IDataFacet
+    IDataFacet,
+    IErrorsEvents
     // IMinterBurnHelperFacet,
 {
 
