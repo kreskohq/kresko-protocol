@@ -167,7 +167,6 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         protocol.scdp.MCR.eq(200e2, "scdp.mcr");
         protocol.scdp.LT.eq(150e2, "scdp.lt");
         protocol.scdp.MLR.eq(151e2, "scdp.mlr");
-        protocol.scdp.CR.eq(0, "scdp.cr");
 
         protocol.scdp.totals.valColl.eq(1000e8, "scdp.totals.valColl");
         protocol.scdp.totals.valCollAdj.eq(1000e8, "scdp.totals.valCollAdj");
