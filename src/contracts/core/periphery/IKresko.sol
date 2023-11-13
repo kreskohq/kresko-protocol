@@ -25,8 +25,6 @@ import {IDiamondStateFacet} from "diamond/interfaces/IDiamondStateFacet.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 import {IErrorsEvents} from "periphery/IErrorsEvents.sol";
 
-// import {IMinterBurnHelperFacet} from "periphery/interfaces/IMinterBurnHelperFacet.sol";
-
 // solhint-disable-next-line no-empty-blocks
 interface IKresko is
     IDiamondCutFacet,
@@ -52,7 +50,6 @@ interface IKresko is
     IMinterLiquidationFacet,
     IDataFacet,
     IErrorsEvents
-    // IMinterBurnHelperFacet,
 {
 
 }

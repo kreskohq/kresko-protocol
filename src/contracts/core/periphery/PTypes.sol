@@ -3,7 +3,6 @@
 pragma solidity ^0.8.0;
 
 import {Asset, RawPrice} from "common/Types.sol";
-import {VaultAsset} from "vault/VTypes.sol";
 
 library PType {
     struct AssetData {
@@ -79,7 +78,6 @@ library PType {
         uint32 MCR;
         uint32 LT;
         uint32 MLR;
-        uint16 CR;
         STotals totals;
         SDeposit[] deposits;
         PAssetEntry[] debts;

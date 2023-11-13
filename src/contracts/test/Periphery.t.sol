@@ -12,6 +12,7 @@ import {Vault} from "vault/Vault.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IDataV1} from "periphery/IDataV1.sol";
+import {ms} from "minter/MState.sol";
 
 contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
     using ShortAssert for *;
@@ -288,6 +289,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account.scdp.deposits.length.eq(1, "account0.scdp.deposits.length");
         account.scdp.deposits[0].addr.eq(usdc.addr, "account0.scdp.deposits[0].token");
         account.scdp.deposits[0].symbol.eq("USDC", "account0.scdp.deposits[0].symbol");
+        account.scdp.deposits[0].config.decimals.eq(18, "account0.scdp.deposits[0].config.decimals");
         account.scdp.deposits[0].price.eq(1e8, "account0.scdp.deposits[0].token");
         account.scdp.deposits[0].amount.eq(0, "account0.scdp.deposits[0].amount");
         account.scdp.deposits[0].val.eq(0, "account0.scdp.deposits[0].val");
@@ -337,6 +339,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account2.scdp.deposits[0].symbol.eq("USDC", "account2.scdp.deposits[0].symbol");
         account2.scdp.deposits[0].price.eq(1e8, "account2.scdp.deposits[0].token");
         account2.scdp.deposits[0].amount.eq(1000e18, "account2.scdp.deposits[0].amount");
+
         account2.scdp.deposits[0].val.eq(1000e8, "account2.scdp.deposits[0].val");
         account2.scdp.deposits[0].valAdj.eq(1000e8, "account2.scdp.deposits[0].valFees");
     }

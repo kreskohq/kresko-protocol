@@ -33,7 +33,7 @@
   "solidity.validation.delay": 300,
   "solidity.project.libs": ["lib"],
   "solidity.formatter": "prettier",
-  "solidity.validation.onSave": true,
+  "solidity.validation.onSave": false,
   "solidity.validation.onChange": true,
   "solidity.validation.onOpen": false,
   "solidity.test.verbosity": 5,
