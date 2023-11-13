@@ -15,7 +15,6 @@ import {IERC165} from "vendor/IERC165.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
 import {IVaultExtender} from "vault/interfaces/IVaultExtender.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {console2} from "forge-std/console2.sol";
 
 /* solhint-disable not-rely-on-time */
 
@@ -125,6 +124,18 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     ) external returns (uint256 assetsOut, uint256 assetFee) {
         withdrawFrom(_owner, address(this), _shares);
         (assetsOut, assetFee) = IVault(vKISS).redeem(_assetAddr, _shares, _receiver, address(this));
+    }
+
+    /// @inheritdoc IVaultExtender
+    function maxRedeem(address assetAddr, address owner) external view returns (uint256 max, uint256 feePaid) {
+        (uint256 assetsOut, uint256 fee) = IVault(vKISS).previewRedeem(assetAddr, _balances[owner]);
+        uint256 balance = ERC20Upgradeable(assetAddr).balanceOf(vKISS);
+
+        if (assetsOut + fee > balance) {
+            (max, fee) = IVault(vKISS).previewWithdraw(assetAddr, balance);
+        } else {
+            return (_balances[owner], fee);
+        }
     }
 
     /// @inheritdoc IVaultExtender

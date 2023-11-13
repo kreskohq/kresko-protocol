@@ -67,6 +67,17 @@ interface IVaultExtender {
     ) external returns (uint256 sharesIn, uint256 assetFee);
 
     /**
+     * @notice Max redeem for underlying extender token.
+     * @param assetAddr The withdraw asset address.
+     * @param owner The extender token owner.
+     * @return max Maximum amount withdrawable.
+     * @return fee Fee paid if max is withdrawn.
+     * @custom:signature maxRedeem(address,address)
+     * @custom:selector 0x95b734fb
+     */
+    function maxRedeem(address assetAddr, address owner) external view returns (uint256 max, uint256 fee);
+
+    /**
      * @notice Deposit shares for equal amount of extender token.
      * @param _shares amount of vault shares to deposit
      * @param _receiver address to mint extender tokens to
