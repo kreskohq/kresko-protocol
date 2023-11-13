@@ -11,6 +11,8 @@ import {state} from "./DeployState.s.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
 import {DataV1} from "periphery/DataV1.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
+import {KrMulticall} from "periphery/KrMulticall.sol";
+import {Role} from "common/Constants.sol";
 
 abstract contract DeployCallbacks is IDeployState, KreskoForgeUtils {
     function onConfigurationsCreated(
@@ -88,6 +90,9 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         address(_ctx.factory).clg("Deployment Factory");
         _ctx.dataProvider = new DataV1(IDataFacet(_ctx.kresko), address(_ctx.vault), address(_ctx.kiss));
         address(_ctx.dataProvider).clg("Data provider");
+        _ctx.multicall = new KrMulticall(address(_ctx.kresko), address(_ctx.kiss), address(address(0)));
+        _ctx.kresko.grantRole(Role.MANAGER, address(_ctx.multicall));
+        address(_ctx.multicall).clg("Multicall");
     }
 
     function onKrAssetAdded(State storage _ctx, KrAssetInfo memory _info) internal override {

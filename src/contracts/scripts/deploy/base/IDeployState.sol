@@ -14,6 +14,7 @@ import {VaultAsset} from "vault/VTypes.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {DeploymentFactory} from "factory/DeploymentFactory.sol";
+import {KrMulticall} from "periphery/KrMulticall.sol";
 
 /// @dev Stateful context for deployment scripts
 interface IDeployState is IKreskoForgeTypes {
@@ -33,6 +34,7 @@ interface IDeployState is IKreskoForgeTypes {
         UserCfg[] userCfg;
         AssetsOnChain assetsOnChain;
         IDataV1 dataProvider;
+        KrMulticall multicall;
         KISS kiss;
         IKresko kresko;
         Vault vault;

@@ -13,6 +13,8 @@ import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IDataV1} from "periphery/IDataV1.sol";
 import {ms} from "minter/MState.sol";
+import {KrMulticall} from "periphery/KrMulticall.sol";
+import {Role} from "common/Constants.sol";
 
 contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
     using ShortAssert for *;
@@ -27,6 +29,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
     KrAssetInfo internal krTSLA;
     DataV1 internal dataV1;
     uint256 constant ASSET_COUNT = 6;
+    KrMulticall internal mc;
 
     string initialPrices = "USDC:1:8,BTC:35179:8,DAI:0.99:8,ETH:2000:8,TSLA:100:8,JPY:0.0067:8";
     bytes redstoneCallData;
@@ -97,6 +100,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         dai.mock.mint(user2, 10000e18);
 
         vkiss = new Vault("vKISS", "vKISS", 18, 8, deployCfg.treasury, deployCfg.seqFeed);
+        kiss = deployKISS(address(kresko), address(vkiss), deployCfg.admin).kiss;
 
         vkiss.addAsset(
             VaultAsset(usdc.asToken, IAggregatorV3(address(usdc.feedAddr)), 80000, 0, 0, 0, type(uint248).max, true)
@@ -124,7 +128,49 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         call(kresko.depositSCDP.selector, user2, usdc.addr, 1000e18, initialPrices);
         call(kresko.mintKreskoAsset.selector, user2, krETH.addr, 1.5e18, initialPrices);
 
+        prank(deployCfg.admin);
         dataV1 = new DataV1(DataFacet(address(kresko)), address(vkiss), address(vkiss));
+        mc = new KrMulticall(address(kresko), address(kiss), address(0));
+        kresko.grantRole(Role.MANAGER, address(mc));
+    }
+
+    function testMulticall() public {
+        assertTrue(address(mc) != address(0), "mc-address");
+        KrMulticall.Op[] memory ops = new KrMulticall.Op[](7);
+        ops[0] = KrMulticall.Op({
+            action: KrMulticall.OpAction.Borrow,
+            data: KrMulticall.OpData(address(0), 0, krJPY.addr, 10000e18, 0, 0)
+        });
+        ops[1] = KrMulticall.Op({
+            action: KrMulticall.OpAction.Borrow,
+            data: KrMulticall.OpData(address(0), 0, krJPY.addr, 10000e18, 0, 0)
+        });
+        ops[2] = KrMulticall.Op({
+            action: KrMulticall.OpAction.Borrow,
+            data: KrMulticall.OpData(address(0), 0, krJPY.addr, 10000e18, 0, 0)
+        });
+        ops[3] = KrMulticall.Op({
+            action: KrMulticall.OpAction.Deposit,
+            data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
+        });
+        ops[4] = KrMulticall.Op({
+            action: KrMulticall.OpAction.Deposit,
+            data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
+        });
+        ops[5] = KrMulticall.Op({
+            action: KrMulticall.OpAction.Deposit,
+            data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
+        });
+        ops[6] = KrMulticall.Op({
+            action: KrMulticall.OpAction.Deposit,
+            data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
+        });
+
+        address(mc).clg("mc-address");
+
+        prank(user1);
+        krJPY.asToken.approve(address(mc), type(uint256).max);
+        mc.execute(ops, redstoneCallData);
     }
 
     function testProtocolDatas() public {
