@@ -20,8 +20,6 @@ struct CommonState {
     mapping(address => mapping(Enums.Action => SafetyState)) safetyState;
     /// @notice The recipient of protocol fees.
     address feeRecipient;
-    /// @notice The minimum USD value of an individual synthetic asset debt position.
-    uint96 minDebtValue;
     /* -------------------------------------------------------------------------- */
     /*                             Oracle & Sequencer                             */
     /* -------------------------------------------------------------------------- */

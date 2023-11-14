@@ -12,9 +12,6 @@ interface ICommonStateFacet {
     /// @notice max deviation between main oracle and fallback oracle
     function getOracleDeviationPct() external view returns (uint16);
 
-    /// @notice The minimum USD value of an individual synthetic asset debt position.
-    function getMinDebtValue() external view returns (uint96);
-
     /// @notice Get the L2 sequencer uptime feed address.
     function getSequencerUptimeFeed() external view returns (address);
 

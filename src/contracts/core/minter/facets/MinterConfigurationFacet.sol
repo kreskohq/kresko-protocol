@@ -29,6 +29,14 @@ contract MinterConfigurationFacet is DSModifiers, Modifiers, IMinterConfiguratio
     function initializeMinter(MinterInitArgs calldata args) external initializer(3) initializeAsAdmin {
         setMinCollateralRatioMinter(args.minCollateralRatio);
         setLiquidationThresholdMinter(args.liquidationThreshold);
+        setMinDebtValueMinter(args.minDebtValue);
+    }
+
+    /// @inheritdoc IMinterConfigurationFacet
+    function setMinDebtValueMinter(uint256 _newMinDebtValue) public override onlyRole(Role.ADMIN) {
+        Validations.validateMinDebtValue(_newMinDebtValue);
+        emit MEvent.MinimumDebtValueUpdated(ms().minDebtValue, _newMinDebtValue);
+        ms().minDebtValue = _newMinDebtValue;
     }
 
     /// @inheritdoc IMinterConfigurationFacet

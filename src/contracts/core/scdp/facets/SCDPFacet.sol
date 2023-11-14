@@ -143,7 +143,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
 
         uint256 repayValue = _getMaxLiqValue(repayAsset, seizeAsset, _seizeAssetAddr);
 
-        // Bound to min debt value or max liquidation value
+        // Bound to max liquidation value
         (repayValue, _repayAmount) = repayAsset.boundRepayValue(repayValue, _repayAmount);
         if (repayValue == 0 || _repayAmount == 0) {
             revert Errors.LIQUIDATION_VALUE_IS_ZERO(Errors.id(_repayAssetAddr), Errors.id(_seizeAssetAddr));
@@ -183,7 +183,6 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
                 sdi().effectiveDebtValue().percentMul(maxLiquidationRatio),
                 totalCollateralValue,
                 seizeAssetValue,
-                cs().minDebtValue,
                 maxLiquidationRatio
             );
     }
@@ -194,7 +193,6 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         uint256 _minCollateralValue,
         uint256 _totalCollateralValue,
         uint256 _seizeAssetValue,
-        uint96 _minDebtValue,
         uint32 _maxLiquidationRatio
     ) internal view returns (uint256) {
         if (!(_totalCollateralValue < _minCollateralValue)) return 0;
@@ -206,8 +204,6 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         uint256 liquidationFactor = _repayAsset.kFactor.percentMul(_maxLiquidationRatio) - seizeReductionPct;
         // Calculate maximum liquidation value
         uint256 maxLiquidationValue = (_minCollateralValue - _totalCollateralValue).percentDiv(liquidationFactor);
-        // Clamped to minimum debt value
-        if (_minDebtValue > maxLiquidationValue) return _minDebtValue;
         // Maximum value possible for the seize asset
         return maxLiquidationValue < _seizeAssetValue ? maxLiquidationValue : _seizeAssetValue;
     }

@@ -10,12 +10,6 @@ interface ICommonConfigurationFacet {
     function setFeeRecipient(address _newFeeRecipient) external;
 
     /**
-     * @dev Updates the contract's minimum debt value.
-     * @param _newMinDebtValue The new minimum debt value as a wad.
-     */
-    function setMinDebtValue(uint96 _newMinDebtValue) external;
-
-    /**
      * @notice Sets the decimal precision of external oracle
      * @param _decimals Amount of decimals
      */

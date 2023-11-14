@@ -187,7 +187,7 @@ contract MinterLiquidationFacet is Modifiers, IMinterLiquidationFacet {
                 ms().accountMinCollateralAtRatio(_account, maxLiquidationRatio),
                 totalCollateralValue,
                 seizeAssetValue,
-                cs().minDebtValue,
+                ms().minDebtValue,
                 maxLiquidationRatio
             );
     }
@@ -198,7 +198,7 @@ contract MinterLiquidationFacet is Modifiers, IMinterLiquidationFacet {
         uint256 _minCollateralValue,
         uint256 _totalCollateralValue,
         uint256 _seizeAssetValue,
-        uint96 _minDebtValue,
+        uint256 _minDebtValue,
         uint32 _maxLiquidationRatio
     ) internal view returns (uint256) {
         if (!(_totalCollateralValue < _minCollateralValue)) return 0;

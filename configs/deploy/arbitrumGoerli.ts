@@ -221,7 +221,6 @@ const commonInitAgs = (
   questForKresk: zeroAddress,
   kreskian: zeroAddress,
   phase: !gate ? 3 : 0, // 0 = phase 1, 1 = phase 2, 2 = phase 3, 3 = no gating (subject to change)
-  minDebtValue: 10e8,
   maxPriceDeviationPct: 0.1e4,
   sequencerGracePeriodTime: 3600,
   sequencerUptimeFeed: '0x4da69F028a5790fCCAfe81a75C0D24f46ceCDd69',
@@ -231,6 +230,7 @@ const commonInitAgs = (
 export const minterInitArgs: MinterInitArgsStruct = {
   minCollateralRatio: 1.5e4,
   liquidationThreshold: 1.4e4,
+  minDebtValue: 10e8,
 }
 export const scdpInitArgs: SCDPInitArgsStruct = {
   minCollateralRatio: 5e4,

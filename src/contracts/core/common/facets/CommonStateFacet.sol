@@ -20,11 +20,6 @@ contract CommonStateFacet is ICommonStateFacet {
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getMinDebtValue() external view returns (uint96) {
-        return cs().minDebtValue;
-    }
-
-    /// @inheritdoc ICommonStateFacet
     function getOracleDeviationPct() external view returns (uint16) {
         return cs().maxPriceDeviationPct;
     }

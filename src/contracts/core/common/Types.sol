@@ -157,15 +157,14 @@ struct CommonInitArgs {
     address admin;
     address council;
     address treasury;
-    uint64 minDebtValue;
     uint16 maxPriceDeviationPct;
     uint8 oracleDecimals;
-    address sequencerUptimeFeed;
+    uint8 phase;
     uint32 sequencerGracePeriodTime;
     uint32 staleTime;
+    address sequencerUptimeFeed;
     address kreskian;
     address questForKresk;
-    uint8 phase;
 }
 
 struct SCDPCollateralArgs {

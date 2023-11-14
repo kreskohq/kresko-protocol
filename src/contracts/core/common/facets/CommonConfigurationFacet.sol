@@ -29,7 +29,6 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         // Council must be a contract.
         Auth.setupSecurityCouncil(args.council);
         setFeeRecipient(args.treasury);
-        setMinDebtValue(args.minDebtValue);
         setDefaultOraclePrecision(args.oracleDecimals);
         setSequencerUptimeFeed(args.sequencerUptimeFeed);
         setMaxPriceDeviationPct(args.maxPriceDeviationPct);
@@ -45,13 +44,6 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         // Setup the admin
         Auth._grantRole(Role.DEFAULT_ADMIN, args.admin);
         Auth._grantRole(Role.ADMIN, args.admin);
-    }
-
-    /// @inheritdoc ICommonConfigurationFacet
-    function setMinDebtValue(uint96 _newMinDebtValue) public override onlyRole(Role.ADMIN) {
-        Validations.validateMinDebtValue(_newMinDebtValue);
-        emit MEvent.MinimumDebtValueUpdated(cs().minDebtValue, _newMinDebtValue);
-        cs().minDebtValue = _newMinDebtValue;
     }
 
     /// @inheritdoc ICommonConfigurationFacet

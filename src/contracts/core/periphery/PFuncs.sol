@@ -12,9 +12,6 @@ import {rawPrice} from "common/funcs/Prices.sol";
 import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {ms} from "minter/MState.sol";
-import {IVault} from "vault/interfaces/IVault.sol";
-import {VaultAsset} from "vault/VTypes.sol";
-import {Enums} from "common/Constants.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
@@ -101,7 +98,7 @@ library PFunc {
         result.LT = ms().liquidationThreshold;
         result.MCR = ms().minCollateralRatio;
         result.MLR = ms().maxLiquidationRatio;
-        result.minDebtValue = cs().minDebtValue;
+        result.minDebtValue = ms().minDebtValue;
     }
 
     function getAccount(address _account) internal view returns (PType.Account memory result) {

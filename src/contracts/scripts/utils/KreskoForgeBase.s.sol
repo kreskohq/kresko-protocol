@@ -82,7 +82,6 @@ abstract contract KreskoForgeBase is
         init_.admin = _cfg.admin;
         init_.council = _cfg.council;
         init_.treasury = _cfg.treasury;
-        init_.minDebtValue = 10e8;
         init_.maxPriceDeviationPct = 0.05e4;
         init_.oracleDecimals = _cfg.oraclePrecision;
         init_.sequencerUptimeFeed = _cfg.seqFeed;
@@ -94,6 +93,7 @@ abstract contract KreskoForgeBase is
     function getMinterInitArgs(CoreConfig memory _cfg) internal pure returns (MinterInitArgs memory init_) {
         init_.minCollateralRatio = _cfg.minterMcr;
         init_.liquidationThreshold = _cfg.minterLt;
+        init_.minDebtValue = 10e8;
     }
 
     function getSCDPInitArgs(CoreConfig memory _cfg) internal pure returns (SCDPInitArgs memory init_) {

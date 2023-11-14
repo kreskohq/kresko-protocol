@@ -53,6 +53,7 @@ struct MinterAccountState {
 struct MinterInitArgs {
     uint32 liquidationThreshold;
     uint32 minCollateralRatio;
+    uint256 minDebtValue;
 }
 
 /**
@@ -63,4 +64,5 @@ struct MinterParams {
     uint32 minCollateralRatio;
     uint32 liquidationThreshold;
     uint32 maxLiquidationRatio;
+    uint256 minDebtValue;
 }
