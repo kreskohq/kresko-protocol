@@ -147,7 +147,7 @@ contract Vault is IVault, ERC20 {
 
         if (assetsOut + assetFee > balance) {
             assetsOut = balance;
-            (sharesIn, assetFee) = previewWithdraw(assetAddr, assetsOut);
+            (sharesIn, assetFee) = previewWithdraw(assetAddr, assetsOut - (assetFee / 2));
             token.safeTransfer(receiver, assetsOut - assetFee);
         } else {
             token.safeTransfer(receiver, assetsOut);
