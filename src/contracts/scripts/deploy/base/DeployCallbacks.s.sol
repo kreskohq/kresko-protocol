@@ -55,6 +55,7 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         AssetCfg memory assetCfg,
         UserCfg[] memory userCfg
     ) internal override {
+        if (!state().logEnabled) return;
         ("/* ------------------------------- Deploying -------------------------------- */").clg();
         Log.br();
         super.logCallers();
@@ -81,6 +82,10 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
     }
 
     function onKISSCreated(State storage _ctx, KISSInfo memory) internal override {
+        _ctx.dataProvider = new DataV1(IDataFacet(_ctx.kresko), address(_ctx.vault), address(_ctx.kiss));
+        _ctx.multicall = new KrMulticall(address(_ctx.kresko), address(_ctx.kiss), address(address(0)));
+        _ctx.kresko.grantRole(Role.MANAGER, address(_ctx.multicall));
+        if (!state().logEnabled) return;
         Log.br();
         ("/* ------------------------------ Contracts ----------------------------- */").clg();
         Log.br();
@@ -88,14 +93,12 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         address(_ctx.vault).clg("Vault");
         address(_ctx.kiss).clg("KISS");
         address(_ctx.factory).clg("Deployment Factory");
-        _ctx.dataProvider = new DataV1(IDataFacet(_ctx.kresko), address(_ctx.vault), address(_ctx.kiss));
         address(_ctx.dataProvider).clg("Data provider");
-        _ctx.multicall = new KrMulticall(address(_ctx.kresko), address(_ctx.kiss), address(address(0)));
-        _ctx.kresko.grantRole(Role.MANAGER, address(_ctx.multicall));
         address(_ctx.multicall).clg("Multicall");
     }
 
     function onKrAssetAdded(State storage _ctx, KrAssetInfo memory _info) internal override {
+        if (!state().logEnabled) return;
         RawPrice memory price = _ctx.kresko.getPushPrice(_info.addr);
         Log.br();
         ("/* ------------------------------ Kresko Asset ------------------------------ */").clg();
@@ -125,6 +128,7 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
     }
 
     function onExtAssetAdded(State storage _ctx, ExtAssetInfo memory _info) internal override {
+        if (!state().logEnabled) return;
         RawPrice memory price = _ctx.kresko.getPushPrice(_info.addr);
         Log.br();
         ("/* ----------------------------- External Asset ----------------------------- */").clg();
@@ -147,6 +151,7 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
     }
 
     function onVaultAssetAdded(State storage _ctx, string memory _symbol, VaultAsset memory _info) internal override {
+        if (!state().logEnabled) return;
         address assetAddr = address(_info.token);
         Log.br();
         ("/* ------------------------------- Vault Asset ------------------------------ */").clg();
@@ -164,6 +169,7 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
     }
 
     function onComplete(State storage _ctx) internal override {
+        if (!state().logEnabled) return;
         Log.br();
         Log.sr();
         Log.sr();
