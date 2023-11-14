@@ -65,13 +65,9 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         SCDPAssetData storage repayAssetData = s.assetData[_repayAssetAddr];
         SCDPAssetData storage seizeAssetData = s.assetData[_seizeAssetAddr];
 
-        if (_repayAmount > repayAssetData.debt) {
-            revert Errors.REPAY_OVERFLOW(
-                Errors.id(_repayAssetAddr),
-                Errors.id(_seizeAssetAddr),
-                _repayAmount,
-                repayAssetData.debt
-            );
+        uint256 existingDebt = repayAsset.toRebasingAmount(repayAssetData.debt);
+        if (_repayAmount > existingDebt) {
+            revert Errors.REPAY_OVERFLOW(Errors.id(_repayAssetAddr), Errors.id(_seizeAssetAddr), _repayAmount, existingDebt);
         }
 
         uint256 seizedAmount = fromWad(repayAsset.krAssetUSD(_repayAmount).wadDiv(seizeAsset.price()), seizeAsset.decimals);
@@ -80,12 +76,13 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
             revert Errors.ZERO_REPAY(Errors.id(_repayAssetAddr), _repayAmount, seizedAmount);
         }
 
-        if (seizedAmount > seizeAssetData.swapDeposits) {
+        uint256 swapDeposits = seizeAsset.toRebasingAmount(seizeAssetData.swapDeposits);
+        if (seizedAmount > swapDeposits) {
             revert Errors.NOT_ENOUGH_SWAP_DEPOSITS_TO_SEIZE(
                 Errors.id(_repayAssetAddr),
                 Errors.id(_seizeAssetAddr),
                 seizedAmount,
-                seizeAssetData.swapDeposits
+                swapDeposits
             );
         }
 
@@ -135,12 +132,13 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         SCDPState storage s = scdp();
         s.ensureLiquidatableSCDP();
 
-        Asset storage repayAsset = cs().onlySwapMintable(_repayAssetAddr);
         Asset storage seizeAsset = cs().onlyActiveSharedCollateral(_seizeAssetAddr);
-
+        Asset storage repayAsset = cs().onlySwapMintable(_repayAssetAddr);
         SCDPAssetData storage repayAssetData = s.assetData[_repayAssetAddr];
-        if (_repayAmount > repayAssetData.debt) {
-            revert Errors.LIQUIDATION_AMOUNT_GREATER_THAN_DEBT(Errors.id(_repayAssetAddr), _repayAmount, repayAssetData.debt);
+
+        uint256 existingDebt = repayAsset.toRebasingAmount(repayAssetData.debt);
+        if (_repayAmount > existingDebt) {
+            revert Errors.LIQUIDATION_AMOUNT_GREATER_THAN_DEBT(Errors.id(_repayAssetAddr), _repayAmount, existingDebt);
         }
 
         uint256 repayValue = _getMaxLiqValue(repayAsset, seizeAsset, _seizeAssetAddr);

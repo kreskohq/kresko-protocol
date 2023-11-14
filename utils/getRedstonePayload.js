@@ -31,7 +31,7 @@ const dataPoints = dataFeeds.map(arg => {
     exit(3, 'Input should have format: dataFeedId:value:decimals (example: BTC:120:8)')
   }
 
-  return new NumericDataPoint({ dataFeedId, value: parseInt(value), decimals: parseInt(decimals) })
+  return new NumericDataPoint({ dataFeedId, value: parseFloat(value), decimals: parseInt(decimals) })
 })
 
 // Prepare unsigned data package

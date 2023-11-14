@@ -45,26 +45,26 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
     address[2] internal feeds_usdc;
     address[2] internal feeds_jpy;
     /* ------------------------------------ . ----------------------------------- */
-    uint256 constant price_eth = 1911e8;
-    uint256 constant price_btc = 35159.01e8;
-    uint256 constant price_dai = 0.9998e8;
-    uint256 constant price_eur = 1.07e8;
-    uint256 constant price_usdc = 1e8;
-    uint256 constant price_usdt = 1.0006e8;
-    uint256 constant price_jpy = 0.0067e8;
+    uint256 price_eth = 1911e8;
+    uint256 price_btc = 35159.01e8;
+    uint256 price_dai = 0.9998e8;
+    uint256 price_eur = 1.07e8;
+    uint256 price_usdc = 1e8;
+    uint256 price_usdt = 1.0006e8;
+    uint256 price_jpy = 0.0067e8;
     /* ------------------------------------ . ----------------------------------- */
     // @todo can probably delete these aswell
-    string constant price_eth_rs = "ETH:1911:8";
-    string constant price_btc_rs = "BTC:35159.01:8";
-    string constant price_eur_rs = "EUR:1.07:8";
-    string constant price_dai_rs = "DAI:0.9998:8";
-    string constant price_usdc_rs = "USDC:1:8";
-    string constant price_usdt_rs = "USDT:1:8";
-    string constant price_jpy_rs = "JPY:0.0067:8";
+    string price_eth_rs = "ETH:1911:8";
+    string price_btc_rs = "BTC:35159.01:8";
+    string price_eur_rs = "EUR:1.07:8";
+    string price_dai_rs = "DAI:0.9998:8";
+    string price_usdc_rs = "USDC:1:8";
+    string price_usdt_rs = "USDT:1:8";
+    string price_jpy_rs = "JPY:0.0067:8";
 
-    string constant initialPrices = "ETH:1911:8,BTC:35159.01:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,USDT:1:8,JPY:0.0067:8";
+    string constant initialPrices = "ETH:1911:8,BTC:35159.01:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,USDT:1.0006:8,JPY:0.0067:8";
 
-    function createPriceString() internal pure returns (string memory) {
+    function createPriceString() internal view returns (string memory) {
         return
             price_eth_rs
                 .and(",")
