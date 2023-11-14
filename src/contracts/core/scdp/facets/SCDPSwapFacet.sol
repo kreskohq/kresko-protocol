@@ -123,7 +123,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
     }
 
     /**
-     * @notice Swaps assets in the collateral pool.
+     * @notice Swaps asset to the fee asset in the collateral pool.
      * @param _receiver The address to receive the swapped assets.
      * @param _assetInAddr The asset to swap in.
      * @param _assetIn The asset in struct.
@@ -147,12 +147,11 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
         // Get the fee percentages.
         (uint256 feePercentage, uint256 protocolFee) = getSwapFees(_assetIn, assetOut);
 
-        // Assets received pay off debt and/or increase SCDP owned collateral.
-
         // Assets sent out are newly minted debt and/or SCDP owned collateral.
         amountOut = scdp().handleAssetsOut(
             assetOutAddr,
             assetOut,
+            // Assets received pay off debt and/or increase SCDP owned collateral.
             scdp().handleAssetsIn(_assetInAddr, _assetIn, _amountIn, address(this)),
             address(this)
         );
@@ -233,7 +232,12 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
         }
 
         if (_feeAmount != 0) scdp().cumulateIncome(_feeAssetAddress, _feeAsset, _feeAmount);
-        if (protocolFeeTaken != 0) IERC20(_feeAssetAddress).safeTransfer(cs().feeRecipient, protocolFeeTaken);
+        if (protocolFeeTaken != 0) {
+            IERC20 feeToken = IERC20(_feeAssetAddress);
+            uint256 balance = feeToken.balanceOf(address(this));
+            uint256 protocolFeeToSend = balance < protocolFeeTaken ? balance : protocolFeeTaken;
+            feeToken.safeTransfer(cs().feeRecipient, protocolFeeToSend);
+        }
 
         emit SEvent.SwapFee(_feeAssetAddress, _payAssetAddress, _feeAmount, protocolFeeTaken);
     }
