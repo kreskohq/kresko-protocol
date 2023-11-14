@@ -10,6 +10,9 @@ interface IMinterStateFacet {
     /// @notice Multiplies max liquidation multiplier, if a full liquidation happens this is the resulting CR.
     function getMaxLiquidationRatioMinter() external view returns (uint32);
 
+    /// @notice The minimum USD value of an individual synthetic asset debt position.
+    function getMinDebtValueMinter() external view returns (uint256);
+
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.
     function getMinCollateralRatioMinter() external view returns (uint32);
 

@@ -126,7 +126,7 @@ export async function getMinCollateralRatioMinter() {
   // }
 }
 export async function getMinDebtValue() {
-  return hre.Diamond.getMinDebtValue()
+  return hre.Diamond.getMinDebtValueMinter()
   // try {
   //     const data = await getStorageAt(hre.Diamond.address, increaseHexBy(slots.minter, slots.minDebtValue));
   //     return BigNumber.from(hexStripZeros(data));

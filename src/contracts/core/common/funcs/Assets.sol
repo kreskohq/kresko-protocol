@@ -10,6 +10,7 @@ import {toWad} from "common/funcs/Math.sol";
 import {safePrice, SDIPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
+import {ms} from "minter/MState.sol";
 
 library Assets {
     using WadRay for uint256;
@@ -172,7 +173,7 @@ library Assets {
         // If the requested burn would put the user's debt position below the minimum
         // debt value, close up to the minimum debt value instead.
         uint256 krAssetValue = _asset.debtAmountToValue(_debtAmount - _burnAmount, true);
-        uint256 minDebtValue = cs().minDebtValue;
+        uint256 minDebtValue = ms().minDebtValue;
         if (krAssetValue > 0 && krAssetValue < minDebtValue) {
             uint256 minDebtAmount = minDebtValue.wadDiv(_asset.price());
             amount = _debtAmount - minDebtAmount;
@@ -189,7 +190,7 @@ library Assets {
      */
     function ensureMinDebtValue(Asset storage _asset, address _krAsset, uint256 _debtAmount) internal view {
         uint256 positionValue = _asset.krAssetUSD(_debtAmount);
-        uint256 minDebtValue = cs().minDebtValue;
+        uint256 minDebtValue = ms().minDebtValue;
         if (positionValue < minDebtValue)
             revert Errors.MINT_VALUE_LESS_THAN_MIN_DEBT_VALUE(Errors.id(_krAsset), positionValue, minDebtValue);
     }

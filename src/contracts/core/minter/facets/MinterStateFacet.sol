@@ -28,13 +28,18 @@ contract MinterStateFacet is IMinterStateFacet {
     }
 
     /// @inheritdoc IMinterStateFacet
+    function getMinDebtValueMinter() external view returns (uint256) {
+        return ms().minDebtValue;
+    }
+
+    /// @inheritdoc IMinterStateFacet
     function getMaxLiquidationRatioMinter() external view returns (uint32) {
         return ms().maxLiquidationRatio;
     }
 
     /// @inheritdoc IMinterStateFacet
     function getParametersMinter() external view returns (MinterParams memory) {
-        return MinterParams(ms().minCollateralRatio, ms().liquidationThreshold, ms().maxLiquidationRatio);
+        return MinterParams(ms().minCollateralRatio, ms().liquidationThreshold, ms().maxLiquidationRatio, ms().minDebtValue);
     }
 
     /* -------------------------------------------------------------------------- */

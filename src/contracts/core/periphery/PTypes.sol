@@ -71,7 +71,7 @@ library PType {
         uint32 MCR;
         uint32 LT;
         uint32 MLR;
-        uint96 minDebtValue;
+        uint256 minDebtValue;
     }
 
     struct SCDP {

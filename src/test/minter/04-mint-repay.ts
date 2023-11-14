@@ -146,7 +146,7 @@ describe('Minter', function () {
         // Confirm that the mint amount's USD value is equal to the contract's current minimum debt value
         const mintAmount = toBig(1) // 1 * $10 = $10
         const mintAmountUSDValue = await hre.Diamond.getValue(f.KrAsset.address, mintAmount)
-        const currMinimumDebtValue = await hre.Diamond.getMinDebtValue()
+        const currMinimumDebtValue = await hre.Diamond.getMinDebtValueMinter()
         expect(mintAmountUSDValue).to.equal(currMinimumDebtValue)
 
         await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)

@@ -45,6 +45,8 @@ struct MinterState {
     uint32 minCollateralRatio;
     /// @notice The collateralization ratio at which positions may be liquidated.
     uint32 liquidationThreshold;
+    /// @notice The minimum USD value of an individual synthetic asset debt position.
+    uint256 minDebtValue;
 }
 
 /* -------------------------------------------------------------------------- */

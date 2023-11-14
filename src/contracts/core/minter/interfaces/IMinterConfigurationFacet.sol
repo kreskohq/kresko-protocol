@@ -7,6 +7,12 @@ interface IMinterConfigurationFacet {
     function initializeMinter(MinterInitArgs calldata args) external;
 
     /**
+     * @dev Updates the contract's minimum debt value.
+     * @param _newMinDebtValue The new minimum debt value as a wad.
+     */
+    function setMinDebtValueMinter(uint256 _newMinDebtValue) external;
+
+    /**
      * @notice Updates the liquidation incentive multiplier.
      * @param _collateralAsset The collateral asset to update.
      * @param _newLiquidationIncentive The new liquidation incentive multiplier for the asset.
