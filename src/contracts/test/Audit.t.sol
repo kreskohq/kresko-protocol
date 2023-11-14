@@ -11,6 +11,8 @@ import {PType} from "periphery/PTypes.sol";
 import {DataV1} from "periphery/DataV1.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 import {Errors} from "common/Errors.sol";
+import {VaultAsset} from "vault/VTypes.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
@@ -18,6 +20,7 @@ contract AuditTest is Local, Test {
     using ShortAssert for *;
     using Help for *;
     using Log for *;
+    using PercentageMath for *;
 
     bytes redstoneCallData;
     DataV1 internal dataV1;
@@ -37,12 +40,15 @@ contract AuditTest is Local, Test {
         setupUsers(userCfg, assets);
 
         dataV1 = new DataV1(IDataFacet(address(kresko)), address(vkiss), address(kiss));
+        kiss = state().kiss;
 
         prank(getAddr(0));
         redstoneCallData = getRedstonePayload(rsPrices);
         _setETHPrice(2000);
         // 1000 KISS -> 0.48 ETH
         call(kresko.swapSCDP.selector, getAddr(0), address(state().kiss), krETH.addr, 1000e18, 0, rsPrices);
+        vkiss.setDepositFee(address(USDT), 10e2);
+        vkiss.setWithdrawFee(address(USDT), 10e2);
     }
 
     function testRebase() external {
@@ -80,7 +86,7 @@ contract AuditTest is Local, Test {
         krETH.krAsset.rebase(2e18, true, new address[](0));
 
         // 1000 KISS -> 0.96 ETH
-        call(kresko.swapSCDP.selector, getAddr(0), address(state().kiss), krETH.addr, 1000e18, 0, rsPrices);
+        call(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETH.addr, 1000e18, 0, rsPrices);
 
         // previous debt amount 0.48 ETH, doubled after rebase so 0.96 ETH
         uint256 amountDebtAfter = kresko.getDebtSCDP(krETH.addr);
@@ -97,7 +103,50 @@ contract AuditTest is Local, Test {
 
         // this fails without the fix as normalized debt amount is 0.96 krETH
         // vm.expectRevert();
-        _liquidate(krETH.addr, 0.96e18 + 1, address(state().kiss));
+        _liquidate(krETH.addr, 0.96e18 + 1, address(kiss));
+    }
+
+    function testVaultDoubleFeesOak4() external {
+        VaultAsset memory usdtConfig = vkiss.assets(address(USDT));
+        USDT.balanceOf(vkiss.getConfig().feeRecipient).eq(0);
+
+        uint256 depositAmount = 1000e6;
+        uint256 actualWithdrawAmount = depositAmount.percentMul(1e4 - usdtConfig.depositFee) / 2;
+        uint256 expectedOut = actualWithdrawAmount.percentMul(1e4 - usdtConfig.withdrawFee);
+        expectedOut.clg("expected-usdt-out");
+
+        // user setup
+        address user = getAddr(20);
+        prank(user);
+        mockUSDT.mock.mint(user, depositAmount);
+        mockUSDT.mock.approve(address(vkiss), depositAmount);
+        vkiss.deposit(address(USDT), depositAmount, user);
+        uint256 halfShares = vkiss.balanceOf(user) / 2;
+
+        // other user setup
+        address otherUser = getAddr(0);
+        prank(otherUser);
+        USDT.transfer(address(0), USDT.balanceOf(otherUser));
+
+        // other user withdraws half of USDT available
+        kiss.vaultRedeem(address(USDT), halfShares, otherUser, otherUser);
+        uint256 otherBal = USDT.balanceOf(otherUser);
+        otherBal.eq(expectedOut, "other-user-usdt-bal-after-redeem");
+
+        // user withdraws all shares, resulting in partial withdrawal
+        prank(user);
+        vkiss.redeem(address(USDT), vkiss.balanceOf(user), user, user);
+
+        /// @dev before fix, 400 USDT is received while 405 USDT is expected
+        /// @dev USDT.balanceOf(user).lt(expectedOut, "user-usdt-bal-after-lt");
+        USDT.balanceOf(user).eq(expectedOut, "user-usdt-bal-after-redeem");
+        vkiss.balanceOf(user).eq(halfShares, "user-vkiss-bal-after-redeem");
+
+        otherBal.eq(USDT.balanceOf(user));
+        USDT.balanceOf(vkiss.getConfig().feeRecipient).eq(
+            depositAmount - (expectedOut * 2),
+            "vkiss-usdt-bal-fee-recipient-after-withdraw"
+        );
     }
 
     /* -------------------------------- Util -------------------------------- */
