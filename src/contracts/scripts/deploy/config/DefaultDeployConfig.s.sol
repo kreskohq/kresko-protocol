@@ -64,6 +64,23 @@ abstract contract DefaultDeployConfig is ScriptBase, DeployLogicBase {
 
     string constant initialPrices = "ETH:1911:8,BTC:35159.01:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,USDT:1:8,JPY:0.0067:8";
 
+    function createPriceString() internal pure returns (string memory) {
+        return
+            price_eth_rs
+                .and(",")
+                .and(price_btc_rs)
+                .and(",")
+                .and(price_eur_rs)
+                .and(",")
+                .and(price_dai_rs)
+                .and(",")
+                .and(price_usdc_rs)
+                .and(",")
+                .and(price_usdt_rs)
+                .and(",")
+                .and(price_jpy_rs);
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                                  Handlers                                  */
     /* -------------------------------------------------------------------------- */

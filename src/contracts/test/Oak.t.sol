@@ -15,7 +15,6 @@ contract NewProtocolTest is Local, Test {
     using Help for *;
     using Log for *;
 
-    uint256 constant ASSET_COUNT = 6;
     bytes redstoneCallData;
 
     function setUp() public {
@@ -28,11 +27,14 @@ contract NewProtocolTest is Local, Test {
 
         UserCfg[] memory userCfg = super.createUserConfig(testUsers);
         AssetsOnChain memory assets = deploy(deployer, admin, treasury);
-
         setupUsers(userCfg, assets);
+
+        prank(getAddr(0));
+        call(kresko.swapSCDP.selector, getAddr(0), address(state().kiss), krETH.addr, 1000e18, 0, initialPrices);
     }
 
     function testSomething() external {
-        assertTrue(address(state().kresko) != address(0), "kresko-addr");
+        uint256 cr = staticCall(kresko.getCollateralRatioSCDP.selector, initialPrices);
+        cr.gt(0, "cr-zero");
     }
 }
