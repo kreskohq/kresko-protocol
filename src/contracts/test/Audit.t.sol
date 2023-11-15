@@ -13,6 +13,7 @@ import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 import {Errors} from "common/Errors.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
+import {Asset} from "common/Types.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
@@ -149,7 +150,65 @@ contract AuditTest is Local, Test {
         );
     }
 
+    function testLiquidityIndexAfterLiquidationOak6Oak7() external {
+        prank(getAddr(0));
+
+        uint256 crBefore = staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices);
+        uint256 amountDebtBefore = kresko.getDebtSCDP(krETH.addr);
+        amountDebtBefore.clg("amount-debt-before");
+
+        _trades(50);
+        Asset memory asset = kresko.getAsset(address(kiss));
+        asset.liquidityIndexSCDP.clg("liquidity-index-before");
+        // 1000792080016003200640128026
+        // 1039600080016003200640128026
+
+        // // rebase up 2x and adjust price accordingly
+        // _setETHPrice(1000);
+        // krETH.krAsset.rebase(2e18, true, new address[](0));
+
+        // // 1000 KISS -> 0.96 ETH
+        // call(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETH.addr, 1000e18, 0, rsPrices);
+
+        // // previous debt amount 0.48 ETH, doubled after rebase so 0.96 ETH
+        // uint256 amountDebtAfter = kresko.getDebtSCDP(krETH.addr);
+        // amountDebtAfter.eq(0.96e18 + (0.48e18 * 2), "amount-debt-after");
+
+        // // matches $1000 ETH valuation
+        // uint256 valueDebtAfter = staticCall(kresko.getDebtValueSCDP.selector, krETH.addr, true, rsPrices);
+        // valueDebtAfter.eq(1920e8, "value-debt-after");
+
+        // // make it liquidatable
+        // _setETHPrice(20000);
+        // uint256 crAfter = staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices);
+        // crAfter.lt(deployCfg.scdpLt); // cr-after: 112.65%
+
+        // // this fails without the fix as normalized debt amount is 0.96 krETH
+        // // vm.expectRevert();
+        // _liquidate(krETH.addr, 0.96e18 + 1, address(kiss));
+    }
+
     /* -------------------------------- Util -------------------------------- */
+
+    function _trades(uint256 count) internal {
+        address trader = getAddr(777);
+        prank(deployCfg.admin);
+        uint256 mintAmount = 20000e18;
+
+        kresko.setFeeAssetSCDP(address(kiss));
+        mockUSDC.mock.mint(trader, mintAmount * count);
+
+        prank(trader);
+        mockUSDC.mock.approve(address(kiss), type(uint256).max);
+        kiss.approve(address(kresko), type(uint256).max);
+        krETH.asToken.approve(address(kresko), type(uint256).max);
+        (uint256 tradeAmount, ) = kiss.vaultDeposit(address(USDC), mintAmount * count, trader);
+
+        for (uint256 i = 0; i < count; i++) {
+            call(kresko.swapSCDP.selector, trader, address(kiss), krETH.addr, tradeAmount / count, 0, rsPrices);
+            call(kresko.swapSCDP.selector, trader, krETH.addr, address(kiss), krETH.asToken.balanceOf(trader), 0, rsPrices);
+        }
+    }
 
     function _liquidate(
         address _repayAsset,
