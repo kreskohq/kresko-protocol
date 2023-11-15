@@ -137,7 +137,6 @@ contract Vault is IVault, ERC20 {
 
         if (msg.sender != owner) {
             uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
-
             if (allowed != type(uint256).max) _allowances[owner][msg.sender] = allowed - sharesIn;
         }
 
@@ -146,9 +145,10 @@ contract Vault is IVault, ERC20 {
         uint256 balance = token.balanceOf(address(this));
 
         if (assetsOut + assetFee > balance) {
-            assetsOut = balance;
-            (sharesIn, assetFee) = previewWithdraw(assetAddr, assetsOut - (assetFee / 2));
-            token.safeTransfer(receiver, assetsOut - assetFee);
+            VaultAsset storage asset = _assets[assetAddr];
+            sharesIn = asset.usdWad(_config, balance).mulDivDown(totalSupply(), totalAssets());
+            (assetsOut, assetFee) = previewRedeem(assetAddr, sharesIn);
+            token.safeTransfer(receiver, assetsOut);
         } else {
             token.safeTransfer(receiver, assetsOut);
         }
