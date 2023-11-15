@@ -138,6 +138,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         call(kresko.mintKreskoAsset.selector, user0, KISS.addr, borrowAmount, initialPrices);
 
         vm.stopPrank();
+
         poolDeposit(user0, usdc.addr, depositAmount, initialPrices);
         poolDeposit(user0, KISS.addr, borrowAmount, initialPrices);
 
@@ -269,7 +270,13 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     }
 
     function poolDeposit(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {
+        prank(deployCfg.admin);
+        kresko.setFeeAssetSCDP(asset);
+        prank(user);
         call(kresko.depositSCDP.selector, user, asset, amount, prices);
+        prank(deployCfg.admin);
+        kresko.setFeeAssetSCDP(KISS.addr);
+        prank(user);
     }
 
     function poolWithdraw(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {
