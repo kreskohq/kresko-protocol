@@ -21,7 +21,7 @@ const initialDepositValue = depositAmount.ebn(8)
 const depositAmount18Dec = depositAmount.ebn()
 const depositAmount8Dec = depositAmount.ebn(8)
 
-describe('SCDP', async function () {
+describe.only('SCDP', async function () {
   let f: SCDPFixture
   this.slow(5000)
 
@@ -183,7 +183,7 @@ describe('SCDP', async function () {
     it('should be able to deposit collateral, calculate correct deposit values', async function () {
       const expectedValueUnadjusted = toBig(f.CollateralPrice.num(8) * depositAmount, 8)
       const expectedValueAdjusted = (f.CollateralPrice.num(8) * depositAmount).ebn(8) // cfactor = 1
-
+      await hre.Diamond.setFeeAssetSCDP(f.Collateral.address)
       await Promise.all(
         f.usersArr.map(user => {
           return wrapKresko(hre.Diamond, user).depositSCDP(user.address, f.Collateral.address, depositAmount18Dec)
@@ -234,12 +234,12 @@ describe('SCDP', async function () {
       const expectedValueAdjusted8Dec = toBig(f.CollateralPrice.num(8) * 0.8 * depositAmount, 8) // cfactor = 0.8
 
       await Promise.all(
-        f.usersArr.map(user => {
+        f.usersArr.map(async user => {
           const User = wrapKresko(hre.Diamond, user)
-          return Promise.all([
-            User.depositSCDP(user.address, f.Collateral.address, depositAmount18Dec),
-            User.depositSCDP(user.address, f.Collateral8Dec.address, depositAmount8Dec),
-          ])
+          await hre.Diamond.setFeeAssetSCDP(f.Collateral.address)
+          await User.depositSCDP(user.address, f.Collateral.address, depositAmount18Dec)
+          await hre.Diamond.setFeeAssetSCDP(f.Collateral8Dec.address)
+          await User.depositSCDP(user.address, f.Collateral8Dec.address, depositAmount8Dec)
         }),
       )
       const [userInfos, assetInfos, globals] = await Promise.all([
@@ -293,10 +293,10 @@ describe('SCDP', async function () {
       await Promise.all(
         f.usersArr.map(async user => {
           const UserKresko = wrapKresko(hre.Diamond, user)
-          await Promise.all([
-            UserKresko.depositSCDP(user.address, f.Collateral.address, depositAmount18Dec),
-            UserKresko.depositSCDP(user.address, f.Collateral8Dec.address, depositAmount8Dec),
-          ])
+          await hre.Diamond.setFeeAssetSCDP(f.Collateral.address)
+          await UserKresko.depositSCDP(user.address, f.Collateral.address, depositAmount18Dec)
+          await hre.Diamond.setFeeAssetSCDP(f.Collateral8Dec.address)
+          await UserKresko.depositSCDP(user.address, f.Collateral8Dec.address, depositAmount8Dec)
         }),
       )
     })
@@ -887,23 +887,27 @@ describe('SCDP', async function () {
       }
       await f.KISS.setBalance(f.swapper, toBig(10_000))
       await f.KISS.setBalance(f.depositor2, toBig(10_000))
-      await Promise.all([
-        f.KreskoDepositor.depositSCDP(
-          f.depositor.address,
-          f.Collateral.address,
-          depositAmount18Dec, // $10k
-        ),
-        f.KreskoDepositor.depositSCDP(
-          f.depositor.address,
-          f.Collateral8Dec.address,
-          depositAmount8Dec, // $8k
-        ),
-        f.KreskoDepositor2.depositSCDP(
-          f.depositor2.address,
-          f.KISS.address,
-          depositAmount18Dec, // $8k
-        ),
-      ])
+      await hre.Diamond.setFeeAssetSCDP(f.Collateral.address)
+
+      await f.KreskoDepositor.depositSCDP(
+        f.depositor.address,
+        f.Collateral.address,
+        depositAmount18Dec, // $10k
+      )
+
+      await hre.Diamond.setFeeAssetSCDP(f.Collateral8Dec.address)
+      await f.KreskoDepositor.depositSCDP(
+        f.depositor.address,
+        f.Collateral8Dec.address,
+        depositAmount8Dec, // $8k
+      )
+
+      await hre.Diamond.setFeeAssetSCDP(f.KISS.address)
+      f.KreskoDepositor2.depositSCDP(
+        f.depositor2.address,
+        f.KISS.address,
+        depositAmount18Dec, // $8k
+      )
     })
     it('should identify if the pool is not underwater', async function () {
       const swapAmount = toBig(2600) // $1
@@ -1004,6 +1008,7 @@ describe('SCDP', async function () {
       expect(depositsWithFees).to.eq(expectedDepositsAfter)
 
       // Sanity checking that users should be able to withdraw what is left
+      await hre.Diamond.setFeeAssetSCDP(f.Collateral.address)
       await f.KreskoDepositor.depositSCDP(f.depositor.address, f.Collateral.address, depositAmount18Dec.mul(10))
       const stats = await hre.Diamond.getDataSCDP()
       expect(stats.totals.cr).to.gt(params.minCollateralRatio)
@@ -1023,14 +1028,14 @@ describe('SCDP', async function () {
       await f.KISS.setBalance(f.swapper, toBig(10_000))
       await f.KISS.setBalance(f.depositor, hre.ethers.BigNumber.from(1))
 
-      await Promise.all([
-        f.KreskoDepositor.depositSCDP(f.depositor.address, f.KISS.address, 1),
-        f.KreskoDepositor.depositSCDP(
-          f.depositor.address,
-          f.Collateral.address,
-          depositAmount18Dec, // $10k
-        ),
-      ])
+      await hre.Diamond.setFeeAssetSCDP(f.Collateral.address)
+      await f.KreskoDepositor.depositSCDP(
+        f.depositor.address,
+        f.Collateral.address,
+        depositAmount18Dec, // $10k
+      )
+      await hre.Diamond.setFeeAssetSCDP(f.KISS.address)
+      await f.KreskoDepositor.depositSCDP(f.depositor.address, f.KISS.address, 1)
     })
     it('should revert depositing unsupported tokens', async function () {
       const [UnsupportedToken] = await hre.deploy('MockERC20', {
@@ -1039,7 +1044,7 @@ describe('SCDP', async function () {
       await UnsupportedToken.approve(hre.Diamond.address, hre.ethers.constants.MaxUint256)
       const { deployer } = await hre.getNamedAccounts()
       await expect(hre.Diamond.depositSCDP(deployer, UnsupportedToken.address, 1))
-        .to.be.revertedWithCustomError(Errors(hre), 'ASSET_NOT_DEPOSITABLE')
+        .to.be.revertedWithCustomError(Errors(hre), 'ASSET_NOT_FEE_ACCUMULATING_ASSET')
         .withArgs(['UnsupportedToken', UnsupportedToken.address])
     })
     it('should revert withdrawing without deposits', async function () {

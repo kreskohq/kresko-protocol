@@ -30,7 +30,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Record the collateral deposit.
-        scdp().handleDepositSCDP(cs().onlySharedCollateral(_collateralAsset), _account, _collateralAsset, _amount);
+        scdp().handleDepositSCDP(cs().onlyFeeAccumulatingCollateral(_collateralAsset), _account, _collateralAsset, _amount);
 
         emit SEvent.SCDPDeposit(_account, _collateralAsset, _amount);
     }

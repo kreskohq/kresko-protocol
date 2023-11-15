@@ -94,6 +94,8 @@ struct Asset {
     bool isSharedOrSwappedCollateral;
     /// @notice Asset can be used to cover SCDP debt.
     bool isCoverAsset;
+    /// @notice Tag for assets that have accumulated any shared fees.
+    bool hasSharedFees;
 }
 
 /// @notice The access control role data.

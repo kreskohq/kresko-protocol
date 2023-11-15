@@ -165,6 +165,13 @@ library Swap {
                 self.totalDepositAmount(_assetAddr, _asset)
             );
         }
+
+        // Tag asset as having shared fees.
+        // This guarantees that the asset will never have a zero liquidity index.
+        if (!_asset.hasSharedFees) {
+            _asset.hasSharedFees = true;
+        }
+
         // liquidity index increment is calculated this way: `(amount / totalLiquidity)`
         // division `amount / totalLiquidity` done in ray for precision
         unchecked {
