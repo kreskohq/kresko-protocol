@@ -44,8 +44,8 @@ struct SCDPAssetData {
 
 /**
  * @notice SCDP asset fee and liquidation index data
- * @param currFeeIndex The current fee index, used to calculate fees.
- * @param currLiqIndex The current liquidation index, used to calculate liquidated amounts from principal.
+ * @param currFeeIndex The ever increasing fee index, used to calculate fees.
+ * @param currLiqIndex The ever increasing liquidation index, used to calculate liquidated amounts from principal.
  */
 struct SCDPAssetIndexes {
     uint128 currFeeIndex;

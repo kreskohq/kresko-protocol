@@ -114,16 +114,22 @@ library SDeposits {
             }
         } else {
             // swap deposits do not cover the amount
-            uint128 amountToCover = uint128(_seizeAmount - swapDeposits);
             self.assetData[_assetAddr].swapDeposits = 0;
+            // total deposits = user deposits at this point
             self.assetData[_assetAddr].totalDeposits -= uint128(_sAsset.toNonRebasingAmount(_seizeAmount));
 
+            // We need this later for seize data as well.
             uint256 prevLiqIndex = self.assetIndexes[_assetAddr].currLiqIndex;
 
+            // Increase liquidation index, note this uses rebased amounts instead of normalized.
             self.assetIndexes[_assetAddr].currLiqIndex += uint128(
-                amountToCover.wadToRay().rayDiv(self.userDepositAmount(_assetAddr, _sAsset).wadToRay()).rayMul(prevLiqIndex)
+                (_seizeAmount - swapDeposits)
+                    .wadToRay()
+                    .rayDiv(_sAsset.toRebasingAmount(self.assetData[_assetAddr].totalDeposits.wadToRay()))
+                    .rayMul(prevLiqIndex)
             );
 
+            // Save the seize data.
             self.seizeEvents[_assetAddr][self.assetIndexes[_assetAddr].currLiqIndex] = SCDPSeizeData({
                 prevLiqIndex: prevLiqIndex,
                 feeIndex: self.assetIndexes[_assetAddr].currFeeIndex,
