@@ -23,7 +23,6 @@ using PercentageMath for uint256;
 using PercentageMath for uint16;
 using SafeTransfer for IERC20;
 using WadRay for uint256;
-using WadRay for uint128;
 
 contract SCDPFacet is ISCDPFacet, Modifiers {
     /// @inheritdoc ISCDPFacet
