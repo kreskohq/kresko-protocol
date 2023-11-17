@@ -54,7 +54,7 @@ contract MinterBurnFacet is Modifiers, IMinterBurnFacet {
         // Record the burn
         s.kreskoAssetDebt[_account][_krAsset] -= burnKrAsset(_burnAmount, msg.sender, asset.anchor);
 
-        // If sender repays all scaled debt of asset, remove it from minted assets array.
+        // If sender repays all debt of asset, remove it from minted assets array.
         if (s.accountDebtAmount(_account, _krAsset, asset) == 0) {
             s.mintedKreskoAssets[_account].removeAddress(_krAsset, _mintedKreskoAssetIndex);
         }

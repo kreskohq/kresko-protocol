@@ -17,6 +17,7 @@ import {SEvent} from "scdp/SEvent.sol";
 import {SCDPAssetData} from "scdp/STypes.sol";
 import {ISCDPFacet} from "scdp/interfaces/ISCDPFacet.sol";
 import {scdp, sdi, SCDPState} from "scdp/SState.sol";
+import {Role} from "common/Constants.sol";
 
 using PercentageMath for uint256;
 using PercentageMath for uint16;
@@ -50,6 +51,14 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
 
         // Emit event.
         emit SEvent.SCDPWithdraw(_account, _collateralAsset, _amount, 0);
+    }
+
+    function claimFeesSCDP(
+        address _account,
+        address _collateralAsset
+    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) returns (uint256 feeAmount) {
+        feeAmount = scdp().handleFeeClaim(cs().onlyFeeAccumulatingCollateral(_collateralAsset), _account, _collateralAsset);
+        if (feeAmount == 0) revert Errors.NO_FEES_TO_CLAIM(Errors.id(_collateralAsset), _account);
     }
 
     /// @inheritdoc ISCDPFacet

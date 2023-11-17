@@ -2,11 +2,10 @@
 pragma solidity 0.8.21;
 
 import {WadRay} from "libs/WadRay.sol";
-import {scdp, SCDPState} from "scdp/SState.sol";
+import {SCDPState} from "scdp/SState.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 import {SCDPAccountIndexes, SCDPAssetIndexes, SCDPSeizeData} from "scdp/STypes.sol";
-import {console2} from "forge-std/console2.sol";
 
 library SAccounts {
     using WadRay for uint256;
@@ -109,9 +108,10 @@ library SAccounts {
     }
 
     /**
-     * @notice Returns the value of the collateral assets in the pool for `_account` for the scaled deposit amount.
+     * @notice Returns the total fees value for `_account`.
      * @notice Ignores all factors.
-     * @param _account account
+     * @param _account Account to get fees for
+     * @return totalValue Total fees value for `_account`
      */
     function accountTotalFeeValue(SCDPState storage self, address _account) internal view returns (uint256 totalValue) {
         address[] memory assets = self.collaterals;
