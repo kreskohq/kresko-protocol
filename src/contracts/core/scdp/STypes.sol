@@ -68,6 +68,7 @@ struct SCDPSeizeData {
  * @notice SCDP account indexes
  * @param lastFeeIndex Fee index at the time of the action.
  * @param lastLiqIndex Liquidation index at the time of the action.
+ * @param timestamp Timestamp of the action, used for external purposes.
  */
 struct SCDPAccountIndexes {
     uint128 lastFeeIndex;

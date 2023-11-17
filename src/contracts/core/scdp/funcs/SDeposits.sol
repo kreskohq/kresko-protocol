@@ -7,6 +7,7 @@ import {Errors} from "common/Errors.sol";
 import {SCDPState} from "scdp/SState.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {SCDPSeizeData} from "scdp/STypes.sol";
+import {SEvent} from "scdp/SEvent.sol";
 
 library SDeposits {
     using WadRay for uint256;
@@ -150,7 +151,8 @@ library SDeposits {
 
         if (fees > 0) {
             IERC20(_assetAddr).transfer(_account, fees);
-            updateAccountIndexes(self, _account, _assetAddr);
+            (uint256 prevIndex, uint256 newIndex) = updateAccountIndexes(self, _account, _assetAddr);
+            emit SEvent.SCDPFeeClaim(_account, _assetAddr, fees, newIndex, prevIndex, block.timestamp);
         }
 
         return fees;
@@ -162,7 +164,13 @@ library SDeposits {
      * @param _assetAddr The asset being withdrawn/deposited.
      * @dev This function is used by deposit and withdraw functions.
      */
-    function updateAccountIndexes(SCDPState storage self, address _account, address _assetAddr) private {
+    function updateAccountIndexes(
+        SCDPState storage self,
+        address _account,
+        address _assetAddr
+    ) private returns (uint128 newIndex, uint128 prevIndex) {
+        prevIndex = self.accountIndexes[_account][_assetAddr].lastFeeIndex;
+        newIndex = self.assetIndexes[_assetAddr].currFeeIndex;
         self.accountIndexes[_account][_assetAddr].lastFeeIndex = self.assetIndexes[_assetAddr].currFeeIndex;
         self.accountIndexes[_account][_assetAddr].lastLiqIndex = self.assetIndexes[_assetAddr].currLiqIndex;
     }
