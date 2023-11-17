@@ -78,7 +78,7 @@ describe.only('SCDP', async function () {
       expect(assetInfoAfter.depositLimitSCDP).to.equal(1)
 
       const indicesAfter = await hre.Diamond.getAssetIndexesSCDP(f.KrAsset2.address)
-      expect(indicesAfter.currentLiquidity).to.equal(RAY)
+      expect(indicesAfter.currLiqIndex).to.equal(RAY)
       expect(indicesAfter.currFeeIndex).to.equal(RAY)
 
       expect(await hre.Diamond.getDepositEnabledSCDP(f.KrAsset2.address)).to.equal(true)
@@ -91,7 +91,7 @@ describe.only('SCDP', async function () {
       expect(collateral.depositLimitSCDP).to.equal(1)
 
       const indicesAfter = await hre.Diamond.getAssetIndexesSCDP(f.Collateral.address)
-      expect(indicesAfter.currentLiquidity).to.equal(RAY)
+      expect(indicesAfter.currLiqIndex).to.equal(RAY)
       expect(indicesAfter.currFeeIndex).to.equal(RAY)
     })
 
@@ -435,11 +435,12 @@ describe.only('SCDP', async function () {
       await f.Collateral.setBalance(incomeCumulator, depositAmount18Dec.mul(f.usersArr.length), hre.Diamond.address)
     })
 
-    it('should be able to cumulate fees into deposits', async function () {
+    it.only('should be able to cumulate fees into deposits', async function () {
       await hre.Diamond.setFeeAssetSCDP(f.Collateral.address)
-      const fees = depositAmount18Dec.mul(f.usersArr.length)
-      const expectedValueNoFees = toBig(f.CollateralPrice.num(8) * depositAmount, 8)
-      const expectedValueFees = expectedValueNoFees.mul(2)
+      const feePerUser = depositAmount18Dec
+      const feesToCumulate = feePerUser.mul(f.usersArr.length)
+      const feePerUserValue = toBig(f.CollateralPrice.num(8) * depositAmount, 8)
+      const expectedDepositValue = toBig(f.CollateralPrice.num(8) * depositAmount, 8)
 
       // deposit some
       await Promise.all(
@@ -449,17 +450,17 @@ describe.only('SCDP', async function () {
       )
 
       // cumulate some income
-      await IncomeCumulator.cumulateIncomeSCDP(f.Collateral.address, fees)
+      await IncomeCumulator.cumulateIncomeSCDP(f.Collateral.address, feesToCumulate)
 
       // check that the fees are cumulated
       for (const data of await hre.Diamond.getAccountsSCDP(
         f.usersArr.map(u => u.address),
         [f.Collateral.address],
       )) {
-        expect(data.deposits[0].val).to.equal(expectedValueNoFees)
-        expect(data.deposits[0].valAdj).to.equal(expectedValueFees)
-        expect(data.totals.valColl).to.equal(expectedValueNoFees)
-        expect(data.totals.valFees).to.equal(expectedValueFees)
+        expect(data.deposits[0].val).to.equal(expectedDepositValue)
+        expect(data.deposits[0].valAdj).to.equal(feePerUserValue)
+        expect(data.totals.valColl).to.equal(expectedDepositValue)
+        expect(data.totals.valFees).to.equal(feePerUserValue)
       }
 
       // withdraw principal
@@ -475,10 +476,10 @@ describe.only('SCDP', async function () {
       )) {
         const balance = await f.Collateral.balanceOf(user.addr)
         expect(user.deposits[0].val).to.equal(0)
-        expect(user.deposits[0].valAdj).to.equal(expectedValueFees.sub(expectedValueNoFees))
-        expect(user.totals.valFees).to.equal(expectedValueFees.sub(expectedValueNoFees))
+        expect(user.deposits[0].valAdj).to.equal(0)
+        expect(user.totals.valFees).to.equal(0)
         expect(user.totals.valColl).to.equal(0)
-        expect(balance).to.equal(depositAmount18Dec)
+        expect(balance).to.equal(depositAmount18Dec.add(feePerUser))
       }
 
       const [assetInfo, stats, balance] = await Promise.all([
@@ -487,30 +488,11 @@ describe.only('SCDP', async function () {
         f.Collateral.balanceOf(hre.Diamond.address),
       ])
 
-      expect(balance).to.equal(fees)
+      expect(balance).to.equal(0)
       expect(assetInfo.amountColl).to.equal(0)
       expect(assetInfo.valColl).to.equal(0)
       expect(assetInfo.valCollAdj).to.equal(0)
       expect(stats.totals.valColl).to.equal(0)
-
-      // Withdraw fees
-      await Promise.all(
-        f.usersArr.map(signer => {
-          return wrapKresko(hre.Diamond, signer).withdrawSCDP(signer.address, f.Collateral.address, depositAmount18Dec)
-        }),
-      )
-
-      for (const data of await hre.Diamond.getAccountsSCDP(
-        f.usersArr.map(u => u.address),
-        [f.Collateral.address],
-      )) {
-        const balance = await f.Collateral.balanceOf(data.addr)
-        expect(balance).to.equal(depositAmount18Dec.add(depositAmount18Dec))
-        expect(data.deposits[0].val).to.equal(0)
-        expect(data.deposits[0].valAdj).to.equal(0)
-        expect(data.totals.valColl).to.equal(0)
-        expect(data.totals.valFees).to.equal(0)
-      }
 
       // nothing left in protocol.
       const [colalteralBalanceKresko, assetInfoFinal] = await Promise.all([
@@ -827,18 +809,12 @@ describe.only('SCDP', async function () {
 
       const swapAmount = toBig(2600)
 
-      const scaledDepositsStart = await f.KreskoSwapper.getAccountScaledDepositsSCDP(
-        f.depositor.address,
-        f.KISS.address,
-      )
+      const feesBeforeSwap = await f.KreskoSwapper.getAccountFeesSCDP(f.depositor.address, f.KISS.address)
 
       await f.KreskoSwapper.swapSCDP(f.swapper.address, f.KISS.address, f.KrAsset2.address, swapAmount, 0)
 
-      const scaledDepositsAfterSwap = await f.KreskoSwapper.getAccountScaledDepositsSCDP(
-        f.depositor.address,
-        f.KISS.address,
-      )
-      expect(scaledDepositsAfterSwap).to.gt(scaledDepositsStart)
+      const feesAfterSwap = await f.KreskoSwapper.getAccountFeesSCDP(f.depositor.address, f.KISS.address)
+      expect(feesAfterSwap).to.gt(feesBeforeSwap)
 
       await f.KreskoSwapper.swapSCDP(
         f.swapper.address,
@@ -847,28 +823,19 @@ describe.only('SCDP', async function () {
         f.KrAsset2.balanceOf(f.swapper.address),
         0,
       )
-      const scaledDepositsAfterSecondSwap = await f.KreskoSwapper.getAccountScaledDepositsSCDP(
-        f.depositor.address,
-        f.KISS.address,
-      )
-      expect(scaledDepositsAfterSecondSwap).to.gt(scaledDepositsAfterSwap)
+      const feesAfterSecondSwap = await f.KreskoSwapper.getAccountFeesSCDP(f.depositor.address, f.KISS.address)
+      expect(feesAfterSecondSwap).to.gt(feesAfterSwap)
 
-      const feesGained = await f.KreskoSwapper.getAccountDepositFeesGainedSCDP(f.depositor.address, f.KISS.address)
+      await f.KreskoDepositor.claimFeesSCDP(f.depositor.address, f.KISS.address)
 
-      await f.KreskoDepositor.withdrawSCDP(
-        f.depositor.address,
-        f.KISS.address,
-        feesGained, // ~90 f.KISS
-      )
-
-      const [scaledDepositsAfter, feesAfter] = await Promise.all([
-        f.KreskoSwapper.getAccountScaledDepositsSCDP(f.depositor.address, f.KISS.address),
-        f.KreskoSwapper.getAccountDepositFeesGainedSCDP(f.depositor.address, f.KISS.address),
+      const [depositsAfter, feesAfter] = await Promise.all([
+        f.KreskoSwapper.getAccountDepositSCDP(f.depositor.address, f.KISS.address),
+        f.KreskoSwapper.getAccountFeesSCDP(f.depositor.address, f.KISS.address),
       ])
 
-      expect(feesGained).to.eq(feesAfter)
+      expect(feesAfter).to.eq(0)
 
-      expect(scaledDepositsAfter).to.eq(toBig(10000))
+      expect(depositsAfter).to.eq(toBig(10000))
 
       await f.KreskoDepositor.withdrawSCDP(
         f.depositor.address,
@@ -876,14 +843,14 @@ describe.only('SCDP', async function () {
         toBig(10000), // $10k f.KISS
       )
 
-      const [depositsAfterFourth, feesAfterFourth] = await Promise.all([
+      const [depositsAfterWithdraw, feesAfterWithdraw] = await Promise.all([
         f.KreskoSwapper.getAccountDepositValueSCDP(f.depositor.address, f.KISS.address),
-        f.KreskoSwapper.getAccountScaledDepositsSCDP(f.depositor.address, f.KISS.address),
+        f.KreskoSwapper.getAccountFeesSCDP(f.depositor.address, f.KISS.address),
       ])
 
-      expect(depositsAfterFourth).to.eq(0)
+      expect(depositsAfterWithdraw).to.eq(0)
 
-      expect(feesAfterFourth).to.eq(0)
+      expect(feesAfterWithdraw).to.eq(0)
     })
   })
   describe('#Liquidations', () => {
@@ -1005,13 +972,13 @@ describe.only('SCDP', async function () {
       const expectedDepositsAfter = depositAmount8Dec.sub(event.args.seizeAmount)
       expect(expectedDepositsAfter).to.be.lt(depositAmount8Dec)
 
-      const [principalDeposits, depositsWithFees, params] = await Promise.all([
+      const [principalDeposits, fees, params] = await Promise.all([
         hre.Diamond.getAccountDepositSCDP(f.depositor.address, f.Collateral8Dec.address),
-        hre.Diamond.getAccountScaledDepositsSCDP(f.depositor.address, f.Collateral8Dec.address),
+        hre.Diamond.getAccountFeesSCDP(f.depositor.address, f.Collateral8Dec.address),
         hre.Diamond.getParametersSCDP(),
       ])
       expect(principalDeposits).to.eq(expectedDepositsAfter)
-      expect(depositsWithFees).to.eq(expectedDepositsAfter)
+      expect(fees).to.eq(0)
 
       // Sanity checking that users should be able to withdraw what is left
       await hre.Diamond.setFeeAssetSCDP(f.Collateral.address)
@@ -1020,12 +987,12 @@ describe.only('SCDP', async function () {
       expect(stats.totals.cr).to.gt(params.minCollateralRatio)
       await expect(f.KreskoDepositor.withdrawSCDP(f.depositor.address, f.Collateral8Dec.address, expectedDepositsAfter))
         .to.not.be.reverted
-      const [principalEnd, depositsWithFeesEnd] = await Promise.all([
+      const [principalEnd, feesAfter] = await Promise.all([
         hre.Diamond.getAccountDepositSCDP(f.depositor.address, f.Collateral8Dec.address),
-        hre.Diamond.getAccountScaledDepositsSCDP(f.depositor.address, f.Collateral8Dec.address),
+        hre.Diamond.getAccountFeesSCDP(f.depositor.address, f.Collateral8Dec.address),
       ])
       expect(principalEnd).to.eq(0)
-      expect(depositsWithFeesEnd).to.eq(0)
+      expect(feesAfter).to.eq(0)
     })
   })
   describe('#Error', () => {

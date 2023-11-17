@@ -60,7 +60,6 @@ export const getAssetConfig = async (
     openFee: config.krAssetConfig?.openFee ?? 0,
     anchor: config.krAssetConfig?.anchor ?? zeroAddress,
     decimals: decimals,
-    hasSharedFees: false,
     isSharedOrSwappedCollateral: !!config.scdpDepositConfig || !!config.scdpKrAssetConfig,
     isCoverAsset: false,
   }
