@@ -73,6 +73,20 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         return asset.totalSupply();
     }
 
+    /// @inheritdoc IKreskoAssetIssuer
+    function convertToAssets(
+        uint256 shares
+    ) public view virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) returns (uint256 assets) {
+        return super.convertToAssets(shares);
+    }
+
+    /// @inheritdoc IKreskoAssetIssuer
+    function convertToShares(
+        uint256 assets
+    ) public view virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) returns (uint256 shares) {
+        return super.convertToShares(assets);
+    }
+
     function convertManyToShares(uint256[] calldata assets) external view returns (uint256[] memory shares) {
         shares = new uint256[](assets.length);
         for (uint256 i; i < assets.length; ) {
