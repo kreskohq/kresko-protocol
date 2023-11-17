@@ -73,13 +73,6 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         return asset.totalSupply();
     }
 
-    /// @inheritdoc IKreskoAssetIssuer
-    function convertToAssets(
-        uint256 shares
-    ) public view virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) returns (uint256 assets) {
-        return super.convertToAssets(shares);
-    }
-
     function convertManyToShares(uint256[] calldata assets) external view returns (uint256[] memory shares) {
         shares = new uint256[](assets.length);
         for (uint256 i; i < assets.length; ) {
@@ -97,13 +90,6 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
             i++;
         }
         return assets;
-    }
-
-    /// @inheritdoc IKreskoAssetIssuer
-    function convertToShares(
-        uint256 assets
-    ) public view virtual override(ERC4626Upgradeable, IKreskoAssetIssuer) returns (uint256 shares) {
-        return super.convertToShares(assets);
     }
 
     /// @inheritdoc IKreskoAssetIssuer
@@ -138,12 +124,17 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         _burn(address(asset), convertToShares(assets));
     }
 
-    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
+    /// @notice No support for direct interactions yet
+    function mint(uint256, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
+        revert Errors.MINT_NOT_SUPPORTED();
+    }
+
+    /// @notice No support for direct interactions yet
     function deposit(uint256, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
         revert Errors.DEPOSIT_NOT_SUPPORTED();
     }
 
-    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
+    /// @notice No support for direct interactions yet
     function withdraw(
         uint256,
         address,
@@ -152,7 +143,7 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         revert Errors.WITHDRAW_NOT_SUPPORTED();
     }
 
-    /// @notice reverting function, kept to maintain compatibility with ERC4626 standard
+    /// @notice No support for direct interactions yet
     function redeem(uint256, address, address) public pure override(ERC4626Upgradeable, IERC4626Upgradeable) returns (uint256) {
         revert Errors.REDEEM_NOT_SUPPORTED();
     }

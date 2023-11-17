@@ -60,6 +60,7 @@ library Errors {
     error NOT_SWAPPABLE_KRASSET(ID);
     error IDENTICAL_ASSETS(ID);
     error WITHDRAW_NOT_SUPPORTED();
+    error MINT_NOT_SUPPORTED();
     error DEPOSIT_NOT_SUPPORTED();
     error REDEEM_NOT_SUPPORTED();
     error NATIVE_TOKEN_DISABLED(ID);
