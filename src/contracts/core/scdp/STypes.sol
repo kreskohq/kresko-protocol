@@ -42,17 +42,33 @@ struct SCDPAssetData {
     uint128 swapDeposits;
 }
 
+/**
+ * @notice SCDP asset fee and liquidation index data
+ * @param currFeeIndex The current fee index, used to calculate fees.
+ * @param currLiqIndex The current liquidation index, used to calculate liquidated amounts from principal.
+ */
 struct SCDPAssetIndexes {
     uint128 currFeeIndex;
     uint128 currLiqIndex;
 }
 
+/**
+ * @notice SCDP seize data
+ * @param prevLiqIndex Link to previous value in the liquidation index history.
+ * @param feeIndex The fee index at the time of the seize.
+ * @param liqIndex The liquidation index after the seize.
+ */
 struct SCDPSeizeData {
     uint256 prevLiqIndex;
     uint128 feeIndex;
     uint128 liqIndex;
 }
 
+/**
+ * @notice SCDP account indexes
+ * @param lastFeeIndex Fee index at the time of the action.
+ * @param lastLiqIndex Liquidation index at the time of the action.
+ */
 struct SCDPAccountIndexes {
     uint128 lastFeeIndex;
     uint128 lastLiqIndex;
