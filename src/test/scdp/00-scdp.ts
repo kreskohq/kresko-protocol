@@ -73,10 +73,13 @@ describe.only('SCDP', async function () {
         depositLimitSCDP: 1,
       })
       const assetInfoAfter = await hre.Diamond.getAsset(f.KrAsset2.address)
-      expect(assetInfoAfter.decimals).to.equal(await f.KISS.contract.decimals())
+      expect(assetInfoAfter.decimals).to.equal(await f.KrAsset2.contract.decimals())
 
-      expect(assetInfoAfter.liquidityIndexSCDP).to.equal(RAY)
       expect(assetInfoAfter.depositLimitSCDP).to.equal(1)
+
+      const indicesAfter = await hre.Diamond.getAssetIndexesSCDP(f.KrAsset2.address)
+      expect(indicesAfter.currentLiquidity).to.equal(RAY)
+      expect(indicesAfter.currentFee).to.equal(RAY)
 
       expect(await hre.Diamond.getDepositEnabledSCDP(f.KrAsset2.address)).to.equal(true)
     })
@@ -85,8 +88,11 @@ describe.only('SCDP', async function () {
       await hre.Diamond.setDepositLimitSCDP(f.Collateral.address, 1)
       const collateral = await hre.Diamond.getAsset(f.Collateral.address)
       expect(collateral.decimals).to.equal(await f.Collateral.contract.decimals())
-      expect(collateral.liquidityIndexSCDP).to.equal(RAY)
       expect(collateral.depositLimitSCDP).to.equal(1)
+
+      const indicesAfter = await hre.Diamond.getAssetIndexesSCDP(f.Collateral.address)
+      expect(indicesAfter.currentLiquidity).to.equal(RAY)
+      expect(indicesAfter.currentFee).to.equal(RAY)
     })
 
     it('should be able to disable a deposit asset', async () => {

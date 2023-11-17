@@ -103,7 +103,10 @@ library LibModifiers {
         address _assetAddr
     ) internal view returns (Asset storage asset) {
         asset = self.assets[_assetAddr];
-        if (!asset.isSharedCollateral || (_assetAddr != scdp().feeAsset && !asset.hasSharedFees)) {
+        if (
+            !asset.isSharedCollateral ||
+            (_assetAddr != scdp().feeAsset && scdp().assetIndexes[_assetAddr].currentFee > WadRay.RAY)
+        ) {
             revert Errors.ASSET_NOT_FEE_ACCUMULATING_ASSET(Errors.id(_assetAddr));
         }
     }
@@ -131,7 +134,7 @@ library LibModifiers {
         address _assetAddr
     ) internal view returns (Asset storage asset) {
         asset = self.assets[_assetAddr];
-        if (asset.liquidityIndexSCDP == 0) {
+        if (scdp().assetIndexes[_assetAddr].currentFee == 0) {
             revert Errors.ASSET_DOES_NOT_HAVE_DEPOSITS(Errors.id(_assetAddr));
         }
     }

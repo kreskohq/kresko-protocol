@@ -11,6 +11,7 @@ import {SCDPState, sdi} from "scdp/SState.sol";
 
 library SGlobal {
     using WadRay for uint256;
+    using WadRay for uint128;
     using PercentageMath for uint256;
 
     /**
@@ -160,7 +161,8 @@ library SGlobal {
         Asset storage _asset
     ) internal view returns (uint256) {
         return
-            _asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits - self.assetData[_assetAddress].swapDeposits);
+            _asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits) -
+            _asset.toRebasingAmount(self.assetData[_assetAddress].swapDeposits);
     }
 
     /**

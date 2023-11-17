@@ -22,6 +22,7 @@ using PercentageMath for uint256;
 using PercentageMath for uint16;
 using SafeTransfer for IERC20;
 using WadRay for uint256;
+using WadRay for uint128;
 
 contract SCDPFacet is ISCDPFacet, Modifiers {
     /// @inheritdoc ISCDPFacet
@@ -39,21 +40,16 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
     function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant gate {
         SCDPState storage s = scdp();
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
-        (uint256 collateralOut, uint256 feesOut) = s.handleWithdrawSCDP(
-            cs().onlyActiveSharedCollateral(_collateralAsset),
-            msg.sender,
-            _collateralAsset,
-            _amount
-        );
+        s.handleWithdrawSCDP(cs().onlyActiveSharedCollateral(_collateralAsset), msg.sender, _collateralAsset, _amount);
 
         // ensure that global pool is left with CR over MCR.
         s.ensureCollateralRatio(s.minCollateralRatio);
 
         // Send out the collateral.
-        IERC20(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);
+        IERC20(_collateralAsset).safeTransfer(_account, _amount);
 
         // Emit event.
-        emit SEvent.SCDPWithdraw(_account, _collateralAsset, collateralOut, feesOut);
+        emit SEvent.SCDPWithdraw(_account, _collateralAsset, _amount, 0);
     }
 
     /// @inheritdoc ISCDPFacet
@@ -186,6 +182,9 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
                 maxLiquidationRatio
             );
     }
+
+    //1954439028634
+    //4806363636364
 
     function _calcMaxLiqValue(
         Asset storage _repayAsset,

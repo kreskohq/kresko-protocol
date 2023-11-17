@@ -9,6 +9,7 @@ import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 import {scdp, sdi} from "scdp/SState.sol";
 import {PFunc} from "periphery/PFuncs.sol";
+import {SCDPAssetIndexes} from "scdp/STypes.sol";
 
 /**
  * @title SCDPStateFacet
@@ -25,41 +26,28 @@ contract SCDPStateFacet is ISCDPStateFacet {
 
     /// @inheritdoc ISCDPStateFacet
     function getAccountDepositSCDP(address _account, address _depositAsset) external view returns (uint256) {
-        return scdp().accountPrincipalDeposits(_account, _depositAsset, cs().assets[_depositAsset]);
+        return scdp().accountDeposits(_account, _depositAsset, cs().assets[_depositAsset]);
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getAccountScaledDepositsSCDP(address _account, address _depositAsset) external view returns (uint256) {
-        return scdp().accountScaledDeposits(_account, _depositAsset, cs().assets[_depositAsset]);
+    function getAccountFeesSCDP(address _account, address _depositAsset) external view returns (uint256) {
+        return scdp().accountFees(_account, _depositAsset, cs().assets[_depositAsset]);
     }
 
     /// @inheritdoc ISCDPStateFacet
-    function getAccountDepositFeesGainedSCDP(address _account, address _depositAsset) external view returns (uint256) {
-        return
-            scdp().accountScaledDeposits(_account, _depositAsset, cs().assets[_depositAsset]) -
-            scdp().accountPrincipalDeposits(_account, _depositAsset, cs().assets[_depositAsset]);
+    function getAccountTotalFeesValueSCDP(address _account) external view returns (uint256) {
+        return scdp().accountTotalFeeValue(_account);
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getAccountDepositValueSCDP(address _account, address _depositAsset) external view returns (uint256) {
         Asset storage asset = cs().assets[_depositAsset];
-        return asset.collateralAmountToValue(scdp().accountPrincipalDeposits(_account, _depositAsset, asset), true);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getAccountScaledDepositValueCDP(address _account, address _depositAsset) external view returns (uint256) {
-        Asset storage asset = cs().assets[_depositAsset];
-        return asset.collateralAmountToValue(scdp().accountScaledDeposits(_account, _depositAsset, asset), true);
+        return asset.collateralAmountToValue(scdp().accountDeposits(_account, _depositAsset, asset), true);
     }
 
     /// @inheritdoc ISCDPStateFacet
     function getAccountTotalDepositsValueSCDP(address _account) external view returns (uint256) {
-        return scdp().accountTotalDepositValue(_account, true);
-    }
-
-    /// @inheritdoc ISCDPStateFacet
-    function getAccountTotalScaledDepositsValueSCDP(address _account) external view returns (uint256) {
-        return scdp().accountTotalScaledDepositsValue(_account);
+        return scdp().accountDepositsValue(_account, true);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -104,6 +92,11 @@ contract SCDPStateFacet is ISCDPStateFacet {
     /// @inheritdoc ISCDPStateFacet
     function getKreskoAssetsSCDP() external view returns (address[] memory) {
         return scdp().krAssets;
+    }
+
+    /// @inheritdoc ISCDPStateFacet
+    function getAssetIndexesSCDP(address _assetAddr) external view returns (SCDPAssetIndexes memory) {
+        return scdp().assetIndexes[_assetAddr];
     }
 
     /// @inheritdoc ISCDPStateFacet

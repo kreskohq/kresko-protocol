@@ -282,9 +282,8 @@ library PFunc {
         result.amountColl = isSCDPAsset ? scdp().totalDepositAmount(_assetAddr, asset) : 0;
         result.amountDebt = isSwapMintable ? asset.toRebasingAmount(scdp().assetData[_assetAddr].debt) : 0;
 
-        result.amountCollFees = result.config.liquidityIndexSCDP > 0
-            ? result.amountColl.wadToRay().rayMul(result.config.liquidityIndexSCDP).rayToWad()
-            : 0;
+        uint256 feeIndex = scdp().assetIndexes[_assetAddr].currentFee;
+        result.amountCollFees = feeIndex > 0 ? result.amountColl.wadToRay().rayMul(feeIndex).rayToWad() : 0;
         {
             (uint256 debtValue, uint256 debtValueAdjusted, uint256 krAssetPrice) = isSwapMintable
                 ? debtAmountToValues(asset, result.amountDebt)
@@ -299,9 +298,7 @@ library PFunc {
 
             result.valColl = depositValue;
             result.valCollAdj = depositValueAdjusted;
-            result.valCollFees = asset.liquidityIndexSCDP > 0
-                ? depositValue.wadToRay().rayMul(asset.liquidityIndexSCDP).rayToWad()
-                : 0;
+            result.valCollFees = feeIndex > 0 ? depositValue.wadToRay().rayMul(feeIndex).rayToWad() : 0;
             result.price = krAssetPrice > 0 ? krAssetPrice : collateralPrice;
         }
         result.amountSwapDeposit = isSwapMintable ? scdp().swapDepositAmount(_assetAddr, asset) : 0;
@@ -431,8 +428,8 @@ library PFunc {
         Asset storage asset = cs().assets[_assetAddr];
         result.config = asset;
 
-        result.amount = asset.toRebasingAmount(scdp().depositsPrincipal[_account][_assetAddr]);
-        result.amountAdj = scdp().accountScaledDeposits(_account, _assetAddr, asset);
+        result.amount = scdp().accountDeposits(_account, _assetAddr, asset);
+        result.amountAdj = scdp().accountFees(_account, _assetAddr, asset);
         if (result.amountAdj < result.amount) {
             result.amount = result.amountAdj;
         }

@@ -7,11 +7,12 @@ import {mintSCDP, burnSCDP} from "common/funcs/Actions.sol";
 import {Asset} from "common/Types.sol";
 
 import {Errors} from "common/Errors.sol";
-import {SCDPState} from "scdp/SState.sol";
+import {scdp, SCDPState} from "scdp/SState.sol";
 import {SCDPAssetData} from "scdp/STypes.sol";
 
 library Swap {
     using WadRay for uint256;
+    using WadRay for uint128;
     using SafeTransfer for IERC20;
 
     /**
@@ -52,12 +53,12 @@ library Swap {
         }
 
         if (collateralIn > 0) {
-            uint128 collateralInWrite = uint128(_assetIn.toNonRebasingAmount(collateralIn));
+            uint128 collateralInNormalized = uint128(_assetIn.toNonRebasingAmount(collateralIn));
             unchecked {
                 // 1. Increase collateral deposits.
-                assetData.totalDeposits += collateralInWrite;
+                assetData.totalDeposits += collateralInNormalized;
                 // 2. Increase "swap" collateral.
-                assetData.swapDeposits += collateralInWrite;
+                assetData.swapDeposits += collateralInNormalized;
             }
         }
 
@@ -113,12 +114,12 @@ library Swap {
         }
 
         if (collateralOut > 0) {
-            uint128 amountOutInternal = uint128(_assetOut.toNonRebasingAmount(collateralOut));
+            uint128 collateralOutNormalized = uint128(_assetOut.toNonRebasingAmount(collateralOut));
             unchecked {
                 // 1. Decrease collateral deposits.
-                assetData.totalDeposits -= amountOutInternal;
+                assetData.totalDeposits -= collateralOutNormalized;
                 // 2. Decrease "swap" owned collateral.
-                assetData.swapDeposits -= amountOutInternal;
+                assetData.swapDeposits -= collateralOutNormalized;
             }
             if (_assetsTo != address(this)) {
                 // 3. Transfer collateral to receiver if it is not this contract.
@@ -166,16 +167,11 @@ library Swap {
             );
         }
 
-        // Tag asset as having shared fees.
-        // This guarantees that the asset will never have a zero liquidity index.
-        if (!_asset.hasSharedFees) {
-            _asset.hasSharedFees = true;
-        }
-
         // liquidity index increment is calculated this way: `(amount / totalLiquidity)`
         // division `amount / totalLiquidity` done in ray for precision
         unchecked {
-            return (_asset.liquidityIndexSCDP += uint128((_amount.wadToRay().rayDiv(userDeposits.wadToRay()))));
+            uint256 indexIncrease = uint128((_amount.wadToRay().rayDiv(userDeposits.wadToRay())));
+            return (scdp().assetIndexes[_assetAddr].currentFee += indexIncrease);
         }
     }
 }

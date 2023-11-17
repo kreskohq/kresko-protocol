@@ -101,8 +101,10 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).eq(0, "debt should be 0");
         staticCall(kresko.totalSDI.selector, initialPrices).eq(0, "total supply should be 0");
         Asset memory kissConfig = kresko.getAsset(KISS.addr);
-        kresko.getAsset(usdc.addr).liquidityIndexSCDP.eq(1e27);
-        kissConfig.liquidityIndexSCDP.eq(1e27);
+        kresko.getAssetIndexesSCDP(usdc.addr).currentFee.eq(1e27);
+        kresko.getAssetIndexesSCDP(usdc.addr).currentFee.eq(1e27);
+        kresko.getAssetIndexesSCDP(KISS.addr).currentLiquidation.eq(1e27);
+        kresko.getAssetIndexesSCDP(KISS.addr).currentLiquidation.eq(1e27);
         kissConfig.isCoverAsset.eq(true);
     }
 

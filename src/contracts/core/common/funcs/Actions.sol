@@ -35,9 +35,10 @@ function mintKrAsset(uint256 _mintAmount, address _toAddr, address _anchorAddr) 
 /// @param _asset the asset being repaid
 /// @param _burnAmount the asset amount being burned
 /// @param _fromAddr the account to burn assets from
+/// @return destroyed Normalized amount of burned assets.
 function burnSCDP(Asset storage _asset, uint256 _burnAmount, address _fromAddr) returns (uint256 destroyed) {
     destroyed = burnKrAsset(_burnAmount, _fromAddr, _asset.anchor);
-    sdi().totalDebt -= _asset.debtAmountToSDI(destroyed, false);
+    sdi().totalDebt -= _asset.debtAmountToSDI(_burnAmount, false);
 }
 
 /// @notice Mint kresko assets from SCDP swap.
@@ -45,10 +46,11 @@ function burnSCDP(Asset storage _asset, uint256 _burnAmount, address _fromAddr) 
 /// @param _asset the asset requested
 /// @param _mintAmount the asset amount requested
 /// @param _toAddr the account to mint the assets to
+/// @return issued Normalized amount of minted assets.
 function mintSCDP(Asset storage _asset, uint256 _mintAmount, address _toAddr) returns (uint256 issued) {
     if (!_asset.marketStatus()) revert Errors.MARKET_CLOSED(Errors.id(_asset.anchor), _asset.ticker.toString());
     issued = mintKrAsset(_mintAmount, _toAddr, _asset.anchor);
     unchecked {
-        sdi().totalDebt += _asset.debtAmountToSDI(issued, false);
+        sdi().totalDebt += _asset.debtAmountToSDI(_mintAmount, false);
     }
 }
