@@ -337,7 +337,7 @@ contract AuditTest is Local {
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(0, "deposit-should-be-zero-in-the-end");
     }
 
-    function testFeeDistributionAfterMultipleLiquidationsOak6Oak7() external {
+    function testFeeDistributionAfterMultipleLiquidationsOak6() external {
         uint256 feePerSwapTotal = 40e18;
         uint256 feesStart = kresko.getAccountFeesSCDP(getAddr(0), address(kiss));
 
@@ -409,7 +409,7 @@ contract AuditTest is Local {
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-should-be-zero-after-claim-user-other");
     }
 
-    function testFeeDistributionAfterMultipleLiquidationsPositiveRebaseOak6Oak7() external {
+    function testFeeDistributionAfterMultipleLiquidationsPositiveRebaseOak6() external {
         uint256 feePerSwapTotal = 40e18;
         uint256 feesStart = kresko.getAccountFeesSCDP(getAddr(0), address(kiss));
 
@@ -489,7 +489,7 @@ contract AuditTest is Local {
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-should-be-zero-after-claim-user-other");
     }
 
-    function testFeeDistributionAfterMultipleLiquidationsNegativeRebaseOak6Oak7() external {
+    function testFeeDistributionAfterMultipleLiquidationsNegativeRebaseOak6() external {
         uint256 feePerSwapTotal = 40e18;
         uint256 feesStart = kresko.getAccountFeesSCDP(getAddr(0), address(kiss));
 
@@ -567,6 +567,33 @@ contract AuditTest is Local {
         uint256 feeAmountUserOther = kresko.claimFeesSCDP(userOther, address(kiss));
         kiss.balanceOf(userOther).eq(feeAmountUserOther);
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-should-be-zero-after-claim-user-other");
+    }
+
+    function testFullLiquidation() external {
+        uint256 amount = 4000e18;
+
+        // Setup another user
+        address userOther = getAddr(55);
+        kiss.balanceOf(userOther).eq(0, "bal-not-zero");
+        kiss.transfer(userOther, amount);
+
+        prank(userOther);
+
+        kiss.approve(address(kresko), type(uint256).max);
+        kresko.depositSCDP(userOther, address(kiss), amount);
+
+        _trades(10);
+
+        prank(userOther);
+
+        kresko.getAccountFeesSCDP(userOther, address(kiss)).gt(0, "no-fees");
+        // Make it liquidatable
+        _setETHPriceAndLiquidate(104071);
+
+        _setETHPrice(ETH_PRICE);
+
+        prank(userOther);
+        kresko.getAccountDepositSCDP(userOther, address(kiss)).lt(1e18, "deposits");
     }
 
     // function testFeeDistributionGas() external {

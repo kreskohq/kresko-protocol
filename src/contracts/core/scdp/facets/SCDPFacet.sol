@@ -192,9 +192,6 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
             );
     }
 
-    //1954439028634
-    //4806363636364
-
     function _calcMaxLiqValue(
         Asset storage _repayAsset,
         Asset storage _seizeAsset,
