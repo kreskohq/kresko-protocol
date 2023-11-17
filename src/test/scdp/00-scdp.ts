@@ -21,7 +21,7 @@ const initialDepositValue = depositAmount.ebn(8)
 const depositAmount18Dec = depositAmount.ebn()
 const depositAmount8Dec = depositAmount.ebn(8)
 
-describe.only('SCDP', async function () {
+describe('SCDP', async function () {
   let f: SCDPFixture
   this.slow(5000)
 
@@ -208,12 +208,12 @@ describe.only('SCDP', async function () {
         const balance = await f.Collateral.balanceOf(userInfo.addr)
 
         expect(balance).to.equal(0)
-        expect(userInfo.deposits[0].amountAdj).to.equal(depositAmount18Dec)
+        expect(userInfo.deposits[0].amountAdj).to.equal(0)
         expect(userInfo.deposits[0].amount).to.equal(depositAmount18Dec)
         expect(userInfo.totals.valColl).to.equal(expectedValueUnadjusted)
-        expect(userInfo.totals.valFees).to.equal(expectedValueUnadjusted)
+        expect(userInfo.totals.valFees).to.equal(0)
         expect(userInfo.deposits[0].val).to.equal(expectedValueUnadjusted)
-        expect(userInfo.deposits[0].valAdj).to.equal(expectedValueUnadjusted)
+        expect(userInfo.deposits[0].valAdj).to.equal(0)
       }
 
       expect(await f.Collateral.balanceOf(hre.Diamond.address)).to.equal(depositAmount18Dec.mul(f.usersArr.length))
@@ -394,10 +394,10 @@ describe.only('SCDP', async function () {
         expect(balance18Dec).to.equal(partialWithdraw)
         expect(balance8Dec).to.equal(partialWithdraw8Dec)
         expect(userInfo.deposits[0].amount).to.equal(depositAmount18Dec.sub(partialWithdraw))
-        expect(userInfo.deposits[0].amountAdj).to.equal(depositAmount18Dec.sub(partialWithdraw))
+        expect(userInfo.deposits[0].amountAdj).to.equal(0)
 
         expect(userInfo.deposits[1].amount).to.equal(depositAmount8Dec.sub(partialWithdraw8Dec))
-        expect(userInfo.deposits[1].amountAdj).to.equal(depositAmount8Dec.sub(partialWithdraw8Dec))
+        expect(userInfo.deposits[1].amountAdj).to.equal(0)
 
         expect(userInfo.totals.valColl).to.closeTo(
           expectedValueUnadjusted.add(expectedValueUnadjusted8Dec),
@@ -435,7 +435,7 @@ describe.only('SCDP', async function () {
       await f.Collateral.setBalance(incomeCumulator, depositAmount18Dec.mul(f.usersArr.length), hre.Diamond.address)
     })
 
-    it.only('should be able to cumulate fees into deposits', async function () {
+    it('should be able to cumulate fees into deposits', async function () {
       await hre.Diamond.setFeeAssetSCDP(f.Collateral.address)
       const feePerUser = depositAmount18Dec
       const feesToCumulate = feePerUser.mul(f.usersArr.length)

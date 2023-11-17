@@ -161,6 +161,32 @@ contract AuditTest is Local {
         );
     }
 
+    function testWithdrawPartialOak6() external {
+        uint256 amount = 4000e18;
+
+        // Setup another user
+        address userOther = getAddr(55);
+        kiss.balanceOf(userOther).eq(0, "bal-not-zero");
+        kiss.transfer(userOther, amount);
+
+        prank(userOther);
+
+        kiss.approve(address(kresko), type(uint256).max);
+        kresko.depositSCDP(userOther, address(kiss), amount);
+
+        kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(amount, "deposit-not-amount");
+        kiss.balanceOf(userOther).eq(0, "bal-not-zero-after-deposit");
+
+        uint256 withdrawAmount = amount / 2;
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, rsPrices);
+        kiss.balanceOf(userOther).eq(withdrawAmount, "bal-not-initial-after-withdraw");
+        kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(withdrawAmount, "deposit-not-amount");
+
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, rsPrices);
+        kiss.balanceOf(userOther).eq(amount, "bal-not-initial-after-withdraw");
+        kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(0, "deposit-not-amount");
+    }
+
     function testDepositWithdrawLiquidationOak6() external {
         uint256 amount = 4000e18;
 

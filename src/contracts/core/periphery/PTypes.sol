@@ -115,7 +115,6 @@ library PType {
     struct SAccountTotals {
         uint256 valColl;
         uint256 valFees;
-        uint256 valProfit;
     }
 
     struct SAccount {

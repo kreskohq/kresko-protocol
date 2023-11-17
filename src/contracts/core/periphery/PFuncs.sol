@@ -393,7 +393,6 @@ library PFunc {
     function getSAccount(address _account, address[] memory _assets) internal view returns (PType.SAccount memory result) {
         result.addr = _account;
         (result.totals.valColl, result.totals.valFees, result.deposits) = getSAccountTotals(_account, _assets);
-        result.totals.valProfit = result.totals.valFees - result.totals.valColl;
     }
 
     function getSAccountTotals(
@@ -402,6 +401,7 @@ library PFunc {
     ) internal view returns (uint256 totalVal, uint256 totalValFees, PType.PAssetEntry[] memory datas) {
         address[] memory assets = scdp().collaterals;
         datas = new PType.PAssetEntry[](_assets.length);
+
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             PType.PAssetEntry memory assetData = getSAccountDeposit(_account, asset);
@@ -430,9 +430,6 @@ library PFunc {
 
         result.amount = scdp().accountDeposits(_account, _assetAddr, asset);
         result.amountAdj = scdp().accountFees(_account, _assetAddr, asset);
-        if (result.amountAdj < result.amount) {
-            result.amount = result.amountAdj;
-        }
         (result.val, result.price) = asset.collateralAmountToValueWithPrice(result.amount, true);
         result.valAdj = asset.collateralAmountToValue(result.amountAdj, true);
 
