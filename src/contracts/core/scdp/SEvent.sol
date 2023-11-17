@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 library SEvent {
     event SCDPDeposit(address indexed depositor, address indexed collateralAsset, uint256 amount);
-    event SCDPWithdraw(address indexed withdrawer, address indexed collateralAsset, uint256 amount, uint256 feeAmount);
+    event SCDPWithdraw(address indexed receiver, address indexed withdrawer, address indexed collateralAsset, uint256 amount);
     event SCDPFeeClaim(
         address indexed claimer,
         address indexed collateralAsset,

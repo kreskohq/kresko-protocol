@@ -37,7 +37,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
     }
 
     /// @inheritdoc ISCDPFacet
-    function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant gate {
+    function withdrawSCDP(address _receiver, address _collateralAsset, uint256 _amount) external nonReentrant gate {
         SCDPState storage s = scdp();
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
         s.handleWithdrawSCDP(cs().onlyActiveSharedCollateral(_collateralAsset), msg.sender, _collateralAsset, _amount);
@@ -46,10 +46,10 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         s.ensureCollateralRatio(s.minCollateralRatio);
 
         // Send out the collateral.
-        IERC20(_collateralAsset).safeTransfer(_account, _amount);
+        IERC20(_collateralAsset).safeTransfer(_receiver, _amount);
 
         // Emit event.
-        emit SEvent.SCDPWithdraw(_account, _collateralAsset, _amount, 0);
+        emit SEvent.SCDPWithdraw(_receiver, msg.sender, _collateralAsset, _amount);
     }
 
     /// @inheritdoc ISCDPFacet

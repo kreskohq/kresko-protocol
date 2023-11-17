@@ -37,10 +37,10 @@ library SDeposits {
             uint128 normalizedAmount = uint128(_asset.toNonRebasingAmount(_amount));
             self.assetData[_assetAddr].totalDeposits += normalizedAmount;
 
-            // Save account deposit amounts using liquidity index adjusted value.
+            // Save account deposit amount, its scaled up by the liquidation index.
             self.depositsPrincipal[_account][_assetAddr] += self.mulByLiqIndex(_assetAddr, normalizedAmount);
 
-            // Save account last indexes.
+            // Save account liquidation and fee indexes if they werent saved before.
             if (fees == 0) updateAccountIndexes(self, _account, _assetAddr);
 
             // Check if the deposit limit is exceeded.
@@ -86,10 +86,10 @@ library SDeposits {
             uint128 normalizedAmount = uint128(_asset.toNonRebasingAmount(_amount));
             self.assetData[_assetAddr].totalDeposits -= normalizedAmount;
 
-            // Save account deposit amounts using liquidity index adjusted value.
+            // Save account deposit amount, the amount withdrawn is scaled up by the liquidation index.
             self.depositsPrincipal[_account][_assetAddr] -= self.mulByLiqIndex(_assetAddr, normalizedAmount);
 
-            // Save account last indexes.
+            // Save account liquidation and fee indexes if they werent saved before.
             if (fees == 0) updateAccountIndexes(self, _account, _assetAddr);
         }
     }
