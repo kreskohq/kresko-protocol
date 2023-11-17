@@ -38,30 +38,22 @@ struct SwapRouteSetter {
 
 struct SCDPAssetData {
     uint256 debt;
-    uint256 totalLiquidated;
     uint128 totalDeposits;
     uint128 swapDeposits;
 }
 
 struct SCDPAssetIndexes {
-    uint256 currentFee;
-    uint256 currentLiquidation;
-    uint256 lastFeeAtSeize;
+    uint128 currFeeIndex;
+    uint128 currLiqIndex;
 }
 
-struct SCDPSeizeEvent {
-    uint256 blocknumber;
-    uint256 previousLiquidationIndex;
-    uint256 feeIndex;
-    uint256 liquidationIndex;
+struct SCDPSeizeData {
+    uint256 prevLiqIndex;
+    uint128 feeIndex;
+    uint128 liqIndex;
 }
 
 struct SCDPAccountIndexes {
-    uint256 lastFee;
-    uint256 lastLiquidation;
+    uint128 lastFeeIndex;
+    uint128 lastLiqIndex;
 }
-
-// mapping(address => uint256) liquidationIndex;
-// mapping(address => uint256) liquidityIndexAtLastSeize;
-// mapping(address => mapping(address => uint256)) lastLiquidityIndex;
-// mapping(address => mapping(address => uint256)) lastLiquidationIndex;

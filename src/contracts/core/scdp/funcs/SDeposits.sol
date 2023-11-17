@@ -6,27 +6,18 @@ import {Asset} from "common/Types.sol";
 import {Errors} from "common/Errors.sol";
 import {SCDPState} from "scdp/SState.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {SCDPSeizeEvent} from "scdp/STypes.sol";
-import {console2} from "forge-std/console2.sol";
+import {SCDPSeizeData} from "scdp/STypes.sol";
 
 library SDeposits {
     using WadRay for uint256;
     using WadRay for uint128;
 
-    function mulByLiquidationIndex(
-        SCDPState storage self,
-        address _assetAddr,
-        uint256 _amount
-    ) internal view returns (uint128) {
-        return uint128(_amount.wadToRay().rayMul(self.assetIndexes[_assetAddr].currentLiquidation).rayToWad());
+    function mulByLiqIndex(SCDPState storage self, address _assetAddr, uint256 _amount) internal view returns (uint128) {
+        return uint128(_amount.wadToRay().rayMul(self.assetIndexes[_assetAddr].currLiqIndex).rayToWad());
     }
 
-    function divByLiquidationIndex(
-        SCDPState storage self,
-        address _assetAddr,
-        uint256 _depositAmount
-    ) internal view returns (uint128) {
-        return uint128(_depositAmount.wadToRay().rayDiv(self.assetIndexes[_assetAddr].currentLiquidation).rayToWad());
+    function divByLiqIndex(SCDPState storage self, address _assetAddr, uint256 _depositAmount) internal view returns (uint128) {
+        return uint128(_depositAmount.wadToRay().rayDiv(self.assetIndexes[_assetAddr].currLiqIndex).rayToWad());
     }
 
     /**
@@ -53,10 +44,10 @@ library SDeposits {
             self.assetData[_assetAddr].totalDeposits += normalizedAmount;
 
             // Save account deposit amounts using liquidity index adjusted value.
-            self.depositsPrincipal[_account][_assetAddr] += self.mulByLiquidationIndex(_assetAddr, normalizedAmount);
+            self.depositsPrincipal[_account][_assetAddr] += self.mulByLiqIndex(_assetAddr, normalizedAmount);
 
             // Save account last indexes.
-            if (!didUpdateIndexes) self.updateAccountLastIndexes(_account, _assetAddr);
+            if (!didUpdateIndexes) updateAccountIndexes(self, _account, _assetAddr);
 
             // Check if the deposit limit is exceeded.
             if (self.userDepositAmount(_assetAddr, _asset) > _asset.depositLimitSCDP) {
@@ -103,10 +94,10 @@ library SDeposits {
             self.assetData[_assetAddr].totalDeposits -= normalizedAmount;
 
             // Save account deposit amounts using liquidity index adjusted value.
-            self.depositsPrincipal[_account][_assetAddr] -= self.mulByLiquidationIndex(_assetAddr, normalizedAmount);
+            self.depositsPrincipal[_account][_assetAddr] -= self.mulByLiqIndex(_assetAddr, normalizedAmount);
 
             // Save account last indexes.
-            if (!didUpdateIndexes) self.updateAccountLastIndexes(_account, _assetAddr);
+            if (!didUpdateIndexes) updateAccountIndexes(self, _account, _assetAddr);
         }
     }
 
@@ -133,20 +124,16 @@ library SDeposits {
             self.assetData[_assetAddr].swapDeposits = 0;
             self.assetData[_assetAddr].totalDeposits -= uint128(_sAsset.toNonRebasingAmount(_seizeAmount));
 
-            uint256 previousLiquidationIndex = self.assetIndexes[_assetAddr].currentLiquidation;
+            uint256 prevLiqIndex = self.assetIndexes[_assetAddr].currLiqIndex;
 
-            self.assetIndexes[_assetAddr].currentLiquidation += uint128(
-                amountToCover.wadToRay().rayDiv(self.userDepositAmount(_assetAddr, _sAsset).wadToRay()).rayMul(
-                    self.assetIndexes[_assetAddr].currentLiquidation
-                )
+            self.assetIndexes[_assetAddr].currLiqIndex += uint128(
+                amountToCover.wadToRay().rayDiv(self.userDepositAmount(_assetAddr, _sAsset).wadToRay()).rayMul(prevLiqIndex)
             );
-            self.assetIndexes[_assetAddr].lastFeeAtSeize = self.assetIndexes[_assetAddr].currentFee;
 
-            self.seizeEvents[_assetAddr][self.assetIndexes[_assetAddr].currentLiquidation] = SCDPSeizeEvent({
-                previousLiquidationIndex: previousLiquidationIndex,
-                feeIndex: self.assetIndexes[_assetAddr].currentFee,
-                liquidationIndex: self.assetIndexes[_assetAddr].currentLiquidation,
-                blocknumber: uint256(block.number)
+            self.seizeEvents[_assetAddr][self.assetIndexes[_assetAddr].currLiqIndex] = SCDPSeizeData({
+                prevLiqIndex: prevLiqIndex,
+                feeIndex: self.assetIndexes[_assetAddr].currFeeIndex,
+                liqIndex: self.assetIndexes[_assetAddr].currLiqIndex
             });
         }
     }
@@ -168,14 +155,14 @@ library SDeposits {
         uint256 fees = self.accountFees(_account, _assetAddr, _asset);
         if (fees > 0) {
             IERC20(_assetAddr).transfer(_account, fees);
-            self.updateAccountLastIndexes(_account, _assetAddr);
+            updateAccountIndexes(self, _account, _assetAddr);
         }
 
         return fees > 0;
     }
 
-    function updateAccountLastIndexes(SCDPState storage self, address _account, address _assetAddr) internal {
-        self.accountIndexes[_account][_assetAddr].lastFee = self.assetIndexes[_assetAddr].currentFee;
-        self.accountIndexes[_account][_assetAddr].lastLiquidation = self.assetIndexes[_assetAddr].currentLiquidation;
+    function updateAccountIndexes(SCDPState storage self, address _account, address _assetAddr) private {
+        self.accountIndexes[_account][_assetAddr].lastFeeIndex = self.assetIndexes[_assetAddr].currFeeIndex;
+        self.accountIndexes[_account][_assetAddr].lastLiqIndex = self.assetIndexes[_assetAddr].currLiqIndex;
     }
 }

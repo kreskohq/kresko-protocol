@@ -5,7 +5,7 @@ import {WadRay} from "libs/WadRay.sol";
 import {scdp, SCDPState} from "scdp/SState.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
-import {SCDPAccountIndexes, SCDPAssetIndexes, SCDPSeizeEvent} from "scdp/STypes.sol";
+import {SCDPAccountIndexes, SCDPAssetIndexes, SCDPSeizeData} from "scdp/STypes.sol";
 import {console2} from "forge-std/console2.sol";
 
 library SAccounts {
@@ -25,7 +25,7 @@ library SAccounts {
         address _assetAddr,
         Asset storage _asset
     ) internal view returns (uint256 principalDeposits) {
-        return self.divByLiquidationIndex(_assetAddr, _asset.toRebasingAmount(self.depositsPrincipal[_account][_assetAddr]));
+        return self.divByLiqIndex(_assetAddr, _asset.toRebasingAmount(self.depositsPrincipal[_account][_assetAddr]));
     }
 
     /**
@@ -70,26 +70,26 @@ library SAccounts {
         SCDPAccountIndexes memory accountIndexes = self.accountIndexes[_account][_assetAddr];
 
         // Return early if there are no fees accrued.
-        if (accountIndexes.lastFee == 0 || accountIndexes.lastFee == assetIndexes.currentFee) return 0;
+        if (accountIndexes.lastFeeIndex == 0 || accountIndexes.lastFeeIndex == assetIndexes.currFeeIndex) return 0;
 
         // Get the principal deposits for the account.
         uint256 principalDeposits = _asset.toRebasingAmount(self.depositsPrincipal[_account][_assetAddr]).wadToRay();
 
         // If accounts last liquidation index is lower than current, it means they endured a liquidation.
-        SCDPSeizeEvent memory latestSeize = self.seizeEvents[_assetAddr][assetIndexes.currentLiquidation];
-        if (accountIndexes.lastLiquidation < latestSeize.liquidationIndex) {
+        SCDPSeizeData memory latestSeize = self.seizeEvents[_assetAddr][assetIndexes.currLiqIndex];
+        if (accountIndexes.lastLiqIndex < latestSeize.liqIndex) {
             // Accumulated fees before now and after latest seize.
-            uint256 feesAfterLastSeize = principalDeposits.rayDiv(latestSeize.liquidationIndex).rayMul(
-                assetIndexes.currentFee - latestSeize.feeIndex
+            uint256 feesAfterLastSeize = principalDeposits.rayDiv(latestSeize.liqIndex).rayMul(
+                assetIndexes.currFeeIndex - latestSeize.feeIndex
             );
 
             uint256 feesBeforeLastSeize;
             // Just loop through all events until we hit the same index as the account.
-            while (accountIndexes.lastLiquidation < latestSeize.liquidationIndex) {
-                SCDPSeizeEvent memory previousSeize = self.seizeEvents[_assetAddr][latestSeize.previousLiquidationIndex];
+            while (accountIndexes.lastLiqIndex < latestSeize.liqIndex) {
+                SCDPSeizeData memory previousSeize = self.seizeEvents[_assetAddr][latestSeize.prevLiqIndex];
                 // Get the historical balance according to liquidation index at the time
                 // Then we simply multiply by fee index difference to get the fees accrued.
-                feesBeforeLastSeize += principalDeposits.rayDiv(latestSeize.previousLiquidationIndex).rayMul(
+                feesBeforeLastSeize += principalDeposits.rayDiv(latestSeize.prevLiqIndex).rayMul(
                     latestSeize.feeIndex - previousSeize.feeIndex
                 );
                 // Iterate backwards in time.
@@ -103,8 +103,8 @@ library SAccounts {
         // We can simply calculate the fees by multiplying the difference in fee indexes with the principal deposits.
         return
             principalDeposits
-                .rayDiv(assetIndexes.currentLiquidation)
-                .rayMul(assetIndexes.currentFee - accountIndexes.lastFee)
+                .rayDiv(assetIndexes.currLiqIndex)
+                .rayMul(assetIndexes.currFeeIndex - accountIndexes.lastFeeIndex)
                 .rayToWad();
     }
 

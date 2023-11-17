@@ -79,7 +79,7 @@ describe.only('SCDP', async function () {
 
       const indicesAfter = await hre.Diamond.getAssetIndexesSCDP(f.KrAsset2.address)
       expect(indicesAfter.currentLiquidity).to.equal(RAY)
-      expect(indicesAfter.currentFee).to.equal(RAY)
+      expect(indicesAfter.currFeeIndex).to.equal(RAY)
 
       expect(await hre.Diamond.getDepositEnabledSCDP(f.KrAsset2.address)).to.equal(true)
     })
@@ -92,7 +92,7 @@ describe.only('SCDP', async function () {
 
       const indicesAfter = await hre.Diamond.getAssetIndexesSCDP(f.Collateral.address)
       expect(indicesAfter.currentLiquidity).to.equal(RAY)
-      expect(indicesAfter.currentFee).to.equal(RAY)
+      expect(indicesAfter.currFeeIndex).to.equal(RAY)
     })
 
     it('should be able to disable a deposit asset', async () => {

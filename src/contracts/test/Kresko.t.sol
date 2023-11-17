@@ -93,8 +93,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
 
         usdcConfig.decimals.eq(usdc.mock.decimals());
         usdcConfig.depositLimitSCDP.eq(type(uint128).max);
-        kresko.getAssetIndexesSCDP(usdc.addr).currentFee.eq(1e27);
-        kresko.getAssetIndexesSCDP(usdc.addr).currentLiquidation.eq(1e27);
+        kresko.getAssetIndexesSCDP(usdc.addr).currFeeIndex.eq(1e27);
+        kresko.getAssetIndexesSCDP(usdc.addr).currLiqIndex.eq(1e27);
 
         krETHConfig.isMinterMintable.eq(true);
         krETHConfig.isSwapMintable.eq(true);

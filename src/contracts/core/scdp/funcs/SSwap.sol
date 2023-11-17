@@ -170,8 +170,9 @@ library Swap {
         // liquidity index increment is calculated this way: `(amount / totalLiquidity)`
         // division `amount / totalLiquidity` done in ray for precision
         unchecked {
-            uint256 indexIncrease = uint128((_amount.wadToRay().rayDiv(userDeposits.wadToRay())));
-            return (scdp().assetIndexes[_assetAddr].currentFee += indexIncrease);
+            return (scdp().assetIndexes[_assetAddr].currFeeIndex += uint128(
+                (_amount.wadToRay().rayDiv(userDeposits.wadToRay()))
+            ));
         }
     }
 }

@@ -282,7 +282,7 @@ library PFunc {
         result.amountColl = isSCDPAsset ? scdp().totalDepositAmount(_assetAddr, asset) : 0;
         result.amountDebt = isSwapMintable ? asset.toRebasingAmount(scdp().assetData[_assetAddr].debt) : 0;
 
-        uint256 feeIndex = scdp().assetIndexes[_assetAddr].currentFee;
+        uint256 feeIndex = scdp().assetIndexes[_assetAddr].currFeeIndex;
         result.amountCollFees = feeIndex > 0 ? result.amountColl.wadToRay().rayMul(feeIndex).rayToWad() : 0;
         {
             (uint256 debtValue, uint256 debtValueAdjusted, uint256 krAssetPrice) = isSwapMintable

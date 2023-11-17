@@ -19,7 +19,7 @@ import {Role, Enums} from "common/Constants.sol";
 import {Asset, FeedConfiguration} from "common/Types.sol";
 import {cs} from "common/State.sol";
 import {Validations} from "common/Validations.sol";
-import {SCDPSeizeEvent} from "scdp/STypes.sol";
+import {SCDPSeizeData} from "scdp/STypes.sol";
 
 // solhint-disable code-complexity
 contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModifiers {
@@ -64,19 +64,18 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
             ms().krAssets.push(_assetAddr);
         }
         if (Validations.validateSCDPDepositAsset(_assetAddr, _config)) {
-            scdp().assetIndexes[_assetAddr].currentFee = WadRay.RAY;
+            scdp().assetIndexes[_assetAddr].currFeeIndex = WadRay.RAY128;
         }
         if (Validations.validateSCDPKrAsset(_assetAddr, _config)) {
             scdp().krAssets.push(_assetAddr);
         }
         if (_config.isSwapMintable || _config.isSharedCollateral) {
             _config.isSharedOrSwappedCollateral = true;
-            scdp().assetIndexes[_assetAddr].currentLiquidation = WadRay.RAY;
-            scdp().seizeEvents[_assetAddr][WadRay.RAY] = SCDPSeizeEvent({
-                previousLiquidationIndex: 0,
-                feeIndex: WadRay.RAY,
-                liquidationIndex: WadRay.RAY,
-                blocknumber: block.number
+            scdp().assetIndexes[_assetAddr].currLiqIndex = WadRay.RAY128;
+            scdp().seizeEvents[_assetAddr][WadRay.RAY] = SCDPSeizeData({
+                prevLiqIndex: 0,
+                feeIndex: scdp().assetIndexes[_assetAddr].currFeeIndex,
+                liqIndex: WadRay.RAY128
             });
             scdp().isEnabled[_assetAddr] = true;
             scdp().collaterals.push(_assetAddr);
@@ -151,8 +150,8 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         }
 
         if (Validations.validateSCDPDepositAsset(_assetAddr, _config)) {
-            if (scdp().assetIndexes[_assetAddr].currentFee == 0) {
-                scdp().assetIndexes[_assetAddr].currentFee = WadRay.RAY;
+            if (scdp().assetIndexes[_assetAddr].currFeeIndex == 0) {
+                scdp().assetIndexes[_assetAddr].currFeeIndex = WadRay.RAY128;
             }
             asset.depositLimitSCDP = _config.depositLimitSCDP;
             asset.isSharedCollateral = true;
@@ -177,13 +176,12 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
 
         if (asset.isSharedCollateral || asset.isSwapMintable) {
             asset.isSharedOrSwappedCollateral = true;
-            if (scdp().assetIndexes[_assetAddr].currentLiquidation == 0) {
-                scdp().assetIndexes[_assetAddr].currentLiquidation = WadRay.RAY;
-                scdp().seizeEvents[_assetAddr][WadRay.RAY] = SCDPSeizeEvent({
-                    previousLiquidationIndex: 0,
-                    feeIndex: WadRay.RAY,
-                    liquidationIndex: WadRay.RAY,
-                    blocknumber: block.number
+            if (scdp().assetIndexes[_assetAddr].currLiqIndex == 0) {
+                scdp().assetIndexes[_assetAddr].currLiqIndex = WadRay.RAY128;
+                scdp().seizeEvents[_assetAddr][WadRay.RAY] = SCDPSeizeData({
+                    prevLiqIndex: 0,
+                    feeIndex: scdp().assetIndexes[_assetAddr].currFeeIndex,
+                    liqIndex: WadRay.RAY128
                 });
             }
             scdp().collaterals.pushUnique(_assetAddr);
