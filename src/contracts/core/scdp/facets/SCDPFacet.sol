@@ -53,6 +53,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         emit SEvent.SCDPWithdraw(_account, _collateralAsset, _amount, 0);
     }
 
+    /// @inheritdoc ISCDPFacet
     function claimFeesSCDP(
         address _account,
         address _collateralAsset
