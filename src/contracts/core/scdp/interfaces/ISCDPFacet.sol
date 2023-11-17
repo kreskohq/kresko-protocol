@@ -20,6 +20,14 @@ interface ISCDPFacet {
     function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount) external;
 
     /**
+     * @notice Withdraws any pending fees for an account.
+     * @param _account The account to withdraw fees for.
+     * @param _collateralAsset The collateral asset to withdraw fees for.
+     * @return feeAmount The amount of fees withdrawn.
+     */
+    function claimFeesSCDP(address _account, address _collateralAsset) external returns (uint256 feeAmount);
+
+    /**
      * @notice Repay debt for no fees or slippage.
      * @notice Only uses swap deposits, if none available, reverts.
      * @param _repayAssetAddr The asset to repay the debt in.

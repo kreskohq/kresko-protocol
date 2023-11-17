@@ -19,6 +19,7 @@ import {Role, Enums} from "common/Constants.sol";
 import {Asset, FeedConfiguration} from "common/Types.sol";
 import {cs} from "common/State.sol";
 import {Validations} from "common/Validations.sol";
+import {SCDPSeizeData} from "scdp/STypes.sol";
 
 // solhint-disable code-complexity
 contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModifiers {
@@ -63,13 +64,19 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
             ms().krAssets.push(_assetAddr);
         }
         if (Validations.validateSCDPDepositAsset(_assetAddr, _config)) {
-            _config.liquidityIndexSCDP = uint128(WadRay.RAY);
+            scdp().assetIndexes[_assetAddr].currFeeIndex = WadRay.RAY128;
         }
         if (Validations.validateSCDPKrAsset(_assetAddr, _config)) {
             scdp().krAssets.push(_assetAddr);
         }
         if (_config.isSwapMintable || _config.isSharedCollateral) {
             _config.isSharedOrSwappedCollateral = true;
+            scdp().assetIndexes[_assetAddr].currLiqIndex = WadRay.RAY128;
+            scdp().seizeEvents[_assetAddr][WadRay.RAY] = SCDPSeizeData({
+                prevLiqIndex: 0,
+                feeIndex: scdp().assetIndexes[_assetAddr].currFeeIndex,
+                liqIndex: WadRay.RAY128
+            });
             scdp().isEnabled[_assetAddr] = true;
             scdp().collaterals.push(_assetAddr);
         }
@@ -143,8 +150,8 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         }
 
         if (Validations.validateSCDPDepositAsset(_assetAddr, _config)) {
-            if (asset.liquidityIndexSCDP == 0) {
-                asset.liquidityIndexSCDP = uint128(WadRay.RAY);
+            if (scdp().assetIndexes[_assetAddr].currFeeIndex == 0) {
+                scdp().assetIndexes[_assetAddr].currFeeIndex = WadRay.RAY128;
             }
             asset.depositLimitSCDP = _config.depositLimitSCDP;
             asset.isSharedCollateral = true;
@@ -169,6 +176,14 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
 
         if (asset.isSharedCollateral || asset.isSwapMintable) {
             asset.isSharedOrSwappedCollateral = true;
+            if (scdp().assetIndexes[_assetAddr].currLiqIndex == 0) {
+                scdp().assetIndexes[_assetAddr].currLiqIndex = WadRay.RAY128;
+                scdp().seizeEvents[_assetAddr][WadRay.RAY] = SCDPSeizeData({
+                    prevLiqIndex: 0,
+                    feeIndex: scdp().assetIndexes[_assetAddr].currFeeIndex,
+                    liqIndex: WadRay.RAY128
+                });
+            }
             scdp().collaterals.pushUnique(_assetAddr);
         } else {
             asset.isSharedOrSwappedCollateral = false;

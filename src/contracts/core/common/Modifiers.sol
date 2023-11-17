@@ -8,7 +8,7 @@ import {Role, Constants, Enums} from "common/Constants.sol";
 import {Asset} from "common/Types.sol";
 import {cs, gs, CommonState} from "common/State.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
-
+import {WadRay} from "libs/WadRay.sol";
 import {scdp} from "scdp/SState.sol";
 
 library LibModifiers {
@@ -88,7 +88,26 @@ library LibModifiers {
     function onlySharedCollateral(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
         asset = self.assets[_assetAddr];
         if (!asset.isSharedCollateral) {
-            revert Errors.ASSET_NOT_DEPOSITABLE(Errors.id(_assetAddr));
+            revert Errors.ASSET_NOT_SHARED_COLLATERAL(Errors.id(_assetAddr));
+        }
+    }
+
+    /**
+     * @notice Reverts if asset is not the feeAsset and does not have any shared fees accumulated.
+     * @notice Assets that pass this are guaranteed to never have a zero liquidity index.
+     * @param _assetAddr The address of the asset.
+     * @return asset The asset struct.
+     */
+    function onlyFeeAccumulatingCollateral(
+        CommonState storage self,
+        address _assetAddr
+    ) internal view returns (Asset storage asset) {
+        asset = self.assets[_assetAddr];
+        if (
+            !asset.isSharedCollateral ||
+            (_assetAddr != scdp().feeAsset && scdp().assetIndexes[_assetAddr].currFeeIndex > WadRay.RAY)
+        ) {
+            revert Errors.ASSET_NOT_FEE_ACCUMULATING_ASSET(Errors.id(_assetAddr));
         }
     }
 
@@ -104,12 +123,18 @@ library LibModifiers {
         }
     }
 
+    /**
+     * @notice Reverts if address does not have any deposits.
+     * @param _assetAddr The address of the asset.
+     * @return asset The asset struct.
+     * @dev This is used to check if an asset has any deposits before removing it.
+     */
     function onlyActiveSharedCollateral(
         CommonState storage self,
         address _assetAddr
     ) internal view returns (Asset storage asset) {
         asset = self.assets[_assetAddr];
-        if (asset.liquidityIndexSCDP == 0) {
+        if (scdp().assetIndexes[_assetAddr].currFeeIndex == 0) {
             revert Errors.ASSET_DOES_NOT_HAVE_DEPOSITS(Errors.id(_assetAddr));
         }
     }
@@ -124,7 +149,7 @@ library LibModifiers {
     function onlyIncomeAsset(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
         if (_assetAddr != scdp().feeAsset) revert Errors.NOT_SUPPORTED_YET();
         asset = onlyActiveSharedCollateral(self, _assetAddr);
-        if (!asset.isSharedCollateral) revert Errors.ASSET_NOT_DEPOSITABLE(Errors.id(_assetAddr));
+        if (!asset.isSharedCollateral) revert Errors.ASSET_NOT_FEE_ACCUMULATING_ASSET(Errors.id(_assetAddr));
     }
 }
 

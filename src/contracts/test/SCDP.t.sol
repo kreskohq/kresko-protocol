@@ -101,8 +101,10 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).eq(0, "debt should be 0");
         staticCall(kresko.totalSDI.selector, initialPrices).eq(0, "total supply should be 0");
         Asset memory kissConfig = kresko.getAsset(KISS.addr);
-        kresko.getAsset(usdc.addr).liquidityIndexSCDP.eq(1e27);
-        kissConfig.liquidityIndexSCDP.eq(1e27);
+        kresko.getAssetIndexesSCDP(usdc.addr).currFeeIndex.eq(1e27);
+        kresko.getAssetIndexesSCDP(usdc.addr).currFeeIndex.eq(1e27);
+        kresko.getAssetIndexesSCDP(KISS.addr).currLiqIndex.eq(1e27);
+        kresko.getAssetIndexesSCDP(KISS.addr).currLiqIndex.eq(1e27);
         kissConfig.isCoverAsset.eq(true);
     }
 
@@ -138,6 +140,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         call(kresko.mintKreskoAsset.selector, user0, KISS.addr, borrowAmount, initialPrices);
 
         vm.stopPrank();
+
         poolDeposit(user0, usdc.addr, depositAmount, initialPrices);
         poolDeposit(user0, KISS.addr, borrowAmount, initialPrices);
 
@@ -269,7 +272,13 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     }
 
     function poolDeposit(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {
+        prank(deployCfg.admin);
+        kresko.setFeeAssetSCDP(asset);
+        prank(user);
         call(kresko.depositSCDP.selector, user, asset, amount, prices);
+        prank(deployCfg.admin);
+        kresko.setFeeAssetSCDP(KISS.addr);
+        prank(user);
     }
 
     function poolWithdraw(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {

@@ -59,7 +59,6 @@ export const getAssetConfig = async (
     closeFee: config.krAssetConfig?.closeFee ?? 0,
     openFee: config.krAssetConfig?.openFee ?? 0,
     anchor: config.krAssetConfig?.anchor ?? zeroAddress,
-    liquidityIndexSCDP: 0,
     decimals: decimals,
     isSharedOrSwappedCollateral: !!config.scdpDepositConfig || !!config.scdpKrAssetConfig,
     isCoverAsset: false,

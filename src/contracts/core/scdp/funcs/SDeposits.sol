@@ -5,6 +5,9 @@ import {WadRay} from "libs/WadRay.sol";
 import {Asset} from "common/Types.sol";
 import {Errors} from "common/Errors.sol";
 import {SCDPState} from "scdp/SState.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {SCDPSeizeData} from "scdp/STypes.sol";
+import {SEvent} from "scdp/SEvent.sol";
 
 library SDeposits {
     using WadRay for uint256;
@@ -12,7 +15,8 @@ library SDeposits {
 
     /**
      * @notice Records a deposit of collateral asset.
-     * @dev Saves principal, scaled and global deposit amounts.
+     * @notice It will withdraw any pending fees first.
+     * @notice Saves global deposit amount and principal for user.
      * @param _asset Asset struct for the deposit asset
      * @param _account depositor
      * @param _assetAddr the deposit asset
@@ -25,33 +29,39 @@ library SDeposits {
         address _assetAddr,
         uint256 _amount
     ) internal {
-        uint128 depositAmount = uint128(_asset.toNonRebasingAmount(_amount));
+        // Withdraw any fees first.
+        uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr);
 
         unchecked {
-            // Save global deposits.
-            self.assetData[_assetAddr].totalDeposits += depositAmount;
-            // Save principal deposits.
-            self.depositsPrincipal[_account][_assetAddr] += depositAmount;
-            // Save scaled deposits.
-            self.deposits[_account][_assetAddr] += depositAmount.wadToRay().rayDiv(_asset.liquidityIndexSCDP);
-        }
-        if (self.userDepositAmount(_assetAddr, _asset) > _asset.depositLimitSCDP) {
-            revert Errors.EXCEEDS_ASSET_DEPOSIT_LIMIT(
-                Errors.id(_assetAddr),
-                self.userDepositAmount(_assetAddr, _asset),
-                _asset.depositLimitSCDP
-            );
+            // Save global deposits using normalized amount.
+            uint128 normalizedAmount = uint128(_asset.toNonRebasingAmount(_amount));
+            self.assetData[_assetAddr].totalDeposits += normalizedAmount;
+
+            // Save account deposit amount, its scaled up by the liquidation index.
+            self.depositsPrincipal[_account][_assetAddr] += self.mulByLiqIndex(_assetAddr, normalizedAmount);
+
+            // Save account liquidation and fee indexes if they werent saved before.
+            if (fees == 0) updateAccountIndexes(self, _account, _assetAddr);
+
+            // Check if the deposit limit is exceeded.
+            if (self.userDepositAmount(_assetAddr, _asset) > _asset.depositLimitSCDP) {
+                revert Errors.EXCEEDS_ASSET_DEPOSIT_LIMIT(
+                    Errors.id(_assetAddr),
+                    self.userDepositAmount(_assetAddr, _asset),
+                    _asset.depositLimitSCDP
+                );
+            }
         }
     }
 
     /**
      * @notice Records a withdrawal of collateral asset from the SCDP.
+     * @notice It will withdraw any pending fees first.
+     * @notice Saves global deposit amount and principal for user.
      * @param _asset Asset struct for the deposit asset
      * @param _account The withdrawing account
      * @param _assetAddr the deposit asset
-     * @param _amount The amount of collateral withdrawn
-     * @return amountOut The actual amount of collateral withdrawn
-     * @return feesOut The fees paid for during the withdrawal
+     * @param _amount The amount of collateral to withdraw
      */
     function handleWithdrawSCDP(
         SCDPState storage self,
@@ -59,48 +69,35 @@ library SDeposits {
         address _account,
         address _assetAddr,
         uint256 _amount
-    ) internal returns (uint256 amountOut, uint256 feesOut) {
+    ) internal {
+        // Withdraw any fees first.
+        uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr);
+
         // Get accounts principal deposits.
-        uint256 depositsPrincipal = self.accountPrincipalDeposits(_account, _assetAddr, _asset);
+        uint256 depositsPrincipal = self.accountDeposits(_account, _assetAddr, _asset);
 
-        if (depositsPrincipal >= _amount) {
-            // == Principal can cover possibly rebased `_amount` requested.
-            // 1. We send out the requested amount.
-            amountOut = _amount;
-            // 2. No fees.
-            // 3. Possibly un-rebased amount for internal bookeeping.
-            uint128 amountWrite = uint128(_asset.toNonRebasingAmount(_amount));
-            unchecked {
-                // 4. Reduce global deposits.
-                self.assetData[_assetAddr].totalDeposits -= amountWrite;
-                // 5. Reduce principal deposits.
-                self.depositsPrincipal[_account][_assetAddr] -= amountWrite;
-                // 6. Reduce scaled deposits.
-                self.deposits[_account][_assetAddr] -= amountWrite.wadToRay().rayDiv(_asset.liquidityIndexSCDP);
-            }
-        } else {
-            // == Principal can't cover possibly rebased `_amount` requested, send full collateral available.
-            // 1. We send all collateral.
-            amountOut = depositsPrincipal;
-            // 2. With fees.
-            uint256 scaledDeposits = self.accountScaledDeposits(_account, _assetAddr, _asset);
-            feesOut = scaledDeposits - depositsPrincipal;
-            // 3. Ensure this is actually the case.
-            if (feesOut == 0) {
-                revert Errors.NOTHING_TO_WITHDRAW(_account, Errors.id(_assetAddr), _amount, depositsPrincipal, scaledDeposits);
-            }
+        // Check we can perform the withdrawal.
+        if (depositsPrincipal < _amount) {
+            revert Errors.NOTHING_TO_WITHDRAW(_account, Errors.id(_assetAddr), _amount, depositsPrincipal, 0);
+        }
 
-            // 4. Wipe account collateral deposits.
-            self.depositsPrincipal[_account][_assetAddr] = 0;
-            self.deposits[_account][_assetAddr] = 0;
-            // 5. Reduce global by ONLY by the principal, fees are NOT collateral.
-            self.assetData[_assetAddr].totalDeposits -= uint128(_asset.toNonRebasingAmount(depositsPrincipal));
+        unchecked {
+            // Save global deposits using normalized amount.
+            uint128 normalizedAmount = uint128(_asset.toNonRebasingAmount(_amount));
+            self.assetData[_assetAddr].totalDeposits -= normalizedAmount;
+
+            // Save account deposit amount, the amount withdrawn is scaled up by the liquidation index.
+            self.depositsPrincipal[_account][_assetAddr] -= self.mulByLiqIndex(_assetAddr, normalizedAmount);
+
+            // Save account liquidation and fee indexes if they werent saved before.
+            if (fees == 0) updateAccountIndexes(self, _account, _assetAddr);
         }
     }
 
     /**
-     * @notice This function seizes collateral from the shared pool
-     * @notice Adjusts all deposits in the case where swap deposits do not cover the amount.
+     * @notice This function seizes collateral from the shared pool.
+     * @notice It will reduce all deposits in the case where swap deposits do not cover the amount.
+     * @notice Each event touching user deposits will save a checkpoint of the indexes.
      * @param _sAsset The asset struct (Asset).
      * @param _assetAddr The seized asset address.
      * @param _seizeAmount The seize amount (uint256).
@@ -117,13 +114,78 @@ library SDeposits {
             }
         } else {
             // swap deposits do not cover the amount
-            uint256 amountToCover = uint128(_seizeAmount - swapDeposits);
-            // reduce everyones deposits by the same ratio
-            _sAsset.liquidityIndexSCDP -= uint128(
-                amountToCover.wadToRay().rayDiv(self.userDepositAmount(_assetAddr, _sAsset).wadToRay())
-            );
             self.assetData[_assetAddr].swapDeposits = 0;
-            self.assetData[_assetAddr].totalDeposits -= uint128(_sAsset.toNonRebasingAmount(amountToCover));
+            // total deposits = user deposits at this point
+            self.assetData[_assetAddr].totalDeposits -= uint128(_sAsset.toNonRebasingAmount(_seizeAmount));
+
+            // We need this later for seize data as well.
+            uint256 prevLiqIndex = self.assetIndexes[_assetAddr].currLiqIndex;
+
+            // Increase liquidation index, note this uses rebased amounts instead of normalized.
+            self.assetIndexes[_assetAddr].currLiqIndex += uint128(
+                (_seizeAmount - swapDeposits)
+                    .wadToRay()
+                    .rayDiv(_sAsset.toRebasingAmount(self.assetData[_assetAddr].totalDeposits.wadToRay()))
+                    .rayMul(prevLiqIndex)
+            );
+
+            // Save the seize data.
+            self.seizeEvents[_assetAddr][self.assetIndexes[_assetAddr].currLiqIndex] = SCDPSeizeData({
+                prevLiqIndex: prevLiqIndex,
+                feeIndex: self.assetIndexes[_assetAddr].currFeeIndex,
+                liqIndex: self.assetIndexes[_assetAddr].currLiqIndex
+            });
         }
+    }
+
+    /**
+     * @notice Fully handles fee claim.
+     * @notice Checks whether some fees exists, withdrawis them and updates account indexes.
+     * @param _asset The asset struct.
+     * @param _account The account to withdraw fees for.
+     * @param _assetAddr The asset address.
+     * @return feeAmount Amount of fees withdrawn.
+     * @dev This function is used by deposit and withdraw functions.
+     */
+    function handleFeeClaim(
+        SCDPState storage self,
+        Asset storage _asset,
+        address _account,
+        address _assetAddr
+    ) internal returns (uint256 feeAmount) {
+        uint256 fees = self.accountFees(_account, _assetAddr, _asset);
+
+        if (fees > 0) {
+            IERC20(_assetAddr).transfer(_account, fees);
+            (uint256 prevIndex, uint256 newIndex) = updateAccountIndexes(self, _account, _assetAddr);
+            emit SEvent.SCDPFeeClaim(_account, _assetAddr, fees, newIndex, prevIndex, block.timestamp);
+        }
+
+        return fees;
+    }
+
+    /**
+     * @notice Updates account indexes to checkpoint the fee index and liquidation index at the time of action.
+     * @param _account The account to update indexes for.
+     * @param _assetAddr The asset being withdrawn/deposited.
+     * @dev This function is used by deposit and withdraw functions.
+     */
+    function updateAccountIndexes(
+        SCDPState storage self,
+        address _account,
+        address _assetAddr
+    ) private returns (uint128 newIndex, uint128 prevIndex) {
+        prevIndex = self.accountIndexes[_account][_assetAddr].lastFeeIndex;
+        newIndex = self.assetIndexes[_assetAddr].currFeeIndex;
+        self.accountIndexes[_account][_assetAddr].lastFeeIndex = self.assetIndexes[_assetAddr].currFeeIndex;
+        self.accountIndexes[_account][_assetAddr].lastLiqIndex = self.assetIndexes[_assetAddr].currLiqIndex;
+    }
+
+    function mulByLiqIndex(SCDPState storage self, address _assetAddr, uint256 _amount) internal view returns (uint128) {
+        return uint128(_amount.wadToRay().rayMul(self.assetIndexes[_assetAddr].currLiqIndex).rayToWad());
+    }
+
+    function divByLiqIndex(SCDPState storage self, address _assetAddr, uint256 _depositAmount) internal view returns (uint128) {
+        return uint128(_depositAmount.wadToRay().rayDiv(self.assetIndexes[_assetAddr].currLiqIndex).rayToWad());
     }
 }

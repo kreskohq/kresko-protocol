@@ -40,10 +40,13 @@ library Errors {
     error ASSET_CANNOT_BE_USED_TO_COVER(ID);
     error ASSET_PAUSED_FOR_THIS_ACTION(ID, uint8 action);
     error ASSET_NOT_MINTER_COLLATERAL(ID);
+    error ASSET_NOT_FEE_ACCUMULATING_ASSET(ID);
+    error ASSET_NOT_SHARED_COLLATERAL(ID);
     error ASSET_NOT_MINTABLE_FROM_MINTER(ID);
     error ASSET_NOT_SWAPPABLE(ID);
     error ASSET_DOES_NOT_HAVE_DEPOSITS(ID);
-    error ASSET_NOT_DEPOSITABLE(ID);
+    error ASSET_CANNOT_BE_FEE_ASSET(ID);
+    error ASSET_NOT_VALID_DEPOSIT_ASSET(ID);
     error ASSET_ALREADY_ENABLED(ID);
     error ASSET_ALREADY_DISABLED(ID);
     error ASSET_DOES_NOT_EXIST(ID);
@@ -137,6 +140,7 @@ library Errors {
     error ACCOUNT_KRASSET_NOT_FOUND(address account, ID, address[] accountCollaterals);
     error ACCOUNT_COLLATERAL_NOT_FOUND(address account, ID, address[] accountCollaterals);
     error ELEMENT_DOES_NOT_MATCH_PROVIDED_INDEX(ID element, uint256 index, address[] elements);
+    error NO_FEES_TO_CLAIM(ID asset, address claimer);
     error REPAY_OVERFLOW(ID repayAsset, ID seizeAsset, uint256 invalid, uint256 valid);
     error INCOME_AMOUNT_IS_ZERO(ID incomeAsset);
     error NO_LIQUIDITY_TO_GIVE_INCOME_FOR(ID incomeAsset, uint256 userDeposits, uint256 totalDeposits);

@@ -11,6 +11,7 @@ import {SCDPState, sdi} from "scdp/SState.sol";
 
 library SGlobal {
     using WadRay for uint256;
+    using WadRay for uint128;
     using PercentageMath for uint256;
 
     /**
@@ -138,7 +139,7 @@ library SGlobal {
      * @notice Get pool collateral deposits of an asset.
      * @param _assetAddress The asset address
      * @param _asset The asset struct
-     * @return Amount of scaled debt.
+     * @return Effective collateral deposit amount for this asset.
      */
     function totalDepositAmount(
         SCDPState storage self,
@@ -152,7 +153,7 @@ library SGlobal {
      * @notice Get pool user collateral deposits of an asset.
      * @param _assetAddress The asset address
      * @param _asset The asset struct
-     * @return Amount of scaled debt.
+     * @return Collateral deposits originating from users.
      */
     function userDepositAmount(
         SCDPState storage self,
@@ -160,7 +161,8 @@ library SGlobal {
         Asset storage _asset
     ) internal view returns (uint256) {
         return
-            _asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits - self.assetData[_assetAddress].swapDeposits);
+            _asset.toRebasingAmount(self.assetData[_assetAddress].totalDeposits) -
+            _asset.toRebasingAmount(self.assetData[_assetAddress].swapDeposits);
     }
 
     /**

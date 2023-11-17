@@ -64,11 +64,6 @@ struct Asset {
     uint256 maxDebtSCDP;
     /// @notice SCDP deposit limit for the asset.
     uint256 depositLimitSCDP;
-    /// @notice SCDP liquidity index (RAY precision). Scales the deposits globally:
-    /// @notice 1) Increased from fees accrued into deposits.
-    /// @notice 2) Decreased from liquidations where swap collateral does not cover value required.
-    /// @dev NOTE: uint128
-    uint128 liquidityIndexSCDP;
     /// @notice SCDP fee percent when swapped as "asset in". Cap 25% == a.inFee + b.outFee <= 50%.
     uint16 swapInFeeSCDP;
     /// @notice SCDP fee percent when swapped as "asset out". Cap 25% == a.outFee + b.inFee <= 50%.
@@ -165,18 +160,4 @@ struct CommonInitArgs {
     address sequencerUptimeFeed;
     address kreskian;
     address questForKresk;
-}
-
-struct SCDPCollateralArgs {
-    uint256 depositLimit;
-    uint128 liquidityIndex; // no need to pack this, it's not used with depositLimit
-    uint8 decimals;
-}
-
-struct SCDPKrAssetArgs {
-    uint256 maxDebtMinter;
-    uint16 liqIncentive;
-    uint16 protocolFee; // Taken from the open+close fee. Goes to protocol.
-    uint16 openFee;
-    uint16 closeFee;
 }

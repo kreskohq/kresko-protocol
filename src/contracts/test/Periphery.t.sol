@@ -106,7 +106,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
             VaultAsset(usdc.asToken, IAggregatorV3(address(usdc.feedAddr)), 80000, 0, 0, 0, type(uint248).max, true)
         );
         vkiss.addAsset(VaultAsset(dai.asToken, IAggregatorV3(address(usdc.feedAddr)), 80000, 0, 0, 0, type(uint248).max, true));
-
+        kresko.setFeeAssetSCDP(usdc.addr);
         prank(user0);
         usdc.mock.approve(address(kresko), type(uint256).max);
         wbtc.mock.approve(address(kresko), type(uint256).max);
@@ -125,6 +125,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         dai.mock.approve(address(kresko), type(uint256).max);
         kresko.depositCollateral(user2, usdc.addr, 5000e18);
         kresko.depositCollateral(user2, dai.addr, 2000e18);
+
         call(kresko.depositSCDP.selector, user2, usdc.addr, 1000e18, initialPrices);
         call(kresko.mintKreskoAsset.selector, user2, krETH.addr, 1.5e18, initialPrices);
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.21;
 
-import {SCDPAssetData} from "scdp/STypes.sol";
+import {SCDPAccountIndexes, SCDPAssetData, SCDPAssetIndexes, SCDPSeizeData} from "scdp/STypes.sol";
 import {SGlobal} from "scdp/funcs/SGlobal.sol";
 import {SDeposits} from "scdp/funcs/SDeposits.sol";
 import {SAccounts} from "scdp/funcs/SAccounts.sol";
@@ -40,6 +40,12 @@ struct SCDPState {
     mapping(address => mapping(address => uint256)) deposits;
     /// @notice Mapping of account -> depositAsset -> principal deposit amount.
     mapping(address => mapping(address => uint256)) depositsPrincipal;
+    /// @notice Mapping of depositAsset -> indexes.
+    mapping(address => SCDPAssetIndexes) assetIndexes;
+    /// @notice Mapping of account -> depositAsset -> indices.
+    mapping(address => mapping(address => SCDPAccountIndexes)) accountIndexes;
+    /// @notice Mapping of account -> liquidationIndex -> Seize data.
+    mapping(address => mapping(uint256 => SCDPSeizeData)) seizeEvents;
     /// @notice The asset to convert fees into
     address feeAsset;
     /// @notice The minimum ratio of collateral to debt that can be taken by direct action.

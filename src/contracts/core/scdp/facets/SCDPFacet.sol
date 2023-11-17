@@ -17,6 +17,7 @@ import {SEvent} from "scdp/SEvent.sol";
 import {SCDPAssetData} from "scdp/STypes.sol";
 import {ISCDPFacet} from "scdp/interfaces/ISCDPFacet.sol";
 import {scdp, sdi, SCDPState} from "scdp/SState.sol";
+import {Role} from "common/Constants.sol";
 
 using PercentageMath for uint256;
 using PercentageMath for uint16;
@@ -30,30 +31,34 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Record the collateral deposit.
-        scdp().handleDepositSCDP(cs().onlySharedCollateral(_collateralAsset), _account, _collateralAsset, _amount);
+        scdp().handleDepositSCDP(cs().onlyFeeAccumulatingCollateral(_collateralAsset), _account, _collateralAsset, _amount);
 
         emit SEvent.SCDPDeposit(_account, _collateralAsset, _amount);
     }
 
     /// @inheritdoc ISCDPFacet
-    function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant gate {
+    function withdrawSCDP(address _receiver, address _collateralAsset, uint256 _amount) external nonReentrant gate {
         SCDPState storage s = scdp();
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
-        (uint256 collateralOut, uint256 feesOut) = s.handleWithdrawSCDP(
-            cs().onlyActiveSharedCollateral(_collateralAsset),
-            msg.sender,
-            _collateralAsset,
-            _amount
-        );
+        s.handleWithdrawSCDP(cs().onlyActiveSharedCollateral(_collateralAsset), msg.sender, _collateralAsset, _amount);
 
         // ensure that global pool is left with CR over MCR.
         s.ensureCollateralRatio(s.minCollateralRatio);
 
         // Send out the collateral.
-        IERC20(_collateralAsset).safeTransfer(_account, collateralOut + feesOut);
+        IERC20(_collateralAsset).safeTransfer(_receiver, _amount);
 
         // Emit event.
-        emit SEvent.SCDPWithdraw(_account, _collateralAsset, collateralOut, feesOut);
+        emit SEvent.SCDPWithdraw(_receiver, msg.sender, _collateralAsset, _amount);
+    }
+
+    /// @inheritdoc ISCDPFacet
+    function claimFeesSCDP(
+        address _account,
+        address _collateralAsset
+    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) returns (uint256 feeAmount) {
+        feeAmount = scdp().handleFeeClaim(cs().onlyFeeAccumulatingCollateral(_collateralAsset), _account, _collateralAsset);
+        if (feeAmount == 0) revert Errors.NO_FEES_TO_CLAIM(Errors.id(_collateralAsset), _account);
     }
 
     /// @inheritdoc ISCDPFacet
