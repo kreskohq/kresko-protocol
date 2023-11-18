@@ -36,9 +36,9 @@ library SGlobal {
      */
     function checkCoverableSCDP(SCDPState storage self) internal view {
         uint256 collateralValue = self.totalCollateralValueSCDP(false);
-        uint256 minCollateralValue = sdi().effectiveDebtValue().percentMul(self.minCollateralRatio);
-        if (collateralValue >= minCollateralValue) {
-            revert Errors.COLLATERAL_VALUE_GREATER_THAN_REQUIRED(collateralValue, minCollateralValue, self.minCollateralRatio);
+        uint256 minCoverValue = sdi().effectiveDebtValue().percentMul(sdi().coverThreshold);
+        if (collateralValue >= minCoverValue) {
+            revert Errors.COLLATERAL_VALUE_GREATER_THAN_COVER_THRESHOLD(collateralValue, minCoverValue, sdi().coverThreshold);
         }
     }
 

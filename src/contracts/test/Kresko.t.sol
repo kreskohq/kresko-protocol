@@ -35,6 +35,8 @@ contract KreskoTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
             minterLt: 140e2,
             scdpMcr: 200e2,
             scdpLt: 150e2,
+            coverThreshold: 160e2,
+            coverIncentive: 1.01e4,
             sdiPrecision: 8,
             oraclePrecision: 8,
             staleTime: 86401,

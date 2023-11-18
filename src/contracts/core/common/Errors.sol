@@ -83,6 +83,8 @@ library Errors {
     error INVALID_CFACTOR(ID, uint256 invalid, uint256 valid);
     error INVALID_MINTER_FEE(ID, uint256 invalid, uint256 valid);
     error INVALID_PRICE_PRECISION(uint256 decimals, uint256 valid);
+    error INVALID_COVER_THRESHOLD(uint256 threshold, uint256 max);
+    error INVALID_COVER_INCENTIVE(uint256 incentive, uint256 min, uint256 max);
     error INVALID_DECIMALS(ID, uint256 decimals);
     error INVALID_FEE(ID, uint256 invalid, uint256 valid);
     error INVALID_FEE_TYPE(uint8 invalid, uint8 valid);
@@ -125,6 +127,7 @@ library Errors {
     error CANNOT_RE_ENTER();
     error ARRAY_LENGTH_MISMATCH(string ticker, uint256 arr1, uint256 arr2);
     error COLLATERAL_VALUE_GREATER_THAN_REQUIRED(uint256 collateralValue, uint256 minCollateralValue, uint32 ratio);
+    error COLLATERAL_VALUE_GREATER_THAN_COVER_THRESHOLD(uint256 collateralValue, uint256 minCollateralValue, uint48 ratio);
     error ACCOUNT_COLLATERAL_VALUE_LESS_THAN_REQUIRED(
         address who,
         uint256 collateralValue,

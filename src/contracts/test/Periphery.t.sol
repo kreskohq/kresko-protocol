@@ -45,6 +45,8 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
             scdpMcr: 200e2,
             scdpLt: 150e2,
             sdiPrecision: 8,
+            coverThreshold: 160e2,
+            coverIncentive: 1.01e4,
             oraclePrecision: 8,
             staleTime: 86401,
             council: getMockSafe(TEST_ADMIN),

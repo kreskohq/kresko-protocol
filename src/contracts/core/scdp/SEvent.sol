@@ -27,6 +27,13 @@ library SEvent {
         address indexed seizeCollateral,
         uint256 seizeAmount
     );
+    event SCDPCoverOccured(
+        address indexed coverer,
+        address indexed coverAsset,
+        uint256 coverAmount,
+        address indexed seizeCollateral,
+        uint256 seizeAmount
+    );
 
     // Emitted when a swap pair is disabled / enabled.
     event PairSet(address indexed assetIn, address indexed assetOut, bool enabled);

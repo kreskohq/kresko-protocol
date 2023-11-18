@@ -15,6 +15,7 @@ import {VaultAsset} from "vault/VTypes.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {Asset} from "common/Types.sol";
 import {SCDPAssetIndexes} from "scdp/STypes.sol";
+import {WadRay} from "libs/WadRay.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
@@ -22,6 +23,7 @@ contract AuditTest is Local {
     using ShortAssert for *;
     using Help for *;
     using Log for *;
+    using WadRay for *;
     using PercentageMath for *;
 
     bytes redstoneCallData;
@@ -622,6 +624,47 @@ contract AuditTest is Local {
         kresko.getAccountDepositSCDP(userOther, address(kiss)).lt(1e18, "deposits");
     }
 
+    function testCoverSCDPOak8() external {
+        kresko.enableCoverAssetSDI(address(kiss));
+        uint256 amount = 4000e18;
+
+        // Setup another user
+        address userOther = getAddr(55);
+        kiss.balanceOf(userOther).eq(0, "bal-not-zero");
+        kiss.transfer(userOther, amount);
+
+        prank(userOther);
+
+        kiss.approve(address(kresko), type(uint256).max);
+        kresko.depositSCDP(userOther, address(kiss), amount);
+
+        prank(userOther);
+        uint256 swapDeposits = kresko.getSwapDepositsSCDP(address(kiss));
+        uint256 depositsBeforeUser = kresko.getAccountDepositSCDP(getAddr(0), address(kiss));
+        uint256 depositsBeforeOtherUser = kresko.getAccountDepositSCDP(userOther, address(kiss));
+        // Make it liquidatable
+        _setETHPriceAndCover(104071, 1000e18);
+
+        prank(userOther);
+        kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(amount, "deposits");
+
+        // Make it liquidatable
+        _setETHPriceAndCoverIncentive(104071, 5000e18);
+
+        uint256 amountFromUsers = (5000e18).percentMul(deployCfg.coverIncentive) - swapDeposits;
+
+        kresko.getSwapDepositsSCDP(address(kiss)).eq(0, "swap-deps-after");
+
+        uint256 depositsAfterUser = kresko.getAccountDepositSCDP(getAddr(0), address(kiss));
+        depositsAfterUser.lt(depositsBeforeUser, "deposits-after-cover-user");
+
+        uint256 depositsAfterOtherUser = kresko.getAccountDepositSCDP(userOther, address(kiss));
+        kresko.getAccountDepositSCDP(userOther, address(kiss)).lt(depositsBeforeOtherUser, "deposits-after-cover-user-other");
+
+        uint256 totalSeized = (depositsBeforeOtherUser - depositsAfterOtherUser) + (depositsBeforeUser - depositsAfterUser);
+        totalSeized.eq(amountFromUsers, "total-seized");
+    }
+
     // function testFeeDistributionGas() external {
     //     uint256 amount = 4000e18;
 
@@ -714,6 +757,51 @@ contract AuditTest is Local {
         // staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: after-liq");
     }
 
+    function _setETHPriceAndLiquidate(uint256 price, uint256 amount) internal {
+        prank(getAddr(0));
+        if (amount < krETH.asToken.balanceOf(getAddr(0))) {
+            mockUSDC.mock.mint(getAddr(0), 100_000e18);
+            call(kresko.depositCollateral.selector, getAddr(0), mockUSDC.addr, 100_000e18, rsPrices);
+            call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, amount, rsPrices);
+        }
+
+        kresko.setAssetKFactor(krETH.addr, 1e4);
+        _setETHPrice(price);
+        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: before-liq");
+        _liquidate(krETH.addr, amount.wadDiv(price * 1e18), address(kiss));
+        // staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: after-liq");
+    }
+
+    function _setETHPriceAndCover(uint256 price, uint256 amount) internal {
+        prank(getAddr(0));
+        uint256 debt = kresko.getDebtSCDP(krETH.addr);
+        mockUSDC.mock.mint(getAddr(0), 100_000e18);
+        mockUSDC.asToken.approve(address(kiss), type(uint256).max);
+        kiss.vaultMint(address(USDC), amount, getAddr(0));
+        kiss.approve(address(kresko), type(uint256).max);
+
+        kresko.setAssetKFactor(krETH.addr, 1e4);
+        _setETHPrice(price);
+        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: before-cover");
+        _cover(amount, address(kiss));
+        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: after-cover");
+    }
+
+    function _setETHPriceAndCoverIncentive(uint256 price, uint256 amount) internal {
+        prank(getAddr(0));
+        uint256 debt = kresko.getDebtSCDP(krETH.addr);
+        mockUSDC.mock.mint(getAddr(0), 100_000e18);
+        mockUSDC.asToken.approve(address(kiss), type(uint256).max);
+        kiss.vaultMint(address(USDC), amount, getAddr(0));
+        kiss.approve(address(kresko), type(uint256).max);
+
+        kresko.setAssetKFactor(krETH.addr, 1e4);
+        _setETHPrice(price);
+        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: before-cover");
+        _coverIncentive(amount, address(kiss));
+        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: after-cover");
+    }
+
     function _trades(uint256 count) internal {
         address trader = getAddr(777);
         prank(deployCfg.admin);
@@ -732,6 +820,34 @@ contract AuditTest is Local {
             call(kresko.swapSCDP.selector, trader, address(kiss), krETH.addr, tradeAmount / count, 0, rsPrices);
             call(kresko.swapSCDP.selector, trader, krETH.addr, address(kiss), krETH.asToken.balanceOf(trader), 0, rsPrices);
         }
+    }
+
+    function _cover(uint256 _coverAmount, address _seizeAsset) internal returns (uint256 crAfter, uint256 debtValAfter) {
+        (bool success, bytes memory returndata) = address(kresko).call(
+            abi.encodePacked(abi.encodeWithSelector(kresko.coverSCDP.selector, address(kiss), _coverAmount), redstoneCallData)
+        );
+        if (!success) _revert(returndata);
+        return (
+            staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices),
+            staticCall(kresko.getTotalDebtValueSCDP.selector, true, rsPrices)
+        );
+    }
+
+    function _coverIncentive(
+        uint256 _coverAmount,
+        address _seizeAsset
+    ) internal returns (uint256 crAfter, uint256 debtValAfter) {
+        (bool success, bytes memory returndata) = address(kresko).call(
+            abi.encodePacked(
+                abi.encodeWithSelector(kresko.coverWithIncentiveSCDP.selector, address(kiss), _coverAmount, address(kiss)),
+                redstoneCallData
+            )
+        );
+        if (!success) _revert(returndata);
+        return (
+            staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices),
+            staticCall(kresko.getTotalDebtValueSCDP.selector, true, rsPrices)
+        );
     }
 
     function _liquidate(
