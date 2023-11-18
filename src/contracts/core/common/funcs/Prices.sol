@@ -39,8 +39,8 @@ function safePrice(bytes32 _ticker, Enums.OracleType[2] memory _oracles, uint256
     }
 
     // Enums.OracleType.Vault uses the same check, reverting if the sequencer is down.
-    if (_oracles[0] != Enums.OracleType.Vault && !isSequencerUp(cs().sequencerUptimeFeed, cs().sequencerGracePeriodTime)) {
-        return handleSequencerDown(_oracles, prices);
+    if (!isSequencerUp(cs().sequencerUptimeFeed, cs().sequencerGracePeriodTime)) {
+        revert Errors.L2_SEQUENCER_DOWN();
     }
 
     return deducePrice(prices[0], prices[1], _oracleDeviationPct);
@@ -84,22 +84,6 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
 
     // Revert if price deviates more than `_oracleDeviationPct`
     revert Errors.PRICE_UNSTABLE(_primaryPrice, _referencePrice, _oracleDeviationPct);
-}
-
-/**
- * @notice Handles the prices in case the sequencer is down.
- * @notice Looks for redstone price, reverting if not available for asset.
- * @param oracles The oracle types.
- * @param prices The fetched oracle prices.
- * @return uint256 Usable price of the asset.
- */
-function handleSequencerDown(Enums.OracleType[2] memory oracles, uint256[2] memory prices) pure returns (uint256) {
-    if (oracles[0] == Enums.OracleType.Redstone && prices[0] != 0) {
-        return prices[0];
-    } else if (oracles[1] == Enums.OracleType.Redstone && prices[1] != 0) {
-        return prices[1];
-    }
-    revert Errors.L2_SEQUENCER_DOWN();
 }
 
 /**

@@ -72,25 +72,5 @@ describe('Oracles', () => {
       await expect(redstoneDiamond.getAccountTotalCollateralValue(user.address)).to.be.reverted
       f.Collateral.setPrice(10)
     })
-
-    it('should return redstone price if sequencer is down', async function () {
-      /// set chainlink price to 5
-      f.Collateral.setPrice(5)
-
-      const redstoneCollateralPrice = 200
-      const redstoneDiamond = wrapPrices(hre.Diamond, [
-        ...defaultRedstoneDataPoints.map(p => (p.value === 0 ? { ...p, value: 1 } : p)),
-        { dataFeedId: testCollateralConfig.ticker, value: redstoneCollateralPrice },
-      ])
-      await (await hre.getContractOrFork('MockSequencerUptimeFeed')).setAnswer(1)
-      // should return redstone price if sequencer is down
-      expect(await redstoneDiamond.getAccountTotalCollateralValue(user.address)).to.be.equal(
-        f.depositAmount.wadMul(toBig(redstoneCollateralPrice, 8)),
-        'collateral value should be $200',
-      )
-
-      f.Collateral.setPrice(10)
-      await (await hre.getContractOrFork('MockSequencerUptimeFeed')).setAnswer(0)
-    })
   })
 })
