@@ -86,13 +86,16 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
 
         // possibly save feeds
         if (!_feeds.empty()) {
-            address(this).delegatecall(
+            (bool success, ) = address(this).delegatecall(
                 abi.encodeWithSelector(
                     CommonConfigurationFacet.setFeedsForTicker.selector,
                     _config.ticker,
                     FeedConfiguration(_config.oracles, _feeds)
                 )
             );
+            if (!success) {
+                revert Errors.ASSET_SET_FEEDS_FAILED(Errors.id(_assetAddr));
+            }
         }
         Validations.validatePushPrice(_assetAddr);
         return _config;
