@@ -13,7 +13,7 @@ import {Errors} from "common/Errors.sol";
 import {Asset, RawPrice} from "common/Types.sol";
 import {Role, Percents, Constants} from "common/Constants.sol";
 import {cs} from "common/State.sol";
-import {rawPrice} from "common/funcs/Prices.sol";
+import {pushPrice} from "common/funcs/Prices.sol";
 
 import {scdp} from "scdp/SState.sol";
 import {ms, MinterState} from "minter/MState.sol";
@@ -116,7 +116,7 @@ library Validations {
         validateMinterKrAsset(_assetAddr, _config);
         validateSCDPDepositAsset(_assetAddr, _config);
         validateSCDPKrAsset(_assetAddr, _config);
-        validateRawAssetPrice(_assetAddr);
+        validatePushPrice(_assetAddr);
         validateLiqConfig(_assetAddr);
         return true;
     }
@@ -164,7 +164,7 @@ library Validations {
         asset = cs().assets[_assetAddr];
         if (!asset.exists()) revert Errors.ASSET_DOES_NOT_EXIST(Errors.id(_assetAddr));
         if (asset.isCoverAsset) revert Errors.ASSET_ALREADY_ENABLED(Errors.id(_assetAddr));
-        validateRawAssetPrice(_assetAddr);
+        validatePushPrice(_assetAddr);
     }
 
     function validateKrAssetContract(address _assetAddr, address _anchorAddr) internal view {
@@ -332,15 +332,15 @@ library Validations {
             );
     }
 
-    function rawAssetPrice(Asset storage self) internal view returns (RawPrice memory) {
-        return rawPrice(self.oracles, self.ticker);
+    function getPushOraclePrice(Asset storage self) internal view returns (RawPrice memory) {
+        return pushPrice(self.oracles, self.ticker);
     }
 
-    function validateRawAssetPrice(address _assetAddr) internal view {
+    function validatePushPrice(address _assetAddr) internal view {
         Asset storage asset = cs().assets[_assetAddr];
-        RawPrice memory result = rawAssetPrice(asset);
+        RawPrice memory result = getPushOraclePrice(asset);
         if (result.answer <= 0) {
-            revert Errors.RAW_PRICE_LTE_ZERO(
+            revert Errors.ZERO_OR_NEGATIVE_PUSH_PRICE(
                 Errors.id(_assetAddr),
                 asset.ticker.toString(),
                 result.answer,
@@ -348,8 +348,8 @@ library Validations {
                 result.feed
             );
         }
-        if (block.timestamp - result.timestamp > cs().staleTime) {
-            revert Errors.RAW_PRICE_STALE(
+        if (result.isStale) {
+            revert Errors.STALE_PUSH_PRICE(
                 Errors.id(_assetAddr),
                 asset.ticker.toString(),
                 result.answer,

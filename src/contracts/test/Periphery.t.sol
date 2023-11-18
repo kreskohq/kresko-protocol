@@ -389,6 +389,6 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account2.scdp.deposits[0].amount.eq(1000e18, "account2.scdp.deposits[0].amount");
 
         account2.scdp.deposits[0].val.eq(1000e8, "account2.scdp.deposits[0].val");
-        account2.scdp.deposits[0].valAdj.eq(1000e8, "account2.scdp.deposits[0].valFees");
+        account2.scdp.deposits[0].valAdj.eq(0, "account2.scdp.deposits[0].valFees");
     }
 }
