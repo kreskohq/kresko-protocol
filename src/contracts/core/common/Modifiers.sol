@@ -212,7 +212,7 @@ contract Modifiers {
         }
         if (phase == 1) {
             IERC1155 questForKresk = IERC1155(gs().questForKresk);
-            if (questForKresk.balanceOf(msg.sender, 2) == 0 && questForKresk.balanceOf(msg.sender, 3) == 0) {
+            if (questForKresk.balanceOf(msg.sender, 2) == 0 || questForKresk.balanceOf(msg.sender, 3) == 0) {
                 revert Errors.MISSING_PHASE_2_NFT();
             }
         } else if (phase == 0) {
