@@ -50,10 +50,10 @@ struct Asset {
     /// @notice Percentage multiplier which increases debt asset valution (if > 100%), mitigating price risk.
     /// @notice Always >= 100% or 1e4.
     uint16 kFactor;
-    /// @notice Minter fee percent for opening a debt position. <= 25%.
+    /// @notice Minter fee percent for opening a debt position.
     /// @notice Fee is deducted from collaterals.
     uint16 openFee;
-    /// @notice Minter fee percent for closing a debt position. <= 25%.
+    /// @notice Minter fee percent for closing a debt position.
     /// @notice Fee is deducted from collaterals.
     uint16 closeFee;
     /// @notice Minter liquidation incentive when asset is the seized collateral in a liquidation.
@@ -64,9 +64,9 @@ struct Asset {
     uint256 maxDebtSCDP;
     /// @notice SCDP deposit limit for the asset.
     uint256 depositLimitSCDP;
-    /// @notice SCDP fee percent when swapped as "asset in". Cap 25% == a.inFee + b.outFee <= 50%.
+    /// @notice SCDP fee percent when swapped as "asset in".
     uint16 swapInFeeSCDP;
-    /// @notice SCDP fee percent when swapped as "asset out". Cap 25% == a.outFee + b.inFee <= 50%.
+    /// @notice SCDP fee percent when swapped as "asset out".
     uint16 swapOutFeeSCDP;
     /// @notice SCDP protocol cut of the swap fees. Cap 50% == a.feeShare + b.feeShare <= 100%.
     uint16 protocolFeeShareSCDP;
