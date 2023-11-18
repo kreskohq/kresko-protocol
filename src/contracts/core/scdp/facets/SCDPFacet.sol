@@ -113,7 +113,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         uint256 seizeAssetPrice = seizeAsset.price();
         uint256 repayAssetPrice = repayAsset.price();
         uint256 seizeAmount = fromWad(
-            valueToAmount(seizeAssetPrice, maxLiqValue, repayAsset.liqIncentiveSCDP),
+            valueToAmount(maxLiqValue, seizeAssetPrice, repayAsset.liqIncentiveSCDP),
             seizeAsset.decimals
         );
         return
