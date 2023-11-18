@@ -302,8 +302,7 @@ contract Vault is IVault, ERC20 {
         uint256 balance = IERC20(assetAddr).balanceOf(address(this));
 
         if (assetsOut + fee > balance) {
-            assetsOut = balance;
-            (max, ) = previewWithdraw(assetAddr, assetsOut);
+            return _assets[assetAddr].usdWad(_config, balance).mulDivDown(totalSupply(), totalAssets());
         } else {
             return _balances[owner];
         }
@@ -311,7 +310,8 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function maxWithdraw(address assetAddr, address owner) external view returns (uint256 max) {
-        (max, ) = previewRedeem(assetAddr, maxRedeem(assetAddr, owner));
+        (uint256 assetsOut, uint256 fee) = previewRedeem(assetAddr, maxRedeem(assetAddr, owner));
+        return assetsOut + fee;
     }
 
     /// @inheritdoc IVault
