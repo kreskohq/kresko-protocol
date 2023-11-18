@@ -46,6 +46,18 @@ library Validations {
         }
     }
 
+    function validateCoverThreshold(uint256 _coverThreshold, uint256 _mcr) internal pure {
+        if (_coverThreshold > _mcr) {
+            revert Errors.INVALID_COVER_THRESHOLD(_coverThreshold, _mcr);
+        }
+    }
+
+    function validateCoverIncentive(uint256 _coverIncentive) internal pure {
+        if (_coverIncentive > Percents.MAX_LIQ_INCENTIVE || _coverIncentive < Percents.HUNDRED) {
+            revert Errors.INVALID_COVER_INCENTIVE(_coverIncentive, Percents.HUNDRED, Percents.MAX_LIQ_INCENTIVE);
+        }
+    }
+
     function validateMinCollateralRatio(uint256 _minCollateralRatio, uint256 _liqThreshold) internal pure {
         if (_minCollateralRatio < Percents.MIN_MCR) {
             revert Errors.INVALID_MCR(_minCollateralRatio, Percents.MIN_MCR);

@@ -11,6 +11,8 @@ struct SCDPInitArgs {
     uint32 minCollateralRatio;
     uint32 liquidationThreshold;
     uint8 sdiPricePrecision;
+    uint48 coverThreshold;
+    uint48 coverIncentive;
 }
 
 /**
@@ -19,6 +21,8 @@ struct SCDPInitArgs {
  * @param minCollateralRatio The minimum collateralization ratio.
  * @param liquidationThreshold The liquidation threshold.
  * @param maxLiquidationRatio The maximum CR resulting from liquidations.
+ * @param coverThreshold Threshold after which cover can be performed.
+ * @param coverIncentive Incentive for covering debt instead of performing a liquidation.
  * @param sdiPricePrecision The decimal precision of SDI price.
  */
 struct SCDPParameters {
@@ -26,6 +30,8 @@ struct SCDPParameters {
     uint32 minCollateralRatio;
     uint32 liquidationThreshold;
     uint32 maxLiquidationRatio;
+    uint128 coverThreshold;
+    uint128 coverIncentive;
     uint8 sdiPricePrecision;
 }
 

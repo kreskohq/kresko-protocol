@@ -70,6 +70,8 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         coreCfg.minterLt.pct("Minter LT");
         coreCfg.scdpMcr.pct("SCDP MCR");
         coreCfg.scdpLt.pct("SCDP LT");
+        coreCfg.coverThreshold.pct("Cover Threshold");
+        coreCfg.coverIncentive.pct("Cover Incentive");
         coreCfg.staleTime.clg("Oracle Stale Price Time");
         coreCfg.oraclePrecision.clg("Oracle Price Precision");
         coreCfg.sdiPrecision.clg("SDI Price Precision");

@@ -22,6 +22,8 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, Modifiers {
     function initializeSCDP(SCDPInitArgs calldata args) external initializer(4) initializeAsAdmin {
         setMinCollateralRatioSCDP(args.minCollateralRatio);
         setLiquidationThresholdSCDP(args.liquidationThreshold);
+        setCoverThresholdSCDP(args.coverThreshold);
+        setCoverIncentiveSCDP(args.coverIncentive);
         Validations.validateOraclePrecision(args.sdiPricePrecision);
         sdi().sdiPricePrecision = args.sdiPricePrecision;
     }
@@ -34,8 +36,20 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, Modifiers {
                 minCollateralRatio: scdp().minCollateralRatio,
                 liquidationThreshold: scdp().liquidationThreshold,
                 maxLiquidationRatio: scdp().maxLiquidationRatio,
-                sdiPricePrecision: sdi().sdiPricePrecision
+                sdiPricePrecision: sdi().sdiPricePrecision,
+                coverThreshold: sdi().coverThreshold,
+                coverIncentive: sdi().coverIncentive
             });
+    }
+
+    function setCoverThresholdSCDP(uint48 _newThreshold) public onlyRole(Role.ADMIN) {
+        Validations.validateCoverThreshold(_newThreshold, scdp().minCollateralRatio);
+        sdi().coverThreshold = _newThreshold;
+    }
+
+    function setCoverIncentiveSCDP(uint48 _newIncentive) public onlyRole(Role.ADMIN) {
+        Validations.validateCoverIncentive(_newIncentive);
+        sdi().coverIncentive = _newIncentive;
     }
 
     function setFeeAssetSCDP(address _assetAddr) external onlyRole(Role.ADMIN) {

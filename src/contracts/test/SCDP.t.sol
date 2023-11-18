@@ -39,6 +39,8 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
             minterMcr: 150e2,
             minterLt: 140e2,
             scdpMcr: 200e2,
+            coverThreshold: 160e2,
+            coverIncentive: 1.01e4,
             scdpLt: 150e2,
             sdiPrecision: 8,
             oraclePrecision: 8,
@@ -296,7 +298,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     }
 
     function cover(address asset, uint256 amount, string memory prices) internal {
-        call(kresko.SDICover.selector, asset, amount, prices);
+        call(kresko.coverSCDP.selector, asset, amount, prices);
     }
 
     function _approvals(address user) internal prankedAddr(user) {

@@ -99,6 +99,8 @@ abstract contract KreskoForgeBase is
     function getSCDPInitArgs(CoreConfig memory _cfg) internal pure returns (SCDPInitArgs memory init_) {
         init_.minCollateralRatio = _cfg.scdpMcr;
         init_.liquidationThreshold = _cfg.scdpLt;
+        init_.coverThreshold = _cfg.coverThreshold;
+        init_.coverIncentive = _cfg.coverIncentive;
         init_.sdiPricePrecision = _cfg.sdiPrecision;
     }
 

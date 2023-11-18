@@ -9,29 +9,22 @@ import {Asset} from "common/Types.sol";
 import {wadUSD} from "common/funcs/Math.sol";
 import {SDIPrice} from "common/funcs/Prices.sol";
 import {Errors} from "common/Errors.sol";
-import {SDIState} from "scdp/SState.sol";
+import {scdp, SDIState} from "scdp/SState.sol";
 
 library SDebtIndex {
     using SafeTransfer for IERC20;
     using WadRay for uint256;
 
-    function valueToSDI(uint256 valueIn, uint8 oracleDecimals) internal view returns (uint256) {
-        return (valueIn * 10 ** oracleDecimals).wadDiv(SDIPrice());
-    }
-
-    /// @notice Cover by pulling assets.
-    function cover(
-        SDIState storage self,
-        address _assetAddr,
-        uint256 _amount
-    ) internal returns (uint256 shares, uint256 value) {
+    function cover(SDIState storage self, address _assetAddr, uint256 _amount, uint256 _value) internal {
+        scdp().checkCoverableSCDP();
         if (_amount == 0) revert Errors.ZERO_AMOUNT(Errors.id(_assetAddr));
-        Asset storage asset = cs().onlyCoverAsset(_assetAddr);
-
-        value = wadUSD(_amount, asset.decimals, asset.price(), cs().oracleDecimals);
-        self.totalCover += (shares = valueToSDI(value, cs().oracleDecimals));
 
         IERC20(_assetAddr).safeTransferFrom(msg.sender, self.coverRecipient, _amount);
+        self.totalCover += valueToSDI(_value * 10 ** cs().oracleDecimals);
+    }
+
+    function valueToSDI(uint256 valueInWad) internal view returns (uint256) {
+        return valueInWad.wadDiv(SDIPrice());
     }
 
     /// @notice Returns the total effective debt amount of the SCDP.

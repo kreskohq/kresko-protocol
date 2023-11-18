@@ -60,6 +60,10 @@ struct SDIState {
     uint256 totalDebt;
     uint256 totalCover;
     address coverRecipient;
+    /// @notice Threshold after cover can be performed.
+    uint48 coverThreshold;
+    /// @notice Incentive for covering debt
+    uint48 coverIncentive;
     address[] coverAssets;
     uint8 sdiPricePrecision;
 }

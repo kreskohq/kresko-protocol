@@ -85,6 +85,8 @@ abstract contract LocalDeployment is StdCheats, DefaultDeployConfig {
             staleTime: 86401,
             minterMcr: 150e2,
             minterLt: 140e2,
+            coverThreshold: 160e2,
+            coverIncentive: 1.01e4,
             scdpMcr: 200e2,
             scdpLt: 150e2,
             sdiPrecision: 8,

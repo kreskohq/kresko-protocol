@@ -24,6 +24,8 @@ interface IKreskoForgeTypes {
         uint32 minterLt;
         uint32 scdpMcr;
         uint32 scdpLt;
+        uint48 coverThreshold;
+        uint48 coverIncentive;
         uint32 staleTime;
         uint8 sdiPrecision;
         uint8 oraclePrecision; // @note deprecated, removed soon
