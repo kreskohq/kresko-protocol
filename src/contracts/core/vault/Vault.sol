@@ -135,11 +135,6 @@ contract Vault is IVault, ERC20 {
 
         if (assetsOut == 0) revert Errors.ZERO_ASSETS_OUT(Errors.id(assetAddr), sharesIn);
 
-        if (msg.sender != owner) {
-            uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
-            if (allowed != type(uint256).max) _allowances[owner][msg.sender] = allowed - sharesIn;
-        }
-
         IERC20 token = IERC20(assetAddr);
 
         uint256 balance = token.balanceOf(address(this));
@@ -154,6 +149,11 @@ contract Vault is IVault, ERC20 {
         }
 
         if (assetFee > 0) token.safeTransfer(_config.feeRecipient, assetFee);
+
+        if (msg.sender != owner) {
+            uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
+            if (allowed != type(uint256).max) _allowances[owner][msg.sender] = allowed - sharesIn;
+        }
 
         _burn(owner, sharesIn);
 
@@ -173,7 +173,6 @@ contract Vault is IVault, ERC20 {
 
         if (msg.sender != owner) {
             uint256 allowed = _allowances[owner][msg.sender]; // Saves gas for limited approvals.
-
             if (allowed != type(uint256).max) _allowances[owner][msg.sender] = allowed - sharesIn;
         }
 
