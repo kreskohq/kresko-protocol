@@ -94,7 +94,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
                 )
             );
         }
-        Validations.validateRawAssetPrice(_assetAddr);
+        Validations.validatePushPrice(_assetAddr);
         return _config;
     }
 
@@ -189,7 +189,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
             asset.isSharedOrSwappedCollateral = false;
         }
 
-        Validations.validateRawAssetPrice(_assetAddr);
+        Validations.validatePushPrice(_assetAddr);
 
         return asset;
     }
@@ -217,7 +217,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         Asset storage asset = cs().assets[_assetAddr];
         if (!asset.exists()) revert Errors.ASSET_DOES_NOT_EXIST(Errors.id(_assetAddr));
         asset.oracles = _newOracleOrder;
-        Validations.validateRawAssetPrice(_assetAddr);
+        Validations.validatePushPrice(_assetAddr);
     }
 
     /// @inheritdoc IAssetConfigurationFacet

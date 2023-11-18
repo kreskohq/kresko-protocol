@@ -8,7 +8,7 @@ import {PType} from "periphery/PTypes.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
 import {Asset, RawPrice} from "common/Types.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {rawPrice} from "common/funcs/Prices.sol";
+import {pushPrice} from "common/funcs/Prices.sol";
 import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {ms} from "minter/MState.sol";
@@ -184,7 +184,7 @@ library PFunc {
     function getAsset(address addr) internal view returns (PType.PAsset memory) {
         Asset storage asset = cs().assets[addr];
         IERC20 token = IERC20(addr);
-        RawPrice memory price = rawPrice(asset.oracles, asset.ticker);
+        RawPrice memory price = pushPrice(asset.oracles, asset.ticker);
         return
             PType.PAsset({
                 addr: addr,

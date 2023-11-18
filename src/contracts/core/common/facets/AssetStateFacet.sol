@@ -38,7 +38,7 @@ contract AssetStateFacet is IAssetStateFacet {
     /// @inheritdoc IAssetStateFacet
     function getPushPrice(address _assetAddr) external view returns (RawPrice memory) {
         if (cs().assets[_assetAddr].ticker != Constants.ZERO_BYTES32) {
-            return Validations.rawAssetPrice(cs().assets[_assetAddr]);
+            return Validations.getPushOraclePrice(cs().assets[_assetAddr]);
         }
         revert Errors.INVALID_TICKER(Errors.id(_assetAddr), cs().assets[_assetAddr].ticker.toString());
     }

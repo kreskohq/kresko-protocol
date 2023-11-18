@@ -18,16 +18,16 @@ contract NewTest is TestBase("MNEMONIC_DEVNET") {
         value = 1;
     }
 
-    function testSomething() public {
-        vm.createSelectFork("localhost");
-        KISS kiss = KISS(0xfff7895810Dd83345c97FE90A95450d88F1c25C5);
-        IVault vault = IVault(0xc7B3dA534D0114DeF17400279A35137E5A649F9e);
-        IERC20 usdc = IERC20(0xF5A0D69303a45D71c96d8414e3591393e393C64A);
-        kiss.balanceOf(getAddr(0)).dlg("deplo-bal", 18);
-        vault.maxRedeem(address(usdc), getAddr(0)).dlg("max-redeem", 18);
-        (uint256 preview, uint256 fees) = vault.previewRedeem(address(usdc), 1 ether);
-        preview.dlg("preview", 18);
-        assertEq(value, 1, "val-not-eq");
-        assertEq(addr, address(0x123), "addr-not-eq");
-    }
+    // function testSomething() public {
+    //     vm.createSelectFork("localhost");
+    //     KISS kiss = KISS(0xfff7895810Dd83345c97FE90A95450d88F1c25C5);
+    //     IVault vault = IVault(0xc7B3dA534D0114DeF17400279A35137E5A649F9e);
+    //     IERC20 usdc = IERC20(0xF5A0D69303a45D71c96d8414e3591393e393C64A);
+    //     kiss.balanceOf(getAddr(0)).dlg("deplo-bal", 18);
+    //     vault.maxRedeem(address(usdc), getAddr(0)).dlg("max-redeem", 18);
+    //     (uint256 preview, uint256 fees) = vault.previewRedeem(address(usdc), 1 ether);
+    //     preview.dlg("preview", 18);
+    //     assertEq(value, 1, "val-not-eq");
+    //     assertEq(addr, address(0x123), "addr-not-eq");
+    // }
 }

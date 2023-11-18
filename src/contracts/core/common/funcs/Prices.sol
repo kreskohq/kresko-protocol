@@ -189,7 +189,7 @@ function API3RawPrice(address _feedAddr) view returns (RawPrice memory) {
  * @param _ticker Ticker for the asset.
  * @return RawPrice Unparsed answer with metadata.
  */
-function rawPrice(Enums.OracleType[2] memory _oracles, bytes32 _ticker) view returns (RawPrice memory) {
+function pushPrice(Enums.OracleType[2] memory _oracles, bytes32 _ticker) view returns (RawPrice memory) {
     for (uint256 i; i < _oracles.length; i++) {
         Enums.OracleType oracleType = _oracles[i];
         Oracle storage oracle = cs().oracles[_ticker][_oracles[i]];

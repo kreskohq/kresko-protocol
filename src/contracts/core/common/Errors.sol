@@ -98,7 +98,7 @@ library Errors {
     error INVALID_SUPPLY_LIMIT(ID, uint256 invalid, uint256 valid);
     error NEGATIVE_PRICE(address asset, int256 price);
     error STALE_PRICE(string ticker, uint256 price, uint256 timeFromUpdate, uint256 threshold);
-    error RAW_PRICE_STALE(
+    error STALE_PUSH_PRICE(
         ID asset,
         string ticker,
         int256 price,
@@ -110,7 +110,7 @@ library Errors {
     error PRICE_UNSTABLE(uint256 primaryPrice, uint256 referencePrice, uint256 deviationPct);
     error ZERO_OR_STALE_VAULT_PRICE(ID, address, uint256);
     error ZERO_OR_STALE_PRICE(string ticker, uint8[2] oracles);
-    error RAW_PRICE_LTE_ZERO(ID asset, string ticker, int256 price, uint8 oracleType, address feed);
+    error ZERO_OR_NEGATIVE_PUSH_PRICE(ID asset, string ticker, int256 price, uint8 oracleType, address feed);
     error NO_PUSH_ORACLE_SET(string ticker);
     error NOT_SUPPORTED_YET();
     error WRAP_NOT_SUPPORTED();
