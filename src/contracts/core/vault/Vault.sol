@@ -310,8 +310,7 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function maxWithdraw(address assetAddr, address owner) external view returns (uint256 max) {
-        (uint256 assetsOut, uint256 fee) = previewRedeem(assetAddr, maxRedeem(assetAddr, owner));
-        return assetsOut + fee;
+        (max, ) = previewRedeem(assetAddr, maxRedeem(assetAddr, owner));
     }
 
     /// @inheritdoc IVault
