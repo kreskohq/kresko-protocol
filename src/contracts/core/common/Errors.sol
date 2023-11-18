@@ -37,6 +37,7 @@ library Errors {
     error MINTER_ASSET_ECONOMY(ID, uint256 seizeReductionPct, ID, uint256 repayIncreasePct);
     error INVALID_TICKER(ID, string ticker);
     error ASSET_NOT_ENABLED(ID);
+    error ASSET_SET_FEEDS_FAILED(ID);
     error ASSET_CANNOT_BE_USED_TO_COVER(ID);
     error ASSET_PAUSED_FOR_THIS_ACTION(ID, uint8 action);
     error ASSET_NOT_MINTER_COLLATERAL(ID);
