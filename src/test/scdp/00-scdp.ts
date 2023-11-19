@@ -710,7 +710,7 @@ describe('SCDP', async function () {
       expect(globals.totals.cr).to.equal(expectedCollateralValue.percentDiv(expectedSwapDepositsValue))
     })
 
-    it.only('should be able to swap, debt < assetsIn | swap deposits < assetsOut', async function () {
+    it('should be able to swap, debt < assetsIn | swap deposits < assetsOut', async function () {
       const swapAmountKiss = toBig(100) // $100
       const swapAmountKrAsset = toBig(2) // $200
       const swapValue = 200
