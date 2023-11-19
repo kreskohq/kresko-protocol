@@ -141,31 +141,31 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         assertTrue(address(mc) != address(0), "mc-address");
         KrMulticall.Op[] memory ops = new KrMulticall.Op[](7);
         ops[0] = KrMulticall.Op({
-            action: KrMulticall.OpAction.Borrow,
+            action: KrMulticall.OpAction.MinterBorrow,
             data: KrMulticall.OpData(address(0), 0, krJPY.addr, 10000e18, 0, 0)
         });
         ops[1] = KrMulticall.Op({
-            action: KrMulticall.OpAction.Borrow,
+            action: KrMulticall.OpAction.MinterBorrow,
             data: KrMulticall.OpData(address(0), 0, krJPY.addr, 10000e18, 0, 0)
         });
         ops[2] = KrMulticall.Op({
-            action: KrMulticall.OpAction.Borrow,
+            action: KrMulticall.OpAction.MinterBorrow,
             data: KrMulticall.OpData(address(0), 0, krJPY.addr, 10000e18, 0, 0)
         });
         ops[3] = KrMulticall.Op({
-            action: KrMulticall.OpAction.Deposit,
+            action: KrMulticall.OpAction.MinterDeposit,
             data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
         });
         ops[4] = KrMulticall.Op({
-            action: KrMulticall.OpAction.Deposit,
+            action: KrMulticall.OpAction.MinterDeposit,
             data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
         });
         ops[5] = KrMulticall.Op({
-            action: KrMulticall.OpAction.Deposit,
+            action: KrMulticall.OpAction.MinterDeposit,
             data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
         });
         ops[6] = KrMulticall.Op({
-            action: KrMulticall.OpAction.Deposit,
+            action: KrMulticall.OpAction.MinterDeposit,
             data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
         });
 
@@ -341,7 +341,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account.scdp.deposits[0].price.eq(1e8, "account0.scdp.deposits[0].token");
         account.scdp.deposits[0].amount.eq(0, "account0.scdp.deposits[0].amount");
         account.scdp.deposits[0].val.eq(0, "account0.scdp.deposits[0].val");
-        account.scdp.deposits[0].valAdj.eq(0, "account0.scdp.deposits[0].valFees");
+        account.scdp.deposits[0].valFees.eq(0, "account0.scdp.deposits[0].valFees");
 
         /* ------------------------------ user2 ----------------------------- */
         PType.Account memory account2 = dataV1.getAccount(user2, redstoneCallData).protocol;
@@ -389,6 +389,6 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account2.scdp.deposits[0].amount.eq(1000e18, "account2.scdp.deposits[0].amount");
 
         account2.scdp.deposits[0].val.eq(1000e8, "account2.scdp.deposits[0].val");
-        account2.scdp.deposits[0].valAdj.eq(0, "account2.scdp.deposits[0].valFees");
+        account2.scdp.deposits[0].valFees.eq(0, "account2.scdp.deposits[0].valFees");
     }
 }

@@ -155,6 +155,8 @@ library PFunc {
             totals.valDebtOgAdj += data.valDebtAdj;
             results[i] = PType.SDeposit({
                 addr: assetAddr,
+                liqIndex: scdp().assetIndexes[assetAddr].currLiqIndex,
+                feeIndex: scdp().assetIndexes[assetAddr].currFeeIndex,
                 symbol: IERC20(assetAddr).symbol(),
                 config: data.config,
                 price: data.price,
@@ -414,16 +416,16 @@ library PFunc {
     function getSAccountTotals(
         address _account,
         address[] memory _assets
-    ) internal view returns (uint256 totalVal, uint256 totalValFees, PType.PAssetEntry[] memory datas) {
+    ) internal view returns (uint256 totalVal, uint256 totalValFees, PType.SDepositUser[] memory datas) {
         address[] memory assets = scdp().collaterals;
-        datas = new PType.PAssetEntry[](_assets.length);
+        datas = new PType.SDepositUser[](_assets.length);
 
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            PType.PAssetEntry memory assetData = getSAccountDeposit(_account, asset);
+            PType.SDepositUser memory assetData = getSAccountDeposit(_account, asset);
 
             totalVal += assetData.val;
-            totalValFees += assetData.valAdj;
+            totalValFees += assetData.valFees;
 
             for (uint256 j; j < _assets.length; ) {
                 if (asset == _assets[j]) {
@@ -440,18 +442,19 @@ library PFunc {
         }
     }
 
-    function getSAccountDeposit(address _account, address _assetAddr) internal view returns (PType.PAssetEntry memory result) {
+    function getSAccountDeposit(address _account, address _assetAddr) internal view returns (PType.SDepositUser memory result) {
         Asset storage asset = cs().assets[_assetAddr];
         result.config = asset;
 
         result.amount = scdp().accountDeposits(_account, _assetAddr, asset);
-        result.amountAdj = scdp().accountFees(_account, _assetAddr, asset);
+        result.amountFees = scdp().accountFees(_account, _assetAddr, asset);
         (result.val, result.price) = asset.collateralAmountToValueWithPrice(result.amount, true);
-        result.valAdj = asset.collateralAmountToValue(result.amountAdj, true);
+        result.valFees = asset.collateralAmountToValue(result.amountFees, true);
 
         result.symbol = IERC20(_assetAddr).symbol();
         result.addr = _assetAddr;
-        result.index = -1;
+        result.liqIndex = scdp().accountIndexes[_account][_assetAddr].lastLiqIndex;
+        result.feeIndex = scdp().accountIndexes[_account][_assetAddr].lastFeeIndex;
     }
 
     function getPhaseEligibility(address _user) internal view returns (uint8 phase, bool eligibleForCurrentPhase) {

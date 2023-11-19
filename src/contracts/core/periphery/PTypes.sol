@@ -120,7 +120,7 @@ library PType {
     struct SAccount {
         address addr;
         SAccountTotals totals;
-        PAssetEntry[] deposits;
+        SDepositUser[] deposits;
     }
 
     struct SDeposit {
@@ -130,8 +130,23 @@ library PType {
         uint256 amountSwapDeposit;
         uint256 amountFees;
         uint256 val;
-        uint256 valFees;
         uint256 valAdj;
+        uint256 valFees;
+        uint128 feeIndex;
+        uint128 liqIndex;
+        uint256 price;
+        Asset config;
+    }
+
+    struct SDepositUser {
+        address addr;
+        string symbol;
+        uint256 amount;
+        uint256 amountFees;
+        uint256 val;
+        uint256 valFees;
+        uint128 feeIndex;
+        uint128 liqIndex;
         uint256 price;
         Asset config;
     }

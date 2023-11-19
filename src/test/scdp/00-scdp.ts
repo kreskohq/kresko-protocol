@@ -209,12 +209,12 @@ describe('SCDP', async function () {
         const balance = await f.Collateral.balanceOf(userInfo.addr)
 
         expect(balance).to.equal(0)
-        expect(userInfo.deposits[0].amountAdj).to.equal(0)
+        expect(userInfo.deposits[0].amountFees).to.equal(0)
         expect(userInfo.deposits[0].amount).to.equal(depositAmount18Dec)
         expect(userInfo.totals.valColl).to.equal(expectedValueUnadjusted)
         expect(userInfo.totals.valFees).to.equal(0)
         expect(userInfo.deposits[0].val).to.equal(expectedValueUnadjusted)
-        expect(userInfo.deposits[0].valAdj).to.equal(0)
+        expect(userInfo.deposits[0].valFees).to.equal(0)
       }
 
       expect(await f.Collateral.balanceOf(hre.Diamond.address)).to.equal(depositAmount18Dec.mul(f.usersArr.length))
@@ -332,9 +332,9 @@ describe('SCDP', async function () {
       for (const userInfo of userInfos) {
         expect(await f.Collateral.balanceOf(userInfo.addr)).to.equal(depositAmount18Dec)
         expect(userInfo.deposits[0].amount).to.equal(0)
-        expect(userInfo.deposits[0].amountAdj).to.equal(0)
+        expect(userInfo.deposits[0].amountFees).to.equal(0)
         expect(userInfo.deposits[1].amount).to.equal(0)
-        expect(userInfo.deposits[1].amountAdj).to.equal(0)
+        expect(userInfo.deposits[1].amountFees).to.equal(0)
         expect(userInfo.totals.valColl).to.equal(0)
       }
 
@@ -395,10 +395,10 @@ describe('SCDP', async function () {
         expect(balance18Dec).to.equal(partialWithdraw)
         expect(balance8Dec).to.equal(partialWithdraw8Dec)
         expect(userInfo.deposits[0].amount).to.equal(depositAmount18Dec.sub(partialWithdraw))
-        expect(userInfo.deposits[0].amountAdj).to.equal(0)
+        expect(userInfo.deposits[0].amountFees).to.equal(0)
 
         expect(userInfo.deposits[1].amount).to.equal(depositAmount8Dec.sub(partialWithdraw8Dec))
-        expect(userInfo.deposits[1].amountAdj).to.equal(0)
+        expect(userInfo.deposits[1].amountFees).to.equal(0)
 
         expect(userInfo.totals.valColl).to.closeTo(
           expectedValueUnadjusted.add(expectedValueUnadjusted8Dec),
@@ -459,7 +459,7 @@ describe('SCDP', async function () {
         [f.Collateral.address],
       )) {
         expect(data.deposits[0].val).to.equal(expectedDepositValue)
-        expect(data.deposits[0].valAdj).to.equal(feePerUserValue)
+        expect(data.deposits[0].valFees).to.equal(feePerUserValue)
         expect(data.totals.valColl).to.equal(expectedDepositValue)
         expect(data.totals.valFees).to.equal(feePerUserValue)
       }
@@ -477,7 +477,7 @@ describe('SCDP', async function () {
       )) {
         const balance = await f.Collateral.balanceOf(user.addr)
         expect(user.deposits[0].val).to.equal(0)
-        expect(user.deposits[0].valAdj).to.equal(0)
+        expect(user.deposits[0].valFees).to.equal(0)
         expect(user.totals.valFees).to.equal(0)
         expect(user.totals.valColl).to.equal(0)
         expect(balance).to.equal(depositAmount18Dec.add(feePerUser))
