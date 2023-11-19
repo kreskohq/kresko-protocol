@@ -63,7 +63,7 @@ library Validations {
             revert Errors.INVALID_MCR(_minCollateralRatio, Percents.MIN_MCR);
         }
         // this should never be hit, but just in case
-        if (_minCollateralRatio < _liqThreshold) {
+        if (_liqThreshold >= _minCollateralRatio) {
             revert Errors.INVALID_MCR(_minCollateralRatio, _liqThreshold);
         }
     }
