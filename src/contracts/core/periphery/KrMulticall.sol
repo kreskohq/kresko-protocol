@@ -25,13 +25,14 @@ contract KrMulticall {
     }
 
     enum OpAction {
-        Deposit,
-        Withdraw,
-        Repay,
-        Borrow,
+        MinterDeposit,
+        MinterWithdraw,
+        MinterRepay,
+        MinterBorrow,
         SCDPDeposit,
-        Trade,
+        SCDPTrade,
         SCDPWithdraw,
+        SCDPClaim,
         VaultDeposit,
         VaultRedeem,
         AMMIn,
@@ -108,7 +109,7 @@ contract KrMulticall {
     }
 
     function _handleOp(Op calldata _op, bytes calldata rsPayload) internal returns (bool success, bytes memory returndata) {
-        if (_op.action == OpAction.Deposit) {
+        if (_op.action == OpAction.MinterDeposit) {
             _approve(_op.data.tokenIn, _op.data.amountIn, address(kresko));
             return
                 kresko.call(
@@ -120,7 +121,7 @@ contract KrMulticall {
                         rsPayload
                     )
                 );
-        } else if (_op.action == OpAction.Withdraw) {
+        } else if (_op.action == OpAction.MinterWithdraw) {
             return
                 kresko.call(
                     abi.encodePacked(
@@ -131,7 +132,7 @@ contract KrMulticall {
                         rsPayload
                     )
                 );
-        } else if (_op.action == OpAction.Repay) {
+        } else if (_op.action == OpAction.MinterRepay) {
             return
                 kresko.call(
                     abi.encodePacked(
@@ -142,7 +143,7 @@ contract KrMulticall {
                         rsPayload
                     )
                 );
-        } else if (_op.action == OpAction.Borrow) {
+        } else if (_op.action == OpAction.MinterBorrow) {
             return
                 kresko.call(
                     abi.encodePacked(
@@ -159,7 +160,7 @@ contract KrMulticall {
                         rsPayload
                     )
                 );
-        } else if (_op.action == OpAction.Trade) {
+        } else if (_op.action == OpAction.SCDPTrade) {
             _approve(_op.data.tokenIn, _op.data.amountIn, address(kresko));
             return
                 kresko.call(
@@ -178,6 +179,11 @@ contract KrMulticall {
                         abi.encodeCall(ISCDPFacet.withdrawSCDP, (msg.sender, _op.data.tokenOut, _op.data.amountOut)),
                         rsPayload
                     )
+                );
+        } else if (_op.action == OpAction.SCDPClaim) {
+            return
+                kresko.call(
+                    abi.encodePacked(abi.encodeCall(ISCDPFacet.claimFeesSCDP, (msg.sender, _op.data.tokenOut)), rsPayload)
                 );
         } else if (_op.action == OpAction.VaultDeposit) {
             _approve(_op.data.tokenIn, _op.data.amountIn, kiss);
