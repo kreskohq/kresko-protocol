@@ -95,7 +95,7 @@ library PType {
         string symbol;
         uint256 tSupply;
         uint256 price;
-        bool marketStatus;
+        bool isMarketOpen;
         RawPrice priceRaw;
         Asset config;
     }

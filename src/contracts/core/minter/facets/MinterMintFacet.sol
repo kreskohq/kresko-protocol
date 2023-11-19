@@ -37,7 +37,7 @@ contract MinterMintFacet is IMinterMintFacet, Modifiers {
 
         MinterState storage s = ms();
 
-        if (!asset.marketStatus()) revert Errors.MARKET_CLOSED(Errors.id(_krAsset), asset.ticker.toString());
+        if (!asset.isMarketOpen()) revert Errors.MARKET_CLOSED(Errors.id(_krAsset), asset.ticker.toString());
 
         uint256 newSupply = IKreskoAsset(_krAsset).totalSupply() + _mintAmount;
         if (newSupply > asset.maxDebtMinter) {

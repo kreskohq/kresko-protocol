@@ -145,6 +145,7 @@ library Errors {
     error NOTHING_TO_WITHDRAW(address who, ID, uint256 requested, uint256 principal, uint256 scaled);
     error ACCOUNT_KRASSET_NOT_FOUND(address account, ID, address[] accountCollaterals);
     error ACCOUNT_COLLATERAL_NOT_FOUND(address account, ID, address[] accountCollaterals);
+    error ARRAY_INDEX_OUT_OF_BOUNDS(ID element, uint256 index, address[] elements);
     error ELEMENT_DOES_NOT_MATCH_PROVIDED_INDEX(ID element, uint256 index, address[] elements);
     error NO_FEES_TO_CLAIM(ID asset, address claimer);
     error REPAY_OVERFLOW(ID repayAsset, ID seizeAsset, uint256 invalid, uint256 valid);
