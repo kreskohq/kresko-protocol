@@ -341,7 +341,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account.scdp.deposits[0].price.eq(1e8, "account0.scdp.deposits[0].token");
         account.scdp.deposits[0].amount.eq(0, "account0.scdp.deposits[0].amount");
         account.scdp.deposits[0].val.eq(0, "account0.scdp.deposits[0].val");
-        account.scdp.deposits[0].valAdj.eq(0, "account0.scdp.deposits[0].valFees");
+        account.scdp.deposits[0].valFees.eq(0, "account0.scdp.deposits[0].valFees");
 
         /* ------------------------------ user2 ----------------------------- */
         PType.Account memory account2 = dataV1.getAccount(user2, redstoneCallData).protocol;
@@ -389,6 +389,6 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         account2.scdp.deposits[0].amount.eq(1000e18, "account2.scdp.deposits[0].amount");
 
         account2.scdp.deposits[0].val.eq(1000e8, "account2.scdp.deposits[0].val");
-        account2.scdp.deposits[0].valAdj.eq(0, "account2.scdp.deposits[0].valFees");
+        account2.scdp.deposits[0].valFees.eq(0, "account2.scdp.deposits[0].valFees");
     }
 }
