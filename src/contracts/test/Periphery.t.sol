@@ -222,9 +222,9 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         protocol.scdp.totals.valDebt.eq(0, "scdp.totals.valDebt");
         protocol.scdp.totals.valDebtOg.eq(0, "scdp.totals.valDebtOg");
         protocol.scdp.totals.valDebtOgAdj.eq(0, "scdp.totals.valDebtOgAdj");
-        protocol.scdp.totals.cr.eq(0, "scdp.totals.cr");
-        protocol.scdp.totals.crOg.eq(0, "scdp.totals.crOg");
-        protocol.scdp.totals.crOgAdj.eq(0, "scdp.totals.crOgAdj");
+        protocol.scdp.totals.cr.eq(type(uint256).max, "scdp.totals.cr");
+        protocol.scdp.totals.crOg.eq(type(uint256).max, "scdp.totals.crOg");
+        protocol.scdp.totals.crOgAdj.eq(type(uint256).max, "scdp.totals.crOgAdj");
 
         protocol.scdp.deposits.length.eq(4, "scdp.deposits.length");
         protocol.scdp.deposits[0].addr.eq(usdc.addr, "scdp.deposit0.token");

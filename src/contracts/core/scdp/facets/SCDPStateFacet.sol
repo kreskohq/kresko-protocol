@@ -137,7 +137,8 @@ contract SCDPStateFacet is ISCDPStateFacet {
     function getCollateralRatioSCDP() public view returns (uint256) {
         uint256 collateralValue = scdp().totalCollateralValueSCDP(false);
         uint256 debtValue = sdi().effectiveDebtValue();
-        if (debtValue == 0) return 0;
+        if (collateralValue == 0) return 0;
+        if (debtValue == 0) return type(uint256).max;
         return collateralValue.percentDiv(debtValue);
     }
 }
