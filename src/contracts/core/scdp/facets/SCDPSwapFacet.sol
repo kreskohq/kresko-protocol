@@ -44,12 +44,19 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
 
         (uint256 feePercentage, uint256 protocolFee) = getSwapFees(assetIn, assetOut);
 
-        // Get the fees from amount received.
-        feeAmount = _amountIn.percentMul(feePercentage);
-        amountOut = assetIn.krAssetUSD(_amountIn - feeAmount).wadDiv(assetOut.price());
-
-        feeAmountProtocol = feeAmount.percentMul(protocolFee);
-        feeAmount -= feeAmountProtocol;
+        // Get the fees from amount in when asset out is not a fee asset.
+        if (_assetOutAddr != scdp().feeAsset) {
+            feeAmount = _amountIn.percentMul(feePercentage);
+            amountOut = assetIn.krAssetUSD(_amountIn - feeAmount).wadDiv(assetOut.price());
+            feeAmountProtocol = feeAmount.percentMul(protocolFee);
+            feeAmount -= feeAmountProtocol;
+            // Get the fees from amount out when asset out is a fee asset.
+        } else {
+            amountOut = assetIn.krAssetUSD(_amountIn).wadDiv(assetOut.price());
+            feeAmount = amountOut.percentMul(feePercentage);
+            feeAmountProtocol = feeAmount.percentMul(protocolFee);
+            feeAmount -= feeAmountProtocol;
+        }
     }
 
     /// @inheritdoc ISCDPSwapFacet
