@@ -325,7 +325,7 @@ library Validations {
     ) internal view {
         if (_amount == 0) revert Errors.ZERO_AMOUNT(Errors.id(_collateralAsset));
         if (_collateralIndex > self.depositedCollateralAssets[_account].length - 1)
-            revert Errors.ELEMENT_DOES_NOT_MATCH_PROVIDED_INDEX(
+            revert Errors.ARRAY_INDEX_OUT_OF_BOUNDS(
                 Errors.id(_collateralAsset),
                 _collateralIndex,
                 self.depositedCollateralAssets[_account]

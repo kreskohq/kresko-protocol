@@ -183,11 +183,11 @@ contract Modifiers {
     }
 
     /**
-     * @notice Ensure only trusted contracts can act on behalf of `_account`
-     * @param _accountIsNotMsgSender The address of the collateral asset.
+     * @notice Check for role if the condition is true.
+     * @param _shouldCheckRole Should be checking the role.
      */
-    modifier onlyRoleIf(bool _accountIsNotMsgSender, bytes32 role) {
-        if (_accountIsNotMsgSender) {
+    modifier onlyRoleIf(bool _shouldCheckRole, bytes32 role) {
+        if (_shouldCheckRole) {
             Auth.checkRole(role);
         }
         _;

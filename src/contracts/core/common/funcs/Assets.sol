@@ -49,7 +49,7 @@ library Assets {
         return Redstone.getPrice(self.ticker);
     }
 
-    function marketStatus(Asset storage) internal pure returns (bool) {
+    function isMarketOpen(Asset storage) internal pure returns (bool) {
         return true;
     }
 

@@ -48,7 +48,7 @@ function burnSCDP(Asset storage _asset, uint256 _burnAmount, address _fromAddr) 
 /// @param _toAddr the account to mint the assets to
 /// @return issued Normalized amount of minted assets.
 function mintSCDP(Asset storage _asset, uint256 _mintAmount, address _toAddr) returns (uint256 issued) {
-    if (!_asset.marketStatus()) revert Errors.MARKET_CLOSED(Errors.id(_asset.anchor), _asset.ticker.toString());
+    if (!_asset.isMarketOpen()) revert Errors.MARKET_CLOSED(Errors.id(_asset.anchor), _asset.ticker.toString());
     issued = mintKrAsset(_mintAmount, _toAddr, _asset.anchor);
     unchecked {
         sdi().totalDebt += _asset.debtAmountToSDI(_mintAmount, false);

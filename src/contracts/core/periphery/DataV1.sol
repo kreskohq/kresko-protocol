@@ -151,7 +151,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
                 tSupply: asset.token.totalSupply(),
                 vSupply: asset.token.balanceOf(VAULT),
                 price: answer > 0 ? uint256(answer) : 0,
-                marketStatus: answer > 0 ? true : false,
+                isMarketOpen: answer > 0 ? true : false,
                 oracleDecimals: asset.feed.decimals(),
                 priceRaw: RawPrice(
                     answer,

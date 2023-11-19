@@ -7,7 +7,7 @@ import {VaultAsset} from "vault/VTypes.sol";
 interface IDataV1 {
     struct DVAsset {
         address addr;
-        bool marketStatus;
+        bool isMarketOpen;
         uint8 oracleDecimals;
         string name;
         string symbol;

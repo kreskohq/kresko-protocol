@@ -192,7 +192,7 @@ library PFunc {
                 name: token.name(),
                 tSupply: token.totalSupply(),
                 price: uint256(price.answer),
-                marketStatus: asset.marketStatus(),
+                isMarketOpen: asset.isMarketOpen(),
                 priceRaw: price,
                 config: asset
             });
