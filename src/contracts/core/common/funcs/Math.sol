@@ -3,6 +3,7 @@ pragma solidity 0.8.21;
 
 import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
+import {Errors} from "common/Errors.sol";
 
 using WadRay for uint256;
 using PercentageMath for uint256;
@@ -47,6 +48,9 @@ function toWad(uint256 _amount, uint8 _decimals) pure returns (uint256) {
 }
 
 function toWad(int256 _amount, uint8 _decimals) pure returns (uint256) {
+    if (_amount < 0) {
+        revert Errors.TO_WAD_AMOUNT_IS_NEGATIVE(_amount);
+    }
     return toWad(uint256(_amount), _decimals);
 }
 
