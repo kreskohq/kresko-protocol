@@ -409,7 +409,14 @@ contract Vault is IVault, ERC20 {
 
     /// @inheritdoc IVault
     function setGovernance(address newGovernance) external onlyGovernance {
-        _config.governance = newGovernance;
+        _config.pendingGovernance = newGovernance;
+    }
+
+    /// @inheritdoc IVault
+    function acceptGovernance() external {
+        if (msg.sender != _config.pendingGovernance) revert Errors.INVALID_SENDER(msg.sender, _config.pendingGovernance);
+        _config.governance = _config.pendingGovernance;
+        _config.pendingGovernance = address(0);
     }
 
     /// @inheritdoc IVault

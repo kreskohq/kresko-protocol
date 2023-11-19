@@ -37,6 +37,7 @@ struct VaultConfiguration {
     address sequencerUptimeFeed;
     uint96 sequencerGracePeriodTime;
     address governance;
+    address pendingGovernance;
     address feeRecipient;
     uint8 oracleDecimals;
 }

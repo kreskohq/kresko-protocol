@@ -202,6 +202,8 @@ interface IVault {
      */
     function setGovernance(address newGovernance) external;
 
+    function acceptGovernance() external;
+
     /**
      * @notice Current governance sets a new fee recipient address
      * @param newFeeRecipient The new fee recipient address

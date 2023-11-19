@@ -392,7 +392,7 @@ describe('Minter - Deposit Withdraw', function () {
                 1, // Incorrect index
               ),
             )
-              .to.be.revertedWithCustomError(Errors(hre), 'ELEMENT_DOES_NOT_MATCH_PROVIDED_INDEX')
+              .to.be.revertedWithCustomError(Errors(hre), 'ARRAY_INDEX_OUT_OF_BOUNDS')
               .withArgs(f.Collateral.errorId, 1, [f.Collateral.address])
           })
         })
