@@ -14,6 +14,7 @@ import { depositCollateral } from '@utils/test/helpers/collaterals'
 import { mintKrAsset } from '@utils/test/helpers/krassets'
 import { RAY, toBig } from '@utils/values'
 import { expect } from 'chai'
+import { maxUint256 } from 'viem'
 
 const depositAmount = 1000
 const depositValue = depositAmount.ebn(8)
@@ -228,9 +229,9 @@ describe('SCDP', async function () {
       expect(statistics.totals.valDebtOgAdj).to.equal(0)
 
       expect(statistics.totals.valDebt).to.equal(0)
-      expect(statistics.totals.crOgAdj).to.equal(0)
-      expect(statistics.totals.crOg).to.equal(0)
-      expect(statistics.totals.cr).to.equal(0)
+      expect(statistics.totals.crOgAdj).to.equal(maxUint256)
+      expect(statistics.totals.crOg).to.equal(maxUint256)
+      expect(statistics.totals.cr).to.equal(maxUint256)
     })
     it('should be able to deposit multiple collaterals, calculate correct deposit values', async function () {
       const expectedValueUnadjusted = toBig(f.CollateralPrice.num(8) * depositAmount, 8)
@@ -279,7 +280,7 @@ describe('SCDP', async function () {
 
       expect(globals.totals.valCollAdj).to.equal(valueAdjusted)
       expect(globals.totals.valDebt).to.equal(0)
-      expect(globals.totals.cr).to.equal(0)
+      expect(globals.totals.cr).to.equal(maxUint256)
 
       // WITHOUT_FACTORS global
       const valueTotalUnadjusted = expectedValueUnadjusted.mul(f.usersArr.length)
@@ -291,7 +292,7 @@ describe('SCDP', async function () {
 
       expect(globals.totals.valColl).to.equal(valueUnadjusted)
       expect(globals.totals.valDebt).to.equal(0)
-      expect(globals.totals.cr).to.equal(0)
+      expect(globals.totals.cr).to.equal(maxUint256)
     })
   })
   describe('#Withdraw', async () => {
@@ -422,7 +423,7 @@ describe('SCDP', async function () {
 
       expect(globals.totals.valColl).to.closeTo(totalValueRemaining, 20)
       expect(globals.totals.valDebt).to.equal(0)
-      expect(globals.totals.cr).to.equal(0)
+      expect(globals.totals.cr).to.equal(maxUint256)
     })
   })
   describe('#Fee Distribution', () => {
@@ -520,7 +521,7 @@ describe('SCDP', async function () {
       const value = await hre.Diamond.getDataSCDP()
       expect(value.totals.valColl).to.equal(toBig(depositAmount, 8))
       expect(value.totals.valDebt).to.equal(0)
-      expect(value.totals.cr).to.equal(0)
+      expect(value.totals.cr).to.equal(maxUint256)
     })
 
     it('should be able to preview a swap', async function () {
@@ -645,7 +646,7 @@ describe('SCDP', async function () {
       const global = await hre.Diamond.getDataSCDP()
       expect(global.totals.valColl).to.equal(toBig(1000, 8))
       expect(global.totals.valDebt).to.equal(0)
-      expect(global.totals.cr).to.equal(0)
+      expect(global.totals.cr).to.equal(maxUint256)
     })
 
     it('should be able to swap, debt > assetsIn | swap deposits > assetsOut', async function () {

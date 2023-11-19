@@ -168,9 +168,19 @@ library PFunc {
         }
 
         totals.valDebt = sdi().effectiveDebtValue();
-        totals.cr = totals.valDebt == 0 ? 0 : totals.valColl.percentDiv(totals.valDebt);
-        totals.crOg = totals.valDebt == 0 ? 0 : totals.valColl.percentDiv(totals.valDebtOg);
-        totals.crOgAdj = totals.valDebtOgAdj == 0 ? 0 : totals.valCollAdj.percentDiv(totals.valDebtOgAdj);
+        if (totals.valColl == 0) {
+            totals.cr = 0;
+            totals.crOg = 0;
+            totals.crOgAdj = 0;
+        } else if (totals.valDebt == 0) {
+            totals.cr = type(uint256).max;
+            totals.crOg = type(uint256).max;
+            totals.crOgAdj = type(uint256).max;
+        } else {
+            totals.cr = totals.valColl.percentDiv(totals.valDebt);
+            totals.crOg = totals.valColl.percentDiv(totals.valDebtOg);
+            totals.crOgAdj = totals.valCollAdj.percentDiv(totals.valDebtOgAdj);
+        }
     }
 
     function getBalances(address _account) internal view returns (PType.Balance[] memory result) {
@@ -341,7 +351,13 @@ library PFunc {
     function getMAccount(address _account) internal view returns (PType.MAccount memory result) {
         result.totals.valColl = ms().accountTotalCollateralValue(_account);
         result.totals.valDebt = ms().accountTotalDebtValue(_account);
-        result.totals.cr = uint16(result.totals.valDebt == 0 ? 0 : result.totals.valColl.percentDiv(result.totals.valDebt));
+        if (result.totals.valColl == 0) {
+            result.totals.cr = 0;
+        } else if (result.totals.valDebt == 0) {
+            result.totals.cr = type(uint16).max;
+        } else {
+            result.totals.cr = uint16(result.totals.valColl.percentDiv(result.totals.valDebt));
+        }
         result.deposits = getMDeposits(_account);
         result.debts = getMDebts(_account);
     }
