@@ -7,6 +7,7 @@ import {ISCDPFacet} from "scdp/interfaces/ISCDPFacet.sol";
 import {ISCDPSwapFacet} from "scdp/interfaces/ISCDPSwapFacet.sol";
 import {IVaultExtender} from "vault/interfaces/IVaultExtender.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 
 // solhint-disable avoid-low-level-calls, code-complexity
 contract KrMulticall {
@@ -33,6 +34,8 @@ contract KrMulticall {
         SCDPTrade,
         SCDPWithdraw,
         SCDPClaim,
+        SynthUnwrap,
+        SynthWrap,
         VaultDeposit,
         VaultRedeem,
         AMMIn,
@@ -183,8 +186,17 @@ contract KrMulticall {
         } else if (_op.action == OpAction.SCDPClaim) {
             return
                 kresko.call(
-                    abi.encodePacked(abi.encodeCall(ISCDPFacet.claimFeesSCDP, (msg.sender, _op.data.tokenOut)), rsPayload)
+                    abi.encodePacked(
+                        abi.encodeCall(ISCDPFacet.withdrawSCDP, (msg.sender, _op.data.tokenOut, _op.data.amountOut)),
+                        rsPayload
+                    )
                 );
+        } else if (_op.action == OpAction.SynthWrap) {
+            IKreskoAsset(_op.data.tokenOut).wrap(msg.sender, _op.data.amountIn);
+            return (true, "");
+        } else if (_op.action == OpAction.SynthUnwrap) {
+            IKreskoAsset(_op.data.tokenIn).unwrap(_op.data.amountIn, false);
+            return (true, "");
         } else if (_op.action == OpAction.VaultDeposit) {
             _approve(_op.data.tokenIn, _op.data.amountIn, kiss);
             IVaultExtender(kiss).vaultDeposit(_op.data.tokenIn, _op.data.amountIn, msg.sender);
