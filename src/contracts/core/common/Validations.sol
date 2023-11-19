@@ -63,20 +63,20 @@ library Validations {
             revert Errors.INVALID_MCR(_minCollateralRatio, Percents.MIN_MCR);
         }
         // this should never be hit, but just in case
-        if (_minCollateralRatio < _liqThreshold) {
+        if (_liqThreshold >= _minCollateralRatio) {
             revert Errors.INVALID_MCR(_minCollateralRatio, _liqThreshold);
         }
     }
 
-    function validateLiquidationThreshold(uint256 _liquidationThreshold, uint256 _minCollateralRatio) internal pure {
-        if (_liquidationThreshold < Percents.MIN_LT || _liquidationThreshold >= _minCollateralRatio) {
-            revert Errors.INVALID_LIQ_THRESHOLD(_liquidationThreshold, Percents.MIN_LT, _minCollateralRatio);
+    function validateLiquidationThreshold(uint256 _liqThreshold, uint256 _minCollateralRatio) internal pure {
+        if (_liqThreshold < Percents.MIN_LT || _liqThreshold >= _minCollateralRatio) {
+            revert Errors.INVALID_LIQ_THRESHOLD(_liqThreshold, Percents.MIN_LT, _minCollateralRatio);
         }
     }
 
-    function validateMaxLiquidationRatio(uint256 _maxLiquidationRatio, uint256 _liquidationThreshold) internal pure {
-        if (_maxLiquidationRatio < _liquidationThreshold) {
-            revert Errors.MLR_CANNOT_BE_LESS_THAN_LIQ_THRESHOLD(_maxLiquidationRatio, _liquidationThreshold);
+    function validateMaxLiquidationRatio(uint256 _maxLiqRatio, uint256 _liqThreshold) internal pure {
+        if (_maxLiqRatio < _liqThreshold) {
+            revert Errors.MLR_CANNOT_BE_LESS_THAN_LIQ_THRESHOLD(_maxLiqRatio, _liqThreshold);
         }
     }
 
