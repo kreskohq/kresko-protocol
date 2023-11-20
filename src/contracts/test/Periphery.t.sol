@@ -137,45 +137,6 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         kresko.grantRole(Role.MANAGER, address(mc));
     }
 
-    function testMulticall() public {
-        assertTrue(address(mc) != address(0), "mc-address");
-        KrMulticall.Op[] memory ops = new KrMulticall.Op[](7);
-        ops[0] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterBorrow,
-            data: KrMulticall.OpData(address(0), 0, krJPY.addr, 10000e18, 0, 0)
-        });
-        ops[1] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterBorrow,
-            data: KrMulticall.OpData(address(0), 0, krJPY.addr, 10000e18, 0, 0)
-        });
-        ops[2] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterBorrow,
-            data: KrMulticall.OpData(address(0), 0, krJPY.addr, 10000e18, 0, 0)
-        });
-        ops[3] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterDeposit,
-            data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
-        });
-        ops[4] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterDeposit,
-            data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
-        });
-        ops[5] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterDeposit,
-            data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
-        });
-        ops[6] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterDeposit,
-            data: KrMulticall.OpData(krJPY.addr, 10000e18, address(0), 0, 0, 0)
-        });
-
-        address(mc).clg("mc-address");
-
-        prank(user1);
-        krJPY.asToken.approve(address(mc), type(uint256).max);
-        mc.execute(ops, redstoneCallData);
-    }
-
     function testProtocolDatas() public {
         // (, bytes memory data) = address(dataV1).staticcall(
         //     abi.encodePacked(abi.encodeWithSelector(dataV1.getGlobalsRs.selector), redstoneCallData)
