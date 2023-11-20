@@ -38,13 +38,13 @@ library PType {
         PAsset[] assets;
         Minter minter;
         SCDP scdp;
-        uint256 staleTime;
-        uint256 sequencerGracePeriodTime;
-        uint256 maxPriceDeviationPct;
+        uint32 staleTime;
+        uint32 sequencerGracePeriodTime;
+        uint16 maxPriceDeviationPct;
         uint8 oracleDecimals;
-        uint256 sequencerStartedAt;
-        uint256 timestamp;
-        uint256 blockNr;
+        uint32 sequencerStartedAt;
+        uint32 timestamp;
+        uint32 blockNr;
         bool isSequencerUp;
         bool safetyStateSet;
         Gate gate;
@@ -68,16 +68,16 @@ library PType {
     }
 
     struct Minter {
-        uint256 MCR;
-        uint256 LT;
-        uint256 MLR;
+        uint32 MCR;
+        uint32 LT;
+        uint32 MLR;
         uint256 minDebtValue;
     }
 
     struct SCDP {
-        uint256 MCR;
-        uint256 LT;
-        uint256 MLR;
+        uint32 MCR;
+        uint32 LT;
+        uint32 MLR;
         STotals totals;
         SDeposit[] deposits;
         PAssetEntry[] debts;
