@@ -521,7 +521,7 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
 
     function createDeployerBalances(address _account) private {
         State storage s = state();
-        mintKiss(_account, 10_000e18);
+        mintKiss(_account, 10_000e6);
         uint256 liquidity = mintKiss(_account, 50_000e6);
 
         MockERC20 wbtc = s.getMockToken["WBTC"];
