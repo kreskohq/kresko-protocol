@@ -339,8 +339,8 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
         assetCfg_.vassets = VAULT_ASSET_CONFIG([Tokens.USDC, Tokens.USDCe], [ChainLink.USDC, ChainLink.USDC]);
 
         string[] memory vAssetSymbols = new string[](VAULT_COUNT);
-        vAssetSymbols[0] = symbol_USDCe;
-        vAssetSymbols[1] = symbol_USDC;
+        vAssetSymbols[0] = symbol_USDC;
+        vAssetSymbols[1] = symbol_USDCe;
         assetCfg_.vaultSymbols = vAssetSymbols;
 
         super.afterAssetConfigs(assetCfg_);
