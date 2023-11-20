@@ -36,18 +36,18 @@ library PType {
     }
 
     struct Protocol {
-        uint256 sequencerGracePeriodTime;
-        bool isSequencerUp;
-        uint256 staleTime;
-        PAsset[] assets;
-        uint256 maxPriceDeviationPct;
         SCDP scdp;
-        uint256 oracleDecimals;
         Gate gate;
-        uint256 sequencerStartedAt;
         Minter minter;
-        uint256 timestamp;
+        PAsset[] assets;
+        uint256 sequencerGracePeriodTime;
+        uint256 staleTime;
+        uint256 maxPriceDeviationPct;
+        uint256 oracleDecimals;
+        uint256 sequencerStartedAt;
         bool safetyStateSet;
+        bool isSequencerUp;
+        uint256 timestamp;
         uint256 blockNr;
     }
 
@@ -106,8 +106,8 @@ library PType {
         address addr;
         bool isMarketOpen;
         uint256 tSupply;
-        Asset config;
         uint256 price;
+        Asset config;
     }
 
     struct MAccount {
@@ -144,8 +144,8 @@ library PType {
         uint256 valFees;
         uint256 feeIndex;
         uint256 liqIndex;
-        Asset config;
         uint256 price;
+        Asset config;
     }
 
     struct SDepositUser {
@@ -157,12 +157,11 @@ library PType {
         uint256 feeIndex;
         uint256 liqIndex;
         uint256 valFees;
-        Asset config;
         uint256 price;
+        Asset config;
     }
 
     struct PAssetEntry {
-        Asset config;
         uint256 amount;
         address addr;
         string symbol;
@@ -171,5 +170,6 @@ library PType {
         uint256 valAdj;
         int256 index;
         uint256 price;
+        Asset config;
     }
 }
