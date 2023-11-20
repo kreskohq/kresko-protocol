@@ -15,6 +15,7 @@ import {ms} from "minter/MState.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
+import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 
 // solhint-disable code-complexity
 
@@ -200,10 +201,17 @@ library PFunc {
         Asset storage asset = cs().assets[addr];
         IERC20 token = IERC20(addr);
         RawPrice memory price = pushPrice(asset.oracles, asset.ticker);
+        string memory symbol = token.symbol();
+
+        IKreskoAsset.Wrapping memory synthwrap;
+        if (asset.kFactor > 0 && bytes32(bytes(symbol)) != bytes32("KISS")) {
+            synthwrap = IKreskoAsset(addr).wrappingInfo();
+        }
         return
             PType.PAsset({
                 addr: addr,
-                symbol: token.symbol(),
+                symbol: symbol,
+                synthwrap: synthwrap,
                 name: token.name(),
                 tSupply: token.totalSupply(),
                 price: uint256(price.answer),

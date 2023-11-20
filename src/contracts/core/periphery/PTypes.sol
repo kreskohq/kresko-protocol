@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import {Asset, RawPrice} from "common/Types.sol";
+import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 
 library PType {
     struct AssetData {
@@ -78,11 +79,11 @@ library PType {
         uint32 MCR;
         uint32 LT;
         uint32 MLR;
-        STotals totals;
-        SDeposit[] deposits;
-        PAssetEntry[] debts;
         uint32 coverThreshold;
         uint32 coverIncentive;
+        SDeposit[] deposits;
+        PAssetEntry[] debts;
+        STotals totals;
     }
 
     struct Gate {
@@ -91,13 +92,20 @@ library PType {
         uint8 phase;
     }
 
+    struct Synthwrap {
+        address token;
+        uint256 openFee;
+        uint256 closeFee;
+    }
+
     struct PAsset {
         address addr;
+        bool isMarketOpen;
         string name;
         string symbol;
         uint256 tSupply;
         uint256 price;
-        bool isMarketOpen;
+        IKreskoAsset.Wrapping synthwrap;
         RawPrice priceRaw;
         Asset config;
     }
@@ -160,8 +168,8 @@ library PType {
         uint256 amountAdj;
         uint256 val;
         uint256 valAdj;
-        uint256 price;
         int256 index;
+        uint256 price;
         Asset config;
     }
 }
