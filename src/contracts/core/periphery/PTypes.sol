@@ -37,18 +37,18 @@ library PType {
 
     struct Protocol {
         uint256 sequencerGracePeriodTime;
-        uint32 staleTime;
-        uint16 maxPriceDeviationPct;
-        uint8 oracleDecimals;
-        uint32 sequencerStartedAt;
-        uint32 timestamp;
         bool isSequencerUp;
+        uint256 staleTime;
+        PAsset[] assets;
+        uint256 maxPriceDeviationPct;
+        SCDP scdp;
+        uint256 oracleDecimals;
+        Gate gate;
+        uint256 sequencerStartedAt;
+        Minter minter;
+        uint256 timestamp;
         bool safetyStateSet;
         uint256 blockNr;
-        Gate gate;
-        PAsset[] assets;
-        Minter minter;
-        SCDP scdp;
     }
 
     struct Account {
@@ -65,20 +65,20 @@ library PType {
         string symbol;
         uint256 amount;
         uint256 val;
-        uint8 decimals;
+        uint256 decimals;
     }
 
     struct Minter {
-        uint32 MCR;
-        uint32 LT;
-        uint32 MLR;
+        uint256 MCR;
+        uint256 LT;
+        uint256 MLR;
         uint256 minDebtValue;
     }
 
     struct SCDP {
-        uint32 MCR;
-        uint32 LT;
-        uint32 MLR;
+        uint256 MCR;
+        uint256 LT;
+        uint256 MLR;
         SDeposit[] deposits;
         PAssetEntry[] debts;
         STotals totals;
@@ -89,7 +89,7 @@ library PType {
     struct Gate {
         address kreskian;
         address questForKresk;
-        uint8 phase;
+        uint256 phase;
     }
 
     struct Synthwrap {
@@ -99,15 +99,15 @@ library PType {
     }
 
     struct PAsset {
-        uint256 tSupply;
         IKreskoAsset.Wrapping synthwrap;
         RawPrice priceRaw;
-        address addr;
-        bool isMarketOpen;
         string name;
         string symbol;
-        uint256 price;
+        address addr;
+        bool isMarketOpen;
+        uint256 tSupply;
         Asset config;
+        uint256 price;
     }
 
     struct MAccount {
@@ -142,10 +142,10 @@ library PType {
         uint256 val;
         uint256 valAdj;
         uint256 valFees;
-        uint128 feeIndex;
-        uint128 liqIndex;
-        uint256 price;
+        uint256 feeIndex;
+        uint256 liqIndex;
         Asset config;
+        uint256 price;
     }
 
     struct SDepositUser {
@@ -154,8 +154,8 @@ library PType {
         string symbol;
         uint256 amountFees;
         uint256 val;
-        uint128 feeIndex;
-        uint128 liqIndex;
+        uint256 feeIndex;
+        uint256 liqIndex;
         uint256 valFees;
         Asset config;
         uint256 price;
