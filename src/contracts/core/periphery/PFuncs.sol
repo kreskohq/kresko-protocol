@@ -359,9 +359,9 @@ library PFunc {
         if (result.totals.valColl == 0) {
             result.totals.cr = 0;
         } else if (result.totals.valDebt == 0) {
-            result.totals.cr = type(uint16).max;
+            result.totals.cr = type(uint256).max;
         } else {
-            result.totals.cr = uint16(result.totals.valColl.percentDiv(result.totals.valDebt));
+            result.totals.cr = result.totals.valColl.percentDiv(result.totals.valDebt);
         }
         result.deposits = getMDeposits(_account);
         result.debts = getMDebts(_account);
