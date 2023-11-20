@@ -253,7 +253,7 @@ contract AuditTest is Local {
         (bool success, bytes memory returndata) = address(kresko).call(
             abi.encodePacked(abi.encodeWithSelector(kresko.coverSCDP.selector, address(kiss), _coverAmount), redstoneCallData)
         );
-        if (!success) _revert(returndata);
+        if (!success) _handleRevert(returndata);
         return (
             staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices),
             staticCall(kresko.getTotalDebtValueSCDP.selector, true, rsPrices)
@@ -270,7 +270,7 @@ contract AuditTest is Local {
                 redstoneCallData
             )
         );
-        if (!success) _revert(returndata);
+        if (!success) _handleRevert(returndata);
         return (
             staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices),
             staticCall(kresko.getTotalDebtValueSCDP.selector, true, rsPrices)
@@ -288,7 +288,7 @@ contract AuditTest is Local {
                 redstoneCallData
             )
         );
-        if (!success) _revert(returndata);
+        if (!success) _handleRevert(returndata);
         return (
             staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices),
             staticCall(kresko.getDebtValueSCDP.selector, _repayAsset, true, rsPrices),
@@ -308,7 +308,7 @@ contract AuditTest is Local {
                 redstoneCallData
             )
         );
-        if (!success) _revert(returndata);
+        if (!success) _handleRevert(returndata);
         amountOut_ = abi.decode(returndata, (uint256));
     }
 
@@ -329,5 +329,11 @@ contract AuditTest is Local {
     function _updateRsPrices() internal {
         rsPrices = createPriceString();
         redstoneCallData = getRedstonePayload(rsPrices);
+    }
+
+    function _handleRevert(bytes memory data) internal pure {
+        assembly {
+            revert(add(32, data), mload(data))
+        }
     }
 }

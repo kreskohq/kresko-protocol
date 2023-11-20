@@ -98,7 +98,7 @@ contract KrMulticall {
                 }
 
                 (bool success, bytes memory returndata) = _handleOp(ops[i], rsPayload);
-                if (!success) _revert(returndata);
+                if (!success) _handleRevert(returndata);
 
                 _sendTokens(op);
 
@@ -271,7 +271,7 @@ contract KrMulticall {
         }
     }
 
-    function _revert(bytes memory data) internal pure {
+    function _handleRevert(bytes memory data) internal pure {
         assembly {
             revert(add(32, data), mload(data))
         }
