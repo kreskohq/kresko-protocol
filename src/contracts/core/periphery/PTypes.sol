@@ -79,11 +79,11 @@ library PType {
         uint256 MCR;
         uint256 LT;
         uint256 MLR;
+        uint256 coverIncentive;
+        uint256 coverThreshold;
         SDeposit[] deposits;
         PAssetEntry[] debts;
         STotals totals;
-        // uint256 coverIncentive;
-        // uint32 coverThreshold;
     }
 
     struct Gate {

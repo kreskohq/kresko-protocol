@@ -113,8 +113,8 @@ library PFunc {
         result.LT = scdp().liquidationThreshold;
         result.MCR = scdp().minCollateralRatio;
         result.MLR = scdp().maxLiquidationRatio;
-        // result.coverIncentive = uint32(sdi().coverIncentive);
-        // result.coverThreshold = uint32(sdi().coverThreshold);
+        result.coverIncentive = sdi().coverIncentive;
+        result.coverThreshold = sdi().coverThreshold;
 
         (result.totals, result.deposits) = getSData();
         result.debts = getSDebts();
