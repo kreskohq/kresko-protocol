@@ -112,8 +112,8 @@ library PFunc {
         result.LT = scdp().liquidationThreshold;
         result.MCR = scdp().minCollateralRatio;
         result.MLR = scdp().maxLiquidationRatio;
-        result.coverIncentive = sdi().coverIncentive;
-        result.coverThreshold = sdi().coverThreshold;
+        // result.coverIncentive = sdi().coverIncentive;
+        // result.coverThreshold = sdi().coverThreshold;
 
         (result.totals, result.deposits) = getSData();
         result.debts = getSDebts();
@@ -155,7 +155,7 @@ library PFunc {
             totals.valCollAdj += data.valCollAdj;
             totals.valDebtOg += data.valDebt;
             totals.valDebtOgAdj += data.valDebtAdj;
-            totals.sdiPrice = SDIPrice();
+            // totals.sdiPrice = SDIPrice();
             results[i] = PType.SDeposit({
                 addr: assetAddr,
                 liqIndex: scdp().assetIndexes[assetAddr].currLiqIndex,
