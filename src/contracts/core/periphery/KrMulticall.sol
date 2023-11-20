@@ -9,6 +9,18 @@ import {IVaultExtender} from "vault/interfaces/IVaultExtender.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 
+interface ISwapRouter {
+    struct ExactInputParams {
+        bytes path;
+        address recipient;
+        uint256 deadline;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+    }
+
+    function exactInput(ExactInputParams memory params) external returns (uint256 amountOut);
+}
+
 // solhint-disable avoid-low-level-calls, code-complexity
 contract KrMulticall {
     struct Op {
@@ -18,11 +30,20 @@ contract KrMulticall {
 
     struct OpData {
         address tokenIn;
-        uint96 amountIn;
         address tokenOut;
+        uint96 amountIn;
         uint96 amountOut;
-        uint128 amountMin;
+        uint128 amountOutMin;
         uint128 index;
+        uint256 deadline;
+        bytes path;
+    }
+
+    struct OpResult {
+        address tokenIn;
+        uint256 amountIn;
+        address tokenOut;
+        uint256 amountOut;
     }
 
     enum OpAction {
@@ -38,8 +59,7 @@ contract KrMulticall {
         SynthWrap,
         VaultDeposit,
         VaultRedeem,
-        AMMIn,
-        AMMOut
+        AMMExactInput
     }
 
     error NoAllowance(OpAction action, address token, string symbol);
@@ -49,28 +69,45 @@ contract KrMulticall {
 
     address public kresko;
     address public kiss;
-    address public amm;
+    ISwapRouter public uniswapRouter;
 
-    constructor(address _kresko, address _kiss, address _amm) {
+    constructor(address _kresko, address _kiss, address _uniswapRouter) {
         kresko = _kresko;
         kiss = _kiss;
-        amm = _amm;
+        uniswapRouter = ISwapRouter(_uniswapRouter);
     }
 
-    function execute(Op[] calldata ops, bytes calldata rsPayload) external payable {
+    function execute(Op[] calldata ops, bytes calldata rsPayload) external payable returns (OpResult[] memory results) {
         unchecked {
+            results = new OpResult[](ops.length);
             for (uint256 i; i < ops.length; i++) {
                 Op calldata op = ops[i];
 
-                IERC20 tokenIn = IERC20(op.data.tokenIn);
-                if (address(tokenIn) != address(0)) {
+                if (op.data.tokenIn != address(0)) {
+                    IERC20 tokenIn = IERC20(op.data.tokenIn);
+                    results[i].tokenIn = op.data.tokenIn;
+
+                    uint256 balIn = tokenIn.balanceOf(msg.sender);
                     _pullTokenIn(op);
+                    results[i].amountIn = balIn - tokenIn.balanceOf(msg.sender);
+                }
+
+                if (op.data.tokenOut != address(0)) {
+                    results[i].tokenOut = op.data.tokenOut;
+                    results[i].amountOut = IERC20(op.data.tokenOut).balanceOf(msg.sender);
                 }
 
                 (bool success, bytes memory returndata) = _handleOp(ops[i], rsPayload);
                 if (!success) _revert(returndata);
 
-                _handleResidue(op);
+                _sendTokens(op);
+
+                if (op.data.tokenOut != address(0)) {
+                    uint256 balanceAfter = IERC20(op.data.tokenOut).balanceOf(msg.sender);
+                    if (balanceAfter >= results[i].amountOut) {
+                        results[i].amountOut = balanceAfter - results[i].amountOut;
+                    }
+                }
             }
         }
     }
@@ -87,7 +124,7 @@ contract KrMulticall {
         }
     }
 
-    function _handleResidue(Op calldata _op) internal {
+    function _sendTokens(Op calldata _op) internal {
         if (address(this).balance > 0) payable(msg.sender).transfer(address(this).balance);
 
         if (_op.data.tokenIn != address(0)) {
@@ -101,7 +138,9 @@ contract KrMulticall {
         if (_op.data.tokenOut != address(0)) {
             IERC20 tokenOut = IERC20(_op.data.tokenOut);
             uint256 balance = tokenOut.balanceOf(address(this));
-            if (balance != 0) tokenOut.transfer(msg.sender, balance);
+            if (balance != 0) {
+                tokenOut.transfer(msg.sender, balance);
+            }
         }
     }
 
@@ -170,7 +209,7 @@ contract KrMulticall {
                     abi.encodePacked(
                         abi.encodeCall(
                             ISCDPSwapFacet.swapSCDP,
-                            (msg.sender, _op.data.tokenIn, _op.data.tokenOut, _op.data.amountIn, _op.data.amountMin)
+                            (msg.sender, _op.data.tokenIn, _op.data.tokenOut, _op.data.amountIn, _op.data.amountOutMin)
                         ),
                         rsPayload
                     )
@@ -205,14 +244,31 @@ contract KrMulticall {
             _approve(kiss, _op.data.amountIn, kiss);
             IVaultExtender(kiss).vaultRedeem(_op.data.tokenOut, _op.data.amountIn, msg.sender, msg.sender);
             return (true, "");
+        } else if (_op.action == OpAction.AMMExactInput) {
+            _approve(address(uniswapRouter), _op.data.amountIn, _op.data.tokenIn);
+            if (
+                uniswapRouter.exactInput(
+                    ISwapRouter.ExactInputParams({
+                        path: _op.data.path,
+                        recipient: msg.sender,
+                        deadline: _op.data.deadline,
+                        amountIn: _op.data.amountIn,
+                        amountOutMinimum: _op.data.amountOutMin
+                    })
+                ) == 0
+            ) {
+                revert ZeroOrInvalidAmountOut(
+                    _op.action,
+                    _op.data.tokenOut,
+                    IERC20(_op.data.tokenOut).symbol(),
+                    IERC20(_op.data.tokenOut).balanceOf(address(this)),
+                    _op.data.amountOutMin
+                );
+            }
+            return (true, "");
         } else {
             revert InvalidOpAction(_op.action);
         }
-        // else if (action == OpAction.AMMIn) {
-        //     revert InvalidOpAction(uint256(action));
-        // } else if (action == OpAction.AMMOut) {
-        //     revert InvalidOpAction(uint256(action));
-        // }
     }
 
     function _revert(bytes memory data) internal pure {
