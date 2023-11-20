@@ -118,7 +118,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
 
         if (identity.collateral) {
             config_.isMinterCollateral = true;
-            config_.liqIncentive = 1.1e4;
+            config_.liqIncentive = 1.05e4;
         }
 
         if (identity.scdpDepositable) {
@@ -151,7 +151,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
 
         if (_type.collateral) {
             kissInfo_.config.isMinterCollateral = true;
-            kissInfo_.config.liqIncentive = 1.1e4;
+            kissInfo_.config.liqIncentive = 1.05e4;
         }
 
         if (_type.krAsset) {
@@ -169,10 +169,10 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         if (_type.scdpKrAsset) {
             kissInfo_.config.isSharedOrSwappedCollateral = true;
             kissInfo_.config.isSwapMintable = true;
-            kissInfo_.config.swapInFeeSCDP = 0.02e4;
-            kissInfo_.config.swapOutFeeSCDP = 0.02e4;
-            kissInfo_.config.protocolFeeShareSCDP = 0.25e4;
-            kissInfo_.config.liqIncentiveSCDP = 1.1e4;
+            kissInfo_.config.swapInFeeSCDP = 10;
+            kissInfo_.config.swapOutFeeSCDP = 10;
+            kissInfo_.config.protocolFeeShareSCDP = 0.30e4;
+            kissInfo_.config.liqIncentiveSCDP = 1.05e4;
             kissInfo_.config.maxDebtSCDP = type(uint256).max;
         }
 
@@ -212,15 +212,15 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
 
         if (_identity.collateral) {
             config_.isMinterCollateral = true;
-            config_.liqIncentive = 1.1e4;
+            config_.liqIncentive = 1.075e4;
         }
 
         if (_identity.scdpKrAsset) {
             config_.isSwapMintable = true;
-            config_.swapInFeeSCDP = 0.02e4;
-            config_.swapOutFeeSCDP = 0.02e4;
-            config_.protocolFeeShareSCDP = 0.25e4;
-            config_.liqIncentiveSCDP = 1.1e4;
+            config_.swapInFeeSCDP = 25;
+            config_.swapOutFeeSCDP = 25;
+            config_.protocolFeeShareSCDP = 0.20e4;
+            config_.liqIncentiveSCDP = 1.05e4;
             config_.maxDebtSCDP = type(uint256).max;
         }
 
@@ -239,17 +239,6 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
 
     function enableSwapSingleWay(address asset0, address asset1, bool enabled) internal requiresKresko {
         kresko.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: asset0, assetOut: asset1, enabled: enabled}));
-    }
-
-    function updateCollateralToDefaults(address assetAddr) internal {
-        Asset memory config = kresko.getAsset(assetAddr);
-        require(config.ticker != bytes32(0), "Asset does not exist");
-
-        config.liqIncentive = 1.1e4;
-        config.isMinterCollateral = true;
-        config.factor = 1e4;
-        config.oracles = OT_RS_CL;
-        kresko.updateAsset(assetAddr, config);
     }
 }
 

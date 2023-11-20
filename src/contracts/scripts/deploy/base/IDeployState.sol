@@ -88,6 +88,10 @@ interface IDeployState is IKreskoForgeTypes {
         Enums.OracleType[2] oracleType;
         AssetType identity;
         bool setTickerFeeds;
+        uint16 openFee;
+        uint16 closeFee;
+        uint16 swapInFeeSCDP;
+        uint16 swapOutFeeSCDP;
     }
 
     struct ExtAssetCfg {

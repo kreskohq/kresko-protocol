@@ -88,9 +88,11 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         _ctx.multicall = new KrMulticall(address(_ctx.kresko), address(_ctx.kiss), address(address(0)));
         _ctx.kresko.grantRole(Role.MANAGER, address(_ctx.multicall));
         if (!state().logEnabled) return;
+
         Log.br();
         ("/* ------------------------------ Contracts ----------------------------- */").clg();
         Log.br();
+
         address(_ctx.kresko).clg("Diamond");
         address(_ctx.vault).clg("Vault");
         address(_ctx.kiss).clg("KISS");
@@ -103,19 +105,23 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         if (!state().logEnabled) return;
         RawPrice memory price = _ctx.kresko.getPushPrice(_info.addr);
         Log.br();
+
         ("/* ------------------------------ Kresko Asset ------------------------------ */").clg();
         _info.symbol.clg("Symbol");
         _info.addr.clg("Address");
+
         ("-------  Types --------").clg();
         _info.config.isMinterMintable.clg("Minter Mintable");
         _info.config.isMinterCollateral.clg("Minter Collateral");
         _info.config.isSwapMintable.clg("SCDP Swappable");
         _info.config.isSharedCollateral.clg("SCDP Depositable");
+
         ("-------  Oracle --------").clg();
         _info.config.ticker.blg2txt("Ticker");
         price.feed.clg("Feed");
         uint256(price.answer).dlg("Feed Price", 8);
         ([uint8(_info.config.oracles[0]), uint8(_info.config.oracles[1])]).clg("Oracle Types");
+
         ("-------  Config --------").clg();
         _info.config.maxDebtMinter.dlg("Minter Debt Limit", 18);
         _info.config.maxDebtSCDP.dlg("SCDP Debt Limit", 18);
@@ -133,19 +139,23 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         if (!state().logEnabled) return;
         RawPrice memory price = _ctx.kresko.getPushPrice(_info.addr);
         Log.br();
+
         ("/* ----------------------------- External Asset ----------------------------- */").clg();
         _info.symbol.clg("Symbol");
         _info.addr.clg("Address");
+
         ("-------  Types --------").clg();
         _info.config.isMinterMintable.clg("Minter Mintable");
         _info.config.isMinterCollateral.clg("Minter Collateral");
         _info.config.isSwapMintable.clg("SCDP Swappable");
         _info.config.isSharedCollateral.clg("SCDP Depositable");
+
         ("-------  Oracle --------").clg();
         _info.config.ticker.blg2txt("Ticker");
         price.feed.clg("Feed");
         price.answer.dlg("Feed Price", 8);
         ([uint8(_info.config.oracles[0]), uint8(_info.config.oracles[1])]).clg("Oracle Types");
+
         ("-------  Config --------").clg();
         _info.config.kFactor.pct("kFactor");
         _info.config.factor.pct("cFactor");

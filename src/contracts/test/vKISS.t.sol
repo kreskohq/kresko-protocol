@@ -75,19 +75,19 @@ contract vKISSTest is Test {
         vm.stopPrank();
 
         // approvals
-        init();
+        _init();
     }
 
     function testDepositsSingleToken() public {
-        deposit(user1, usdc, 1e18);
+        _deposit(user1, usdc, 1e18);
         assertEq(usdc.balanceOf(address(vkiss)), 1e18);
         assertEq(vkiss.balanceOf(user1), 1e18);
     }
 
     function testDepositsMultiToken() public {
-        deposit(user1, usdc, 1e18);
-        deposit(user1, usdt, 1e6);
-        deposit(user1, dai, 1e18);
+        _deposit(user1, usdc, 1e18);
+        _deposit(user1, usdt, 1e6);
+        _deposit(user1, dai, 1e18);
         assertEq(usdc.balanceOf(address(vkiss)), 1e18);
         assertEq(usdt.balanceOf(address(vkiss)), 1e6);
         assertEq(dai.balanceOf(address(vkiss)), 1e18);
@@ -95,21 +95,21 @@ contract vKISSTest is Test {
     }
 
     function testRedeemSingleToken() public {
-        assertEq(deposit(user1, usdc, 1e18), 1e18);
-        assertEq(maxRedeem(user1, usdc), 1e18);
+        assertEq(_deposit(user1, usdc, 1e18), 1e18);
+        assertEq(_maxRedeem(user1, usdc), 1e18);
         assertEq(usdc.balanceOf(user1), 1e18);
         assertEq(vkiss.balanceOf(address(vkiss)), 0);
         assertEq(vkiss.balanceOf(user1), 0);
     }
 
     function testRedeemMultiToken() public {
-        deposit(user1, usdc, 1e18);
-        deposit(user1, usdt, 1e6);
-        deposit(user1, dai, 1e18);
+        _deposit(user1, usdc, 1e18);
+        _deposit(user1, usdt, 1e6);
+        _deposit(user1, dai, 1e18);
 
-        assertEq(redeem(user1, usdc, 1e18), 1e18);
-        assertEq(redeem(user1, usdt, 1e18), 1e6);
-        assertEq(redeem(user1, dai, 1e18), 1e18);
+        assertEq(_redeem(user1, usdc, 1e18), 1e18);
+        assertEq(_redeem(user1, usdt, 1e18), 1e6);
+        assertEq(_redeem(user1, dai, 1e18), 1e18);
 
         assertEq(usdc.balanceOf(user1), 1e18);
         assertEq(usdt.balanceOf(user1), 1e6);
@@ -120,13 +120,13 @@ contract vKISSTest is Test {
     }
 
     function testMaxRedeem() public {
-        deposit(user1, usdc, 1e18);
-        deposit(user1, usdt, 1e6);
-        deposit(user1, dai, 1e18);
+        _deposit(user1, usdc, 1e18);
+        _deposit(user1, usdt, 1e6);
+        _deposit(user1, dai, 1e18);
 
-        assertEq(maxRedeem(user1, usdc), 1e18);
-        assertEq(maxRedeem(user1, usdt), 1e6);
-        assertEq(maxRedeem(user1, dai), 1e18);
+        assertEq(_maxRedeem(user1, usdc), 1e18);
+        assertEq(_maxRedeem(user1, usdt), 1e6);
+        assertEq(_maxRedeem(user1, dai), 1e18);
 
         assertEq(usdc.balanceOf(user1), 1e18);
         assertEq(usdt.balanceOf(user1), 1e6);
@@ -138,13 +138,13 @@ contract vKISSTest is Test {
     }
 
     function testMaxWithdraw() public {
-        deposit(user1, usdc, 1e18);
-        deposit(user1, usdt, 1e6);
-        deposit(user1, dai, 1e18);
+        _deposit(user1, usdc, 1e18);
+        _deposit(user1, usdt, 1e6);
+        _deposit(user1, dai, 1e18);
 
-        assertEq(maxWithdraw(user1, usdc), 1e18);
-        assertEq(maxWithdraw(user1, usdt), 1e18); // shares in, not token amount
-        assertEq(maxWithdraw(user1, dai), 1e18);
+        assertEq(_maxWithdraw(user1, usdc), 1e18);
+        assertEq(_maxWithdraw(user1, usdt), 1e18); // shares in, not token amount
+        assertEq(_maxWithdraw(user1, dai), 1e18);
 
         assertEq(usdc.balanceOf(user1), 1e18);
         assertEq(usdt.balanceOf(user1), 1e6);
@@ -212,7 +212,7 @@ contract vKISSTest is Test {
     }
 
     function testWithdrawFeePreview() public {
-        deposit(user1, usdc, 2e18);
+        _deposit(user1, usdc, 2e18);
         vm.startPrank(user0);
         vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
@@ -237,7 +237,7 @@ contract vKISSTest is Test {
     }
 
     function testCannotWithdraw0() public {
-        deposit(user1, usdc, 1e18);
+        _deposit(user1, usdc, 1e18);
         vm.startPrank(user1);
         vm.expectRevert();
         vkiss.withdraw(address(usdc), 0, user1, user1);
@@ -245,7 +245,7 @@ contract vKISSTest is Test {
     }
 
     function testCannotRedeem() public {
-        deposit(user1, usdc, 1e18);
+        _deposit(user1, usdc, 1e18);
         vm.startPrank(user1);
         vm.expectRevert();
         vkiss.redeem(address(usdc), 0, user1, user1);
@@ -257,7 +257,7 @@ contract vKISSTest is Test {
         vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
         uint256 expectedFee = 0.333333333333333333e18;
-        deposit(user1, usdc, 1e18 + expectedFee);
+        _deposit(user1, usdc, 1e18 + expectedFee);
 
         vm.startPrank(user1);
         (uint256 sharesIn, uint256 fee) = vkiss.withdraw(address(usdc), 1e18, user1, user1);
@@ -271,7 +271,7 @@ contract vKISSTest is Test {
         vkiss.setWithdrawFee(address(usdc), 0.25e4);
         vm.stopPrank();
         uint256 expectedFee = 0.333333333333333333e18;
-        deposit(user1, usdc, 1e18 + expectedFee);
+        _deposit(user1, usdc, 1e18 + expectedFee);
 
         vm.startPrank(user1);
         (uint256 assetsOut, uint256 fee) = vkiss.redeem(address(usdc), 1e18 + expectedFee, user1, user1);
@@ -282,7 +282,7 @@ contract vKISSTest is Test {
 
     function testWithdrawFee() public {
         uint256 expectedFee = 0.5e18;
-        deposit(user1, usdc, 2e18);
+        _deposit(user1, usdc, 2e18);
 
         vm.startPrank(user0);
         vkiss.setWithdrawFee(address(usdc), 0.25e4);
@@ -313,7 +313,7 @@ contract vKISSTest is Test {
     }
 
     function testRedeemFee() public {
-        deposit(user1, usdc, 1e18);
+        _deposit(user1, usdc, 1e18);
 
         vm.startPrank(user0);
         vkiss.setWithdrawFee(address(usdc), 0.25e4);
@@ -338,7 +338,7 @@ contract vKISSTest is Test {
         vkiss.setDepositFee(address(usdc), 0.25e4);
         vm.stopPrank();
 
-        uint256 kissOut = deposit(user1, usdc, 1e18);
+        uint256 kissOut = _deposit(user1, usdc, 1e18);
 
         assertEq(kissOut, 0.75e18);
 
@@ -432,13 +432,13 @@ contract vKISSTest is Test {
     }
 
     function testWithdrawMultiToken() public {
-        deposit(user1, usdc, 1e18);
-        deposit(user1, usdt, 1e6);
-        deposit(user1, dai, 1e18);
+        _deposit(user1, usdc, 1e18);
+        _deposit(user1, usdt, 1e6);
+        _deposit(user1, dai, 1e18);
 
-        assertEq(withdraw(user1, usdc, 1e18), 1e18);
-        assertEq(withdraw(user1, usdt, 1e6), 1e18);
-        assertEq(withdraw(user1, dai, 1e18), 1e18);
+        assertEq(_withdraw(user1, usdc, 1e18), 1e18);
+        assertEq(_withdraw(user1, usdt, 1e6), 1e18);
+        assertEq(_withdraw(user1, dai, 1e18), 1e18);
 
         assertEq(usdc.balanceOf(user1), 1e18);
         assertEq(usdt.balanceOf(user1), 1e6);
@@ -447,37 +447,37 @@ contract vKISSTest is Test {
     }
 
     function testDepositAfterPriceDownSameToken() public {
-        deposit(user1, usdc, 1e18);
+        _deposit(user1, usdc, 1e18);
         usdcOracle.setPrice(0.5e8);
-        deposit(user2, usdc, 1e18);
+        _deposit(user2, usdc, 1e18);
 
         assertEq(vkiss.balanceOf(user1), 1e18);
         assertEq(vkiss.balanceOf(user2), 1e18);
     }
 
     function testMintAfterPriceDownSameToken() public {
-        mint(user1, usdc, 1e18);
+        _mint(user1, usdc, 1e18);
         usdcOracle.setPrice(0.5e8);
-        mint(user2, usdc, 1e18);
+        _mint(user2, usdc, 1e18);
 
         assertEq(vkiss.balanceOf(user1), 1e18);
         assertEq(vkiss.balanceOf(user2), 1e18);
     }
 
     function testDepositAfterPriceDownDifferentToken() public {
-        deposit(user1, usdc, 1e18);
+        _deposit(user1, usdc, 1e18);
         usdcOracle.setPrice(0.5e8);
-        deposit(user2, usdt, 1e6);
+        _deposit(user2, usdt, 1e6);
 
         assertEq(vkiss.balanceOf(user1), 1e18);
         assertEq(vkiss.balanceOf(user2), 2e18);
     }
 
     function testMintAfterPriceDownDifferentToken() public {
-        mint(user1, usdc, 1e18);
+        _mint(user1, usdc, 1e18);
         usdcOracle.setPrice(0.5e8);
 
-        mint(user2, usdt, 1e18);
+        _mint(user2, usdt, 1e18);
 
         assertEq(vkiss.balanceOf(user1), 1e18);
         assertEq(vkiss.balanceOf(user2), 1e18);
@@ -487,12 +487,12 @@ contract vKISSTest is Test {
     }
 
     function testRedeemAfterPriceDownSameToken() public {
-        deposit(user1, usdc, 1e18);
+        _deposit(user1, usdc, 1e18);
         usdcOracle.setPrice(0.5e8);
-        deposit(user2, usdc, 1e18);
+        _deposit(user2, usdc, 1e18);
 
-        redeem(user1, usdc, 1e18);
-        maxRedeem(user2, usdc);
+        _redeem(user1, usdc, 1e18);
+        _maxRedeem(user2, usdc);
 
         assertEq(vkiss.balanceOf(user1), 0);
         assertEq(vkiss.balanceOf(user2), 0);
@@ -501,11 +501,11 @@ contract vKISSTest is Test {
     }
 
     function testRedeemAfterPriceDownDifferentToken() public {
-        deposit(user1, usdc, 1e18);
+        _deposit(user1, usdc, 1e18);
         usdcOracle.setPrice(0.5e8);
-        deposit(user2, usdt, 1e6);
-        maxRedeem(user1, usdc);
-        maxRedeem(user2, usdt);
+        _deposit(user2, usdt, 1e6);
+        _maxRedeem(user1, usdc);
+        _maxRedeem(user2, usdt);
         assertEq(vkiss.balanceOf(user1), 0);
         assertEq(vkiss.balanceOf(user2), 0);
         assertEq(usdc.balanceOf(user1), 1e18);
@@ -513,11 +513,11 @@ contract vKISSTest is Test {
     }
 
     function testWithdrawAfterPriceDownDifferentToken() public {
-        deposit(user1, usdc, 1e18);
+        _deposit(user1, usdc, 1e18);
         usdcOracle.setPrice(0.5e8);
-        deposit(user2, usdt, 1e6);
-        withdraw(user1, usdc, 1e18);
-        withdraw(user2, usdt, 1e6);
+        _deposit(user2, usdt, 1e6);
+        _withdraw(user1, usdc, 1e18);
+        _withdraw(user2, usdt, 1e6);
         assertEq(vkiss.balanceOf(user1), 0);
         assertEq(vkiss.balanceOf(user2), 0);
         assertEq(usdc.balanceOf(user1), 1e18);
@@ -525,9 +525,9 @@ contract vKISSTest is Test {
     }
 
     function testMaxDeposit() public {
-        deposit(user1, usdc, 1e18);
-        deposit(user1, usdt, 1e6);
-        deposit(user1, dai, 1e18);
+        _deposit(user1, usdc, 1e18);
+        _deposit(user1, usdt, 1e6);
+        _deposit(user1, dai, 1e18);
 
         assertEq(vkiss.maxDeposit(address(usdc)), type(uint248).max - 1e18);
         assertEq(vkiss.maxDeposit(address(usdt)), type(uint248).max - 1e6);
@@ -538,9 +538,9 @@ contract vKISSTest is Test {
         usdc.mint(user1, 1e18);
         usdt.mint(user1, 2e6);
         dai.mint(user1, 1e18);
-        deposit(user1, usdc, 1e18);
-        deposit(user1, usdt, 1e6);
-        deposit(user1, dai, 1e18);
+        _deposit(user1, usdc, 1e18);
+        _deposit(user1, usdt, 1e6);
+        _deposit(user1, dai, 1e18);
 
         assertEq(vkiss.maxMint(address(usdc), user1), 1e18);
         assertEq(vkiss.maxMint(address(usdt), user1), 2e18);
@@ -579,34 +579,34 @@ contract vKISSTest is Test {
     /*                                   Helpers                                  */
     /* -------------------------------------------------------------------------- */
 
-    function deposit(address user, MockERC20 asset, uint256 assetsIn) internal with(user) returns (uint256 kissOut) {
+    function _deposit(address user, MockERC20 asset, uint256 assetsIn) internal with(user) returns (uint256 kissOut) {
         asset.mint(user, assetsIn);
         (kissOut, ) = vkiss.deposit(address(asset), assetsIn, user);
     }
 
-    function mint(address user, MockERC20 asset, uint256 shares) internal with(user) returns (uint256 tokensIn) {
+    function _mint(address user, MockERC20 asset, uint256 shares) internal with(user) returns (uint256 tokensIn) {
         (uint256 amount, ) = vkiss.previewMint(address(asset), shares);
         asset.mint(user, amount);
         (tokensIn, ) = vkiss.mint(address(asset), shares, user);
     }
 
-    function redeem(address user, MockERC20 asset, uint256 shares) internal with(user) returns (uint256 assetsOut) {
+    function _redeem(address user, MockERC20 asset, uint256 shares) internal with(user) returns (uint256 assetsOut) {
         (assetsOut, ) = vkiss.redeem(address(asset), shares, user, user);
     }
 
-    function maxRedeem(address user, MockERC20 asset) internal with(user) returns (uint256 assetsOut) {
+    function _maxRedeem(address user, MockERC20 asset) internal with(user) returns (uint256 assetsOut) {
         (assetsOut, ) = vkiss.redeem(address(asset), vkiss.maxRedeem(address(asset), user), user, user);
     }
 
-    function maxWithdraw(address user, MockERC20 asset) internal with(user) returns (uint256 assetsOut) {
+    function _maxWithdraw(address user, MockERC20 asset) internal with(user) returns (uint256 assetsOut) {
         (assetsOut, ) = vkiss.withdraw(address(asset), vkiss.maxWithdraw(address(asset), user), user, user);
     }
 
-    function withdraw(address user, MockERC20 asset, uint256 amount) internal with(user) returns (uint256 kissIn) {
+    function _withdraw(address user, MockERC20 asset, uint256 amount) internal with(user) returns (uint256 kissIn) {
         (kissIn, ) = vkiss.withdraw(address(asset), amount, user, user);
     }
 
-    function init() internal {
+    function _init() internal {
         vm.startPrank(user0);
         usdc.approve(address(vkiss), type(uint256).max);
         dai.approve(address(vkiss), type(uint256).max);
@@ -638,13 +638,13 @@ contract vKISSTest is Test {
         vm.stopPrank();
     }
 
-    function logRatios() internal {
+    function _logRatios() internal {
         emit log_named_decimal_uint("exchangeRate", vkiss.exchangeRate(), 18);
         emit log_named_decimal_uint("totalAssets", vkiss.totalAssets(), 18);
         emit log_named_decimal_uint("totalSupply", vkiss.totalSupply(), 18);
     }
 
-    function logBalances(MockERC20 asset, string memory assetName) internal {
+    function _logBalances(MockERC20 asset, string memory assetName) internal {
         uint256 balUser0 = asset.balanceOf(user0);
         uint256 decimals = ERC20(address(asset)).decimals();
         emit log_named_decimal_uint(string.concat(assetName, "balanceOf(user0)"), balUser0, decimals);

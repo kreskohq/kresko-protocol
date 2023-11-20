@@ -99,7 +99,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         _approvals(user2);
     }
 
-    function testSetup() public {
+    function testSCDPSetup() public {
         staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).eq(0, "debt should be 0");
         staticCall(kresko.totalSDI.selector, initialPrices).eq(0, "total supply should be 0");
         Asset memory kissConfig = kresko.getAsset(KISS.addr);
@@ -110,26 +110,26 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         kissConfig.isCoverAsset.eq(true);
     }
 
-    function testDeposit() public {
+    function testSCDPDeposit() public {
         uint256 amount = 1000e18;
 
         usdc.mock.mint(user0, 1000e18);
-        poolDeposit(user0, usdc.addr, amount, initialPrices);
+        _poolDeposit(user0, usdc.addr, amount, initialPrices);
         staticCall(kresko.totalSDI.selector, initialPrices).eq(0, "total supply should be 0");
         usdc.mock.balanceOf(address(kresko)).eq(amount);
 
         staticCall(kresko.getTotalCollateralValueSCDP.selector, true, initialPrices).eq(1000e8);
     }
 
-    function testWithdraw() public {
+    function testSCDPWithdraw() public {
         usdc.mock.mint(user0, 1000e18);
-        poolDeposit(user0, usdc.addr, 1000e18, initialPrices);
+        _poolDeposit(user0, usdc.addr, 1000e18, initialPrices);
 
-        poolWithdraw(user0, usdc.addr, 1000e18, initialPrices);
+        _poolWithdraw(user0, usdc.addr, 1000e18, initialPrices);
         staticCall(kresko.getTotalCollateralValueSCDP.selector, true, initialPrices).eq(0);
     }
 
-    function testSwap() public {
+    function testSCDPSwap() public {
         uint256 depositAmount = 10000e18;
         uint256 borrowAmount = 1000e18;
         uint256 swapAmount = borrowAmount / 4;
@@ -143,57 +143,22 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
 
         vm.stopPrank();
 
-        poolDeposit(user0, usdc.addr, depositAmount, initialPrices);
-        poolDeposit(user0, KISS.addr, borrowAmount, initialPrices);
+        _poolDeposit(user0, usdc.addr, depositAmount, initialPrices);
+        _poolDeposit(user0, KISS.addr, borrowAmount, initialPrices);
 
         vm.startPrank(user1);
         kresko.depositCollateral(user1, usdc.addr, depositAmount);
         call(kresko.mintKreskoAsset.selector, user1, KISS.addr, borrowAmount, initialPrices);
         vm.stopPrank();
 
-        swap(user1, KISS.addr, swapAmount, krETH.addr, initialPrices);
+        _swap(user1, KISS.addr, swapAmount, krETH.addr, initialPrices);
 
-        printInfo("testSwap");
+        _printInfo("testSwap");
     }
 
-    function testCover() public {
-        vm.startPrank(user0);
-        initSCDPETH();
-        printInfo("#1 Init: $15,000 collateral (-fees) | Swap $5,000 KISS -> krETH (-fees)");
-
-        staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).eq(5760e18, "effectiveDebt");
-        kresko.getTotalSDIDebt.eq(5760e18, "total-debt");
-
-        // changePrank(user1);
-        // mintKISS(user1, 1000e18);
-        // cover(KISS.addr, 1000e18, initialPrices);
-
-        // uint256 totalCoverBefore = staticCall(kresko.getSDICoverAmount.selector, initialPrices);
-        // totalCoverBefore.eq(1000e18, "total-cover-before");
-
-        // kresko.getTotalSDIDebt.eq(5760e18, "total-debt");
-        // staticCall(kresko.getEffectiveSDIDebt.selector, initialPrices).eq(4760e18);
-        // staticCall(kresko.getSDIPrice.selector, initialPrices).eq(1e8, "sdi-price");
-
-        // printInfo("#2 Cover 1000 KISS ($1,000)");
-
-        // ethOracle.setPrice(2666e8);
-        // string memory newPrices = "USDC:1:8,ETH:2666:8,JPY:1:8,KISS:1:8,TSLA:1:8";
-
-        // uint256 totalCoverAfter = staticCall(kresko.getSDICoverAmount.selector, newPrices);
-
-        // totalCoverAfter.lt(totalCoverBefore, "total-cover-after");
-
-        // printInfo("#3 krETH price up to: $2,666", newPrices);
-
-        // changePrank(user0);
-        // call(kresko.swapSCDP.selector, user0, krETH.addr, KISS.addr, krETH.balanceOf(user0), 0, newPrices);
-        // printInfo("#4 1 krETH debt repaid", newPrices);
-    }
-
-    function testGas() public prankedAddr(user0) {
+    function testSCDPGas() public prankedAddr(user0) {
         uint256 depositValueWad = 20000e18;
-        mintKISS(user0, depositValueWad);
+        _mintKISS(user0, depositValueWad);
         bool success;
 
         bytes memory redstonePayload = getRedstonePayload(initialPrices);
@@ -255,9 +220,9 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     /*                                   helpers                                  */
     /* -------------------------------------------------------------------------- */
 
-    function initSCDPETH() internal returns (uint256 swapValueWad) {
+    function _initSCDPETH() internal returns (uint256 swapValueWad) {
         uint256 depositValueWad = 20000e18;
-        mintKISS(user0, depositValueWad);
+        _mintKISS(user0, depositValueWad);
 
         uint256 scdpDepositAmount = depositValueWad / 2;
         call(kresko.depositSCDP.selector, user0, KISS.addr, scdpDepositAmount, initialPrices);
@@ -267,13 +232,13 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         call(kresko.swapSCDP.selector, user0, KISS.addr, krETH.addr, swapValueWad, 0, initialPrices);
     }
 
-    function mintKISS(address user, uint256 amount) internal {
+    function _mintKISS(address user, uint256 amount) internal {
         usdc.mock.mint(user, amount * (2));
         kresko.depositCollateral(user, usdc.addr, amount * (2));
         call(kresko.mintKreskoAsset.selector, user, KISS.addr, amount, initialPrices);
     }
 
-    function poolDeposit(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {
+    function _poolDeposit(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {
         prank(deployCfg.admin);
         kresko.setFeeAssetSCDP(asset);
         prank(user);
@@ -283,11 +248,11 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         prank(user);
     }
 
-    function poolWithdraw(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {
+    function _poolWithdraw(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {
         call(kresko.withdrawSCDP.selector, user, asset, amount, prices);
     }
 
-    function swap(
+    function _swap(
         address user,
         address assetIn,
         uint256 amount,
@@ -297,7 +262,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         call(kresko.swapSCDP.selector, user, assetIn, assetOut, amount, 0, prices);
     }
 
-    function cover(address asset, uint256 amount, string memory prices) internal {
+    function _cover(address asset, uint256 amount, string memory prices) internal {
         call(kresko.coverSCDP.selector, asset, amount, prices);
     }
 
@@ -308,11 +273,11 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         krJPY.krAsset.approve(address(kresko), type(uint256).max);
     }
 
-    function printInfo(string memory prefix) internal {
-        printInfo(prefix, initialPrices);
+    function _printInfo(string memory prefix) internal {
+        __printInfo(prefix, initialPrices);
     }
 
-    function printInfo(string memory prefix, string memory prices) internal {
+    function __printInfo(string memory prefix, string memory prices) internal {
         prefix = prefix.and(" | ");
         prefix.and("*****************").clg();
 

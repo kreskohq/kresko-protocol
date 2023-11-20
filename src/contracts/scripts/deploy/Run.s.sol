@@ -46,6 +46,32 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
         // handle things depending on assets existing
         super.configureSwap(kreskoAddr, assets_);
     }
+
+    function writeDeploymentJSON() internal {
+        string memory obj = "deployment";
+        vm.serializeString(obj, "EMPTY", "0xEMPTY");
+        vm.serializeAddress(obj, "KISS", address(state().kiss));
+        vm.serializeAddress(obj, "USDC", address(USDC));
+        vm.serializeAddress(obj, "USDCe", address(USDCe));
+        vm.serializeAddress(obj, "ETH", 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+        vm.serializeAddress(obj, "WETH", address(WETH));
+        vm.serializeAddress(obj, "WBTC", address(WBTC));
+        vm.serializeAddress(obj, "USDT", address(USDT));
+        vm.serializeAddress(obj, "DAI", address(DAI));
+        vm.serializeAddress(obj, "krETH", krETH.addr);
+        vm.serializeAddress(obj, "krBTC", krBTC.addr);
+        vm.serializeAddress(obj, "krEUR", krEUR.addr);
+        vm.serializeAddress(obj, "krJPY", krJPY.addr);
+        vm.serializeAddress(obj, "krWTI", krWTI.addr);
+        vm.serializeAddress(obj, "krXAU", krXAU.addr);
+        vm.serializeAddress(obj, "Vault", address(state().vault));
+        vm.serializeAddress(obj, "UniswapRouter", address(0));
+        vm.serializeAddress(obj, "DataV1", address(state().dataProvider));
+        vm.serializeAddress(obj, "Kresko", address(state().kresko));
+        vm.serializeAddress(obj, "Multicall", address(state().multicall));
+        string memory output = vm.serializeAddress(obj, "Factory", address(state().factory));
+        vm.writeJson(output, "./out/arbitrum.json");
+    }
 }
 
 contract Local is LocalDeployment("MNEMONIC_DEVNET") {
@@ -96,6 +122,7 @@ contract Local is LocalDeployment("MNEMONIC_DEVNET") {
         vm.serializeString(obj, "EMPTY", "0xEMPTY");
         vm.serializeAddress(obj, "KISS", address(state().kiss));
         vm.serializeAddress(obj, "USDC", address(USDC));
+        vm.serializeAddress(obj, "USDCe", address(USDCe));
         vm.serializeAddress(obj, "ETH", 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
         vm.serializeAddress(obj, "WETH", address(WETH));
         vm.serializeAddress(obj, "WBTC", address(WBTC));
@@ -105,12 +132,14 @@ contract Local is LocalDeployment("MNEMONIC_DEVNET") {
         vm.serializeAddress(obj, "krBTC", krBTC.addr);
         vm.serializeAddress(obj, "krEUR", krEUR.addr);
         vm.serializeAddress(obj, "krJPY", krJPY.addr);
+        vm.serializeAddress(obj, "krWTI", krWTI.addr);
+        vm.serializeAddress(obj, "krXAU", krXAU.addr);
         vm.serializeAddress(obj, "Vault", address(state().vault));
         vm.serializeAddress(obj, "UniswapRouter", address(0));
         vm.serializeAddress(obj, "DataV1", address(state().dataProvider));
         vm.serializeAddress(obj, "Kresko", address(state().kresko));
         vm.serializeAddress(obj, "Multicall", address(state().multicall));
         string memory output = vm.serializeAddress(obj, "Factory", address(state().factory));
-        vm.writeJson(output, "./out/local-deployment.json");
+        vm.writeJson(output, "./out/local.json");
     }
 }
