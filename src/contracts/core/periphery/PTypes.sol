@@ -78,6 +78,8 @@ library PType {
         uint32 MCR;
         uint32 LT;
         uint32 MLR;
+        uint48 coverThreshold;
+        uint48 coverIncentive;
         STotals totals;
         SDeposit[] deposits;
         PAssetEntry[] debts;

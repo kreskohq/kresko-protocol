@@ -8,7 +8,7 @@ import {PType} from "periphery/PTypes.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
 import {Asset, RawPrice} from "common/Types.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {pushPrice} from "common/funcs/Prices.sol";
+import {pushPrice, SDIPrice} from "common/funcs/Prices.sol";
 import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {ms} from "minter/MState.sol";
@@ -112,6 +112,8 @@ library PFunc {
         result.LT = scdp().liquidationThreshold;
         result.MCR = scdp().minCollateralRatio;
         result.MLR = scdp().maxLiquidationRatio;
+        result.coverIncentive = sdi().coverIncentive;
+        result.coverThreshold = sdi().coverThreshold;
 
         (result.totals, result.deposits) = getSData();
         result.debts = getSDebts();
@@ -153,6 +155,7 @@ library PFunc {
             totals.valCollAdj += data.valCollAdj;
             totals.valDebtOg += data.valDebt;
             totals.valDebtOgAdj += data.valDebtAdj;
+            totals.sdiPrice = SDIPrice();
             results[i] = PType.SDeposit({
                 addr: assetAddr,
                 liqIndex: scdp().assetIndexes[assetAddr].currLiqIndex,
