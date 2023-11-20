@@ -23,7 +23,6 @@ library PFunc {
     using PercentageMath for *;
     using WadRay for uint256;
     using Arrays for address[];
-    uint256 internal constant MAX_CR = 9999999999999999999;
 
     function find(address[] memory _elements, address _elementToFind) internal pure returns (bool found) {
         for (uint256 i; i < _elements.length; ) {
@@ -114,8 +113,8 @@ library PFunc {
         result.LT = scdp().liquidationThreshold;
         result.MCR = scdp().minCollateralRatio;
         result.MLR = scdp().maxLiquidationRatio;
-        result.coverIncentive = uint32(sdi().coverIncentive);
-        result.coverThreshold = uint32(sdi().coverThreshold);
+        // result.coverIncentive = uint32(sdi().coverIncentive);
+        // result.coverThreshold = uint32(sdi().coverThreshold);
 
         (result.totals, result.deposits) = getSData();
         result.debts = getSDebts();
@@ -180,9 +179,9 @@ library PFunc {
             totals.crOg = 0;
             totals.crOgAdj = 0;
         } else if (totals.valDebt == 0) {
-            totals.cr = MAX_CR;
-            totals.crOg = MAX_CR;
-            totals.crOgAdj = MAX_CR;
+            totals.cr = type(uint256).max;
+            totals.crOg = type(uint256).max;
+            totals.crOgAdj = type(uint256).max;
         } else {
             totals.cr = totals.valColl.percentDiv(totals.valDebt);
             totals.crOg = totals.valColl.percentDiv(totals.valDebtOg);
@@ -368,7 +367,7 @@ library PFunc {
         if (result.totals.valColl == 0) {
             result.totals.cr = 0;
         } else if (result.totals.valDebt == 0) {
-            result.totals.cr = MAX_CR;
+            result.totals.cr = type(uint256).max;
         } else {
             result.totals.cr = result.totals.valColl.percentDiv(result.totals.valDebt);
         }
