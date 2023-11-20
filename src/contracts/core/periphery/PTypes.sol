@@ -43,7 +43,7 @@ library PType {
         uint256 sequencerGracePeriodTime;
         uint256 staleTime;
         uint256 maxPriceDeviationPct;
-        uint256 oracleDecimals;
+        uint8 oracleDecimals;
         uint256 sequencerStartedAt;
         bool safetyStateSet;
         bool isSequencerUp;
@@ -65,7 +65,7 @@ library PType {
         string symbol;
         uint256 amount;
         uint256 val;
-        uint256 decimals;
+        uint8 decimals;
     }
 
     struct Minter {
