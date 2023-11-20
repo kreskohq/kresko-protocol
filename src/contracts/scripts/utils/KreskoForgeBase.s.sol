@@ -47,6 +47,8 @@ abstract contract KreskoForgeBase is
     uint256 internal constant INITIALIZER_COUNT = 3;
     address internal constant TEST_ADMIN = address(0xABABAB);
     address public constant TEST_TREASURY = address(0xFEE);
+    uint256 internal constant SYNTH_WRAP_FEE_IN = 20e2;
+    uint256 internal constant SYNTH_WRAP_FEE_OUT = 50e2;
 
     CoreConfig internal deployCfg;
     IKresko internal kresko;

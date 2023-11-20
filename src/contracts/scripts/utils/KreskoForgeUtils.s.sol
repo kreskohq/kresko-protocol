@@ -311,7 +311,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
 
         bytes memory KR_ASSET_INITIALIZER = abi.encodeCall(
             KreskoAsset.initialize,
-            (name, symbol, 18, admin, address(kresko), underlyingAddr, treasury, 0, 0)
+            (name, symbol, 18, admin, address(kresko), underlyingAddr, treasury, SYNTH_WRAP_FEE_IN, SYNTH_WRAP_FEE_OUT)
         );
         (address predictedAddress, ) = factory.previewCreate2ProxyAndLogic(KR_ASSET_IMPL, KR_ASSET_INITIALIZER, krAssetSalt);
 
