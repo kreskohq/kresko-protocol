@@ -23,6 +23,7 @@ library PFunc {
     using PercentageMath for *;
     using WadRay for uint256;
     using Arrays for address[];
+    uint256 internal constant MAX_CR = 9999999999999999999;
 
     function find(address[] memory _elements, address _elementToFind) internal pure returns (bool found) {
         for (uint256 i; i < _elements.length; ) {
@@ -179,9 +180,9 @@ library PFunc {
             totals.crOg = 0;
             totals.crOgAdj = 0;
         } else if (totals.valDebt == 0) {
-            totals.cr = type(uint256).max;
-            totals.crOg = type(uint256).max;
-            totals.crOgAdj = type(uint256).max;
+            totals.cr = MAX_CR;
+            totals.crOg = MAX_CR;
+            totals.crOgAdj = MAX_CR;
         } else {
             totals.cr = totals.valColl.percentDiv(totals.valDebt);
             totals.crOg = totals.valColl.percentDiv(totals.valDebtOg);
@@ -367,7 +368,7 @@ library PFunc {
         if (result.totals.valColl == 0) {
             result.totals.cr = 0;
         } else if (result.totals.valDebt == 0) {
-            result.totals.cr = type(uint256).max;
+            result.totals.cr = MAX_CR;
         } else {
             result.totals.cr = result.totals.valColl.percentDiv(result.totals.valDebt);
         }
