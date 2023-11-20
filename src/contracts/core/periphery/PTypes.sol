@@ -7,7 +7,6 @@ import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 
 library PType {
     struct AssetData {
-        Asset config;
         uint256 amountColl;
         address addr;
         string symbol;
@@ -20,6 +19,7 @@ library PType {
         uint256 valDebtAdj;
         uint256 amountSwapDeposit;
         uint256 price;
+        Asset config;
     }
 
     struct STotals {
@@ -36,10 +36,6 @@ library PType {
     }
 
     struct Protocol {
-        Gate gate;
-        PAsset[] assets;
-        Minter minter;
-        SCDP scdp;
         uint256 sequencerGracePeriodTime;
         uint32 staleTime;
         uint16 maxPriceDeviationPct;
@@ -49,6 +45,10 @@ library PType {
         bool isSequencerUp;
         bool safetyStateSet;
         uint256 blockNr;
+        Gate gate;
+        PAsset[] assets;
+        Minter minter;
+        SCDP scdp;
     }
 
     struct Account {
@@ -76,14 +76,14 @@ library PType {
     }
 
     struct SCDP {
+        uint32 MCR;
+        uint32 LT;
+        uint32 MLR;
         SDeposit[] deposits;
         PAssetEntry[] debts;
         STotals totals;
         // uint256 coverIncentive;
         // uint32 coverThreshold;
-        uint32 MCR;
-        uint32 LT;
-        uint32 MLR;
     }
 
     struct Gate {
@@ -99,7 +99,6 @@ library PType {
     }
 
     struct PAsset {
-        Asset config;
         uint256 tSupply;
         IKreskoAsset.Wrapping synthwrap;
         RawPrice priceRaw;
@@ -108,6 +107,7 @@ library PType {
         string name;
         string symbol;
         uint256 price;
+        Asset config;
     }
 
     struct MAccount {
@@ -134,7 +134,6 @@ library PType {
     }
 
     struct SDeposit {
-        Asset config;
         uint256 amount;
         address addr;
         string symbol;
@@ -146,18 +145,19 @@ library PType {
         uint128 feeIndex;
         uint128 liqIndex;
         uint256 price;
+        Asset config;
     }
 
     struct SDepositUser {
-        Asset config;
         uint256 amount;
         address addr;
         string symbol;
         uint256 amountFees;
         uint256 val;
-        uint256 valFees;
         uint128 feeIndex;
         uint128 liqIndex;
+        uint256 valFees;
+        Asset config;
         uint256 price;
     }
 
