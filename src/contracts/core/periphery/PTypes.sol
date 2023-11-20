@@ -40,14 +40,14 @@ library PType {
         Gate gate;
         Minter minter;
         PAsset[] assets;
-        uint256 sequencerGracePeriodTime;
-        uint256 staleTime;
-        uint256 maxPriceDeviationPct;
+        uint32 sequencerGracePeriodTime;
+        uint32 staleTime;
+        uint32 maxPriceDeviationPct;
         uint8 oracleDecimals;
-        uint256 sequencerStartedAt;
+        uint32 sequencerStartedAt;
         bool safetyStateSet;
         bool isSequencerUp;
-        uint256 timestamp;
+        uint32 timestamp;
         uint256 blockNr;
     }
 
