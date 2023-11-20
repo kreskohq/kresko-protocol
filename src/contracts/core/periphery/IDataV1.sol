@@ -7,24 +7,24 @@ import {VaultAsset} from "vault/VTypes.sol";
 interface IDataV1 {
     struct DVAsset {
         address addr;
-        bool isMarketOpen;
-        uint8 oracleDecimals;
         string name;
         string symbol;
+        uint8 oracleDecimals;
         uint256 vSupply;
+        bool isMarketOpen;
         uint256 tSupply;
-        uint256 price;
         RawPrice priceRaw;
         VaultAsset config;
+        uint256 price;
     }
 
     struct DVToken {
         string symbol;
+        uint8 decimals;
         string name;
         uint256 price;
-        uint256 tSupply;
         uint8 oracleDecimals;
-        uint8 decimals;
+        uint256 tSupply;
     }
 
     struct DVault {
@@ -54,12 +54,12 @@ interface IDataV1 {
 
     struct DVTokenBalance {
         address addr;
-        uint8 oracleDecimals;
-        uint8 decimals;
         string name;
         string symbol;
         uint256 amount;
+        uint8 oracleDecimals;
         uint256 val;
+        uint8 decimals;
         uint256 price;
     }
 
