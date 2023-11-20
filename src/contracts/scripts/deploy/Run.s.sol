@@ -59,7 +59,7 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
         vm.serializeString(obj, "EMPTY", "0xEMPTY");
         vm.serializeAddress(obj, "KISS", address(state().kiss));
         vm.serializeAddress(obj, "USDC", address(USDC));
-        vm.serializeAddress(obj, "USDCe", address(USDCe));
+        vm.serializeAddress(obj, "USDC.e", address(USDCe));
         vm.serializeAddress(obj, "ETH", 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
         vm.serializeAddress(obj, "WETH", address(WETH));
         vm.serializeAddress(obj, "WBTC", address(WBTC));
@@ -134,7 +134,7 @@ contract Local is LocalDeployment("MNEMONIC_DEVNET") {
         vm.serializeString(obj, "EMPTY", "0xEMPTY");
         vm.serializeAddress(obj, "KISS", address(state().kiss));
         vm.serializeAddress(obj, "USDC", address(USDC));
-        vm.serializeAddress(obj, "USDCe", address(USDCe));
+        vm.serializeAddress(obj, "USDC.e", address(USDCe));
         vm.serializeAddress(obj, "ETH", 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
         vm.serializeAddress(obj, "WETH", address(WETH));
         vm.serializeAddress(obj, "WBTC", address(WBTC));
