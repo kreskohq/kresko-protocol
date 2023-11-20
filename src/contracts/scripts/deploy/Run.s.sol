@@ -5,6 +5,7 @@ pragma solidity ^0.8.19;
 import {ArbitrumDeployment} from "./network/Arbitrum.s.sol";
 import {LocalDeployment} from "./network/Local.s.sol";
 import {state} from "./base/DeployState.s.sol";
+import {stdJson} from "forge-std/StdJson.sol";
 
 contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
     uint32[USER_COUNT] testUsers = [0, 1, 2, 3, 4, 5];
