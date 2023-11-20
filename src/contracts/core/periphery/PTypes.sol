@@ -69,21 +69,21 @@ library PType {
     }
 
     struct Minter {
-        uint256 MCR;
-        uint256 LT;
-        uint256 MLR;
+        uint32 MCR;
+        uint32 LT;
+        uint32 MLR;
         uint256 minDebtValue;
     }
 
     struct SCDP {
-        uint256 MCR;
-        uint256 LT;
-        uint256 MLR;
+        uint32 MCR;
+        uint32 LT;
+        uint32 MLR;
         SDeposit[] deposits;
         PAssetEntry[] debts;
         STotals totals;
-        uint128 coverIncentive;
-        uint128 coverThreshold;
+        uint32 coverIncentive;
+        uint32 coverThreshold;
     }
 
     struct Gate {
