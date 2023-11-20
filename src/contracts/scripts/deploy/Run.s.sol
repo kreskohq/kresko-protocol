@@ -6,6 +6,8 @@ import {ArbitrumDeployment} from "./network/Arbitrum.s.sol";
 import {LocalDeployment} from "./network/Local.s.sol";
 import {state} from "./base/DeployState.s.sol";
 import {stdJson} from "forge-std/StdJson.sol";
+import {Addr} from "kresko-lib/info/Arbitrum.sol";
+import {console2} from "forge-std/console2.sol";
 
 contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
     uint32[USER_COUNT] testUsers = [0, 1, 2, 3, 4, 5];
@@ -21,6 +23,8 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
         UserCfg[] memory userCfg = super.createUserConfig(testUsers);
         AssetsOnChain memory assets = deploy(deployer, admin, treasury);
         super.setupUsers(userCfg, assets);
+        super.afterComplete();
+        writeDeploymentJSON();
     }
 
     function deploy(
@@ -45,6 +49,9 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
 
         // handle things depending on assets existing
         super.configureSwap(kreskoAddr, assets_);
+
+        // deploy periphery contracts
+        super.deployPeriphery();
     }
 
     function writeDeploymentJSON() internal {
@@ -65,12 +72,13 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
         vm.serializeAddress(obj, "krWTI", krWTI.addr);
         vm.serializeAddress(obj, "krXAU", krXAU.addr);
         vm.serializeAddress(obj, "Vault", address(state().vault));
-        vm.serializeAddress(obj, "UniswapRouter", address(0));
+        vm.serializeAddress(obj, "UniswapRouter", Addr.V3_Router02);
         vm.serializeAddress(obj, "DataV1", address(state().dataProvider));
         vm.serializeAddress(obj, "Kresko", address(state().kresko));
         vm.serializeAddress(obj, "Multicall", address(state().multicall));
         string memory output = vm.serializeAddress(obj, "Factory", address(state().factory));
         vm.writeJson(output, "./out/arbitrum.json");
+        console2.log("Deployment JSON written to: ./out/arbitrum.json");
     }
 }
 
@@ -89,6 +97,9 @@ contract Local is LocalDeployment("MNEMONIC_DEVNET") {
         AssetsOnChain memory assets = deploy(deployer, admin, treasury);
 
         setupUsers(userCfg, assets);
+
+        super.afterComplete();
+        writeDeploymentJSON();
     }
 
     function deploy(
@@ -114,7 +125,8 @@ contract Local is LocalDeployment("MNEMONIC_DEVNET") {
         // handle things depending on assets existing
         super.configureSwap(kreskoAddr, assets_);
 
-        writeDeploymentJSON();
+        // deploy periphery contracts
+        super.deployPeriphery();
     }
 
     function writeDeploymentJSON() internal {
@@ -141,5 +153,6 @@ contract Local is LocalDeployment("MNEMONIC_DEVNET") {
         vm.serializeAddress(obj, "Multicall", address(state().multicall));
         string memory output = vm.serializeAddress(obj, "Factory", address(state().factory));
         vm.writeJson(output, "./out/local.json");
+        console2.log("Deployment JSON written to: ./out/local.json");
     }
 }

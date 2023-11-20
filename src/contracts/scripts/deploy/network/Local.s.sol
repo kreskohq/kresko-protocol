@@ -19,7 +19,11 @@ import {state} from "scripts/deploy/base/DeployState.s.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
 import {DeployLogicBase} from "scripts/deploy/base/DeployLogic.s.sol";
-import {console2} from "forge-std/console2.sol";
+
+import {DataV1} from "periphery/DataV1.sol";
+import {KrMulticall} from "periphery/KrMulticall.sol";
+import {Role} from "common/Constants.sol";
+import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 
 using Help for string;
 
@@ -478,8 +482,12 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
                 }
             }
         }
+    }
 
-        super.afterComplete();
+    function deployPeriphery() internal {
+        state().dataProvider = new DataV1(IDataFacet(state().kresko), address(state().vault), address(state().kiss));
+        state().multicall = new KrMulticall(address(state().kresko), address(state().kiss), address(address(0)));
+        state().kresko.grantRole(Role.MANAGER, address(state().multicall));
     }
 
     function createMinterUser(address _account) private {

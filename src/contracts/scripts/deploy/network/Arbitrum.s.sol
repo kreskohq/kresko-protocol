@@ -13,6 +13,10 @@ import {SwapRouteSetter} from "scdp/STypes.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
 import {DeployLogicBase} from "scripts/deploy/base/DeployLogic.s.sol";
 import {state} from "scripts/deploy/base/DeployState.s.sol";
+import {DataV1} from "periphery/DataV1.sol";
+import {KrMulticall} from "periphery/KrMulticall.sol";
+import {Role} from "common/Constants.sol";
+import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 
 abstract contract ArbitrumDeployConfig is ScriptBase, DeployLogicBase {
     using Help for *;
@@ -351,7 +355,7 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
             minterLt: 140e2,
             coverThreshold: 160e2,
             coverIncentive: 1.01e4,
-            scdpMcr: 200e2,
+            scdpMcr: 250e2,
             scdpLt: 150e2,
             sdiPrecision: 8,
             oraclePrecision: 8,
@@ -388,6 +392,12 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
         facet.setSwapRoutesSCDP(routing);
         facet.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: krJPY.addr, assetOut: kissAddr, enabled: true})); //
         super.configureSwap(_kreskoAddr, _assetsOnChain);
+    }
+
+    function deployPeriphery() internal {
+        state().dataProvider = new DataV1(IDataFacet(state().kresko), address(state().vault), address(state().kiss));
+        state().multicall = new KrMulticall(address(state().kresko), address(state().kiss), address(address(0)));
+        state().kresko.grantRole(Role.MANAGER, address(state().multicall));
     }
 
     function setupUsers(UserCfg[] memory _userCfg, AssetsOnChain memory _results) internal override {}

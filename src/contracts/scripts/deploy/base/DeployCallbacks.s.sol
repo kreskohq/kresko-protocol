@@ -84,9 +84,6 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
     }
 
     function onKISSCreated(State storage _ctx, KISSInfo memory) internal override {
-        _ctx.dataProvider = new DataV1(IDataFacet(_ctx.kresko), address(_ctx.vault), address(_ctx.kiss));
-        _ctx.multicall = new KrMulticall(address(_ctx.kresko), address(_ctx.kiss), address(address(0)));
-        _ctx.kresko.grantRole(Role.MANAGER, address(_ctx.multicall));
         if (!state().logEnabled) return;
 
         Log.br();
@@ -98,7 +95,6 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         address(_ctx.kiss).clg("KISS");
         address(_ctx.factory).clg("Deployment Factory");
         address(_ctx.dataProvider).clg("Data provider");
-        address(_ctx.multicall).clg("Multicall");
     }
 
     function onKrAssetAdded(State storage _ctx, KrAssetInfo memory _info) internal override {
