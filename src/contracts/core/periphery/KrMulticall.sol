@@ -218,17 +218,17 @@ contract KrMulticall {
             return
                 kresko.call(
                     abi.encodePacked(
-                        abi.encodeCall(ISCDPFacet.withdrawSCDP, (msg.sender, _op.data.tokenOut, _op.data.amountOut)),
+                        abi.encodeCall(
+                            ISCDPFacet.withdrawSCDP,
+                            (msg.sender, _op.data.tokenOut, _op.data.amountOut, msg.sender)
+                        ),
                         rsPayload
                     )
                 );
         } else if (_op.action == OpAction.SCDPClaim) {
             return
                 kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(ISCDPFacet.withdrawSCDP, (msg.sender, _op.data.tokenOut, _op.data.amountOut)),
-                        rsPayload
-                    )
+                    abi.encodePacked(abi.encodeCall(ISCDPFacet.claimFeesSCDP, (msg.sender, _op.data.tokenOut)), rsPayload)
                 );
         } else if (_op.action == OpAction.SynthWrap) {
             IKreskoAsset(_op.data.tokenOut).wrap(msg.sender, _op.data.amountIn);

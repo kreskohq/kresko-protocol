@@ -33,14 +33,19 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         // Record the collateral deposit.
         scdp().handleDepositSCDP(cs().onlyFeeAccumulatingCollateral(_collateralAsset), _account, _collateralAsset, _amount);
 
-        emit SEvent.SCDPDeposit(_account, _collateralAsset, _amount);
+        emit SEvent.SCDPDeposit(_account, _collateralAsset, _amount, block.timestamp);
     }
 
     /// @inheritdoc ISCDPFacet
-    function withdrawSCDP(address _receiver, address _collateralAsset, uint256 _amount) external nonReentrant gate {
+    function withdrawSCDP(
+        address _account,
+        address _collateralAsset,
+        uint256 _amount,
+        address _receiver
+    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) nonReentrant gate {
         SCDPState storage s = scdp();
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
-        s.handleWithdrawSCDP(cs().onlyActiveSharedCollateral(_collateralAsset), msg.sender, _collateralAsset, _amount);
+        s.handleWithdrawSCDP(cs().onlyActiveSharedCollateral(_collateralAsset), _account, _collateralAsset, _amount);
 
         // ensure that global pool is left with CR over MCR.
         s.ensureCollateralRatio(s.minCollateralRatio);
@@ -49,7 +54,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         IERC20(_collateralAsset).safeTransfer(_receiver, _amount);
 
         // Emit event.
-        emit SEvent.SCDPWithdraw(_receiver, msg.sender, _collateralAsset, _amount);
+        emit SEvent.SCDPWithdraw(_account, _receiver, _collateralAsset, msg.sender, _amount, block.timestamp);
     }
 
     /// @inheritdoc ISCDPFacet
@@ -99,7 +104,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
 
         IERC20(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
         // solhint-disable-next-line avoid-tx-origin
-        emit SEvent.SCDPRepay(tx.origin, _repayAssetAddr, _repayAmount, _seizeAssetAddr, seizedAmount);
+        emit SEvent.SCDPRepay(tx.origin, _repayAssetAddr, _repayAmount, _seizeAssetAddr, seizedAmount, block.timestamp);
     }
 
     function getLiquidatableSCDP() external view returns (bool) {
@@ -170,7 +175,8 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
             _repayAssetAddr,
             _repayAmount,
             _seizeAssetAddr,
-            seizedAmount
+            seizedAmount,
+            block.timestamp
         );
     }
 

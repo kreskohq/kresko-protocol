@@ -81,7 +81,8 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
             _amountIn,
             _assetOutAddr == scdp().feeAsset
                 ? _swapFeeAssetOut(receiver, _assetInAddr, assetIn, _amountIn, _amountOutMin)
-                : _swap(receiver, _assetInAddr, assetIn, _assetOutAddr, _amountIn, _amountOutMin)
+                : _swap(receiver, _assetInAddr, assetIn, _assetOutAddr, _amountIn, _amountOutMin),
+            block.timestamp
         );
     }
 
@@ -247,7 +248,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
             feeToken.safeTransfer(cs().feeRecipient, protocolFeeToSend);
         }
 
-        emit SEvent.SwapFee(_feeAssetAddress, _payAssetAddress, _feeAmount, protocolFeeTaken);
+        emit SEvent.SwapFee(_feeAssetAddress, _payAssetAddress, _feeAmount, protocolFeeTaken, block.timestamp);
     }
 }
 

@@ -313,8 +313,8 @@ describe('SCDP', async function () {
         f.usersArr.map(async user => {
           const UserKresko = wrapKresko(hre.Diamond, user)
           return Promise.all([
-            UserKresko.withdrawSCDP(user.address, f.Collateral.address, depositAmount18Dec),
-            UserKresko.withdrawSCDP(user.address, f.Collateral8Dec.address, depositAmount8Dec),
+            UserKresko.withdrawSCDP(user.address, f.Collateral.address, depositAmount18Dec, user.address),
+            UserKresko.withdrawSCDP(user.address, f.Collateral8Dec.address, depositAmount8Dec, user.address),
           ])
         }),
       )
@@ -370,8 +370,8 @@ describe('SCDP', async function () {
         f.usersArr.map(user => {
           const UserKresko = wrapKresko(hre.Diamond, user)
           return Promise.all([
-            UserKresko.withdrawSCDP(user.address, f.Collateral.address, partialWithdraw),
-            UserKresko.withdrawSCDP(user.address, f.Collateral8Dec.address, partialWithdraw8Dec),
+            UserKresko.withdrawSCDP(user.address, f.Collateral.address, partialWithdraw, user.address),
+            UserKresko.withdrawSCDP(user.address, f.Collateral8Dec.address, partialWithdraw8Dec, user.address),
           ])
         }),
       )
@@ -467,7 +467,12 @@ describe('SCDP', async function () {
       // withdraw principal
       await Promise.all(
         f.usersArr.map(signer =>
-          wrapKresko(hre.Diamond, signer).withdrawSCDP(signer.address, f.Collateral.address, depositAmount18Dec),
+          wrapKresko(hre.Diamond, signer).withdrawSCDP(
+            signer.address,
+            f.Collateral.address,
+            depositAmount18Dec,
+            signer.address,
+          ),
         ),
       )
 
@@ -842,6 +847,7 @@ describe('SCDP', async function () {
         f.depositor.address,
         f.KISS.address,
         toBig(10000), // $10k f.KISS
+        f.depositor.address,
       )
 
       const [depositsAfterWithdraw, feesAfterWithdraw] = await Promise.all([
@@ -986,8 +992,14 @@ describe('SCDP', async function () {
       await f.KreskoDepositor.depositSCDP(f.depositor.address, f.Collateral.address, depositAmount18Dec.mul(10))
       const stats = await hre.Diamond.getDataSCDP()
       expect(stats.totals.cr).to.gt(params.minCollateralRatio)
-      await expect(f.KreskoDepositor.withdrawSCDP(f.depositor.address, f.Collateral8Dec.address, expectedDepositsAfter))
-        .to.not.be.reverted
+      await expect(
+        f.KreskoDepositor.withdrawSCDP(
+          f.depositor.address,
+          f.Collateral8Dec.address,
+          expectedDepositsAfter,
+          f.depositor.address,
+        ),
+      ).to.not.be.reverted
       const [principalEnd, feesAfter] = await Promise.all([
         hre.Diamond.getAccountDepositSCDP(f.depositor.address, f.Collateral8Dec.address),
         hre.Diamond.getAccountFeesSCDP(f.depositor.address, f.Collateral8Dec.address),
@@ -1025,7 +1037,9 @@ describe('SCDP', async function () {
       const withdrawAmount = 1
       const principalDeposits = 0
       const scaledDeposits = 0
-      await expect(f.KreskoSwapper.withdrawSCDP(f.depositor.address, f.Collateral.address, withdrawAmount))
+      await expect(
+        f.KreskoSwapper.withdrawSCDP(f.swapper.address, f.Collateral.address, withdrawAmount, f.swapper.address),
+      )
         .to.be.revertedWithCustomError(Errors(hre), 'NOTHING_TO_WITHDRAW')
         .withArgs(f.swapper.address, f.Collateral.errorId, withdrawAmount, principalDeposits, scaledDeposits)
     })
@@ -1034,7 +1048,9 @@ describe('SCDP', async function () {
       const swapAmount = toBig(1000) // $1000
       await f.KreskoSwapper.swapSCDP(f.swapper.address, f.KISS.address, f.KrAsset2.address, swapAmount, 0) // generates the debt
       const deposits = await f.KreskoSwapper.getAccountDepositSCDP(f.depositor.address, f.Collateral.address)
-      await expect(f.KreskoDepositor.withdrawSCDP(f.depositor.address, f.Collateral.address, deposits))
+      await expect(
+        f.KreskoDepositor.withdrawSCDP(f.depositor.address, f.Collateral.address, deposits, f.depositor.address),
+      )
         .to.be.revertedWithCustomError(Errors(hre), 'COLLATERAL_VALUE_LESS_THAN_REQUIRED')
         .withArgs(960e8, 4800e8, 5e4)
     })
@@ -1046,7 +1062,7 @@ describe('SCDP', async function () {
       await f.KreskoSwapper.swapSCDP(f.swapper.address, f.KrAsset2.address, f.KISS.address, swapAmount, 0)
       const deposits = await f.KreskoSwapper.getSwapDepositsSCDP(f.KrAsset2.address)
       expect(deposits).to.be.gt(0)
-      await expect(f.KreskoSwapper.withdrawSCDP(f.swapper.address, f.KrAsset2.address, deposits))
+      await expect(f.KreskoSwapper.withdrawSCDP(f.swapper.address, f.KrAsset2.address, deposits, f.depositor.address))
         .to.be.revertedWithCustomError(Errors(hre), 'ASSET_DOES_NOT_HAVE_DEPOSITS')
         .withArgs(f.KrAsset2.errorId)
     })

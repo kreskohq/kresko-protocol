@@ -13,11 +13,12 @@ interface ISCDPFacet {
 
     /**
      * @notice Withdraw collateral for account from the collateral pool.
-     * @param _account The account to withdraw for.
+     * @param _account The account to withdraw from.
      * @param _collateralAsset The collateral asset to withdraw.
      * @param _amount The amount to withdraw.
+     * @param _receiver The receiver of assets.
      */
-    function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount) external;
+    function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount, address _receiver) external;
 
     /**
      * @notice Withdraws any pending fees for an account.

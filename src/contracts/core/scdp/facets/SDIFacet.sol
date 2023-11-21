@@ -105,7 +105,8 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
             _assetAddr,
             _coverAmount,
             _seizeAssetAddr,
-            seizedAmount
+            seizedAmount,
+            block.timestamp
         );
     }
 

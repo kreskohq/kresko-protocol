@@ -180,11 +180,11 @@ contract AuditTest is Local {
         kiss.balanceOf(userOther).eq(0, "bal-not-zero-after-deposit");
 
         uint256 withdrawAmount = amount / 2;
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, userOther, rsPrices);
         kiss.balanceOf(userOther).eq(withdrawAmount, "bal-not-initial-after-withdraw");
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(withdrawAmount, "deposit-not-amount");
 
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, userOther, rsPrices);
         kiss.balanceOf(userOther).eq(amount, "bal-not-initial-after-withdraw");
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(0, "deposit-not-amount");
     }
@@ -205,11 +205,11 @@ contract AuditTest is Local {
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(amount, "deposit-not-amount");
         kiss.balanceOf(userOther).eq(0, "bal-not-zero-after-deposit");
 
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), amount, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), amount, userOther, rsPrices);
         kiss.balanceOf(userOther).eq(amount, "bal-not-initial-after-withdraw");
 
         vm.expectRevert();
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), 1, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), 1, userOther, rsPrices);
 
         kresko.depositSCDP(userOther, address(kiss), amount);
 
@@ -223,9 +223,9 @@ contract AuditTest is Local {
         deposits.dlg("deposits");
 
         vm.expectRevert();
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), amount, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), amount, userOther, rsPrices);
 
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), deposits, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), deposits, userOther, rsPrices);
         kiss.balanceOf(userOther).eq(deposits, "bal-not-deposits-after-withdraw");
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(0, "deposit-not-zero-after-withdarw");
     }
@@ -255,13 +255,13 @@ contract AuditTest is Local {
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-not-zero-after-claim");
 
         uint256 withdrawAmount = amount / 2;
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, userOther, rsPrices);
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(withdrawAmount, "deposit-should-be-half-after-withdraw");
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-not-zero-after-withdraw");
 
         kiss.balanceOf(userOther).eq(feesClaimed + withdrawAmount, "bal-not-zero-after-withdraw");
 
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, userOther, rsPrices);
         kiss.balanceOf(userOther).closeTo(feesClaimed + amount, 1);
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(0, "deposit-should-be-zero-in-the-end");
     }
@@ -314,7 +314,7 @@ contract AuditTest is Local {
         uint256 feeAmount = kresko.getAccountFeesSCDP(userOther, address(kiss));
         feeAmount.gt(0, "no-fees");
 
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), amount, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), amount, userOther, rsPrices);
         kiss.balanceOf(userOther).eq(feeAmount + amount, "bal-not-zero");
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-not-zero-after-claim");
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(0, "deposit-not-zero-after-withdraw");
@@ -354,13 +354,13 @@ contract AuditTest is Local {
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-not-zero-after-claim");
 
         uint256 withdrawAmount = depositsBeforeClaim / 2;
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, userOther, rsPrices);
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(withdrawAmount, "deposit-should-be-half-after-withdraw");
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-not-zero-after-withdraw");
 
         kiss.balanceOf(userOther).eq(feesClaimed + withdrawAmount, "bal-not-zero-after-withdraw");
 
-        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, rsPrices);
+        call(kresko.withdrawSCDP.selector, userOther, address(kiss), withdrawAmount, userOther, rsPrices);
         kiss.balanceOf(userOther).closeTo(feesClaimed + depositsBeforeClaim, 1);
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(0, "deposit-should-be-zero-in-the-end");
     }

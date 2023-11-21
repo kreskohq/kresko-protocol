@@ -176,7 +176,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         require(success, "!success");
 
         bytes memory withdrawData = abi.encodePacked(
-            abi.encodeWithSelector(kresko.withdrawSCDP.selector, user0, KISS.addr, scdpDepositAmount),
+            abi.encodeWithSelector(kresko.withdrawSCDP.selector, user0, KISS.addr, scdpDepositAmount, user0),
             redstonePayload
         );
         uint256 gasWithdraw = gasleft();
@@ -249,7 +249,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     }
 
     function _poolWithdraw(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {
-        call(kresko.withdrawSCDP.selector, user, asset, amount, prices);
+        call(kresko.withdrawSCDP.selector, user, asset, amount, user, prices);
     }
 
     function _swap(

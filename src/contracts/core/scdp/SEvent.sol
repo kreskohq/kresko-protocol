@@ -2,8 +2,15 @@
 pragma solidity ^0.8.0;
 
 library SEvent {
-    event SCDPDeposit(address indexed depositor, address indexed collateralAsset, uint256 amount);
-    event SCDPWithdraw(address indexed receiver, address indexed withdrawer, address indexed collateralAsset, uint256 amount);
+    event SCDPDeposit(address indexed depositor, address indexed collateralAsset, uint256 amount, uint256 timestamp);
+    event SCDPWithdraw(
+        address indexed account,
+        address indexed receiver,
+        address indexed collateralAsset,
+        address withdrawer,
+        uint256 amount,
+        uint256 timestamp
+    );
     event SCDPFeeClaim(
         address indexed claimer,
         address indexed collateralAsset,
@@ -17,7 +24,8 @@ library SEvent {
         address indexed repayKreskoAsset,
         uint256 repayAmount,
         address indexed receiveKreskoAsset,
-        uint256 receiveAmount
+        uint256 receiveAmount,
+        uint256 timestamp
     );
 
     event SCDPLiquidationOccured(
@@ -25,14 +33,16 @@ library SEvent {
         address indexed repayKreskoAsset,
         uint256 repayAmount,
         address indexed seizeCollateral,
-        uint256 seizeAmount
+        uint256 seizeAmount,
+        uint256 timestamp
     );
     event SCDPCoverOccured(
         address indexed coverer,
         address indexed coverAsset,
         uint256 coverAmount,
         address indexed seizeCollateral,
-        uint256 seizeAmount
+        uint256 seizeAmount,
+        uint256 timestamp
     );
 
     // Emitted when a swap pair is disabled / enabled.
@@ -52,8 +62,21 @@ library SEvent {
         uint256 maxDebtMinter
     );
 
-    event Swap(address indexed who, address indexed assetIn, address indexed assetOut, uint256 amountIn, uint256 amountOut);
-    event SwapFee(address indexed feeAsset, address indexed assetIn, uint256 feeAmount, uint256 protocolFeeAmount);
+    event Swap(
+        address indexed who,
+        address indexed assetIn,
+        address indexed assetOut,
+        uint256 amountIn,
+        uint256 amountOut,
+        uint256 timestamp
+    );
+    event SwapFee(
+        address indexed feeAsset,
+        address indexed assetIn,
+        uint256 feeAmount,
+        uint256 protocolFeeAmount,
+        uint256 timestamp
+    );
 
     event Income(address asset, uint256 amount);
 
