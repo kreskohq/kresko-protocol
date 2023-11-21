@@ -187,8 +187,8 @@ contract AuditTest is Local {
     function _setETHPriceAndLiquidate(uint256 price, uint256 amount) internal {
         prank(getAddr(0));
         if (amount < krETH.asToken.balanceOf(getAddr(0))) {
-            mockUSDC.mock.mint(getAddr(0), 100_000e18);
-            call(kresko.depositCollateral.selector, getAddr(0), mockUSDC.addr, 100_000e18, rsPrices);
+            mockUSDC.mock.mint(getAddr(0), 100_000e6);
+            call(kresko.depositCollateral.selector, getAddr(0), mockUSDC.addr, 100_000e6, rsPrices);
             call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, amount, rsPrices);
         }
 
@@ -201,8 +201,8 @@ contract AuditTest is Local {
 
     function _setETHPriceAndCover(uint256 price, uint256 amount) internal {
         prank(getAddr(0));
-        uint256 debt = kresko.getDebtSCDP(krETH.addr);
-        mockUSDC.mock.mint(getAddr(0), 100_000e18);
+        // uint256 debt = kresko.getDebtSCDP(krETH.addr);
+        mockUSDC.mock.mint(getAddr(0), 100_000e6);
         mockUSDC.asToken.approve(address(kiss), type(uint256).max);
         kiss.vaultMint(address(USDC), amount, getAddr(0));
         kiss.approve(address(kresko), type(uint256).max);
@@ -210,14 +210,14 @@ contract AuditTest is Local {
         kresko.setAssetKFactor(krETH.addr, 1e4);
         _setETHPrice(price);
         staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: before-cover");
-        _cover(amount, address(kiss));
+        _cover(amount);
         staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: after-cover");
     }
 
     function _setETHPriceAndCoverIncentive(uint256 price, uint256 amount) internal {
         prank(getAddr(0));
-        uint256 debt = kresko.getDebtSCDP(krETH.addr);
-        mockUSDC.mock.mint(getAddr(0), 100_000e18);
+        // uint256 debt = kresko.getDebtSCDP(krETH.addr);
+        mockUSDC.mock.mint(getAddr(0), 100_000e6);
         mockUSDC.asToken.approve(address(kiss), type(uint256).max);
         kiss.vaultMint(address(USDC), amount, getAddr(0));
         kiss.approve(address(kresko), type(uint256).max);
@@ -232,7 +232,7 @@ contract AuditTest is Local {
     function _trades(uint256 count) internal {
         address trader = getAddr(777);
         prank(deployCfg.admin);
-        uint256 mintAmount = 20000e18;
+        uint256 mintAmount = 20000e6;
 
         kresko.setFeeAssetSCDP(address(kiss));
         mockUSDC.mock.mint(trader, mintAmount * count);
@@ -249,7 +249,7 @@ contract AuditTest is Local {
         }
     }
 
-    function _cover(uint256 _coverAmount, address _seizeAsset) internal returns (uint256 crAfter, uint256 debtValAfter) {
+    function _cover(uint256 _coverAmount) internal returns (uint256 crAfter, uint256 debtValAfter) {
         (bool success, bytes memory returndata) = address(kresko).call(
             abi.encodePacked(abi.encodeWithSelector(kresko.coverSCDP.selector, address(kiss), _coverAmount), redstoneCallData)
         );
@@ -266,7 +266,7 @@ contract AuditTest is Local {
     ) internal returns (uint256 crAfter, uint256 debtValAfter) {
         (bool success, bytes memory returndata) = address(kresko).call(
             abi.encodePacked(
-                abi.encodeWithSelector(kresko.coverWithIncentiveSCDP.selector, address(kiss), _coverAmount, address(kiss)),
+                abi.encodeWithSelector(kresko.coverWithIncentiveSCDP.selector, address(kiss), _coverAmount, _seizeAsset),
                 redstoneCallData
             )
         );
@@ -312,7 +312,7 @@ contract AuditTest is Local {
         amountOut_ = abi.decode(returndata, (uint256));
     }
 
-    function _setETHPrice(uint256 _pushPrice) internal returns (string memory) {
+    function _setETHPrice(uint256 _pushPrice) internal {
         mockFeedETH.setPrice(_pushPrice * 1e8);
         price_eth_rs = ("ETH:").and(_pushPrice.str()).and(":8");
         _updateRsPrices();
