@@ -76,9 +76,12 @@ library SDeposits {
         // Get accounts principal deposits.
         uint256 depositsPrincipal = self.accountDeposits(_account, _assetAddr, _asset);
 
-        // Check we can perform the withdrawal.
+        // Check that we can perform the withdrawal.
+        if (depositsPrincipal == 0) {
+            revert Errors.ACCOUNT_HAS_NO_DEPOSITS(_account, Errors.id(_assetAddr));
+        }
         if (depositsPrincipal < _amount) {
-            revert Errors.NOTHING_TO_WITHDRAW(_account, Errors.id(_assetAddr), _amount, depositsPrincipal, 0);
+            revert Errors.WITHDRAW_AMOUNT_GREATER_THAN_DEPOSITS(_account, Errors.id(_assetAddr), _amount, depositsPrincipal);
         }
 
         unchecked {

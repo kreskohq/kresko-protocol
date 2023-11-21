@@ -8,14 +8,30 @@ interface IErrorsEvents {
         address addr;
     }
 
-    event SCDPDeposit(address indexed depositor, address indexed collateralAsset, uint256 amount);
-    event SCDPWithdraw(address indexed withdrawer, address indexed collateralAsset, uint256 amount, uint256 feeAmount);
+    event SCDPDeposit(address indexed depositor, address indexed collateralAsset, uint256 amount, uint256 timestamp);
+    event SCDPWithdraw(
+        address indexed account,
+        address indexed receiver,
+        address indexed collateralAsset,
+        address withdrawer,
+        uint256 amount,
+        uint256 timestamp
+    );
+    event SCDPFeeClaim(
+        address indexed claimer,
+        address indexed collateralAsset,
+        uint256 feeAmount,
+        uint256 newIndex,
+        uint256 prevIndex,
+        uint256 timestamp
+    );
     event SCDPRepay(
         address indexed repayer,
         address indexed repayKreskoAsset,
         uint256 repayAmount,
         address indexed receiveKreskoAsset,
-        uint256 receiveAmount
+        uint256 receiveAmount,
+        uint256 timestamp
     );
 
     event SCDPLiquidationOccured(
@@ -23,7 +39,16 @@ interface IErrorsEvents {
         address indexed repayKreskoAsset,
         uint256 repayAmount,
         address indexed seizeCollateral,
-        uint256 seizeAmount
+        uint256 seizeAmount,
+        uint256 timestamp
+    );
+    event SCDPCoverOccured(
+        address indexed coverer,
+        address indexed coverAsset,
+        uint256 coverAmount,
+        address indexed seizeCollateral,
+        uint256 seizeAmount,
+        uint256 timestamp
     );
 
     // Emitted when a swap pair is disabled / enabled.
@@ -43,8 +68,21 @@ interface IErrorsEvents {
         uint256 maxDebtMinter
     );
 
-    event Swap(address indexed who, address indexed assetIn, address indexed assetOut, uint256 amountIn, uint256 amountOut);
-    event SwapFee(address indexed feeAsset, address indexed assetIn, uint256 feeAmount, uint256 protocolFeeAmount);
+    event Swap(
+        address indexed who,
+        address indexed assetIn,
+        address indexed assetOut,
+        uint256 amountIn,
+        uint256 amountOut,
+        uint256 timestamp
+    );
+    event SwapFee(
+        address indexed feeAsset,
+        address indexed assetIn,
+        uint256 feeAmount,
+        uint256 protocolFeeAmount,
+        uint256 timestamp
+    );
 
     event Income(address asset, uint256 amount);
 
@@ -358,6 +396,7 @@ interface IErrorsEvents {
     error TRANSFER_FAILED(address, address, address, uint256);
     error ADDRESS_HAS_NO_CODE(address);
     error NOT_INITIALIZING();
+    error TO_WAD_AMOUNT_IS_NEGATIVE(int256);
     error COMMON_ALREADY_INITIALIZED();
     error MINTER_ALREADY_INITIALIZED();
     error SCDP_ALREADY_INITIALIZED();
@@ -372,13 +411,17 @@ interface IErrorsEvents {
     error MINTER_ASSET_ECONOMY(ID, uint256 seizeReductionPct, ID, uint256 repayIncreasePct);
     error INVALID_TICKER(ID, string ticker);
     error ASSET_NOT_ENABLED(ID);
+    error ASSET_SET_FEEDS_FAILED(ID);
     error ASSET_CANNOT_BE_USED_TO_COVER(ID);
     error ASSET_PAUSED_FOR_THIS_ACTION(ID, uint8 action);
     error ASSET_NOT_MINTER_COLLATERAL(ID);
+    error ASSET_NOT_FEE_ACCUMULATING_ASSET(ID);
+    error ASSET_NOT_SHARED_COLLATERAL(ID);
     error ASSET_NOT_MINTABLE_FROM_MINTER(ID);
     error ASSET_NOT_SWAPPABLE(ID);
     error ASSET_DOES_NOT_HAVE_DEPOSITS(ID);
-    error ASSET_NOT_DEPOSITABLE(ID);
+    error ASSET_CANNOT_BE_FEE_ASSET(ID);
+    error ASSET_NOT_VALID_DEPOSIT_ASSET(ID);
     error ASSET_ALREADY_ENABLED(ID);
     error ASSET_ALREADY_DISABLED(ID);
     error ASSET_DOES_NOT_EXIST(ID);
@@ -392,6 +435,7 @@ interface IErrorsEvents {
     error NOT_SWAPPABLE_KRASSET(ID);
     error IDENTICAL_ASSETS(ID);
     error WITHDRAW_NOT_SUPPORTED();
+    error MINT_NOT_SUPPORTED();
     error DEPOSIT_NOT_SUPPORTED();
     error REDEEM_NOT_SUPPORTED();
     error NATIVE_TOKEN_DISABLED(ID);
@@ -414,6 +458,8 @@ interface IErrorsEvents {
     error INVALID_CFACTOR(ID, uint256 invalid, uint256 valid);
     error INVALID_MINTER_FEE(ID, uint256 invalid, uint256 valid);
     error INVALID_PRICE_PRECISION(uint256 decimals, uint256 valid);
+    error INVALID_COVER_THRESHOLD(uint256 threshold, uint256 max);
+    error INVALID_COVER_INCENTIVE(uint256 incentive, uint256 min, uint256 max);
     error INVALID_DECIMALS(ID, uint256 decimals);
     error INVALID_FEE(ID, uint256 invalid, uint256 valid);
     error INVALID_FEE_TYPE(uint8 invalid, uint8 valid);
@@ -427,7 +473,7 @@ interface IErrorsEvents {
     error INVALID_SUPPLY_LIMIT(ID, uint256 invalid, uint256 valid);
     error NEGATIVE_PRICE(address asset, int256 price);
     error STALE_PRICE(string ticker, uint256 price, uint256 timeFromUpdate, uint256 threshold);
-    error RAW_PRICE_STALE(
+    error STALE_PUSH_PRICE(
         ID asset,
         string ticker,
         int256 price,
@@ -439,7 +485,7 @@ interface IErrorsEvents {
     error PRICE_UNSTABLE(uint256 primaryPrice, uint256 referencePrice, uint256 deviationPct);
     error ZERO_OR_STALE_VAULT_PRICE(ID, address, uint256);
     error ZERO_OR_STALE_PRICE(string ticker, uint8[2] oracles);
-    error RAW_PRICE_LTE_ZERO(ID asset, string ticker, int256 price, uint8 oracleType, address feed);
+    error ZERO_OR_NEGATIVE_PUSH_PRICE(ID asset, string ticker, int256 price, uint8 oracleType, address feed);
     error NO_PUSH_ORACLE_SET(string ticker);
     error NOT_SUPPORTED_YET();
     error WRAP_NOT_SUPPORTED();
@@ -456,6 +502,7 @@ interface IErrorsEvents {
     error CANNOT_RE_ENTER();
     error ARRAY_LENGTH_MISMATCH(string ticker, uint256 arr1, uint256 arr2);
     error COLLATERAL_VALUE_GREATER_THAN_REQUIRED(uint256 collateralValue, uint256 minCollateralValue, uint32 ratio);
+    error COLLATERAL_VALUE_GREATER_THAN_COVER_THRESHOLD(uint256 collateralValue, uint256 minCollateralValue, uint48 ratio);
     error ACCOUNT_COLLATERAL_VALUE_LESS_THAN_REQUIRED(
         address who,
         uint256 collateralValue,
@@ -468,10 +515,13 @@ interface IErrorsEvents {
     error LIQUIDATION_AMOUNT_GREATER_THAN_DEBT(ID repayAsset, uint256 repayAmount, uint256 availableAmount);
     error LIQUIDATION_SEIZED_LESS_THAN_EXPECTED(ID, uint256, uint256);
     error LIQUIDATION_VALUE_IS_ZERO(ID repayAsset, ID seizeAsset);
-    error NOTHING_TO_WITHDRAW(address who, ID, uint256 requested, uint256 principal, uint256 fees);
+    error ACCOUNT_HAS_NO_DEPOSITS(address who, ID);
+    error WITHDRAW_AMOUNT_GREATER_THAN_DEPOSITS(address who, ID, uint256 requested, uint256 deposits);
     error ACCOUNT_KRASSET_NOT_FOUND(address account, ID, address[] accountCollaterals);
     error ACCOUNT_COLLATERAL_NOT_FOUND(address account, ID, address[] accountCollaterals);
+    error ARRAY_INDEX_OUT_OF_BOUNDS(ID element, uint256 index, address[] elements);
     error ELEMENT_DOES_NOT_MATCH_PROVIDED_INDEX(ID element, uint256 index, address[] elements);
+    error NO_FEES_TO_CLAIM(ID asset, address claimer);
     error REPAY_OVERFLOW(ID repayAsset, ID seizeAsset, uint256 invalid, uint256 valid);
     error INCOME_AMOUNT_IS_ZERO(ID incomeAsset);
     error NO_LIQUIDITY_TO_GIVE_INCOME_FOR(ID incomeAsset, uint256 userDeposits, uint256 totalDeposits);

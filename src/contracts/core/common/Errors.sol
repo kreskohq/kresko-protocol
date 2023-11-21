@@ -142,7 +142,8 @@ library Errors {
     error LIQUIDATION_AMOUNT_GREATER_THAN_DEBT(ID repayAsset, uint256 repayAmount, uint256 availableAmount);
     error LIQUIDATION_SEIZED_LESS_THAN_EXPECTED(ID, uint256, uint256);
     error LIQUIDATION_VALUE_IS_ZERO(ID repayAsset, ID seizeAsset);
-    error NOTHING_TO_WITHDRAW(address who, ID, uint256 requested, uint256 principal, uint256 scaled);
+    error ACCOUNT_HAS_NO_DEPOSITS(address who, ID);
+    error WITHDRAW_AMOUNT_GREATER_THAN_DEPOSITS(address who, ID, uint256 requested, uint256 deposits);
     error ACCOUNT_KRASSET_NOT_FOUND(address account, ID, address[] accountCollaterals);
     error ACCOUNT_COLLATERAL_NOT_FOUND(address account, ID, address[] accountCollaterals);
     error ARRAY_INDEX_OUT_OF_BOUNDS(ID element, uint256 index, address[] elements);
