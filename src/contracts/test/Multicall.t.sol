@@ -301,6 +301,7 @@ contract MulticallTest is Local {
                 index: 0
             })
         });
+
         KrMulticall.Result[] memory results = mc.execute(opsWithdraw, redstoneCallData);
 
         mockUSDC.asToken.balanceOf(user).eq(9996000400, "usdc-balance");

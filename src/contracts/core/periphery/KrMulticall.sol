@@ -93,9 +93,7 @@ contract KrMulticall is Ownable {
                     uint256 balanceAfter = IERC20(op.data.tokenOut).balanceOf(address(this));
                     if (op.data.tokensOutMode == TokensOutMode.ReturnToSender) {
                         _handleTokensOut(op, balanceAfter);
-                        if (balanceAfter >= results[i].amountOut) {
-                            results[i].amountOut = IERC20(op.data.tokenOut).balanceOf(msg.sender) - results[i].amountOut;
-                        }
+                        results[i].amountOut = IERC20(op.data.tokenOut).balanceOf(msg.sender) - results[i].amountOut;
                     } else {
                         results[i].amountOut = balanceAfter - results[i].amountOut;
                     }
