@@ -25,7 +25,7 @@ import { toBig } from '@utils/values'
       const { facetsAfter } = await updateFacets({ facetNames: minterFacets })
       expect(facetsAfter).to.not.deep.equal(facetsBefore)
 
-      await expect(Kresko.mintKreskoAsset(deployer, krETH.address, toBig(0.1))).to.not.be.reverted
+      await expect(Kresko.mintKreskoAsset(deployer, krETH.address, toBig(0.1), deployer)).to.not.be.reverted
     })
   })
 })

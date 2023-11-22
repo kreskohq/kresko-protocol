@@ -139,7 +139,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
 
         vm.startPrank(user0);
         kresko.depositCollateral(user0, usdc.addr, depositAmount);
-        call(kresko.mintKreskoAsset.selector, user0, KISS.addr, borrowAmount, initialPrices);
+        call(kresko.mintKreskoAsset.selector, user0, KISS.addr, borrowAmount, user0, initialPrices);
 
         vm.stopPrank();
 
@@ -148,7 +148,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
 
         vm.startPrank(user1);
         kresko.depositCollateral(user1, usdc.addr, depositAmount);
-        call(kresko.mintKreskoAsset.selector, user1, KISS.addr, borrowAmount, initialPrices);
+        call(kresko.mintKreskoAsset.selector, user1, KISS.addr, borrowAmount, user1, initialPrices);
         vm.stopPrank();
 
         _swap(user1, KISS.addr, swapAmount, krETH.addr, initialPrices);
@@ -235,7 +235,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     function _mintKISS(address user, uint256 amount) internal {
         usdc.mock.mint(user, amount * (2));
         kresko.depositCollateral(user, usdc.addr, amount * (2));
-        call(kresko.mintKreskoAsset.selector, user, KISS.addr, amount, initialPrices);
+        call(kresko.mintKreskoAsset.selector, user, KISS.addr, amount, user, initialPrices);
     }
 
     function _poolDeposit(address user, address asset, uint256 amount, string memory prices) internal prankedAddr(user) {

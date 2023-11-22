@@ -96,7 +96,12 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
 export const mintKrAsset = async (args: InputArgsSimple) => {
   const convert = typeof args.amount === 'string' || typeof args.amount === 'number'
   const { user, asset, amount } = args
-  return wrapKresko(hre.Diamond, user).mintKreskoAsset(user.address, asset.address, convert ? toBig(+amount) : amount)
+  return wrapKresko(hre.Diamond, user).mintKreskoAsset(
+    user.address,
+    asset.address,
+    convert ? toBig(+amount) : amount,
+    user.address,
+  )
 }
 
 export const burnKrAsset = async (args: InputArgsSimple) => {
@@ -108,6 +113,7 @@ export const burnKrAsset = async (args: InputArgsSimple) => {
     asset.address,
     convert ? toBig(+amount) : amount,
     optimized.getAccountMintIndex(user.address, asset.address),
+    user.address,
   )
 }
 
@@ -163,7 +169,7 @@ export const leverageKrAsset = async (
   const UserKresko = wrapKresko(hre.Diamond, user)
   await UserKresko.depositCollateral(user.address, collateralToUse.address, collateralAmount)
   await Promise.all([
-    UserKresko.mintKreskoAsset(user.address, krAsset.address, amount),
+    UserKresko.mintKreskoAsset(user.address, krAsset.address, amount, user.address),
     UserKresko.depositCollateral(user.address, krAsset.address, amount),
   ])
 
@@ -187,6 +193,7 @@ export const leverageKrAsset = async (
       collateralToUse.address,
       amountToWithdraw,
       optimized.getAccountDepositIndex(user.address, collateralToUse.address),
+      user.address,
     )
 
     // "burn" collateral not needed

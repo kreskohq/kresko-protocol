@@ -19,7 +19,12 @@ const deploy: DeployFunction = async function (hre) {
   await DAI.approve(kresko.address, hre.ethers.constants.MaxUint256)
   await kresko.connect(deployer).depositCollateral(deployer.address, DAI.address, toBig(2_500_000_000))
   const KISS = await hre.getContractOrFork('KISS')
-  await wrapKresko(kresko, deployer).mintKreskoAsset(deployer.address, KISS.address, toBig(1_200_000_000))
+  await wrapKresko(kresko, deployer).mintKreskoAsset(
+    deployer.address,
+    KISS.address,
+    toBig(1_200_000_000),
+    deployer.address,
+  )
 
   for (const krAsset of krAssets) {
     const asset = await hre.getContractOrFork('KreskoAsset', krAsset.symbol)

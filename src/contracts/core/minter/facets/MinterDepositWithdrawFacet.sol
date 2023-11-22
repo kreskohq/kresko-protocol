@@ -49,7 +49,7 @@ contract MinterDepositWithdrawFacet is Modifiers, IMinterDepositWithdrawFacet {
 
         ms().handleWithdrawal(asset, _account, _collateralAsset, _withdrawAmount, collateralAmount, _collateralIndex);
 
-        IERC20(_collateralAsset).safeTransfer(_receiver, _withdrawAmount);
+        IERC20(_collateralAsset).safeTransfer(_receiver == address(0) ? _account : _receiver, _withdrawAmount);
     }
 
     /// @inheritdoc IMinterDepositWithdrawFacet

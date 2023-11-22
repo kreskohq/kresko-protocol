@@ -19,6 +19,7 @@ interface IErrorsEvents {
     );
     event SCDPFeeClaim(
         address indexed claimer,
+        address indexed receiver,
         address indexed collateralAsset,
         uint256 feeAmount,
         uint256 newIndex,
@@ -237,8 +238,9 @@ interface IErrorsEvents {
      * @param account The address of the account minting the Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
      * @param amount The amount of the KreskoAsset that was minted.
+     * @param receiver Receiver of the minted assets.
      */
-    event KreskoAssetMinted(address indexed account, address indexed kreskoAsset, uint256 amount);
+    event KreskoAssetMinted(address indexed account, address indexed kreskoAsset, uint256 amount, address receiver);
 
     /**
      * @notice Emitted when an account burns a Kresko asset.

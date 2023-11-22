@@ -164,7 +164,7 @@ library SDeposits {
         if (fees > 0) {
             IERC20(_assetAddr).transfer(_receiver, fees);
             (uint256 prevIndex, uint256 newIndex) = updateAccountIndexes(self, _account, _assetAddr);
-            emit SEvent.SCDPFeeClaim(_account, _assetAddr, fees, newIndex, prevIndex, block.timestamp);
+            emit SEvent.SCDPFeeClaim(_account, _receiver, _assetAddr, fees, newIndex, prevIndex, block.timestamp);
         }
 
         return fees;

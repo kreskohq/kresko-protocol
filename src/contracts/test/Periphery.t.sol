@@ -114,13 +114,13 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         wbtc.mock.approve(address(kresko), type(uint256).max);
         kresko.depositCollateral(user0, usdc.addr, 50e18);
         kresko.depositCollateral(user0, wbtc.addr, 0.1e8);
-        call(kresko.mintKreskoAsset.selector, user0, krETH.addr, 0.01e18, initialPrices);
+        call(kresko.mintKreskoAsset.selector, user0, krETH.addr, 0.01e18, user0, initialPrices);
 
         prank(user1);
         usdc.mock.approve(address(kresko), type(uint256).max);
         kresko.depositCollateral(user1, usdc.addr, 5000e18);
-        call(kresko.mintKreskoAsset.selector, user1, krETH.addr, 1e18, initialPrices);
-        call(kresko.mintKreskoAsset.selector, user1, krJPY.addr, 10000e18, initialPrices);
+        call(kresko.mintKreskoAsset.selector, user1, krETH.addr, 1e18, user1, initialPrices);
+        call(kresko.mintKreskoAsset.selector, user1, krJPY.addr, 10000e18, user1, initialPrices);
 
         prank(user2);
         usdc.mock.approve(address(kresko), type(uint256).max);
@@ -129,7 +129,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         kresko.depositCollateral(user2, dai.addr, 2000e18);
 
         call(kresko.depositSCDP.selector, user2, usdc.addr, 1000e18, initialPrices);
-        call(kresko.mintKreskoAsset.selector, user2, krETH.addr, 1.5e18, initialPrices);
+        call(kresko.mintKreskoAsset.selector, user2, krETH.addr, 1.5e18, user2, initialPrices);
 
         prank(deployCfg.admin);
         dataV1 = new DataV1(DataFacet(address(kresko)), address(vkiss), address(vkiss));

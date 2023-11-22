@@ -53,7 +53,13 @@ describe('Asset Amounts & Values', function () {
       const withdrawIndex = await optimizations.getAccountDepositIndex(f.user.address, f.CollateralAsset.address)
       const deposits = await hre.Diamond.getAccountCollateralAmount(f.user.address, f.CollateralAsset.address)
       expect(deposits).to.equal(depositAmount)
-      await User.withdrawCollateral(f.user.address, f.CollateralAsset.address, depositAmount, withdrawIndex)
+      await User.withdrawCollateral(
+        f.user.address,
+        f.CollateralAsset.address,
+        depositAmount,
+        withdrawIndex,
+        f.user.address,
+      )
       const balance = await f.CollateralAsset.balanceOf(f.user.address)
       expect(balance).to.equal(toBig(f.startingBalance))
     })
@@ -64,7 +70,13 @@ describe('Asset Amounts & Values', function () {
       const withdrawIndex = await optimizations.getAccountDepositIndex(f.user.address, f.CollateralAsset8Dec.address)
       const deposits = await hre.Diamond.getAccountCollateralAmount(f.user.address, f.CollateralAsset8Dec.address)
       expect(deposits).to.equal(depositAmount)
-      await User.withdrawCollateral(f.user.address, f.CollateralAsset8Dec.address, depositAmount, withdrawIndex)
+      await User.withdrawCollateral(
+        f.user.address,
+        f.CollateralAsset8Dec.address,
+        depositAmount,
+        withdrawIndex,
+        f.user.address,
+      )
       const balance = await f.CollateralAsset8Dec.balanceOf(f.user.address)
       expect(balance).to.equal(toBig(f.startingBalance, 8))
     })
@@ -75,7 +87,13 @@ describe('Asset Amounts & Values', function () {
       const withdrawIndex = await optimizations.getAccountDepositIndex(f.user.address, f.CollateralAsset21Dec.address)
       const deposits = await hre.Diamond.getAccountCollateralAmount(f.user.address, f.CollateralAsset21Dec.address)
       expect(deposits).to.equal(depositAmount)
-      await User.withdrawCollateral(f.user.address, f.CollateralAsset21Dec.address, depositAmount, withdrawIndex)
+      await User.withdrawCollateral(
+        f.user.address,
+        f.CollateralAsset21Dec.address,
+        depositAmount,
+        withdrawIndex,
+        f.user.address,
+      )
       const balance = await f.CollateralAsset21Dec.balanceOf(f.user.address)
       expect(balance).to.equal(toBig(f.startingBalance, 21))
     })
@@ -90,7 +108,7 @@ describe('Asset Amounts & Values', function () {
 
       const expectedMintValue = toBig(20, f.oracleDecimals) // kFactor = 2, krAssetPrice = 10, mintAmount = 1, openFee = 0.1
 
-      await User.mintKreskoAsset(f.user.address, f.KreskoAsset.address, mintAmount)
+      await User.mintKreskoAsset(f.user.address, f.KreskoAsset.address, mintAmount, f.user.address)
       const expectedDepositValue = toBig(49.5, f.oracleDecimals) // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
       const depositValue = await hre.Diamond.getAccountTotalCollateralValue(f.user.address)
@@ -113,7 +131,7 @@ describe('Asset Amounts & Values', function () {
       const mintAmount = toBig(1)
       const expectedMintValue = toBig(20, f.oracleDecimals) // kFactor = 2, krAssetPrice = 10, mintAmount = 1, openFee = 0.1
 
-      await User.mintKreskoAsset(f.user.address, f.KreskoAsset.address, mintAmount)
+      await User.mintKreskoAsset(f.user.address, f.KreskoAsset.address, mintAmount, f.user.address)
       const expectedDepositValue = toBig(49.5, f.oracleDecimals) // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
       const depositValue = await hre.Diamond.getAccountTotalCollateralValue(f.user.address)
@@ -136,7 +154,7 @@ describe('Asset Amounts & Values', function () {
       const mintAmount = toBig(1)
       const expectedMintValue = toBig(20, f.oracleDecimals) // kFactor = 2, krAssetPrice = 10, mintAmount = 1, openFee = 0.1
 
-      await User.mintKreskoAsset(f.user.address, f.KreskoAsset.address, mintAmount)
+      await User.mintKreskoAsset(f.user.address, f.KreskoAsset.address, mintAmount, f.user.address)
       const expectedDepositValue = toBig(49.5, f.oracleDecimals) // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
       const depositValue = await hre.Diamond.getAccountTotalCollateralValue(f.user.address)

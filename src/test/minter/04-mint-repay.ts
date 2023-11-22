@@ -38,7 +38,7 @@ describe('Minter', function () {
 
         // Mint Kresko asset
         const mintAmount = toBig(10)
-        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
 
         // Confirm the array of the user's minted Kresko assets has been pushed to.
         const mintedKreskoAssetsAfter = await hre.Diamond.getAccountMintedAssets(f.user1.address)
@@ -57,7 +57,7 @@ describe('Minter', function () {
       it('should allow successive, valid mints of the same Kresko asset', async function () {
         // Mint Kresko asset
         const firstMintAmount = toBig(50)
-        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, firstMintAmount)
+        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, firstMintAmount, f.user1.address)
 
         // Confirm the array of the user's minted Kresko assets has been pushed to.
         const mintedKreskoAssetsAfter = await hre.Diamond.getAccountMintedAssets(f.user1.address)
@@ -78,7 +78,7 @@ describe('Minter', function () {
         // ------------------------ Second mint ------------------------
         // Mint Kresko asset
         const secondMintAmount = toBig(50)
-        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, secondMintAmount)
+        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, secondMintAmount, f.user1.address)
 
         // Confirm the array of the user's minted Kresko assets is unchanged
         const mintedKreskoAssetsFinal = await hre.Diamond.getAccountMintedAssets(f.user1.address)
@@ -107,7 +107,7 @@ describe('Minter', function () {
 
         // Mint Kresko asset
         const firstMintAmount = toBig(10)
-        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, firstMintAmount)
+        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, firstMintAmount, f.user1.address)
 
         // Confirm the array of the user's minted Kresko assets has been pushed to.
         const mintedKreskoAssetsAfter = await optimized.getAccountMintedAssets(f.user1.address)
@@ -126,7 +126,7 @@ describe('Minter', function () {
 
         // Mint Kresko asset
         const secondMintAmount = toBig(20)
-        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset2.address, secondMintAmount)
+        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset2.address, secondMintAmount, f.user1.address)
 
         // Confirm that the second address has been pushed to the array of the user's minted Kresko assets
         const mintedKreskoAssetsFinal = await optimized.getAccountMintedAssets(f.user1.address)
@@ -149,7 +149,7 @@ describe('Minter', function () {
         const currMinimumDebtValue = await hre.Diamond.getMinDebtValueMinter()
         expect(mintAmountUSDValue).to.equal(currMinimumDebtValue)
 
-        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
 
         // Confirm that the mint was successful and user's balances have increased
         const finalKreskoAssetDebt = await optimized.getAccountDebtAmount(f.user1.address, f.KrAsset)
@@ -165,7 +165,7 @@ describe('Minter', function () {
 
         // userThree (trusted contract) mints Kresko asset for userOne
         const mintAmount = toBig(1)
-        await f.User2.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+        await f.User2.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
 
         // Check that debt exists now for userOne
         const userTwoBalanceAfter = await optimized.getAccountDebtAmount(f.user1.address, f.KrAsset)
@@ -176,7 +176,12 @@ describe('Minter', function () {
       })
 
       it('should emit KreskoAssetMinted event', async function () {
-        const tx = await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, f.initialMintAmount)
+        const tx = await f.User1.mintKreskoAsset(
+          f.user1.address,
+          f.KrAsset.address,
+          f.initialMintAmount,
+          f.user1.address,
+        )
 
         const event = await getInternalEvent<KreskoAssetMintedEventObject>(tx, hre.Diamond, 'KreskoAssetMinted')
         expect(event.account).to.equal(f.user1.address)
@@ -185,7 +190,9 @@ describe('Minter', function () {
       })
 
       it('should not allow untrusted account to mint Kresko assets on behalf of another user', async function () {
-        await expect(f.User1.mintKreskoAsset(f.user2.address, f.KrAsset.address, toBig(1))).to.be.revertedWith(
+        await expect(
+          f.User1.mintKreskoAsset(f.user2.address, f.KrAsset.address, toBig(1), f.user2.address),
+        ).to.be.revertedWith(
           `AccessControl: account ${f.user1.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
         )
       })
@@ -194,14 +201,21 @@ describe('Minter', function () {
         const currMinimumDebtValue = await optimized.getMinDebtValue()
         const mintAmount = currMinimumDebtValue.wadDiv(TEN_USD.ebn(8)).sub(1e9)
 
-        await expect(f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount))
+        await expect(f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address))
           .to.be.revertedWithCustomError(Errors(hre), 'MINT_VALUE_LESS_THAN_MIN_DEBT_VALUE')
           .withArgs(f.KrAsset.errorId, 10e8 - 1, currMinimumDebtValue)
       })
 
       it('should not allow users to mint non-whitelisted Kresko assets', async function () {
         // Attempt to mint a non-deployed, non-whitelisted Kresko asset
-        await expect(f.User1.mintKreskoAsset(f.user1.address, '0x0000000000000000000000000000000000000002', toBig(1)))
+        await expect(
+          f.User1.mintKreskoAsset(
+            f.user1.address,
+            '0x0000000000000000000000000000000000000002',
+            toBig(1),
+            f.user1.address,
+          ),
+        )
           .to.be.revertedWithCustomError(Errors(hre), 'ASSET_NOT_MINTABLE_FROM_MINTER')
           .withArgs(['', '0x0000000000000000000000000000000000000002'])
       })
@@ -219,7 +233,7 @@ describe('Minter', function () {
 
         const userState = await hre.Diamond.getAccountState(f.user1.address)
 
-        await expect(f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount))
+        await expect(f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address))
           .to.be.revertedWithCustomError(Errors(hre), 'ACCOUNT_COLLATERAL_VALUE_LESS_THAN_REQUIRED')
           .withArgs(f.user1.address, userState.totalCollateralValue, mintValue.percentMul(MCR), MCR)
       })
@@ -234,7 +248,7 @@ describe('Minter', function () {
           maxDebtMinter: assetSupplyLimit,
         })
 
-        await expect(f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount))
+        await expect(f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address))
           .to.be.revertedWithCustomError(Errors(hre), 'EXCEEDS_ASSET_MINTING_LIMIT')
           .withArgs(f.KrAsset.errorId, (await f.KrAsset.contract.totalSupply()).add(mintAmount), assetSupplyLimit)
         await f.KrAsset.update({
@@ -243,7 +257,7 @@ describe('Minter', function () {
       })
       it.skip('should not allow the minting of kreskoAssets if the market is closed', async function () {
         await expect(
-          f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, toBig(1)),
+          f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, toBig(1), f.user1.address),
         ).to.be.revertedWithCustomError(Errors(hre), 'MARKET_CLOSED')
 
         // Confirm that the user has no minted krAssets
@@ -251,7 +265,7 @@ describe('Minter', function () {
         expect(mintedKreskoAssetsBefore).to.deep.equal([])
 
         // Confirm that opening the market makes krAsset mintable again
-        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, toBig(10))
+        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, toBig(10), f.user1.address)
 
         // Confirm the array of the user's minted Kresko assets has been pushed to
         const mintedKreskoAssetsAfter = await hre.Diamond.getAccountMintedAssets(f.user1.address)
@@ -269,7 +283,7 @@ describe('Minter', function () {
           const positive = true
 
           // Mint before rebase
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
 
           const balanceBefore = await f.KrAsset.balanceOf(f.user1.address)
 
@@ -292,7 +306,7 @@ describe('Minter', function () {
           const positive = false
 
           // Mint before rebase
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
 
           const balanceBefore = await f.KrAsset.balanceOf(f.user1.address)
 
@@ -315,7 +329,7 @@ describe('Minter', function () {
           const positive = true
 
           // Mint before rebase
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
 
           const balanceBefore = await f.KrAsset.balanceOf(f.user1.address)
 
@@ -338,7 +352,7 @@ describe('Minter', function () {
           const positive = false
 
           // Mint before rebase
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
 
           const balanceBefore = await f.KrAsset.balanceOf(f.user1.address)
 
@@ -363,7 +377,7 @@ describe('Minter', function () {
           const positive = true
 
           // Mint before rebase
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
           const valueBeforeRebase = await hre.Diamond.getAccountTotalDebtValue(f.user1.address)
 
           // Adjust price accordingly
@@ -384,7 +398,7 @@ describe('Minter', function () {
           const positive = false
 
           // Mint before rebase
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
           const valueBeforeRebase = await hre.Diamond.getAccountTotalDebtValue(f.user1.address)
 
           // Adjust price accordingly
@@ -414,7 +428,7 @@ describe('Minter', function () {
           f.KrAsset.setPrice(fromBig(assetPrice, 8) / denominator)
           await f.KrAsset.contract.rebase(toBig(denominator), positive, [])
 
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, equalMintAmount)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, equalMintAmount, f.user1.address)
 
           // Ensure that value after mint matches what is expected
           const valueAfterRebase = await hre.Diamond.getAccountTotalDebtValue(f.user1.address)
@@ -437,7 +451,7 @@ describe('Minter', function () {
           f.KrAsset.setPrice(fromBig(assetPrice.mul(denominator), 8))
           await f.KrAsset.contract.rebase(toBig(denominator), positive, [])
 
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, equalMintAmount)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, equalMintAmount, f.user1.address)
 
           // Ensure that value after mint matches what is expected
           const valueAfterRebase = await hre.Diamond.getAccountTotalDebtValue(f.user1.address)
@@ -460,7 +474,7 @@ describe('Minter', function () {
           const valueBeforeRebase = await hre.Diamond.getValue(f.KrAsset.address, mintAmount)
 
           // Mint before rebase
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
 
           // Get results
           const balanceAfterFirstMint = await f.KrAsset.contract.balanceOf(f.user1.address)
@@ -490,7 +504,7 @@ describe('Minter', function () {
           expect(await fromScaledAmount(debtValueAfterFirstRebase, f.KrAsset)).to.equal(valueBeforeRebase)
 
           // Mint after rebase
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmountAfterRebase)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmountAfterRebase, f.user1.address)
 
           // Ensure debt amounts and balances match
           const balanceAfterSecondMint = await f.KrAsset.contract.balanceOf(f.user1.address)
@@ -521,7 +535,7 @@ describe('Minter', function () {
           const valueBeforeRebase = await hre.Diamond.getValue(f.KrAsset.address, mintAmount)
 
           // Mint before rebase
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
 
           // Get results
           const balanceAfterFirstMint = await f.KrAsset.contract.balanceOf(f.user1.address)
@@ -551,7 +565,7 @@ describe('Minter', function () {
           expect(debtValueAfterFirstRebase).to.equal(await toScaledAmount(valueBeforeRebase, f.KrAsset))
 
           // Mint after rebase
-          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmountAfterRebase)
+          await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmountAfterRebase, f.user1.address)
 
           // Ensure debt usd values match
           const debtValueAfterSecondMint = await hre.Diamond.getAccountTotalDebtValue(f.user1.address)
@@ -569,7 +583,7 @@ describe('Minter', function () {
 
     describe('#burn', () => {
       beforeEach(async function () {
-        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, f.initialMintAmount)
+        await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, f.initialMintAmount, f.user1.address)
       })
 
       it('should allow users to burn some of their Kresko asset balances', async function () {
@@ -578,7 +592,7 @@ describe('Minter', function () {
         // Burn Kresko asset
         const burnAmount = toBig(1)
         const kreskoAssetIndex = 0
-        await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex)
+        await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex, f.user1.address)
 
         // Confirm the user no long holds the burned Kresko asset amount
         const userBalance = await f.KrAsset.balanceOf(f.user1.address)
@@ -597,9 +611,6 @@ describe('Minter', function () {
         expect(userDebt).to.closeTo(f.initialMintAmount.sub(burnAmount), INTEREST_RATE_DELTA)
       })
 
-      // TODO: kiss repayment
-      it('should allow users to burn their full balance of a Kresko asset')
-
       it('should allow trusted address to burn its own Kresko asset balances on behalf of another user', async function () {
         await hre.Diamond.grantRole(Role.MANAGER, f.user2.address)
 
@@ -611,7 +622,7 @@ describe('Minter', function () {
         const userOneBalanceBefore = await f.KrAsset.balanceOf(f.user1.address)
 
         // User three burns it's KreskoAsset to reduce userOnes debt
-        await f.User2.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex)
+        await f.User2.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex, f.user2.address)
         // await expect(f.User2.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex)).to.not.be
         //   .reverted;
 
@@ -649,7 +660,7 @@ describe('Minter', function () {
 
         // Burn Kresko asset
         const kreskoAssetIndex = 0
-        await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex)
+        await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex, f.user1.address)
 
         // Confirm the user holds the expected Kresko asset amount
         const userBalance = await f.KrAsset.balanceOf(f.user1.address)
@@ -677,6 +688,7 @@ describe('Minter', function () {
           f.KrAsset.address,
           f.initialMintAmount.div(5),
           kreskoAssetIndex,
+          f.user1.address,
         )
 
         const event = await getInternalEvent<KreskoAssetBurnedEvent['args']>(tx, hre.Diamond, 'KreskoAssetBurned')
@@ -689,18 +701,20 @@ describe('Minter', function () {
         const secondMintAmount = 1
         const burnAmount = f.initialMintAmount.add(secondMintAmount)
 
-        await expect(f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, secondMintAmount)).to.not.be.reverted
+        await expect(f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, secondMintAmount, f.user1.address)).to
+          .not.be.reverted
         const kreskoAssetIndex = 0
 
-        await expect(f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex)).to.not
-          .be.reverted
+        await expect(
+          f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex, f.user1.address),
+        ).to.not.be.reverted
       })
 
       it('should not allow users to burn an amount of 0', async function () {
         const kreskoAssetIndex = 0
 
         await expect(
-          f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, 0, kreskoAssetIndex),
+          f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, 0, kreskoAssetIndex, f.user1.address),
         ).to.be.revertedWithCustomError(Errors(hre), 'ZERO_BURN')
       })
 
@@ -708,9 +722,18 @@ describe('Minter', function () {
         const kreskoAssetIndex = 0
 
         await expect(
-          f.User2.burnKreskoAsset(f.user1.address, f.KrAsset.address, 100, kreskoAssetIndex),
+          f.User2.burnKreskoAsset(f.user1.address, f.KrAsset.address, 100, kreskoAssetIndex, f.user1.address),
         ).to.be.revertedWith(
           `AccessControl: account ${f.user2.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
+        )
+      })
+      it('should not allow untrusted address to use another repayee to burn kresko assets', async function () {
+        const kreskoAssetIndex = 0
+
+        await expect(
+          f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, 100, kreskoAssetIndex, f.user2.address),
+        ).to.be.revertedWith(
+          `AccessControl: account ${f.user1.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
         )
       })
 
@@ -719,8 +742,9 @@ describe('Minter', function () {
         const debt = await optimized.getAccountDebtAmount(f.user1.address, f.KrAsset)
         const burnAmount = debt.add(toBig(1))
 
-        await expect(f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex)).to.be
-          .reverted
+        await expect(
+          f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex, f.user1.address),
+        ).to.be.reverted
       })
 
       describe('Protocol open fee', () => {
@@ -743,7 +767,7 @@ describe('Minter', function () {
           const feeRecipientCollateralBalanceBefore = await f.Collateral.balanceOf(feeRecipient)
 
           // Mint Kresko asset
-          const tx = await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount)
+          const tx = await f.User1.mintKreskoAsset(f.user1.address, f.KrAsset.address, mintAmount, f.user1.address)
 
           // Get the balances after the fees have been charged.
           const kreskoCollateralAssetBalanceAfter = await f.Collateral.balanceOf(hre.Diamond.address)
@@ -793,7 +817,13 @@ describe('Minter', function () {
 
           // Burn Kresko asset
           const kreskoAssetIndex = 0
-          const tx = await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, burnAmount, kreskoAssetIndex)
+          const tx = await f.User1.burnKreskoAsset(
+            f.user1.address,
+            f.KrAsset.address,
+            burnAmount,
+            kreskoAssetIndex,
+            f.user1.address,
+          )
 
           // Get the balances after the fees have been charged.
           const kreskoCollateralAssetBalanceAfter = await f.Collateral.balanceOf(hre.Diamond.address)
@@ -938,7 +968,7 @@ describe('Minter', function () {
           // Pay half of debt
           const debt = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
           const repayAmount = debt
-          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, repayAmount, 0)
+          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, repayAmount, 0, f.user1.address)
 
           // Debt value after half repayment
           const debtAfter = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
@@ -965,7 +995,7 @@ describe('Minter', function () {
           // Pay half of debt
           const debt = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
           const repayAmount = debt.div(2)
-          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, repayAmount, 0)
+          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, repayAmount, 0, f.user1.address)
 
           // Debt value after half repayment
           const debtAfter = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
@@ -998,7 +1028,7 @@ describe('Minter', function () {
           // Pay half of debt
           const debt = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
           const repayAmount = debt
-          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, repayAmount, 0)
+          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, repayAmount, 0, f.user1.address)
 
           // Debt value after half repayment
           const debtAfter = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
@@ -1029,7 +1059,7 @@ describe('Minter', function () {
           // Pay half of debt
           const debt = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
           const repayAmount = debt.div(2)
-          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, repayAmount, 0)
+          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, repayAmount, 0, f.user1.address)
 
           // Debt value after half repayment
           const debtAfter = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
@@ -1062,7 +1092,7 @@ describe('Minter', function () {
           f.KrAsset.setPrice(TEN_USD / denominator)
           await f.KrAsset.contract.rebase(toBig(denominator), positive, [])
 
-          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, fullRepayAmount, 0)
+          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, fullRepayAmount, 0, f.user1.address)
 
           // Debt value after half repayment
           const debtAfter = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
@@ -1086,7 +1116,7 @@ describe('Minter', function () {
           // Burn assets
           // Pay half of debt
           const debt = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
-          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, debt.div(2), 0)
+          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, debt.div(2), 0, f.user1.address)
 
           // Debt value after half repayment
           const debtAfter = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
@@ -1109,7 +1139,7 @@ describe('Minter', function () {
           f.KrAsset.setPrice(TEN_USD * denominator)
           await f.KrAsset.contract.rebase(toBig(denominator), positive, [])
 
-          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, fullRepayAmount, 0)
+          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, fullRepayAmount, 0, f.user1.address)
 
           // Debt value after half repayment
           const debtAfter = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
@@ -1127,7 +1157,7 @@ describe('Minter', function () {
 
           // Pay half of debt
           const debt = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)
-          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, debt.div(2), 0)
+          await f.User1.burnKreskoAsset(f.user1.address, f.KrAsset.address, debt.div(2), 0, f.user1.address)
 
           // Debt value after half repayment
           const debtAfter = await hre.Diamond.getAccountDebtAmount(f.user1.address, f.KrAsset.address)

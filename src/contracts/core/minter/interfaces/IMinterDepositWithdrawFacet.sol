@@ -17,7 +17,7 @@ interface IMinterDepositWithdrawFacet {
      * @param _collateralAsset The address of the collateral asset.
      * @param _withdrawAmount The amount of the collateral asset to withdraw.
      * @param _collateralIndex The index of the collateral asset in the sender's deposited collateral
-     * @param _receiver Receiver of the collateral
+     * @param _receiver Receiver of the collateral, if address 0 then the receiver is the account.
      * assets array. Only needed if withdrawing the entire deposit of a particular collateral asset.
      */
     function withdrawCollateral(

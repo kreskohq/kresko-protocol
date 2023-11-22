@@ -89,19 +89,22 @@ describe('KreskoAsset', () => {
     })
     it('cannot withdraw when paused', async function () {
       await KreskoAsset.connect(operator).pause()
-      await expect(KreskoAsset.unwrap(toBig(1), false)).to.be.revertedWithCustomError(KreskoAsset, 'EnforcedPause')
+      await expect(KreskoAsset.connect(user).unwrap(user.address, toBig(1), false)).to.be.revertedWithCustomError(
+        KreskoAsset,
+        'EnforcedPause',
+      )
       await KreskoAsset.connect(operator).unpause()
     })
     it('can withdraw', async function () {
       const prevBalance = await WETH.balanceOf(user.address)
-      await KreskoAsset.connect(user).unwrap(toBig(1), false)
+      await KreskoAsset.connect(user).unwrap(user.address, toBig(1), false)
       const currentBalance = await WETH.balanceOf(user.address)
       expect(currentBalance).to.equal(toBig(1).add(prevBalance))
     })
     it('can withdraw native token if enabled', async function () {
       await KreskoAsset.connect(operator).enableNativeUnderlying(true)
       const prevBalance = await KreskoAsset.balanceOf(user.address)
-      await KreskoAsset.connect(user).unwrap(toBig(1), true)
+      await KreskoAsset.connect(user).unwrap(user.address, toBig(1), true)
       const currentBalance = await KreskoAsset.balanceOf(user.address)
       expect(prevBalance.sub(currentBalance)).to.equal(toBig(1))
     })
@@ -111,7 +114,7 @@ describe('KreskoAsset', () => {
 
       const prevBalanceDevOne = await WETH.balanceOf(user.address)
       let prevBalanceTreasury = await WETH.balanceOf(treasury)
-      await KreskoAsset.connect(user).unwrap(toBig(9), false)
+      await KreskoAsset.connect(user).unwrap(user.address, toBig(9), false)
       const currentBalanceDevOne = await WETH.balanceOf(user.address)
       let currentBalanceTreasury = await WETH.balanceOf(treasury)
       expect(currentBalanceDevOne.sub(prevBalanceDevOne)).to.equal(toBig(8.1))
@@ -120,7 +123,7 @@ describe('KreskoAsset', () => {
       // Withdraw native token and check if fee is transferred
       await user.sendTransaction({ to: KreskoAsset.address, value: toBig(10) })
       prevBalanceTreasury = await hre.ethers.provider.getBalance(treasury)
-      await KreskoAsset.connect(user).unwrap(toBig(9), true)
+      await KreskoAsset.connect(user).unwrap(user.address, toBig(9), true)
       currentBalanceTreasury = await hre.ethers.provider.getBalance(treasury)
       expect(currentBalanceTreasury.sub(prevBalanceTreasury)).to.equal(toBig(0.9))
     })

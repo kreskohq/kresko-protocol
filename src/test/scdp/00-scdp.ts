@@ -832,7 +832,7 @@ describe('SCDP', async function () {
       const feesAfterSecondSwap = await f.KreskoSwapper.getAccountFeesSCDP(f.depositor.address, f.KISS.address)
       expect(feesAfterSecondSwap).to.gt(feesAfterSwap)
 
-      await f.KreskoDepositor.claimFeesSCDP(f.depositor.address, f.KISS.address)
+      await f.KreskoDepositor.claimFeesSCDP(f.depositor.address, f.KISS.address, f.depositor.address)
 
       const [depositsAfter, feesAfter] = await Promise.all([
         f.KreskoSwapper.getAccountDepositSCDP(f.depositor.address, f.KISS.address),
@@ -1035,13 +1035,11 @@ describe('SCDP', async function () {
     })
     it('should revert withdrawing without deposits', async function () {
       const withdrawAmount = 1
-      const principalDeposits = 0
-      const scaledDeposits = 0
       await expect(
         f.KreskoSwapper.withdrawSCDP(f.swapper.address, f.Collateral.address, withdrawAmount, f.swapper.address),
       )
-        .to.be.revertedWithCustomError(Errors(hre), 'NOTHING_TO_WITHDRAW')
-        .withArgs(f.swapper.address, f.Collateral.errorId, withdrawAmount, principalDeposits, scaledDeposits)
+        .to.be.revertedWithCustomError(Errors(hre), 'ACCOUNT_HAS_NO_DEPOSITS')
+        .withArgs(f.swapper.address, f.Collateral.errorId)
     })
 
     it('should revert withdrawals below MCR', async function () {

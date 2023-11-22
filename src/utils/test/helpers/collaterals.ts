@@ -85,6 +85,7 @@ export const withdrawCollateral = async (args: InputArgs) => {
     asset.address,
     depositAmount,
     optimized.getAccountDepositIndex(user.address, asset.address),
+    user.address,
   )
 }
 

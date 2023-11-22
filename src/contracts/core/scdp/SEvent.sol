@@ -13,6 +13,7 @@ library SEvent {
     );
     event SCDPFeeClaim(
         address indexed claimer,
+        address indexed receiver,
         address indexed collateralAsset,
         uint256 feeAmount,
         uint256 newIndex,

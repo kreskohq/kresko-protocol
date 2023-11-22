@@ -50,7 +50,7 @@ task(TASK_MINT_OPTIMAL, 'Mint KrAsset with optimal KISS collateral')
     logger.log(`Deposited ${parsedValue} KISS for minting ${taskArgs.kreskoAsset}`)
 
     try {
-      await Kresko.mintKreskoAsset(address, KrAsset.address, mintAmount)
+      await Kresko.mintKreskoAsset(address, KrAsset.address, mintAmount, address)
     } catch (e) {
       logger.error(false, 'Minting failed', e)
     }

@@ -168,9 +168,9 @@ contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         kresko.depositCollateral(user0, usdc.addr, depositAmount);
         kresko.getAccountCollateralAmount(user0, usdc.addr).eq(depositAmount);
 
-        call(kresko.mintKreskoAsset.selector, user0, krJPY.addr, mintAmount, initialPrices);
-        call(kresko.burnKreskoAsset.selector, user0, krJPY.addr, mintAmount, 0, initialPrices);
-        call(kresko.withdrawCollateral.selector, user0, usdc.addr, 998e18, 0, initialPrices);
+        call(kresko.mintKreskoAsset.selector, user0, krJPY.addr, mintAmount, user0, initialPrices);
+        call(kresko.burnKreskoAsset.selector, user0, krJPY.addr, mintAmount, 0, user0, initialPrices);
+        call(kresko.withdrawCollateral.selector, user0, usdc.addr, 998e18, 0, user0, initialPrices);
 
         staticCall(kresko.getAccountTotalCollateralValue.selector, user0, usdcPrice).eq(0);
         staticCall(kresko.getAccountTotalDebtValue.selector, user0, initialPrices).eq(0);
@@ -190,7 +190,7 @@ contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         console2.log("gasDepositCollateral", gasDeposit - gasleft());
 
         bytes memory mintData = abi.encodePacked(
-            abi.encodeWithSelector(kresko.mintKreskoAsset.selector, user0, krJPY.addr, mintAmount),
+            abi.encodeWithSelector(kresko.mintKreskoAsset.selector, user0, krJPY.addr, mintAmount, user0),
             redstonePayload
         );
         uint256 gasMint = gasleft();
@@ -199,7 +199,7 @@ contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         require(success, "!success");
 
         bytes memory burnData = abi.encodePacked(
-            abi.encodeWithSelector(kresko.burnKreskoAsset.selector, user0, krJPY.addr, mintAmount, 0),
+            abi.encodeWithSelector(kresko.burnKreskoAsset.selector, user0, krJPY.addr, mintAmount, 0, user0),
             redstonePayload
         );
         uint256 gasBurn = gasleft();
@@ -208,7 +208,7 @@ contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         require(success, "!success");
 
         bytes memory withdrawData = abi.encodePacked(
-            abi.encodeWithSelector(kresko.withdrawCollateral.selector, user0, usdc.addr, 998e18, 0),
+            abi.encodeWithSelector(kresko.withdrawCollateral.selector, user0, usdc.addr, 998e18, 0, user0),
             redstonePayload
         );
         uint256 gasWithdraw = gasleft();

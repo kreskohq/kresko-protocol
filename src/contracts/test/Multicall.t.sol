@@ -20,7 +20,7 @@ import {KrMulticall} from "periphery/KrMulticall.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
-contract AuditTest is Local {
+contract MulticallTest is Local {
     using ShortAssert for *;
     using Help for *;
     using Log for *;
@@ -67,50 +67,550 @@ contract AuditTest is Local {
         call(kresko.swapSCDP.selector, getAddr(0), address(state().kiss), krETH.addr, 1000e18, 0, rsPrices);
         vkiss.setDepositFee(address(USDT), 10e2);
         vkiss.setWithdrawFee(address(USDT), 10e2);
+
+        mockUSDC.mock.mint(getAddr(100), 10_000e6);
     }
 
-    function testMulticall() public {
-        KrMulticall.Op[] memory ops = new KrMulticall.Op[](9);
-        ops[0] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterBorrow,
-            data: KrMulticall.OpData(address(0), krJPY.addr, 0, 10000e18, 0, 0, 0, "")
+    function testMulticallDepositBorrow() public {
+        address user = getAddr(100);
+        prank(user);
+        mockUSDC.asToken.approve(address(mc), type(uint256).max);
+
+        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](2);
+
+        ops[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterDeposit,
+            data: KrMulticall.Data({
+                tokenIn: mockUSDC.addr,
+                amountIn: 10_000e6,
+                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
         });
-        ops[1] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterBorrow,
-            data: KrMulticall.OpData(address(0), krJPY.addr, 0, 10000e18, 0, 0, 0, "")
+        ops[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterBorrow,
+            data: KrMulticall.Data({
+                tokenIn: address(0),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.None,
+                tokenOut: krJPY.addr,
+                amountOut: 10000e18,
+                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
         });
-        ops[2] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterBorrow,
-            data: KrMulticall.OpData(address(0), krJPY.addr, 0, 10000e18, 0, 0, 0, "")
+
+        KrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
+        mockUSDC.asToken.balanceOf(user).eq(0, "usdc-balance");
+        krJPY.asToken.balanceOf(user).eq(10000e18, "jpy-borrow-balance");
+        results[0].amountIn.eq(10_000e6, "usdc-deposit-amount");
+        results[0].tokenIn.eq(mockUSDC.addr, "usdc-deposit-addr");
+        results[1].tokenOut.eq(krJPY.addr, "jpy-borrow-addr");
+        results[1].amountOut.eq(10000e18, "jpy-borrow-amount");
+    }
+
+    function testMulticallDepositBorrowRepay() public {
+        address user = getAddr(100);
+        prank(user);
+        mockUSDC.asToken.approve(address(mc), type(uint256).max);
+
+        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](3);
+
+        ops[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterDeposit,
+            data: KrMulticall.Data({
+                tokenIn: mockUSDC.addr,
+                amountIn: 10_000e6,
+                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
         });
-        ops[3] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterDeposit,
-            data: KrMulticall.OpData(krJPY.addr, address(0), 10000e18, 0, 0, 0, 0, "")
+        ops[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterBorrow,
+            data: KrMulticall.Data({
+                tokenIn: address(0),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.None,
+                tokenOut: krJPY.addr,
+                amountOut: 10000e18,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
         });
-        ops[4] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterDeposit,
-            data: KrMulticall.OpData(krJPY.addr, address(0), 10000e18, 0, 0, 0, 0, "")
+        ops[2] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterRepay,
+            data: KrMulticall.Data({
+                tokenIn: krJPY.addr,
+                amountIn: 10000e18,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
         });
-        ops[5] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterDeposit,
-            data: KrMulticall.OpData(krJPY.addr, address(0), 10000e18, 0, 0, 0, 0, "")
+
+        KrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
+        mockUSDC.asToken.balanceOf(user).eq(0, "usdc-balance");
+        krJPY.asToken.balanceOf(user).eq(0, "jpy-borrow-balance");
+        results[0].amountIn.eq(10_000e6, "usdc-deposit-amount");
+        results[0].tokenIn.eq(mockUSDC.addr, "usdc-deposit-addr");
+        results[1].tokenOut.eq(krJPY.addr, "jpy-borrow-addr");
+        results[1].amountOut.eq(10000e18, "jpy-borrow-amount");
+        results[2].tokenIn.eq(krJPY.addr, "jpy-repay-addr");
+        results[2].amountIn.eq(10000e18, "jpy-repay-amount");
+    }
+
+    function testMulticallVaultDepositSCDPDeposit() public {
+        address user = getAddr(100);
+        prank(user);
+        mockUSDC.asToken.approve(address(mc), type(uint256).max);
+
+        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](2);
+
+        ops[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.VaultDeposit,
+            data: KrMulticall.Data({
+                tokenIn: mockUSDC.addr,
+                amountIn: 10_000e6,
+                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokenOut: address(kiss),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
         });
-        ops[6] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterDeposit,
-            data: KrMulticall.OpData(krJPY.addr, address(0), 10000e18, 0, 0, 0, 0, "")
+        ops[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.SCDPDeposit,
+            data: KrMulticall.Data({
+                tokenIn: address(kiss),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
         });
-        ops[7] = KrMulticall.Op({
-            action: KrMulticall.OpAction.MinterBorrow,
-            data: KrMulticall.OpData(address(0), krJPY.addr, 0, 10000e18, 0, 0, 0, "")
+
+        KrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
+        mockUSDC.asToken.balanceOf(user).eq(0, "usdc-balance");
+        kresko.getAccountDepositSCDP(user, address(kiss)).eq(9998e18, "kiss-deposit-amount");
+        kiss.balanceOf(user).eq(0, "jpy-borrow-balance");
+
+        results[0].tokenIn.eq(mockUSDC.addr, "results-usdc-deposit-addr");
+        results[0].amountIn.eq(10_000e6, "results-usdc-deposit-amount");
+        results[1].tokenIn.eq(address(kiss), "results-kiss-deposit-addr");
+        results[1].amountIn.eq(9998e18, "results-kiss-deposit-amount");
+    }
+
+    function testMulticallVaultWithdrawSCDPWithdraw() public {
+        address user = getAddr(100);
+        prank(user);
+        mockUSDC.asToken.approve(address(mc), type(uint256).max);
+
+        KrMulticall.Operation[] memory opsDeposit = new KrMulticall.Operation[](2);
+        opsDeposit[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.VaultDeposit,
+            data: KrMulticall.Data({
+                tokenIn: mockUSDC.addr,
+                amountIn: 10_000e6,
+                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokenOut: address(kiss),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
         });
-        ops[8] = KrMulticall.Op({
-            action: KrMulticall.OpAction.SCDPTrade,
-            data: KrMulticall.OpData(krJPY.addr, krETH.addr, 10000e18, 0, 0, 0, 0, "")
+        opsDeposit[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.SCDPDeposit,
+            data: KrMulticall.Data({
+                tokenIn: address(kiss),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+
+        mc.execute(opsDeposit, redstoneCallData);
+
+        KrMulticall.Operation[] memory opsWithdraw = new KrMulticall.Operation[](2);
+        opsWithdraw[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.SCDPWithdraw,
+            data: KrMulticall.Data({
+                tokenIn: address(0),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.None,
+                tokenOut: address(kiss),
+                amountOut: 9998e18,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        opsWithdraw[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.VaultRedeem,
+            data: KrMulticall.Data({
+                tokenIn: address(kiss),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokenOut: mockUSDC.addr,
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        KrMulticall.Result[] memory results = mc.execute(opsWithdraw, redstoneCallData);
+
+        mockUSDC.asToken.balanceOf(user).eq(9996000400, "usdc-balance");
+        kresko.getAccountDepositSCDP(user, address(kiss)).eq(0, "kiss-deposit-amount");
+        kiss.balanceOf(user).eq(0, "jpy-borrow-balance");
+
+        results[0].tokenIn.eq(address(0), "results-tokenin-addr");
+        results[0].amountIn.eq(0, "results-tokenin-amount");
+        results[0].tokenOut.eq(address(kiss), "results-kiss-deposit-addr");
+        results[0].amountOut.eq(9998e18, "results-kiss-deposit-amount");
+        results[1].tokenIn.eq(address(kiss), "results-kiss-vault-withdraw-addr");
+        results[1].amountIn.eq(9998e18, "result-kiss-vault-withdraw-amount");
+        results[1].tokenOut.eq(mockUSDC.addr, "results-usdc-vault-withdraw-addr");
+        results[1].amountOut.eq(9996000400, "results-usdc-vault-withdraw-amount");
+    }
+
+    function testMulticallShort() public {
+        address user = getAddr(100);
+        prank(user);
+        mockUSDC.asToken.approve(address(mc), type(uint256).max);
+        mockUSDC.asToken.approve(address(kresko), type(uint256).max);
+
+        kresko.depositCollateral(user, mockUSDC.addr, 10_000e6);
+
+        KrMulticall.Operation[] memory opsShort = new KrMulticall.Operation[](2);
+        opsShort[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterBorrow,
+            data: KrMulticall.Data({
+                tokenIn: address(0),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.None,
+                tokenOut: krJPY.addr,
+                amountOut: 10_000e18,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        opsShort[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.SCDPTrade,
+            data: KrMulticall.Data({
+                tokenIn: krJPY.addr,
+                amountIn: 10_000e18,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokenOut: address(kiss),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        KrMulticall.Result[] memory results = mc.execute(opsShort, redstoneCallData);
+
+        krJPY.asToken.balanceOf(address(mc)).eq(0, "jpy-balance-mc-after");
+        kiss.balanceOf(address(mc)).eq(0, "kiss-balance-mc-after");
+        mockUSDC.asToken.balanceOf(user).eq(0, "usdc-balance-after");
+        kresko.getAccountCollateralAmount(user, mockUSDC.addr).eq(9998660000, "usdc-deposit-amount");
+        kiss.balanceOf(user).eq(66.7655e18, "kiss-balance-after");
+        kresko.getAccountDebtAmount(user, krJPY.addr).eq(10_000e18, "jpy-borrow-balance-after");
+
+        results[0].tokenIn.eq(address(0), "results-0-tokenin-addr");
+        results[0].amountIn.eq(0, "results-0-tokenin-amount");
+        results[0].tokenOut.eq(krJPY.addr, "results-krjpy-borrow-addr");
+        results[0].amountOut.eq(10_000e18, "results-krjpy-borrow-amount");
+        results[1].tokenIn.eq(krJPY.addr, "results-krjpy-trade-in-addr");
+        results[1].amountIn.eq(10_000e18, "result-krjpy-trade-in-amount");
+        results[1].tokenOut.eq(address(kiss), "results-kiss-trade-out-addr");
+        results[1].amountOut.eq(66.7655e18, "results-usdc-vault-withdraw-amount");
+    }
+
+    function testMulticallShortClose() public {
+        address user = getAddr(100);
+        prank(user);
+        krJPY.asToken.balanceOf(user).eq(0, "jpy-balance-before");
+        mockUSDC.asToken.approve(address(mc), type(uint256).max);
+        mockUSDC.asToken.approve(address(kresko), type(uint256).max);
+        kiss.approve(address(mc), type(uint256).max);
+
+        kresko.depositCollateral(user, mockUSDC.addr, 10_000e6);
+        KrMulticall.Operation[] memory opsShort = new KrMulticall.Operation[](2);
+        opsShort[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterBorrow,
+            data: KrMulticall.Data({
+                tokenIn: address(0),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.None,
+                tokenOut: krJPY.addr,
+                amountOut: 10_000e18,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        opsShort[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.SCDPTrade,
+            data: KrMulticall.Data({
+                tokenIn: krJPY.addr,
+                amountIn: 10_000e18,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokenOut: address(kiss),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        mc.execute(opsShort, redstoneCallData);
+
+        KrMulticall.Operation[] memory opsShortClose = new KrMulticall.Operation[](2);
+
+        opsShortClose[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.SCDPTrade,
+            data: KrMulticall.Data({
+                tokenIn: address(kiss),
+                amountIn: 66.7655e18,
+                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokenOut: krJPY.addr,
+                amountOut: 9930.1225e18,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        opsShortClose[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterRepay,
+            data: KrMulticall.Data({
+                tokenIn: krJPY.addr,
+                amountIn: 9930.1225e18,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        KrMulticall.Result[] memory results = mc.execute(opsShortClose, redstoneCallData);
+
+        mockUSDC.asToken.balanceOf(user).eq(0, "usdc-balance");
+        kresko.getAccountCollateralAmount(user, mockUSDC.addr).eq(9997520000, "usdc-deposit-amount");
+        kiss.balanceOf(user).eq(0, "kiss-balance-after");
+        krJPY.asToken.balanceOf(address(mc)).eq(0, "jpy-balance-mc-after");
+
+        // min debt value
+        kresko.getAccountDebtAmount(user, krJPY.addr).eq(1492537313432835820896, "jpy-borrow-balance-after");
+        krJPY.asToken.balanceOf(user).eq(1422659813432835820896, "jpy-balance-after");
+
+        results[0].tokenIn.eq(address(kiss), "results-kiss-trade-in-addr");
+        results[0].amountIn.eq(66.7655e18, "results-kiss-trade-in-amount");
+        results[0].tokenOut.eq(krJPY.addr, "results-krjpy-trade-out-addr");
+        results[0].amountOut.eq(9930.1225e18, "results-krjpy-trade-out-amount");
+        results[1].tokenIn.eq(krJPY.addr, "results-krjpy-repay-addr");
+        results[1].amountIn.eq(8507462686567164179104, "result-krjpy-repay-amount");
+        results[1].tokenOut.eq(address(0), "results-repay-addr");
+        results[1].amountOut.eq(0, "results-usdc-vault-withdraw-amount");
+    }
+
+    function testMulticallComplex() public {
+        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](9);
+        ops[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterBorrow,
+            data: KrMulticall.Data({
+                tokenIn: address(0),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.None,
+                tokenOut: krJPY.addr,
+                amountOut: 10000e18,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterBorrow,
+            data: KrMulticall.Data({
+                tokenIn: address(0),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.None,
+                tokenOut: krJPY.addr,
+                amountOut: 10000e18,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[2] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterBorrow,
+            data: KrMulticall.Data({
+                tokenIn: address(0),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.None,
+                tokenOut: krJPY.addr,
+                amountOut: 10000e18,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[3] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterDeposit,
+            data: KrMulticall.Data({
+                tokenIn: krJPY.addr,
+                amountIn: 10000e18,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalanceExactAmountIn,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[4] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterDeposit,
+            data: KrMulticall.Data({
+                tokenIn: krJPY.addr,
+                amountIn: 10000e18,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalanceExactAmountIn,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[5] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterDeposit,
+            data: KrMulticall.Data({
+                tokenIn: krJPY.addr,
+                amountIn: 10000e18,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalanceExactAmountIn,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[6] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterDeposit,
+            data: KrMulticall.Data({
+                tokenIn: krJPY.addr,
+                amountIn: 10000e18,
+                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[7] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterBorrow,
+            data: KrMulticall.Data({
+                tokenIn: address(0),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.None,
+                tokenOut: krJPY.addr,
+                amountOut: 10000e18,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                deadline: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[8] = KrMulticall.Operation({
+            action: KrMulticall.Action.SCDPTrade,
+            data: KrMulticall.Data({
+                tokenIn: krJPY.addr,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                amountIn: 10000e18,
+                tokenOut: krETH.addr,
+                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                amountOut: 0,
+                amountOutMin: 0,
+                index: 0,
+                deadline: 0,
+                path: ""
+            })
         });
 
         prank(getAddr(0));
         krJPY.asToken.approve(address(mc), type(uint256).max);
-        KrMulticall.OpResult[] memory results = mc.execute(ops, redstoneCallData);
+        KrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
         for (uint256 i; i < results.length; i++) {
             results[i].tokenIn.clg("tokenIn");
             results[i].amountIn.clg("amountIn");

@@ -40,7 +40,9 @@ describe('Minter - Deposit Withdraw', function () {
 
         expect(await hre.Diamond.getAccountCollateralAssets(f.user.address)).to.include(f.KrAssetCollateral.address)
 
-        await expect(f.User.withdrawCollateral(f.user.address, f.KrAssetCollateral.address, withdrawAmount, 0))
+        await expect(
+          f.User.withdrawCollateral(f.user.address, f.KrAssetCollateral.address, withdrawAmount, 0, f.user.address),
+        )
           .to.be.revertedWithCustomError(Errors(hre), 'COLLATERAL_AMOUNT_LOW')
           .withArgs(f.KrAssetCollateral.errorId, 9e11, 1e12)
       })
@@ -187,7 +189,13 @@ describe('Minter - Deposit Withdraw', function () {
           const depositedCollateralAssets = await hre.Diamond.getAccountCollateralAssets(f.withdrawer.address)
           expect(depositedCollateralAssets).to.deep.equal([f.Collateral.address])
 
-          await f.Withdrawer.withdrawCollateral(f.withdrawer.address, f.Collateral.address, f.initialDeposits, 0)
+          await f.Withdrawer.withdrawCollateral(
+            f.withdrawer.address,
+            f.Collateral.address,
+            f.initialDeposits,
+            0,
+            f.withdrawer.address,
+          )
 
           // Ensure that the collateral asset is removed from the account's deposited collateral
           // assets array.
@@ -213,7 +221,13 @@ describe('Minter - Deposit Withdraw', function () {
         it('should allow an account to withdraw a portion of their deposit', async function () {
           const withdrawAmount = f.initialDeposits.div(2)
 
-          await f.Withdrawer.withdrawCollateral(f.withdrawer.address, f.Collateral.address, withdrawAmount, 0)
+          await f.Withdrawer.withdrawCollateral(
+            f.withdrawer.address,
+            f.Collateral.address,
+            withdrawAmount,
+            0,
+            f.withdrawer.address,
+          )
 
           // Ensure the change in the f.user's deposit is recorded.
           const amountDeposited = await hre.Diamond.getAccountCollateralAmount(
@@ -243,8 +257,15 @@ describe('Minter - Deposit Withdraw', function () {
             f.Collateral.address,
           )
 
-          await expect(f.User.withdrawCollateral(f.withdrawer.address, f.Collateral.address, f.initialDeposits, 0)).to
-            .not.be.reverted
+          await expect(
+            f.User.withdrawCollateral(
+              f.withdrawer.address,
+              f.Collateral.address,
+              f.initialDeposits,
+              0,
+              f.withdrawer.address,
+            ),
+          ).to.not.be.reverted
 
           const collateralAfter = await hre.Diamond.getAccountCollateralAmount(
             f.withdrawer.address,
@@ -260,6 +281,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.Collateral.address,
             f.initialDeposits,
             0,
+            f.withdrawer.address,
           )
 
           const event = await getInternalEvent<CollateralWithdrawnEventObject>(tx, hre.Diamond, 'CollateralWithdrawn')
@@ -270,7 +292,13 @@ describe('Minter - Deposit Withdraw', function () {
 
         it('should not allow untrusted address to withdraw another accounts deposit', async function () {
           await expect(
-            f.User.withdrawCollateral(f.withdrawer.address, f.Collateral.address, f.initialBalance, 0),
+            f.User.withdrawCollateral(
+              f.withdrawer.address,
+              f.Collateral.address,
+              f.initialBalance,
+              0,
+              f.withdrawer.address,
+            ),
           ).to.be.revertedWith(
             `AccessControl: account ${f.user.address.toLowerCase()} is missing role 0x46925e0f0cc76e485772167edccb8dc449d43b23b55fc4e756b063f49099e6a0`,
           )
@@ -280,7 +308,12 @@ describe('Minter - Deposit Withdraw', function () {
           beforeEach(async function () {
             // userOne mints some kr assets
             this.mintAmount = toBig(100)
-            await f.Withdrawer.mintKreskoAsset(f.withdrawer.address, f.KrAsset!.address, this.mintAmount)
+            await f.Withdrawer.mintKreskoAsset(
+              f.withdrawer.address,
+              f.KrAsset!.address,
+              this.mintAmount,
+              f.withdrawer.address,
+            )
             // Mint amount differs from deposited amount due to open fee
             const amountDeposited = await optimized.getAccountCollateralAmount(
               f.withdrawer.address,
@@ -304,7 +337,13 @@ describe('Minter - Deposit Withdraw', function () {
 
             expect(accCollateralValue.sub(withdrawnCollateralValue).gte(accMinCollateralValue)).to.be.true
 
-            await f.Withdrawer.withdrawCollateral(f.withdrawer.address, f.Collateral.address, withdrawAmount, 0)
+            await f.Withdrawer.withdrawCollateral(
+              f.withdrawer.address,
+              f.Collateral.address,
+              withdrawAmount,
+              0,
+              f.withdrawer.address,
+            )
             // Ensure that the collateral asset is still in the account's deposited collateral
             // assets array.
             const depositedCollateralAssets = await hre.Diamond.getAccountCollateralAssets(f.withdrawer.address)
@@ -333,7 +372,7 @@ describe('Minter - Deposit Withdraw', function () {
             expect(accountMinCollateralValueAfter.lte(accountCollateralValueAfter)).to.be.true
           })
 
-          it('should allow withdraws that exceed deposits and only send the f.user total deposit available', async function () {
+          it('should allow withdraws that exceed deposits and only send the user total deposit available', async function () {
             const randomUser = hre.users.userFour
 
             await f.Collateral.setBalance!(randomUser, toBig(0))
@@ -358,7 +397,15 @@ describe('Minter - Deposit Withdraw', function () {
 
           it('should revert if withdrawing an amount of 0', async function () {
             const withdrawAmount = 0
-            await expect(f.Withdrawer.withdrawCollateral(f.withdrawer.address, f.Collateral.address, 0, withdrawAmount))
+            await expect(
+              f.Withdrawer.withdrawCollateral(
+                f.withdrawer.address,
+                f.Collateral.address,
+                0,
+                withdrawAmount,
+                f.withdrawer.address,
+              ),
+            )
               .to.be.revertedWithCustomError(Errors(hre), 'ZERO_AMOUNT')
               .withArgs(f.Collateral.errorId)
           })
@@ -377,7 +424,15 @@ describe('Minter - Deposit Withdraw', function () {
             const withdrawnCollateralValue = await hre.Diamond.getValue(f.Collateral.address, withdrawAmount)
             expect(accountCollateralValue.sub(withdrawnCollateralValue).lt(accountMinCollateralValue)).to.be.true
 
-            await expect(f.Withdrawer.withdrawCollateral(f.withdrawer.address, f.Collateral.address, withdrawAmount, 0))
+            await expect(
+              f.Withdrawer.withdrawCollateral(
+                f.withdrawer.address,
+                f.Collateral.address,
+                withdrawAmount,
+                0,
+                f.withdrawer.address,
+              ),
+            )
               .to.be.revertedWithCustomError(Errors(hre), 'ACCOUNT_COLLATERAL_VALUE_LESS_THAN_REQUIRED')
               .withArgs(f.withdrawer.address, 0, 150000000000, await hre.Diamond.getMinCollateralRatioMinter())
           })
@@ -390,6 +445,7 @@ describe('Minter - Deposit Withdraw', function () {
                 f.Collateral.address,
                 withdrawAmount,
                 1, // Incorrect index
+                f.withdrawer.address,
               ),
             )
               .to.be.revertedWithCustomError(Errors(hre), 'ARRAY_INDEX_OUT_OF_BOUNDS')
@@ -417,7 +473,7 @@ describe('Minter - Deposit Withdraw', function () {
         await f.User.depositCollateral(f.user.address, f.Collateral.address, f.initialDeposits)
 
         // Mint some krAssets
-        await f.User.mintKreskoAsset(f.user.address, f.KrAssetCollateral.address, mintAmount)
+        await f.User.mintKreskoAsset(f.user.address, f.KrAssetCollateral.address, mintAmount, f.user.address)
 
         // Deposit all debt on tests
         this.krAssetCollateralAmount = await f.User.getAccountDebtAmount(f.user.address, f.KrAssetCollateral.address)
@@ -768,7 +824,12 @@ describe('Minter - Deposit Withdraw', function () {
       const mintAmount = toBig(100)
       this.slow(1500)
       beforeEach(async function () {
-        await f.Withdrawer.mintKreskoAsset(f.withdrawer.address, f.KrAssetCollateral.address, mintAmount)
+        await f.Withdrawer.mintKreskoAsset(
+          f.withdrawer.address,
+          f.KrAssetCollateral.address,
+          mintAmount,
+          f.withdrawer.address,
+        )
         // Deposit all debt on tests
         this.krAssetCollateralAmount = await optimized.getAccountDebtAmount(f.withdrawer.address, f.KrAssetCollateral)
       })
@@ -802,6 +863,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             rebasedDepositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
 
           const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
@@ -841,6 +903,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             rebasedDepositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
 
           const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
@@ -879,6 +942,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             rebasedDepositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
 
           const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
@@ -917,6 +981,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             rebasedDepositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
 
           const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
@@ -969,6 +1034,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             fullDepositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
 
           const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
@@ -1021,6 +1087,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             fullDepositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
 
           const finalDeposits = await hre.Diamond.getAccountCollateralAmount(
@@ -1058,6 +1125,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.Collateral.address,
             withdrawAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.Collateral.address),
+            f.withdrawer.address,
           )
 
           expect(await f.Collateral.contract.balanceOf(f.withdrawer.address)).to.equal(expectedNrcBalanceAfter)
@@ -1086,6 +1154,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             rebasedDepositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
           const [finalValue] = await hre.Diamond.getAccountCollateralValues(
             f.withdrawer.address,
@@ -1119,6 +1188,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             rebasedDepositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
           // Get value
           const [finalValue] = await hre.Diamond.getAccountCollateralValues(
@@ -1149,6 +1219,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             depositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
           // Get value
           const [finalValue] = await hre.Diamond.getAccountCollateralValues(
@@ -1179,6 +1250,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             depositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
           // Get value
           const [finalValue] = await hre.Diamond.getAccountCollateralValues(
@@ -1228,6 +1300,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             fullDepositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
           // Get value
           const [finalValue] = await hre.Diamond.getAccountCollateralValues(
@@ -1278,6 +1351,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.KrAssetCollateral.address,
             fullDepositAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
           // Get value
           const [finalValue] = await hre.Diamond.getAccountCollateralValues(
@@ -1318,6 +1392,7 @@ describe('Minter - Deposit Withdraw', function () {
             f.Collateral.address,
             withdrawAmount,
             optimized.getAccountDepositIndex(f.withdrawer.address, f.KrAssetCollateral.address),
+            f.withdrawer.address,
           )
           const finalAccountValue = await hre.Diamond.getAccountTotalCollateralValue(f.withdrawer.address)
           const [finalValue] = await hre.Diamond.getAccountCollateralValues(f.withdrawer.address, f.Collateral.address)
