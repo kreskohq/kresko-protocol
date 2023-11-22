@@ -128,8 +128,9 @@ library MEvent {
      * @param account The address of the account minting the Kresko asset.
      * @param kreskoAsset The address of the Kresko asset.
      * @param amount The amount of the KreskoAsset that was minted.
+     * @param receiver Receiver of the minted assets.
      */
-    event KreskoAssetMinted(address indexed account, address indexed kreskoAsset, uint256 amount);
+    event KreskoAssetMinted(address indexed account, address indexed kreskoAsset, uint256 amount, address receiver);
 
     /**
      * @notice Emitted when an account burns a Kresko asset.

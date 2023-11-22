@@ -249,7 +249,7 @@ contract AuditTest is Local {
 
         kresko.getAccountFeesSCDP(userOther, address(kiss)).gt(0, "no-fees");
 
-        uint256 feesClaimed = kresko.claimFeesSCDP(userOther, address(kiss));
+        uint256 feesClaimed = kresko.claimFeesSCDP(userOther, address(kiss), userOther);
         kiss.balanceOf(userOther).eq(feesClaimed, "bal-not-zero");
 
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-not-zero-after-claim");
@@ -346,7 +346,7 @@ contract AuditTest is Local {
         prank(userOther);
         uint256 depositsBeforeClaim = kresko.getAccountDepositSCDP(userOther, address(kiss));
 
-        uint256 feesClaimed = kresko.claimFeesSCDP(userOther, address(kiss));
+        uint256 feesClaimed = kresko.claimFeesSCDP(userOther, address(kiss), userOther);
         kiss.balanceOf(userOther).eq(feesClaimed, "bal-not-zero");
 
         kresko.getAccountDepositSCDP(userOther, address(kiss)).eq(depositsBeforeClaim, "deposit-should-be-same-after-claim");
@@ -427,12 +427,12 @@ contract AuditTest is Local {
         // Test claims
         prank(getAddr(0));
         uint256 balBefore = kiss.balanceOf(getAddr(0));
-        uint256 feeAmount = kresko.claimFeesSCDP(getAddr(0), address(kiss));
+        uint256 feeAmount = kresko.claimFeesSCDP(getAddr(0), address(kiss), getAddr(0));
         kiss.balanceOf(getAddr(0)).eq(balBefore + feeAmount, "balance-should-have-fees-after-claim");
         kresko.getAccountFeesSCDP(getAddr(0), address(kiss)).eq(0, "fees-should-be-zero-after-claim-user");
 
         prank(userOther);
-        uint256 feeAmountUserOther = kresko.claimFeesSCDP(userOther, address(kiss));
+        uint256 feeAmountUserOther = kresko.claimFeesSCDP(userOther, address(kiss), userOther);
         kiss.balanceOf(userOther).eq(feeAmountUserOther);
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-should-be-zero-after-claim-user-other");
     }
@@ -507,12 +507,12 @@ contract AuditTest is Local {
         // Test claims
         prank(getAddr(0));
         uint256 balBefore = kiss.balanceOf(getAddr(0));
-        uint256 feeAmount = kresko.claimFeesSCDP(getAddr(0), address(kiss));
+        uint256 feeAmount = kresko.claimFeesSCDP(getAddr(0), address(kiss), getAddr(0));
         kiss.balanceOf(getAddr(0)).eq(balBefore + feeAmount, "balance-should-have-fees-after-claim");
         kresko.getAccountFeesSCDP(getAddr(0), address(kiss)).eq(0, "fees-should-be-zero-after-claim-user");
 
         prank(userOther);
-        uint256 feeAmountUserOther = kresko.claimFeesSCDP(userOther, address(kiss));
+        uint256 feeAmountUserOther = kresko.claimFeesSCDP(userOther, address(kiss), userOther);
         kiss.balanceOf(userOther).eq(feeAmountUserOther);
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-should-be-zero-after-claim-user-other");
     }
@@ -587,12 +587,12 @@ contract AuditTest is Local {
         // Test claims
         prank(getAddr(0));
         uint256 balBefore = kiss.balanceOf(getAddr(0));
-        uint256 feeAmount = kresko.claimFeesSCDP(getAddr(0), address(kiss));
+        uint256 feeAmount = kresko.claimFeesSCDP(getAddr(0), address(kiss), getAddr(0));
         kiss.balanceOf(getAddr(0)).eq(balBefore + feeAmount, "balance-should-have-fees-after-claim");
         kresko.getAccountFeesSCDP(getAddr(0), address(kiss)).eq(0, "fees-should-be-zero-after-claim-user");
 
         prank(userOther);
-        uint256 feeAmountUserOther = kresko.claimFeesSCDP(userOther, address(kiss));
+        uint256 feeAmountUserOther = kresko.claimFeesSCDP(userOther, address(kiss), userOther);
         kiss.balanceOf(userOther).eq(feeAmountUserOther);
         kresko.getAccountFeesSCDP(userOther, address(kiss)).eq(0, "fees-should-be-zero-after-claim-user-other");
     }
@@ -728,7 +728,7 @@ contract AuditTest is Local {
         if (debt < krETH.asToken.balanceOf(getAddr(0))) {
             mockUSDC.mock.mint(getAddr(0), 100_000e6);
             call(kresko.depositCollateral.selector, getAddr(0), mockUSDC.addr, 100_000e6, rsPrices);
-            call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, debt, rsPrices);
+            call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, debt, getAddr(0), rsPrices);
         }
         kresko.setAssetKFactor(krETH.addr, 1e4);
         for (uint256 i = 0; i < count; i++) {
@@ -747,7 +747,7 @@ contract AuditTest is Local {
         if (debt < krETH.asToken.balanceOf(getAddr(0))) {
             mockUSDC.mock.mint(getAddr(0), 100_000e6);
             call(kresko.depositCollateral.selector, getAddr(0), mockUSDC.addr, 100_000e6, rsPrices);
-            call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, debt, rsPrices);
+            call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, debt, getAddr(0), rsPrices);
         }
 
         kresko.setAssetKFactor(krETH.addr, 1e4);
@@ -762,7 +762,7 @@ contract AuditTest is Local {
         if (amount < krETH.asToken.balanceOf(getAddr(0))) {
             mockUSDC.mock.mint(getAddr(0), 100_000e6);
             call(kresko.depositCollateral.selector, getAddr(0), mockUSDC.addr, 100_000e6, rsPrices);
-            call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, amount, rsPrices);
+            call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, amount, getAddr(0), rsPrices);
         }
 
         kresko.setAssetKFactor(krETH.addr, 1e4);

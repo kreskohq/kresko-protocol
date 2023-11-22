@@ -27,8 +27,9 @@ contract MinterBurnFacet is Modifiers, IMinterBurnFacet {
         address _account,
         address _krAsset,
         uint256 _burnAmount,
-        uint256 _mintedKreskoAssetIndex
-    ) external nonReentrant onlyRoleIf(_account != msg.sender, Role.MANAGER) {
+        uint256 _mintedKreskoAssetIndex,
+        address _repayee
+    ) external nonReentrant onlyRoleIf(_account != msg.sender || _repayee != msg.sender, Role.MANAGER) {
         if (_burnAmount == 0) revert Errors.ZERO_BURN(Errors.id(_krAsset));
         Asset storage asset = cs().onlyMinterMintable(_krAsset, Enums.Action.Repay);
 
@@ -52,7 +53,7 @@ contract MinterBurnFacet is Modifiers, IMinterBurnFacet {
         handleMinterFee(asset, _account, _burnAmount, Enums.MinterFee.Close);
 
         // Record the burn
-        s.kreskoAssetDebt[_account][_krAsset] -= burnKrAsset(_burnAmount, msg.sender, asset.anchor);
+        s.kreskoAssetDebt[_account][_krAsset] -= burnKrAsset(_burnAmount, _repayee, asset.anchor);
 
         // If sender repays all debt of asset, remove it from minted assets array.
         if (s.accountDebtAmount(_account, _krAsset, asset) == 0) {

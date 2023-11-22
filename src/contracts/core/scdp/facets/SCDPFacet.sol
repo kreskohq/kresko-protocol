@@ -44,8 +44,10 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         address _receiver
     ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) nonReentrant gate {
         SCDPState storage s = scdp();
+        _receiver = _receiver == address(0) ? _account : _receiver;
+
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
-        s.handleWithdrawSCDP(cs().onlyActiveSharedCollateral(_collateralAsset), _account, _collateralAsset, _amount);
+        s.handleWithdrawSCDP(cs().onlyActiveSharedCollateral(_collateralAsset), _account, _collateralAsset, _amount, _receiver);
 
         // ensure that global pool is left with CR over MCR.
         s.ensureCollateralRatio(s.minCollateralRatio);
@@ -60,9 +62,15 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
     /// @inheritdoc ISCDPFacet
     function claimFeesSCDP(
         address _account,
-        address _collateralAsset
+        address _collateralAsset,
+        address _receiver
     ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) returns (uint256 feeAmount) {
-        feeAmount = scdp().handleFeeClaim(cs().onlyFeeAccumulatingCollateral(_collateralAsset), _account, _collateralAsset);
+        feeAmount = scdp().handleFeeClaim(
+            cs().onlyFeeAccumulatingCollateral(_collateralAsset),
+            _account,
+            _collateralAsset,
+            _receiver == address(0) ? _account : _receiver
+        );
         if (feeAmount == 0) revert Errors.NO_FEES_TO_CLAIM(Errors.id(_collateralAsset), _account);
     }
 

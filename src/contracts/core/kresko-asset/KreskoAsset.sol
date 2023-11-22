@@ -265,7 +265,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     }
 
     /// @inheritdoc IKreskoAsset
-    function unwrap(uint256 _amount, bool _receiveNative) external {
+    function unwrap(address _to, uint256 _amount, bool _receiveNative) external {
         _requireNotPaused();
 
         address underlying = wrapping.underlying;
@@ -292,9 +292,9 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
             }
         }
         if (!allowNative) {
-            IERC20(underlying).safeTransfer(msg.sender, _amount);
+            IERC20(underlying).safeTransfer(_to, _amount);
         } else {
-            payable(msg.sender).safeTransferETH(_amount);
+            payable(_to).safeTransferETH(_amount);
         }
 
         emit Unwrap(address(this), underlying, msg.sender, _amount);

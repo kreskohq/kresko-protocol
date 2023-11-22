@@ -185,7 +185,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
 
         require(success, "!success");
 
-        address(kresko).call(depositData);
+        (success, ) = address(kresko).call(depositData);
 
         bytes memory swapData = abi.encodePacked(
             abi.encodeWithSelector(kresko.swapSCDP.selector, user0, KISS.addr, krETH.addr, swapValueWad, 0),

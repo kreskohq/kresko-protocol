@@ -30,7 +30,8 @@ contract MinterMintFacet is IMinterMintFacet, Modifiers {
     function mintKreskoAsset(
         address _account,
         address _krAsset,
-        uint256 _mintAmount
+        uint256 _mintAmount,
+        address _receiver
     ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) nonReentrant gate {
         if (_mintAmount == 0) revert Errors.ZERO_MINT(Errors.id(_krAsset));
         Asset storage asset = cs().onlyMinterMintable(_krAsset, Enums.Action.Borrow);
@@ -58,15 +59,17 @@ contract MinterMintFacet is IMinterMintFacet, Modifiers {
             s.mintedKreskoAssets[_account].pushUnique(_krAsset);
         }
 
+        _receiver = _receiver == address(0) ? _account : _receiver;
+
         // Record the mint.
         unchecked {
-            s.kreskoAssetDebt[_account][_krAsset] += mintKrAsset(_mintAmount, _account, asset.anchor);
+            s.kreskoAssetDebt[_account][_krAsset] += mintKrAsset(_mintAmount, _receiver, asset.anchor);
         }
 
         // Check if the account has sufficient collateral to back the new debt
         s.checkAccountCollateral(_account);
 
         // Emit logs
-        emit MEvent.KreskoAssetMinted(_account, _krAsset, _mintAmount);
+        emit MEvent.KreskoAssetMinted(_account, _krAsset, _mintAmount, _receiver);
     }
 }

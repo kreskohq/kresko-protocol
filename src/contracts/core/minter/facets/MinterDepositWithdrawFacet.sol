@@ -38,7 +38,8 @@ contract MinterDepositWithdrawFacet is Modifiers, IMinterDepositWithdrawFacet {
         address _account,
         address _collateralAsset,
         uint256 _withdrawAmount,
-        uint256 _collateralIndex
+        uint256 _collateralIndex,
+        address _receiver
     ) external nonReentrant onlyRoleIf(_account != msg.sender, Role.MANAGER) {
         Asset storage asset = cs().onlyMinterCollateral(_collateralAsset, Enums.Action.Withdraw);
         uint256 collateralAmount = ms().accountCollateralAmount(_account, _collateralAsset, asset);
@@ -48,7 +49,7 @@ contract MinterDepositWithdrawFacet is Modifiers, IMinterDepositWithdrawFacet {
 
         ms().handleWithdrawal(asset, _account, _collateralAsset, _withdrawAmount, collateralAmount, _collateralIndex);
 
-        IERC20(_collateralAsset).safeTransfer(_account, _withdrawAmount);
+        IERC20(_collateralAsset).safeTransfer(_receiver, _withdrawAmount);
     }
 
     /// @inheritdoc IMinterDepositWithdrawFacet

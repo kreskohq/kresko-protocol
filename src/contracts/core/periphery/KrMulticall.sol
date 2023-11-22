@@ -81,15 +81,12 @@ contract KrMulticall {
         unchecked {
             results = new OpResult[](ops.length);
             for (uint256 i; i < ops.length; i++) {
-                Op calldata op = ops[i];
+                Op memory op = ops[i];
 
                 if (op.data.tokenIn != address(0)) {
-                    IERC20 tokenIn = IERC20(op.data.tokenIn);
+                    op.data.amountIn = uint96(_pullTokensIn(op));
                     results[i].tokenIn = op.data.tokenIn;
-
-                    uint256 balIn = tokenIn.balanceOf(msg.sender);
-                    _pullTokenIn(op);
-                    results[i].amountIn = balIn - tokenIn.balanceOf(msg.sender);
+                    results[i].amountIn = op.data.amountIn;
                 }
 
                 if (op.data.tokenOut != address(0)) {
@@ -112,19 +109,21 @@ contract KrMulticall {
         }
     }
 
-    function _pullTokenIn(Op calldata _op) internal {
+    function _pullTokensIn(Op memory _op) internal returns (uint256 amountIn) {
         IERC20 token = IERC20(_op.data.tokenIn);
+
         if (_op.data.amountIn > 0) {
             if (token.allowance(msg.sender, address(this)) < _op.data.amountIn)
                 revert NoAllowance(_op.action, _op.data.tokenIn, token.symbol());
 
             token.transferFrom(msg.sender, address(this), _op.data.amountIn);
+            return _op.data.amountIn;
         } else {
-            revert ZeroAmountIn(_op.action, _op.data.tokenIn, token.symbol());
+            return token.balanceOf(address(this));
         }
     }
 
-    function _sendTokens(Op calldata _op) internal {
+    function _sendTokens(Op memory _op) internal {
         if (address(this).balance > 0) payable(msg.sender).transfer(address(this).balance);
 
         if (_op.data.tokenIn != address(0)) {
@@ -169,7 +168,7 @@ contract KrMulticall {
                     abi.encodePacked(
                         abi.encodeCall(
                             IMinterDepositWithdrawFacet.withdrawCollateral,
-                            (msg.sender, _op.data.tokenOut, _op.data.amountOut, _op.data.index)
+                            (msg.sender, _op.data.tokenOut, _op.data.amountOut, _op.data.index, address(this))
                         ),
                         rsPayload
                     )
@@ -180,7 +179,7 @@ contract KrMulticall {
                     abi.encodePacked(
                         abi.encodeCall(
                             IMinterBurnFacet.burnKreskoAsset,
-                            (msg.sender, _op.data.tokenIn, _op.data.amountIn, _op.data.index)
+                            (msg.sender, _op.data.tokenIn, _op.data.amountIn, _op.data.index, msg.sender)
                         ),
                         rsPayload
                     )
@@ -189,7 +188,10 @@ contract KrMulticall {
             return
                 kresko.call(
                     abi.encodePacked(
-                        abi.encodeCall(IMinterMintFacet.mintKreskoAsset, (msg.sender, _op.data.tokenOut, _op.data.amountOut)),
+                        abi.encodeCall(
+                            IMinterMintFacet.mintKreskoAsset,
+                            (msg.sender, _op.data.tokenOut, _op.data.amountOut, address(this))
+                        ),
                         rsPayload
                     )
                 );
@@ -209,7 +211,7 @@ contract KrMulticall {
                     abi.encodePacked(
                         abi.encodeCall(
                             ISCDPSwapFacet.swapSCDP,
-                            (msg.sender, _op.data.tokenIn, _op.data.tokenOut, _op.data.amountIn, _op.data.amountOutMin)
+                            (address(this), _op.data.tokenIn, _op.data.tokenOut, _op.data.amountIn, _op.data.amountOutMin)
                         ),
                         rsPayload
                     )
@@ -220,7 +222,7 @@ contract KrMulticall {
                     abi.encodePacked(
                         abi.encodeCall(
                             ISCDPFacet.withdrawSCDP,
-                            (msg.sender, _op.data.tokenOut, _op.data.amountOut, msg.sender)
+                            (msg.sender, _op.data.tokenOut, _op.data.amountOut, address(this))
                         ),
                         rsPayload
                     )
@@ -228,13 +230,16 @@ contract KrMulticall {
         } else if (_op.action == OpAction.SCDPClaim) {
             return
                 kresko.call(
-                    abi.encodePacked(abi.encodeCall(ISCDPFacet.claimFeesSCDP, (msg.sender, _op.data.tokenOut)), rsPayload)
+                    abi.encodePacked(
+                        abi.encodeCall(ISCDPFacet.claimFeesSCDP, (msg.sender, _op.data.tokenOut, address(this))),
+                        rsPayload
+                    )
                 );
         } else if (_op.action == OpAction.SynthWrap) {
-            IKreskoAsset(_op.data.tokenOut).wrap(msg.sender, _op.data.amountIn);
+            IKreskoAsset(_op.data.tokenOut).wrap(address(this), _op.data.amountIn);
             return (true, "");
         } else if (_op.action == OpAction.SynthUnwrap) {
-            IKreskoAsset(_op.data.tokenIn).unwrap(_op.data.amountIn, false);
+            IKreskoAsset(_op.data.tokenIn).unwrap(address(this), _op.data.amountIn, false);
             return (true, "");
         } else if (_op.action == OpAction.VaultDeposit) {
             _approve(_op.data.tokenIn, _op.data.amountIn, kiss);

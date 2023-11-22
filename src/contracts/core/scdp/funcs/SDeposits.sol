@@ -30,7 +30,7 @@ library SDeposits {
         uint256 _amount
     ) internal {
         // Withdraw any fees first.
-        uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr);
+        uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr, _account);
 
         unchecked {
             // Save global deposits using normalized amount.
@@ -62,16 +62,18 @@ library SDeposits {
      * @param _account The withdrawing account
      * @param _assetAddr the deposit asset
      * @param _amount The amount of collateral to withdraw
+     * @param _receiver The receiver of the withdrawn fees
      */
     function handleWithdrawSCDP(
         SCDPState storage self,
         Asset storage _asset,
         address _account,
         address _assetAddr,
-        uint256 _amount
+        uint256 _amount,
+        address _receiver
     ) internal {
         // Withdraw any fees first.
-        uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr);
+        uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr, _receiver);
 
         // Get accounts principal deposits.
         uint256 depositsPrincipal = self.accountDeposits(_account, _assetAddr, _asset);
@@ -154,12 +156,13 @@ library SDeposits {
         SCDPState storage self,
         Asset storage _asset,
         address _account,
-        address _assetAddr
+        address _assetAddr,
+        address _receiver
     ) internal returns (uint256 feeAmount) {
         uint256 fees = self.accountFees(_account, _assetAddr, _asset);
 
         if (fees > 0) {
-            IERC20(_assetAddr).transfer(_account, fees);
+            IERC20(_assetAddr).transfer(_receiver, fees);
             (uint256 prevIndex, uint256 newIndex) = updateAccountIndexes(self, _account, _assetAddr);
             emit SEvent.SCDPFeeClaim(_account, _assetAddr, fees, newIndex, prevIndex, block.timestamp);
         }

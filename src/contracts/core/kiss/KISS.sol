@@ -85,7 +85,8 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         ERC20Upgradeable(_assetAddr).approve(vKISS, _assets);
         (sharesOut, assetFee) = IVault(vKISS).deposit(_assetAddr, _assets, address(this));
 
-        _mint(_receiver, sharesOut);
+        address receiver = _receiver == address(0) ? msg.sender : _receiver;
+        _mint(receiver, sharesOut);
     }
 
     /// @inheritdoc IVaultExtender
@@ -100,7 +101,8 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         ERC20Upgradeable(_assetAddr).approve(vKISS, assetsIn);
         IVault(vKISS).mint(_assetAddr, _shares, address(this));
 
-        _mint(_receiver, _shares);
+        address receiver = _receiver == address(0) ? msg.sender : _receiver;
+        _mint(receiver, _shares);
     }
 
     /// @inheritdoc IVaultExtender
@@ -112,7 +114,8 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     ) external returns (uint256 sharesIn, uint256 assetFee) {
         (sharesIn, assetFee) = IVault(vKISS).previewWithdraw(_assetAddr, _assets);
         withdrawFrom(_owner, address(this), sharesIn);
-        IVault(vKISS).withdraw(_assetAddr, _assets, _receiver, address(this));
+        address receiver = _receiver == address(0) ? _owner : _receiver;
+        IVault(vKISS).withdraw(_assetAddr, _assets, receiver, address(this));
     }
 
     /// @inheritdoc IVaultExtender
@@ -123,7 +126,8 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         address _owner
     ) external returns (uint256 assetsOut, uint256 assetFee) {
         withdrawFrom(_owner, address(this), _shares);
-        (assetsOut, assetFee) = IVault(vKISS).redeem(_assetAddr, _shares, _receiver, address(this));
+        address receiver = _receiver == address(0) ? _owner : _receiver;
+        (assetsOut, assetFee) = IVault(vKISS).redeem(_assetAddr, _shares, receiver, address(this));
     }
 
     /// @inheritdoc IVaultExtender
@@ -141,12 +145,14 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     /// @inheritdoc IVaultExtender
     function deposit(uint256 _shares, address _receiver) external {
         ERC20Upgradeable(vKISS).transferFrom(msg.sender, address(this), _shares);
-        _mint(_receiver, _shares);
+        address receiver = _receiver == address(0) ? msg.sender : _receiver;
+        _mint(receiver, _shares);
     }
 
     /// @inheritdoc IVaultExtender
     function withdraw(uint256 _amount, address _receiver) external {
-        _withdraw(msg.sender, _receiver, _amount);
+        address receiver = _receiver == address(0) ? msg.sender : _receiver;
+        _withdraw(msg.sender, receiver, _amount);
     }
 
     /// @inheritdoc IVaultExtender

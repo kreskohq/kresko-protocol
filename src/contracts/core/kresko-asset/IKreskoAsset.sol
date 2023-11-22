@@ -129,17 +129,18 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
 
     /**
      * @notice Deposit underlying tokens to receive equal value of krAsset (-fee).
-     * @param _to The to address.
+     * @param _to The address to send tokens to.
      * @param _amount The amount (uint256).
      */
     function wrap(address _to, uint256 _amount) external;
 
     /**
      * @notice Withdraw kreskoAsset to receive underlying tokens / native (-fee).
+     * @param _to The address to send unwrapped tokens to.
      * @param _amount The amount (uint256).
      * @param _receiveNative bool whether to receive underlying as native
      */
-    function unwrap(uint256 _amount, bool _receiveNative) external;
+    function unwrap(address _to, uint256 _amount, bool _receiveNative) external;
 
     /**
      * @notice Sets anchor token address

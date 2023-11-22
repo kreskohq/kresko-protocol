@@ -504,8 +504,8 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
         s.kresko.depositCollateral(_account, address(wbtc), 0.1e8);
         s.kresko.depositCollateral(_account, address(dai), 10000e18);
 
-        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krETH"], 0.01 ether, initialPrices);
-        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krJPY"], 10000 ether, initialPrices);
+        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krETH"], 0.01 ether, _account, initialPrices);
+        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krJPY"], 10000 ether, _account, initialPrices);
     }
 
     function mintKiss(address _account, uint256 _amount) private returns (uint256 amountOut) {
@@ -534,8 +534,8 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
         dai.approve(address(s.kresko), type(uint256).max);
         s.kresko.depositCollateral(_account, address(wbtc), 0.1e8);
         s.kresko.depositCollateral(_account, address(dai), 10000e18);
-        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krETH"], 0.01 ether, initialPrices);
-        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krJPY"], 10000 ether, initialPrices);
+        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krETH"], 0.01 ether, _account, initialPrices);
+        call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krJPY"], 10000 ether, _account, initialPrices);
 
         s.kiss.approve(address(s.kresko), type(uint256).max);
         s.kresko.depositSCDP(_account, address(s.kiss), liquidity);
