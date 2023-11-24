@@ -39,17 +39,18 @@ contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getReds
         kresko.grantRole(Role.MANAGER, address(multicall));
     }
 
-    // function testLocalThing() public {
+    // function testLocalnet() public {
     //     prank(getAddr(0));
     //     KrMulticall.Operation[] memory opsWithdraw = new KrMulticall.Operation[](2);
+    //     IERC20(0x63A177DB01AE8DA5f5D60b0E0b2898bBA42Ed9f7).approve(address(multicall), 100000000000000000);
     //     opsWithdraw[0] = KrMulticall.Operation({
-    //         action: KrMulticall.Action.SCDPWithdraw,
+    //         action: KrMulticall.Action.SynthWrap,
     //         data: KrMulticall.Data({
-    //             tokenIn: address(0),
-    //             amountIn: 0,
-    //             tokensInMode: KrMulticall.TokensInMode.None,
-    //             tokenOut: address(kiss),
-    //             amountOut: 1e18,
+    //             tokenIn: 0x63A177DB01AE8DA5f5D60b0E0b2898bBA42Ed9f7,
+    //             amountIn: 100000000000000000,
+    //             tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+    //             tokenOut: 0xE867a0A27bd72053941fF5D863Cfd476Fc8Fd9c1,
+    //             amountOut: 0,
     //             tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
     //             amountOutMin: 0,
     //             deadline: 0,
@@ -58,12 +59,12 @@ contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getReds
     //         })
     //     });
     //     opsWithdraw[1] = KrMulticall.Operation({
-    //         action: KrMulticall.Action.VaultRedeem,
+    //         action: KrMulticall.Action.SCDPTrade,
     //         data: KrMulticall.Data({
-    //             tokenIn: address(kiss),
+    //             tokenIn: 0xE867a0A27bd72053941fF5D863Cfd476Fc8Fd9c1,
     //             amountIn: 0,
     //             tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
-    //             tokenOut: address(usdc),
+    //             tokenOut: 0x43e53A48Ee932BbB1D09180a2bF02bBe70020449,
     //             amountOut: 0,
     //             tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
     //             amountOutMin: 0,
@@ -89,3 +90,34 @@ contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getReds
     //     // assertEq(addr, address(0x123), "addr-not-eq");
     // }
 }
+
+// {
+//       "action": 9,
+//       "data": {
+//         "tokenIn": "0x63A177DB01AE8DA5f5D60b0E0b2898bBA42Ed9f7",
+//         "amountIn": "12000000000000000000",
+//         "tokensInMode": 1,
+//         "tokenOut": "0x43e53A48Ee932BbB1D09180a2bF02bBe70020449",
+//         "amountOut": "0",
+//         "tokensOutMode": 2,
+//         "index": "0",
+//         "path": "0x",
+//         "amountOutMin": "0",
+//         "deadline": "0"
+//       }
+//     },
+//     {
+//       "action": 5,
+//       "data": {
+//         "tokenIn": "0x43e53A48Ee932BbB1D09180a2bF02bBe70020449",
+//         "amountIn": "0",
+//         "tokensInMode": 2,
+//         "tokenOut": "0x43e53A48Ee932BbB1D09180a2bF02bBe70020449",
+//         "amountOut": "0",
+//         "tokensOutMode": 1,
+//         "index": "0",
+//         "path": "0x",
+//         "amountOutMin": "0",
+//         "deadline": "0"
+//       }
+//     }

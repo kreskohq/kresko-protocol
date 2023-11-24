@@ -260,9 +260,11 @@ contract KrMulticall is Ownable {
                     )
                 );
         } else if (_op.action == Action.SynthWrap) {
+            _approve(_op.data.tokenIn, _op.data.amountIn, _op.data.tokenOut);
             IKreskoAsset(_op.data.tokenOut).wrap(receiver, _op.data.amountIn);
             return (true, "");
         } else if (_op.action == Action.SynthUnwrap) {
+            _approve(_op.data.tokenIn, _op.data.amountIn, _op.data.tokenIn);
             IKreskoAsset(_op.data.tokenIn).unwrap(receiver, _op.data.amountIn, false);
             return (true, "");
         } else if (_op.action == Action.VaultDeposit) {
