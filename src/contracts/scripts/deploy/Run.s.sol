@@ -124,9 +124,9 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
 
             address user = getAddr(testUsers[i]);
             broadcastWith(user);
-            Tokens.USDC.approve(address(kresko), usdcDepositAmount);
-            Tokens.WETH.approve(address(kresko), wethDepositAmount);
-            Tokens.USDC.approve(address(kiss), usdcKissDepositAmount);
+            Tokens.USDC.approve(address(kresko), type(uint256).max);
+            Tokens.WETH.approve(address(kresko), type(uint256).max);
+            Tokens.USDC.approve(address(kiss), type(uint256).max);
 
             kiss.vaultDeposit(Addr.USDC, usdcKissDepositAmount, user);
 
@@ -141,6 +141,9 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
         }
 
         broadcastWith(getAddr(0));
+        (uint256 sharesOut, ) = kiss.vaultDeposit(Addr.USDC, 50000e6, getAddr(0));
+        kiss.approve(address(kresko), type(uint256).max);
+        kresko.depositSCDP(getAddr(0), address(kiss), sharesOut);
         GatingManager(getDeployed(".GatingManager")).setPhase(1);
         vm.stopBroadcast();
     }
@@ -149,7 +152,7 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
         vm.startBroadcast(0x4bb7f4c3d47C4b431cb0658F44287d52006fb506);
         for (uint256 i; i < testUsers.length; i++) {
             address user = getAddr(testUsers[i]);
-            MockERC20(Addr.WBTC).transfer(user, 0.25e8);
+            MockERC20(Addr.WBTC).transfer(user, 0.253333e8);
         }
         vm.stopBroadcast();
         console2.log("WBTC sent to users");
@@ -179,8 +182,12 @@ contract Arbitrum is ArbitrumDeployment("MNEMONIC_DEVNET") {
         vm.startBroadcast(0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D);
         for (uint256 i; i < testUsers.length; i++) {
             address user = getAddr(testUsers[i]);
-            MockERC20(Addr.USDC).transfer(user, 100000e6);
-            MockERC20(Addr.USDCe).transfer(user, 7500e6);
+            if (i == 0) {
+                MockERC20(Addr.USDC).transfer(user, 200000e6);
+            } else {
+                MockERC20(Addr.USDC).transfer(user, 110000e6);
+            }
+            MockERC20(Addr.USDCe).transfer(user, 17500e6);
             MockERC20(Addr.DAI).transfer(user, 25000 ether);
             MockERC20(Addr.USDT).transfer(user, 5000e6);
         }

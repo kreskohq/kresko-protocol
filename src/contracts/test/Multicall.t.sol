@@ -88,7 +88,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -103,7 +102,6 @@ contract MulticallTest is Local {
                 amountOut: 10000e18,
                 tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -135,7 +133,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -150,7 +147,6 @@ contract MulticallTest is Local {
                 amountOut: 10000e18,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -165,7 +161,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -199,7 +194,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -214,7 +208,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -247,7 +240,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -262,7 +254,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -281,7 +272,6 @@ contract MulticallTest is Local {
                 amountOut: 9998e18,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -296,7 +286,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -337,7 +326,6 @@ contract MulticallTest is Local {
                 amountOut: 10_000e18,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -352,7 +340,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -396,7 +383,6 @@ contract MulticallTest is Local {
                 amountOut: 10_000e18,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -411,7 +397,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -430,7 +415,6 @@ contract MulticallTest is Local {
                 amountOut: 9930.1225e18,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -445,7 +429,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -483,7 +466,6 @@ contract MulticallTest is Local {
                 amountOut: 10000e18,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -498,7 +480,6 @@ contract MulticallTest is Local {
                 amountOut: 10000e18,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -513,7 +494,6 @@ contract MulticallTest is Local {
                 amountOut: 10000e18,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -528,7 +508,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -543,7 +522,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -558,7 +536,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -573,7 +550,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 tokensOutMode: KrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -588,7 +564,6 @@ contract MulticallTest is Local {
                 amountOut: 10000e18,
                 tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                deadline: 0,
                 path: "",
                 index: 0
             })
@@ -604,7 +579,6 @@ contract MulticallTest is Local {
                 amountOut: 0,
                 amountOutMin: 0,
                 index: 0,
-                deadline: 0,
                 path: ""
             })
         });

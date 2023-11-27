@@ -14,7 +14,6 @@ interface ISwapRouter {
     struct ExactInputParams {
         bytes path;
         address recipient;
-        uint256 deadline;
         uint256 amountIn;
         uint256 amountOutMinimum;
     }
@@ -276,14 +275,13 @@ contract KrMulticall is Ownable {
             IVaultExtender(kiss).vaultRedeem(_op.data.tokenOut, _op.data.amountIn, receiver, address(this));
             return (true, "");
         } else if (_op.action == Action.AMMExactInput) {
-            _approve(address(uniswapRouter), _op.data.amountIn, _op.data.tokenIn);
+            IERC20(_op.data.tokenIn).transfer(address(uniswapRouter), _op.data.amountIn);
             if (
                 uniswapRouter.exactInput(
                     ISwapRouter.ExactInputParams({
                         path: _op.data.path,
                         recipient: receiver,
-                        deadline: _op.data.deadline,
-                        amountIn: _op.data.amountIn,
+                        amountIn: 0,
                         amountOutMinimum: _op.data.amountOutMin
                     })
                 ) == 0
@@ -328,7 +326,6 @@ contract KrMulticall is Ownable {
      * @param tokensOutMode The mode for tokensOut.
      * @param amountOutMin The minimum amount of tokenOut to receive, or 0 if none.
      * @param index The index of the mintedKreskoAssets array to use, or 0 if none.
-     * @param deadline The deadline for Uniswap V3 swap, or 0 if none.
      * @param path The path for the Uniswap V3 swap, or empty if none.
      */
     struct Data {
@@ -340,7 +337,6 @@ contract KrMulticall is Ownable {
         TokensOutMode tokensOutMode;
         uint128 amountOutMin;
         uint128 index;
-        uint256 deadline;
         bytes path;
     }
 
