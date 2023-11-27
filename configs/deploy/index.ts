@@ -48,7 +48,10 @@ export const getMinterInitializer = async (hre: HardhatRuntimeEnvironment): Prom
     args: testnetConfigs[hre.network.name].minterInitArgs,
   }
 }
-export const getCommonInitializer = async (hre: HardhatRuntimeEnvironment): Promise<CommonInitializer> => {
+export const getCommonInitializer = async (
+  hre: HardhatRuntimeEnvironment,
+  gatingManager: string,
+): Promise<CommonInitializer> => {
   const { treasury, admin, multisig } = await getDeploymentUsers(hre)
 
   const config = testnetConfigs[hre.network.name].commonInitAgs
@@ -60,6 +63,7 @@ export const getCommonInitializer = async (hre: HardhatRuntimeEnvironment): Prom
       admin,
       treasury,
       council: multisig,
+      gatingManager,
       sequencerUptimeFeed: hre.network.live
         ? config.sequencerUptimeFeed
         : (await hre.deployments.get('MockSequencerUptimeFeed')).address,

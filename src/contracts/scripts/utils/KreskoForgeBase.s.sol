@@ -89,7 +89,7 @@ abstract contract KreskoForgeBase is
         init_.sequencerUptimeFeed = _cfg.seqFeed;
         init_.sequencerGracePeriodTime = 3600;
         init_.staleTime = _cfg.staleTime;
-        init_.phase = 3;
+        init_.gatingManager = _cfg.gatingManager;
     }
 
     function getMinterInitArgs(CoreConfig memory _cfg) internal pure returns (MinterInitArgs memory init_) {

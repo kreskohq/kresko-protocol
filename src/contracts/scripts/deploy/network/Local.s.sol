@@ -403,9 +403,14 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
         super.afterAssetConfigs(assetCfg_);
     }
 
-    function createCoreConfig(address _admin, address _treasury) internal override returns (CoreConfig memory cfg_) {
+    function createCoreConfig(
+        address _admin,
+        address _treasury,
+        address _gatingManager
+    ) internal override returns (CoreConfig memory cfg_) {
         cfg_ = CoreConfig({
             admin: _admin,
+            gatingManager: _gatingManager,
             seqFeed: address(new MockSequencerUptimeFeed()),
             staleTime: 86401,
             minterMcr: 150e2,

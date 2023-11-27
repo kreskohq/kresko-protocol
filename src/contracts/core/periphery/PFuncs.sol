@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {cs, gs} from "common/State.sol";
+import {cs, gm} from "common/State.sol";
 import {scdp, sdi} from "scdp/SState.sol";
 import {PType} from "periphery/PTypes.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
@@ -12,7 +12,6 @@ import {pushPrice, SDIPrice} from "common/funcs/Prices.sol";
 import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {ms} from "minter/MState.sol";
-import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
@@ -90,9 +89,9 @@ library PFunc {
     }
 
     function getGate() internal view returns (PType.Gate memory result) {
-        result.kreskian = gs().kreskian;
-        result.questForKresk = gs().questForKresk;
-        result.phase = gs().phase;
+        result.kreskian = address(gm().manager.kreskian());
+        result.questForKresk = address(gm().manager.questForKresk());
+        result.phase = gm().manager.phase();
     }
 
     function getMinter() internal view returns (PType.Minter memory result) {
@@ -464,32 +463,14 @@ library PFunc {
 
         result.symbol = IERC20(_assetAddr).symbol();
         result.addr = _assetAddr;
-        result.liqIndex = scdp().accountIndexes[_account][_assetAddr].lastLiqIndex;
-        result.feeIndex = scdp().accountIndexes[_account][_assetAddr].lastFeeIndex;
+        result.liqIndexAccount = scdp().accountIndexes[_account][_assetAddr].lastLiqIndex;
+        result.liqIndexCurrent = scdp().assetIndexes[_assetAddr].currLiqIndex;
+        result.feeIndexAccount = scdp().accountIndexes[_account][_assetAddr].lastFeeIndex;
+        result.feeIndexCurrent = scdp().assetIndexes[_assetAddr].currFeeIndex;
     }
 
-    function getPhaseEligibility(address _user) internal view returns (uint8 phase, bool eligibleForCurrentPhase) {
-        phase = gs().phase;
-        if (phase <= 2) {
-            if (IERC1155(gs().kreskian).balanceOf(_user, 0) > 0) {
-                eligibleForCurrentPhase = true;
-                phase = 2;
-            }
-        }
-        if (phase == 1) {
-            IERC1155 questForKresk = IERC1155(gs().questForKresk);
-            if (questForKresk.balanceOf(_user, 2) > 0 && questForKresk.balanceOf(_user, 3) > 0) {
-                eligibleForCurrentPhase = true;
-                phase = 1;
-            }
-        } else if (phase == 0) {
-            if (IERC1155(gs().questForKresk).balanceOf(_user, 3) > 0) {
-                eligibleForCurrentPhase = true;
-                phase = 0;
-            }
-        } else {
-            phase = 32;
-            eligibleForCurrentPhase = true;
-        }
+    function getPhaseEligibility(address _account) internal view returns (uint8 phase, bool isEligible) {
+        phase = gm().manager.phase();
+        isEligible = gm().manager.isEligible(_account);
     }
 }

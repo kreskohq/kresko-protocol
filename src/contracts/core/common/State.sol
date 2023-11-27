@@ -5,6 +5,7 @@ import {EnumerableSet} from "libs/EnumerableSet.sol";
 import {LibModifiers} from "common/Modifiers.sol";
 import {Enums} from "common/Constants.sol";
 import {Asset, SafetyState, RoleData, Oracle} from "common/Types.sol";
+import {GatingManager} from "periphery/GatingManager.sol";
 
 using LibModifiers for CommonState global;
 
@@ -46,12 +47,6 @@ struct CommonState {
     mapping(bytes32 role => EnumerableSet.AddressSet member) _roleMembers;
 }
 
-struct GatingState {
-    address kreskian;
-    address questForKresk;
-    uint8 phase;
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                   Getter                                   */
 /* -------------------------------------------------------------------------- */
@@ -59,17 +54,21 @@ struct GatingState {
 // Storage position
 bytes32 constant COMMON_STORAGE_POSITION = keccak256("kresko.common.storage");
 
-function cs() pure returns (CommonState storage state) {
-    bytes32 position = bytes32(COMMON_STORAGE_POSITION);
+// Gating
+bytes32 constant GATING_MANAGER_POSITION = keccak256("kresko.gating.storage");
+struct GatingState {
+    GatingManager manager;
+}
+
+function gm() pure returns (GatingState storage state) {
+    bytes32 position = GATING_MANAGER_POSITION;
     assembly {
         state.slot := position
     }
 }
 
-bytes32 constant GATING_STORAGE_POSITION = keccak256("kresko.gating.storage");
-
-function gs() pure returns (GatingState storage state) {
-    bytes32 position = bytes32(GATING_STORAGE_POSITION);
+function cs() pure returns (CommonState storage state) {
+    bytes32 position = bytes32(COMMON_STORAGE_POSITION);
     assembly {
         state.slot := position
     }

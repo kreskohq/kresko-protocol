@@ -37,7 +37,7 @@ using PercentageMath for uint16;
  */
 contract MinterLiquidationFacet is Modifiers, IMinterLiquidationFacet {
     /// @inheritdoc IMinterLiquidationFacet
-    function liquidate(LiquidationArgs memory _args) external nonReentrant gate {
+    function liquidate(LiquidationArgs memory _args) external nonReentrant {
         if (msg.sender == _args.account) revert Errors.CANNOT_LIQUIDATE_SELF();
 
         Asset storage repayAsset = cs().onlyMinterMintable(_args.repayAssetAddr);

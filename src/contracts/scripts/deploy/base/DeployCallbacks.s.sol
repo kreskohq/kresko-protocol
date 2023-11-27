@@ -94,7 +94,6 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         address(_ctx.vault).clg("Vault");
         address(_ctx.kiss).clg("KISS");
         address(_ctx.factory).clg("Deployment Factory");
-        address(_ctx.dataProvider).clg("Data provider");
     }
 
     function onKrAssetAdded(State storage _ctx, KrAssetInfo memory _info) internal override {

@@ -26,7 +26,20 @@ local:
 	@echo "/*                                 LAUNCHING                                  */"
 	@echo "/* -------------------------------------------------------------------------- */"
 	pm2 start utils/pm2.config.js --only anvil-local
-	pm2 start utils/pm2.config.js --only deploy-local
+	pm2 start utils/pm2.config.js --only setup-local
+	pm2 save
+	@echo "/* -------------------------------------------------------------------------- */"
+	@echo "/*                                  LAUNCHED                                  */"
+	@echo "/* -------------------------------------------------------------------------- */"
+
+arbitrum:
+	pm2 ping
+	@echo "/* -------------------------------------------------------------------------- */"
+	@echo "/*                                 LAUNCHING                                  */"
+	@echo "/* -------------------------------------------------------------------------- */"
+	pm2 start utils/pm2.config.js --only anvil-fork
+	sleep 5
+	pm2 start utils/pm2.config.js --only setup-arbitrum
 	pm2 save
 	@echo "/* -------------------------------------------------------------------------- */"
 	@echo "/*                                  LAUNCHED                                  */"
@@ -66,28 +79,84 @@ dry-arbitrum:
 deploy-local:
 	sleep 3
 	forge script src/contracts/scripts/deploy/Run.s.sol:Local \
-	-vvv \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \
 	--broadcast \
-	--ffi
+	--ffi \
+	-vvv
 
 deploy-arbitrum:
 	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
 	--mnemonics "$MNEMONIC_DEVNET" \
+	--non-interactive \
 	--fork-url "$RPC_LOCAL" \
 	--broadcast \
 	--with-gas-price 100000000 \
 	--ffi \
 	-vvv
 
+setup-arbitrum: 
+	just deploy-arbitrum && \
+	just arb-users
+
+arb-users: 
+	just arb-bal-nfts && \
+	just arb-bal-stables && \
+	just arb-bal-wbtc && \
+	just arb-setup-users
+
+arb-bal-stables:
+	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
+	--sig "setupStables()" \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--sender "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D" \
+	--unlocked \
+	--fork-url "$RPC_LOCAL" \
+	--broadcast \
+	--ffi \
+	-vvv
+
+arb-bal-wbtc:
+	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
+	--sig "setupWBTC()" \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--sender "0x4bb7f4c3d47C4b431cb0658F44287d52006fb506" \
+	--unlocked \
+	--fork-url "$RPC_LOCAL" \
+	--broadcast \
+	--ffi \
+	-vvv
+
+arb-bal-nfts:
+	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
+	--sig "setupNFTs()" \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--sender "0x99999A0B66AF30f6FEf832938a5038644a72180a" \
+	--unlocked \
+	--fork-url "$RPC_LOCAL" \
+	--broadcast \
+	--ffi \
+	-vvv
+
+arb-setup-users:
+	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
+	--sig "createUsers()" \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--fork-url "$RPC_LOCAL" \
+	--broadcast \
+	--ffi \
+	-vvv
+
 anvil-fork:
 	anvil -m "$MNEMONIC_DEVNET" \
+	--auto-impersonate \
+	--code-size-limit "100000000000000000" \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
-	--fork-block-number 140307500
+	--fork-block-number 154603658
 
 anvil-local:
 	anvil -m "$MNEMONIC_DEVNET" \
+	--auto-impersonate \
 	--code-size-limit "100000000000000000" \
 	--chain-id 1337 \
 	--gas-limit "100000000"

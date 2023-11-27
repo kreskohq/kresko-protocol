@@ -17,6 +17,13 @@ import {DataV1} from "periphery/DataV1.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
+import {MockERC20} from "mocks/MockERC20.sol";
+
+interface INFT {
+    function mint(address to, uint256 tokenId, uint256 amount) external;
+
+    function grantRole(bytes32 role, address to) external;
+}
 
 abstract contract ArbitrumDeployConfig is ScriptBase, DeployLogicBase {
     using Help for *;
@@ -64,18 +71,18 @@ abstract contract ArbitrumDeployConfig is ScriptBase, DeployLogicBase {
     uint256 price_wti = 77.5e8;
     /* ------------------------------------ . ----------------------------------- */
     // @todo can probably delete these aswell
-    string price_eth_rs = "ETH:1911:8";
-    string price_btc_rs = "BTC:35159.01:8";
+    string price_eth_rs = "ETH:2075:8";
+    string price_btc_rs = "BTC:37559.01:8";
     string price_eur_rs = "EUR:1.07:8";
     string price_dai_rs = "DAI:0.9998:8";
     string price_usdc_rs = "USDC:1:8";
-    string price_xau_rs = "XAU:1977.68:8";
+    string price_xau_rs = "XAU:1980.68:8";
     string price_wti_rs = "WTI:77.5:8";
     string price_usdt_rs = "USDT:1:8";
     string price_jpy_rs = "JPY:0.0067:8";
 
     string constant initialPrices =
-        "ETH:1911:8,BTC:35159.01:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,USDT:1.0006:8,JPY:0.0067:8;XAU:1977.68:8;WTI:77.5:8";
+        "ETH:2075:8,BTC:37559.01:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,USDT:1.0006:8,JPY:0.0067:8;XAU:1980.68:8;WTI:77.5:8";
 
     function createPriceString() internal view returns (string memory) {
         return
@@ -346,10 +353,15 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
         super.afterAssetConfigs(assetCfg_);
     }
 
-    function createCoreConfig(address _admin, address _treasury) internal override returns (CoreConfig memory cfg_) {
+    function createCoreConfig(
+        address _admin,
+        address _treasury,
+        address _gatingManager
+    ) internal override returns (CoreConfig memory cfg_) {
         cfg_ = CoreConfig({
             admin: _admin,
             seqFeed: Addr.CL_SEQ_UPTIME,
+            gatingManager: _gatingManager,
             staleTime: 86401,
             minterMcr: 150e2,
             minterLt: 140e2,

@@ -35,6 +35,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     function setUp() public users(address(11), address(22), address(33)) {
         deployCfg = CoreConfig({
             admin: TEST_ADMIN,
+            gatingManager: address(0),
             seqFeed: getMockSeqFeed(),
             minterMcr: 150e2,
             minterLt: 140e2,

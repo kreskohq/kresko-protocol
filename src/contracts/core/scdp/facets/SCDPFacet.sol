@@ -24,9 +24,11 @@ using PercentageMath for uint16;
 using SafeTransfer for IERC20;
 using WadRay for uint256;
 
+// solhint-disable avoid-tx-origin
+
 contract SCDPFacet is ISCDPFacet, Modifiers {
     /// @inheritdoc ISCDPFacet
-    function depositSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant gate {
+    function depositSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant gate(_account) {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -42,7 +44,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         address _collateralAsset,
         uint256 _amount,
         address _receiver
-    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) nonReentrant gate {
+    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) nonReentrant {
         SCDPState storage s = scdp();
         _receiver = _receiver == address(0) ? _account : _receiver;
 
@@ -75,7 +77,11 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
     }
 
     /// @inheritdoc ISCDPFacet
-    function repaySCDP(address _repayAssetAddr, uint256 _repayAmount, address _seizeAssetAddr) external nonReentrant gate {
+    function repaySCDP(
+        address _repayAssetAddr,
+        uint256 _repayAmount,
+        address _seizeAssetAddr
+    ) external nonReentrant gate(tx.origin) {
         Asset storage repayAsset = cs().onlySwapMintable(_repayAssetAddr);
         Asset storage seizeAsset = cs().onlySwapMintable(_seizeAssetAddr);
 
@@ -146,7 +152,11 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
     }
 
     /// @inheritdoc ISCDPFacet
-    function liquidateSCDP(address _repayAssetAddr, uint256 _repayAmount, address _seizeAssetAddr) external nonReentrant gate {
+    function liquidateSCDP(
+        address _repayAssetAddr,
+        uint256 _repayAmount,
+        address _seizeAssetAddr
+    ) external nonReentrant gate(tx.origin) {
         SCDPState storage s = scdp();
         s.ensureLiquidatableSCDP();
 

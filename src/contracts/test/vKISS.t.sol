@@ -10,6 +10,7 @@ import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 
 import {VaultAsset} from "vault/VTypes.sol";
 import {Vault} from "vault/Vault.sol";
+import {console2} from "forge-std/console2.sol";
 
 // solhint-disable private-vars-leading-underscore
 // solhint-disable contract-name-camelcase
@@ -76,6 +77,13 @@ contract vKISSTest is Test {
 
         // approvals
         _init();
+    }
+
+    function testJsonParse() public {
+        console2.log("rot", vm.projectRoot());
+        string memory json = vm.readFile(string.concat(vm.projectRoot(), "/out/arbitrum.json"));
+        address json_dai = vm.parseJsonAddress(json, ".DAI");
+        console2.log("json_dai", json_dai);
     }
 
     function testDepositsSingleToken() public {

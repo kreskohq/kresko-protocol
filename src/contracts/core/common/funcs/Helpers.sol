@@ -5,8 +5,6 @@ import {Asset} from "common/Types.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {toWad} from "common/funcs/Math.sol";
-import {gs} from "common/State.sol";
-import {IERC1155} from "common/interfaces/IERC1155.sol";
 
 using PercentageMath for uint256;
 using WadRay for uint256;

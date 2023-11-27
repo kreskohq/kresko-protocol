@@ -10,14 +10,18 @@ import {DeployStateHandlers} from "scripts/deploy/base/DeployState.s.sol";
 abstract contract DeployLogicBase is DeployStateHandlers {
     function createAssetConfig() internal virtual returns (AssetCfg memory assetCfg_);
 
-    function createCoreConfig(address _admin, address _treasury) internal virtual returns (CoreConfig memory cfg_);
+    function createCoreConfig(
+        address _admin,
+        address _treasury,
+        address _gatingManager
+    ) internal virtual returns (CoreConfig memory cfg_);
 
     function createCore(CoreConfig memory _cfg) internal returns (address kreskoAddr_) {
         require(_cfg.admin != address(0), "createCoreConfig: coreArgs should have some admin address set");
 
         super.beforeCreateCore(_cfg);
 
-        kresko = super.deployDiamondOneTx(_cfg);
+        kresko = super.deployDiamond(_cfg);
         kreskoAddr_ = address(kresko);
 
         factory = super.deployDeploymentFactory(_cfg.admin);

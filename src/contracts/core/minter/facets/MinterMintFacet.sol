@@ -32,7 +32,7 @@ contract MinterMintFacet is IMinterMintFacet, Modifiers {
         address _krAsset,
         uint256 _mintAmount,
         address _receiver
-    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) nonReentrant gate {
+    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) nonReentrant gate(_account) {
         if (_mintAmount == 0) revert Errors.ZERO_MINT(Errors.id(_krAsset));
         Asset storage asset = cs().onlyMinterMintable(_krAsset, Enums.Action.Borrow);
 

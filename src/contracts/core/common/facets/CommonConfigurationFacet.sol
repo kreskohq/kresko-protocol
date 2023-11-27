@@ -14,9 +14,10 @@ import {MEvent} from "minter/MEvent.sol";
 import {Oracle, FeedConfiguration, CommonInitArgs} from "common/Types.sol";
 import {Role, Enums, Constants} from "common/Constants.sol";
 import {Errors} from "common/Errors.sol";
-import {cs, gs} from "common/State.sol";
+import {cs, gm} from "common/State.sol";
 import {Auth} from "common/Auth.sol";
 import {Validations} from "common/Validations.sol";
+import {GatingManager} from "periphery/GatingManager.sol";
 
 contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSModifiers {
     using Strings for bytes32;
@@ -34,9 +35,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         setMaxPriceDeviationPct(args.maxPriceDeviationPct);
         setSequencerGracePeriod(args.sequencerGracePeriodTime);
         setStaleTime(args.staleTime);
-        setGatingPhase(args.phase);
-        setKreskianCollection(args.kreskian);
-        setQuestForKreskCollection(args.questForKresk);
+        setGatingManager(args.gatingManager);
         ds().supportedInterfaces[type(IAuthorizationFacet).interfaceId] = true;
         // Revoke admin role from deployer
         Auth._revokeRole(Role.ADMIN, msg.sender);
@@ -51,6 +50,10 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         Validations.validateFeeRecipient(_newFeeRecipient);
         emit MEvent.FeeRecipientUpdated(cs().feeRecipient, _newFeeRecipient);
         cs().feeRecipient = _newFeeRecipient;
+    }
+
+    function setGatingManager(address _newManager) public override onlyRole(Role.ADMIN) {
+        gm().manager = GatingManager(_newManager);
     }
 
     /// @inheritdoc ICommonConfigurationFacet
@@ -149,20 +152,5 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
     /// @inheritdoc ICommonConfigurationFacet
     function setStaleTime(uint32 _staleTime) public onlyRole(Role.ADMIN) {
         cs().staleTime = _staleTime;
-    }
-
-    /// @inheritdoc ICommonConfigurationFacet
-    function setGatingPhase(uint8 _phase) public override onlyRole(Role.ADMIN) {
-        gs().phase = _phase;
-    }
-
-    /// @inheritdoc ICommonConfigurationFacet
-    function setKreskianCollection(address _kreskian) public override onlyRole(Role.ADMIN) {
-        gs().kreskian = _kreskian;
-    }
-
-    /// @inheritdoc ICommonConfigurationFacet
-    function setQuestForKreskCollection(address _questForKresk) public override onlyRole(Role.ADMIN) {
-        gs().questForKresk = _questForKresk;
     }
 }

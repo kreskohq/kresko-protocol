@@ -6,8 +6,7 @@ import {Errors} from "common/Errors.sol";
 import {Auth} from "common/Auth.sol";
 import {Role, Constants, Enums} from "common/Constants.sol";
 import {Asset} from "common/Types.sol";
-import {cs, gs, CommonState} from "common/State.sol";
-import {IERC1155} from "common/interfaces/IERC1155.sol";
+import {cs, gm, CommonState} from "common/State.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {scdp} from "scdp/SState.sol";
 
@@ -203,23 +202,38 @@ contract Modifiers {
     }
 
     /// @notice Reverts if the caller does not have the required NFT's for the gated phase
-    modifier gate() {
-        uint8 phase = gs().phase;
-        if (phase <= 2) {
-            if (IERC1155(gs().kreskian).balanceOf(msg.sender, 0) == 0) {
-                revert Errors.MISSING_PHASE_3_NFT();
-            }
-        }
-        if (phase == 1) {
-            IERC1155 questForKresk = IERC1155(gs().questForKresk);
-            if (questForKresk.balanceOf(msg.sender, 2) == 0 || questForKresk.balanceOf(msg.sender, 3) == 0) {
-                revert Errors.MISSING_PHASE_2_NFT();
-            }
-        } else if (phase == 0) {
-            if (IERC1155(gs().questForKresk).balanceOf(msg.sender, 3) > 0) {
-                revert Errors.MISSING_PHASE_1_NFT();
-            }
+    modifier gate(address _account) {
+        if (address(gm().manager) != address(0)) {
+            gm().manager.check(_account);
         }
         _;
     }
+    // modifier gate(address _account) {
+    //     uint8 phase = gs().phase;
+    //     if (phase != 0) {
+    //         IERC1155 questForKresk = IERC1155(gs().questForKresk);
+    //         bool hasKreskian = IERC1155(gs().kreskian).balanceOf(_account, 0) > 0;
+
+    //         if (phase == 3 && !hasKreskian) {
+    //             revert Errors.MISSING_PHASE_3_NFT();
+    //         }
+
+    //         bool hasAnalyzeThis = questForKresk.balanceOf(_account, 0) > 0;
+    //         bool validPhaseTwo = hasKreskian && hasAnalyzeThis;
+
+    //         if (phase == 2 && !validPhaseTwo) {
+    //             revert Errors.MISSING_PHASE_2_NFT();
+    //         }
+    //         if (phase == 1) {
+    //             bool validPhase1 = questForKresk.balanceOf(_account, 1) > 0 &&
+    //                 questForKresk.balanceOf(_account, 2) > 0 &&
+    //                 questForKresk.balanceOf(_account, 3) > 0;
+
+    //             if (!validPhaseTwo || !validPhase1) {
+    //                 revert Errors.MISSING_PHASE_1_NFT();
+    //             }
+    //         }
+    //     }
+    //     _;
+    // }
 }

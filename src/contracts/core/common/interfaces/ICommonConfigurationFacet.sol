@@ -93,20 +93,8 @@ interface ICommonConfigurationFacet {
     function setApi3Feed(bytes32 _ticker, address _feedAddr) external;
 
     /**
-     * @notice Sets phase of gating mechanism
-     * @param _phase phase id
+     * @notice Sets gating manager
+     * @param _newManager _newManager address
      */
-    function setGatingPhase(uint8 _phase) external;
-
-    /**
-     * @notice Sets address of Kreskian NFT contract
-     * @param _kreskian kreskian nft contract address
-     */
-    function setKreskianCollection(address _kreskian) external;
-
-    /**
-     * @notice Sets address of Quest For Kresk NFT contract
-     * @param _questForKresk Quest For Kresk NFT contract address
-     */
-    function setQuestForKreskCollection(address _questForKresk) external;
+    function setGatingManager(address _newManager) external;
 }

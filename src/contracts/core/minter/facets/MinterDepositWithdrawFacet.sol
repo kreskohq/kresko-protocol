@@ -25,7 +25,11 @@ contract MinterDepositWithdrawFacet is Modifiers, IMinterDepositWithdrawFacet {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IMinterDepositWithdrawFacet
-    function depositCollateral(address _account, address _collateralAsset, uint256 _depositAmount) external nonReentrant gate {
+    function depositCollateral(
+        address _account,
+        address _collateralAsset,
+        uint256 _depositAmount
+    ) external nonReentrant gate(_account) {
         Asset storage asset = cs().onlyMinterCollateral(_collateralAsset, Enums.Action.Deposit);
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);

@@ -15,6 +15,7 @@ import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {DeploymentFactory} from "factory/DeploymentFactory.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
+import {GatingManager} from "periphery/GatingManager.sol";
 
 /// @dev Stateful context for deployment scripts
 interface IDeployState is IKreskoForgeTypes {
@@ -35,6 +36,7 @@ interface IDeployState is IKreskoForgeTypes {
         AssetsOnChain assetsOnChain;
         IDataV1 dataProvider;
         KrMulticall multicall;
+        GatingManager gatingManager;
         KISS kiss;
         IKresko kresko;
         Vault vault;

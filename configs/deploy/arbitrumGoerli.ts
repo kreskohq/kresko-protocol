@@ -215,12 +215,10 @@ const gnosisSafeDeployments: GnosisSafeDeployment[] = [
   SimulateTxAccessor,
 ]
 const commonInitAgs = (
-  gate?: boolean,
+  gatingManager: string,
 ): Omit<CommonInitArgsStruct, 'feeRecipient' | 'admin' | 'council' | 'treasury'> => ({
   oracleDecimals: 8,
-  questForKresk: zeroAddress,
-  kreskian: zeroAddress,
-  phase: !gate ? 3 : 0, // 0 = phase 1, 1 = phase 2, 2 = phase 3, 3 = no gating (subject to change)
+  gatingManager,
   maxPriceDeviationPct: 0.1e4,
   sequencerGracePeriodTime: 3600,
   sequencerUptimeFeed: '0x4da69F028a5790fCCAfe81a75C0D24f46ceCDd69',
@@ -241,28 +239,28 @@ export const scdpInitArgs: SCDPInitArgsStruct = {
 }
 export const testnetConfigs: NetworkConfig = {
   all: {
-    commonInitAgs: commonInitAgs(false),
+    commonInitAgs: commonInitAgs(zeroAddress),
     minterInitArgs,
     scdpInitArgs,
     assets: [assets.DAI, assets.KISS, assets.WETH, assets.krBTC, assets.krETH],
     gnosisSafeDeployments,
   },
   hardhat: {
-    commonInitAgs: commonInitAgs(false),
+    commonInitAgs: commonInitAgs(zeroAddress),
     minterInitArgs,
     scdpInitArgs,
     assets: [assets.KISS, assets.krETH],
     gnosisSafeDeployments,
   },
   localhost: {
-    commonInitAgs: commonInitAgs(false),
+    commonInitAgs: commonInitAgs(zeroAddress),
     minterInitArgs,
     scdpInitArgs,
     assets: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],
     gnosisSafeDeployments,
   },
   arbitrumGoerli: {
-    commonInitAgs: commonInitAgs(true),
+    commonInitAgs: commonInitAgs(zeroAddress),
     minterInitArgs,
     scdpInitArgs,
     assets: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],

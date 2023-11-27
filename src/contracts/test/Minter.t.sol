@@ -33,6 +33,7 @@ contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
             seqFeed: getMockSeqFeed(),
             minterMcr: 150e2,
             minterLt: 140e2,
+            gatingManager: address(0),
             scdpMcr: 200e2,
             scdpLt: 150e2,
             coverThreshold: 160e2,

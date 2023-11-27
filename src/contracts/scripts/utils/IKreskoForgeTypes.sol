@@ -33,6 +33,7 @@ interface IKreskoForgeTypes {
         address seqFeed;
         address council; // needs to be a contraaact
         address treasury;
+        address gatingManager;
     }
 
     struct KrAssetDeployInfo {

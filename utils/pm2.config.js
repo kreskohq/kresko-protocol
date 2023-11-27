@@ -9,9 +9,22 @@ module.exports = {
     {
       watch: false,
       autorestart: false,
+      name: 'anvil-fork',
+      script: 'just anvil-fork',
+    },
+    {
+      watch: false,
+      autorestart: false,
       wait_ready: true,
-      name: 'deploy-local',
+      name: 'setup-local',
       script: 'just deploy-local',
     },
+    {
+      watch: false,
+      autorestart: false,
+      wait_ready: true,
+      name: 'setup-arbitrum',
+      script: 'just setup-arbitrum',
+    },
   ],
-}
+};

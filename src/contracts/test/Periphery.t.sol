@@ -50,7 +50,8 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
             oraclePrecision: 8,
             staleTime: 86401,
             council: getMockSafe(TEST_ADMIN),
-            treasury: TEST_TREASURY
+            treasury: TEST_TREASURY,
+            gatingManager: address(0)
         });
 
         prank(deployCfg.admin);

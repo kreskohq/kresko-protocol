@@ -60,9 +60,6 @@ export const testCommonParams = (feeRecipient: string) => ({
   minDebtValue: toBig(20, 8),
   feeRecipient: feeRecipient,
   maxPriceDeviationPct: 0.02e4,
-  phase: 3,
-  kreskian: hre.ethers.constants.AddressZero,
-  questForKresk: hre.ethers.constants.AddressZero,
 })
 export const testMinterParams = (feeRecipient: string) => ({
   minCollateralRatio: 1.8e4,

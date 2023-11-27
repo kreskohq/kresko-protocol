@@ -52,10 +52,12 @@ struct SCDPAssetData {
  * @notice SCDP asset fee and liquidation index data
  * @param currFeeIndex The ever increasing fee index, used to calculate fees.
  * @param currLiqIndex The ever increasing liquidation index, used to calculate liquidated amounts from principal.
+ * @param feeIndexTimestamp The timestamp of the last fee index update.
  */
 struct SCDPAssetIndexes {
     uint128 currFeeIndex;
     uint128 currLiqIndex;
+    uint256 feeIndexTimestamp;
 }
 
 /**
@@ -74,9 +76,10 @@ struct SCDPSeizeData {
  * @notice SCDP account indexes
  * @param lastFeeIndex Fee index at the time of the action.
  * @param lastLiqIndex Liquidation index at the time of the action.
- * @param timestamp Timestamp of the action, used for external purposes.
+ * @param feeIndexTimestamp Timestamp of the last fee index update.
  */
 struct SCDPAccountIndexes {
     uint128 lastFeeIndex;
     uint128 lastLiqIndex;
+    uint256 feeIndexTimestamp;
 }

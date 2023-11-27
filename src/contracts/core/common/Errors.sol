@@ -123,6 +123,8 @@ library Errors {
     error INVALID_SEQUENCER_UPTIME_FEED(address);
     error NO_MINTED_ASSETS(address who);
     error NO_COLLATERALS_DEPOSITED(address who);
+    error ONLY_WHITELISTED();
+    error BLACKLISTED();
     error MISSING_PHASE_3_NFT();
     error MISSING_PHASE_2_NFT();
     error MISSING_PHASE_1_NFT();

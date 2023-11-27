@@ -154,10 +154,8 @@ struct CommonInitArgs {
     address treasury;
     uint16 maxPriceDeviationPct;
     uint8 oracleDecimals;
-    uint8 phase;
     uint32 sequencerGracePeriodTime;
     uint32 staleTime;
     address sequencerUptimeFeed;
-    address kreskian;
-    address questForKresk;
+    address gatingManager;
 }

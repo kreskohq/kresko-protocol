@@ -154,8 +154,10 @@ library PType {
         string symbol;
         uint256 amountFees;
         uint256 val;
-        uint256 feeIndex;
-        uint256 liqIndex;
+        uint256 feeIndexAccount;
+        uint256 feeIndexCurrent;
+        uint256 liqIndexAccount;
+        uint256 liqIndexCurrent;
         uint256 valFees;
         uint256 price;
         Asset config;
