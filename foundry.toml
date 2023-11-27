@@ -7,6 +7,11 @@ test = 'src/contracts/test'
 cache_path = 'cache/forge'
 ffi = true
 fs_permissions = [{ access = "read-write", path = "./" }]
+solc_version = '0.8.21'
+evm_version = 'paris'
+via_ir = false
+optimizer = true
+optimizer_runs = 1000
 remappings = [
     '@openzeppelin/=lib/kresko-foundry-helpers/lib/openzeppelin-contracts/',
     '@oz-upgradeable/=lib/kresko-foundry-helpers/lib/openzeppelin-contracts-upgradeable/contracts/',
@@ -30,11 +35,7 @@ remappings = [
     'mocks-misc/=src/contracts/mocks/',
     "mocks/=src/contracts/core/test/mocks",
 ]
-solc = '0.8.21'
-evm_version = 'paris'
-via_ir = false
-optimizer = true
-optimizer_runs = 1000
+
 # [profile.optimizer_details]
 # "yul" = false
 # "constantOptimizer" = false

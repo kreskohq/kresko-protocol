@@ -72,6 +72,7 @@ dry-arbitrum:
 	--with-gas-price 100000000 \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--skip-simulation \
+	--evm-version "paris" \
 	--ffi \
 	-vvv
 
@@ -90,6 +91,7 @@ deploy-arbitrum:
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--non-interactive \
 	--fork-url "$RPC_LOCAL" \
+	--evm-version "paris" \
 	--broadcast \
 	--with-gas-price 100000000 \
 	--ffi \
@@ -152,6 +154,7 @@ anvil-fork:
 	--auto-impersonate \
 	--code-size-limit "100000000000000000" \
 	--chain-id 41337 \
+	--hardfork "paris" \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--fork-block-number 154603658
 

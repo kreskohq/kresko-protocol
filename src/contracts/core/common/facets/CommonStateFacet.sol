@@ -5,7 +5,7 @@ import {ICommonStateFacet} from "common/interfaces/ICommonStateFacet.sol";
 import {Redstone} from "libs/Redstone.sol";
 
 import {Enums} from "common/Constants.sol";
-import {cs} from "common/State.sol";
+import {cs, gm} from "common/State.sol";
 import {aggregatorV3Price, API3Price, vaultPrice} from "common/funcs/Prices.sol";
 
 contract CommonStateFacet is ICommonStateFacet {
@@ -17,6 +17,11 @@ contract CommonStateFacet is ICommonStateFacet {
     /// @inheritdoc ICommonStateFacet
     function getDefaultOraclePrecision() external view returns (uint8) {
         return cs().oracleDecimals;
+    }
+
+    /// @inheritdoc ICommonStateFacet
+    function getGatingManager() external view returns (address) {
+        return address(gm().manager);
     }
 
     /// @inheritdoc ICommonStateFacet

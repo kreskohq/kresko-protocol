@@ -12,6 +12,9 @@ interface ICommonStateFacet {
     /// @notice max deviation between main oracle and fallback oracle
     function getOracleDeviationPct() external view returns (uint16);
 
+    /// @notice gating manager contract address
+    function getGatingManager() external view returns (address);
+
     /// @notice Get the L2 sequencer uptime feed address.
     function getSequencerUptimeFeed() external view returns (address);
 

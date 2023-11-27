@@ -89,6 +89,9 @@ library PFunc {
     }
 
     function getGate() internal view returns (PType.Gate memory result) {
+        if (address(gm().manager) == address(0)) {
+            return result;
+        }
         result.kreskian = address(gm().manager.kreskian());
         result.questForKresk = address(gm().manager.questForKresk());
         result.phase = gm().manager.phase();
@@ -470,6 +473,9 @@ library PFunc {
     }
 
     function getPhaseEligibility(address _account) internal view returns (uint8 phase, bool isEligible) {
+        if (address(gm().manager) == address(0)) {
+            return (0, true);
+        }
         phase = gm().manager.phase();
         isEligible = gm().manager.isEligible(_account);
     }

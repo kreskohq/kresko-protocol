@@ -34,10 +34,13 @@ contract DataV1 is ProxyConnector, IDataV1 {
         (bool success, bytes memory data) = address(DIAMOND).staticcall(
             abi.encodePacked(abi.encodeWithSelector(DIAMOND.getProtocolData.selector), redstoneData)
         );
-        require(success, "DataV1: getProtocolData failed");
+        if (!success) {
+            assembly {
+                revert(add(32, data), mload(data))
+            }
+        }
 
         result.protocol = abi.decode(data, (PType.Protocol));
-
         result.vault = getVault();
         result.collections = getCollectionData(address(1));
     }

@@ -13,8 +13,12 @@ import {IKresko} from "periphery/IKresko.sol";
 import {Role} from "common/Constants.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {Addr, Tokens} from "kresko-lib/info/Arbitrum.sol";
+import {DataV1} from "periphery/DataV1.sol";
+import {PType} from "periphery/PTypes.sol";
+import {GatingManager} from "periphery/GatingManager.sol";
+import {IDataV1} from "periphery/IDataV1.sol";
 
-string constant rsPrices = "ETH:2075:8,BTC:37559.01:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,USDT:1.0006:8,JPY:0.0067:8;XAU:1981.68:8;WTI:77.5:8";
+string constant rsPrices = "ETH:2075:8,BTC:37559.01:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,USDT:1.0006:8,JPY:0.0067:8,XAU:1981.68:8,WTI:77.5:8";
 
 contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getRedstonePayload.js") {
     address internal addr;
@@ -22,6 +26,7 @@ contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getReds
     using Log for *;
     bytes internal redstoneCallData;
     KrMulticall internal multicall;
+    DataV1 internal dataV1;
     KISS kiss;
     IVault vault;
     IERC20 usdc;
@@ -85,7 +90,40 @@ contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getReds
         usdc.balanceOf(getAddr(0)).clg("usdc-bal-after");
     }
 
-    function testArbitrumUniswapV3Multicall() public {
+    function testPeripheryData() public {
+        kresko = IKresko(getDeployed(".Kresko"));
+        kiss = KISS(getDeployed(".KISS"));
+        vault = IVault(getDeployed(".Vault"));
+        __current_kresko = address(kresko);
+
+        address gatingManager = IKresko(getDeployed(".Kresko")).getGatingManager();
+        gatingManager.clg("gatingManager");
+
+        dataV1 = DataV1(getDeployed(".DataV1"));
+
+        uint8 phase = GatingManager(gatingManager).phase();
+        address kreskian = address(GatingManager(gatingManager).kreskian());
+        address questForKresk = address(GatingManager(gatingManager).questForKresk());
+
+        phase.clg("phase");
+        kreskian.clg("kreskian");
+        questForKresk.clg("questForKresk");
+
+        DataV1.DVault memory vaultData = dataV1.getVault();
+        redstoneCallData.blg("rs-calldata");
+
+        address user = getAddr(0);
+        prank(user);
+        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krBTC"), 0.05 ether, user, rsPrices);
+        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krEUR"), 50 ether, user, rsPrices);
+        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krXAU"), 0.2 ether, user, rsPrices);
+        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krWTI"), 1 ether, user, rsPrices);
+        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krJPY"), 10000 ether, user, rsPrices);
+        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krETH"), 0.2 ether, user, rsPrices);
+        PType.Protocol memory protocol = dataV1.getGlobals(redstoneCallData).protocol;
+    }
+
+    function testArbitrumUniswapV3MulticallX() public {
         prank(getAddr(0));
 
         kresko = IKresko(getDeployed(".Kresko"));

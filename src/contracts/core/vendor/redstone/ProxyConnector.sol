@@ -123,7 +123,11 @@ contract ProxyConnector is RedstoneConstants, CalldataExtractor {
                     }
                     revert ProxyCalldataFailedWithStringMessage(receivedErrMsg);
                 } else {
-                    revert ProxyCalldataFailedWithCustomError(result);
+                    if (!success) {
+                        assembly {
+                            revert(add(32, result), mload(result))
+                        }
+                    }
                 }
             }
         }
