@@ -151,6 +151,7 @@ anvil-fork:
 	anvil -m "$MNEMONIC_DEVNET" \
 	--auto-impersonate \
 	--code-size-limit "100000000000000000" \
+	--chain-id 41337 \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--fork-block-number 154603658
 
