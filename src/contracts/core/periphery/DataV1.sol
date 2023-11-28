@@ -103,7 +103,6 @@ contract DataV1 is ProxyConnector, IDataV1 {
 
     function getCollectionData(address _account) public view returns (DCollection[] memory result) {
         result = new DCollection[](2);
-        if (_account == address(1)) return result;
 
         result[0].uri = IERC1155(KRESKIAN_COLLECTION).contractURI();
         result[0].addr = KRESKIAN_COLLECTION;
