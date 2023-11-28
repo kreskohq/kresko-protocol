@@ -133,7 +133,7 @@ library PFunc {
 
             results[i] = PType.PAssetEntry({
                 addr: addr,
-                symbol: IERC20(addr).symbol(),
+                symbol: _getSymbol(addr),
                 amount: data.amountDebt,
                 amountAdj: data.amountDebt,
                 val: data.valDebt,
@@ -163,7 +163,7 @@ library PFunc {
                 addr: assetAddr,
                 liqIndex: scdp().assetIndexes[assetAddr].currLiqIndex,
                 feeIndex: scdp().assetIndexes[assetAddr].currFeeIndex,
-                symbol: IERC20(assetAddr).symbol(),
+                symbol: _getSymbol(assetAddr),
                 config: data.config,
                 price: data.price,
                 amount: data.amountColl,
@@ -203,7 +203,7 @@ library PFunc {
         Asset storage asset = cs().assets[addr];
         IERC20 token = IERC20(addr);
         RawPrice memory price = pushPrice(asset.oracles, asset.ticker);
-        string memory symbol = token.symbol();
+        string memory symbol = _getSymbol(address(token));
 
         IKreskoAsset.Wrapping memory synthwrap;
         if (asset.kFactor > 0 && bytes32(bytes(symbol)) != bytes32("KISS")) {
@@ -269,7 +269,7 @@ library PFunc {
         result.token = _assetAddr;
         result.name = token.name();
         result.decimals = token.decimals();
-        result.symbol = token.symbol();
+        result.symbol = _getSymbol(address(token));
     }
 
     function getSDepositAssets() internal view returns (address[] memory result) {
@@ -300,7 +300,7 @@ library PFunc {
         Asset storage asset = cs().assets[_assetAddr];
         result.addr = _assetAddr;
         result.config = asset;
-        result.symbol = IERC20(_assetAddr).symbol();
+        result.symbol = _getSymbol(_assetAddr);
 
         bool isSwapMintable = asset.isSwapMintable;
         bool isSCDPAsset = asset.isSharedOrSwappedCollateral;
@@ -348,7 +348,7 @@ library PFunc {
         return
             PType.AssetData({
                 addr: _assetAddr,
-                symbol: IERC20(_assetAddr).symbol(),
+                symbol: _getSymbol(_assetAddr),
                 config: config,
                 price: krAssetPrice > 0 ? krAssetPrice : collateralPrice,
                 amountColl: depositAmount,
@@ -387,7 +387,7 @@ library PFunc {
             Arrays.FindResult memory findResult = ms().depositedCollateralAssets[_account].find(addr);
             result[i] = PType.PAssetEntry({
                 addr: addr,
-                symbol: IERC20(addr).symbol(),
+                symbol: _getSymbol(addr),
                 amount: data.amountColl,
                 amountAdj: 0,
                 val: data.valColl,
@@ -409,7 +409,7 @@ library PFunc {
             Arrays.FindResult memory findResult = ms().mintedKreskoAssets[_account].find(addr);
             result[i] = PType.PAssetEntry({
                 addr: addr,
-                symbol: IERC20(addr).symbol(),
+                symbol: _getSymbol(addr),
                 amount: data.amountDebt,
                 amountAdj: 0,
                 val: data.valDebt,
@@ -464,7 +464,7 @@ library PFunc {
         (result.val, result.price) = asset.collateralAmountToValueWithPrice(result.amount, true);
         result.valFees = asset.collateralAmountToValue(result.amountFees, true);
 
-        result.symbol = IERC20(_assetAddr).symbol();
+        result.symbol = _getSymbol(_assetAddr);
         result.addr = _assetAddr;
         result.liqIndexAccount = scdp().accountIndexes[_account][_assetAddr].lastLiqIndex;
         result.liqIndexCurrent = scdp().assetIndexes[_assetAddr].currLiqIndex;
@@ -478,5 +478,9 @@ library PFunc {
         }
         phase = gm().manager.phase();
         isEligible = gm().manager.isEligible(_account);
+    }
+
+    function _getSymbol(address _assetAddr) internal view returns (string memory) {
+        return _assetAddr == 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8 ? "USDC.e" : IERC20(_assetAddr).symbol();
     }
 }

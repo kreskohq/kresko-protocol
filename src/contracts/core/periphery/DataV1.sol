@@ -75,12 +75,12 @@ contract DataV1 is ProxyConnector, IDataV1 {
             uint256 balance = _account != address(0) ? tkn.balanceOf(_account) : 0;
 
             uint8 decimals = tkn.decimals();
-            uint256 value = toWad(balance, decimals).wadMul(uint256(answer));
+            uint256 value = toWad(balance, decimals).wadMul(answer > 0 ? uint256(answer) : 0);
 
             result[i] = DVTokenBalance({
                 addr: token.token,
                 name: tkn.name(),
-                symbol: tkn.symbol(),
+                symbol: PFunc._getSymbol(token.token),
                 decimals: decimals,
                 amount: balance,
                 val: value,
@@ -206,7 +206,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
             result[i] = DVAsset({
                 addr: address(asset.token),
                 name: asset.token.name(),
-                symbol: asset.token.symbol(),
+                symbol: PFunc._getSymbol(address(asset.token)),
                 tSupply: asset.token.totalSupply(),
                 vSupply: asset.token.balanceOf(VAULT),
                 price: answer > 0 ? uint256(answer) : 0,
