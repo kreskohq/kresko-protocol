@@ -114,13 +114,16 @@ contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getReds
 
         address user = getAddr(0);
         prank(user);
-        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krBTC"), 0.05 ether, user, rsPrices);
-        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krEUR"), 50 ether, user, rsPrices);
-        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krXAU"), 0.2 ether, user, rsPrices);
-        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krWTI"), 1 ether, user, rsPrices);
-        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krJPY"), 10000 ether, user, rsPrices);
-        call(kresko.mintKreskoAsset.selector, user, getDeployed(".krETH"), 0.2 ether, user, rsPrices);
+        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krBTC"), 0.05 ether, user, rsPrices);
+        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krEUR"), 50 ether, user, rsPrices);
+        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krXAU"), 0.2 ether, user, rsPrices);
+        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krWTI"), 1 ether, user, rsPrices);
+        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krJPY"), 10000 ether, user, rsPrices);
+        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krETH"), 0.2 ether, user, rsPrices);
         PType.Protocol memory protocol = dataV1.getGlobals(redstoneCallData).protocol;
+        DataV1.DAccount memory account = dataV1.getAccount(user, redstoneCallData);
+        account.phase.clg("phase");
+        account.eligible.clg("eephase");
     }
 
     function testArbitrumUniswapV3MulticallX() public {

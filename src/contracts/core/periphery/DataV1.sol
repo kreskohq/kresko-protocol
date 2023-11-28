@@ -69,7 +69,8 @@ contract DataV1 is ProxyConnector, IDataV1 {
         result.vault.symbol = IERC20(VAULT).symbol();
         result.vault.decimals = IERC20(VAULT).decimals();
 
-        result.collections = getCollectionData(address(1));
+        result.collections = getCollectionData(_account);
+        (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(msg.sender);
     }
 
     function getAccount(address _account, bytes memory redstoneData) external view returns (DAccount memory result) {
@@ -88,7 +89,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
         result.vault.symbol = IERC20(VAULT).symbol();
         result.vault.decimals = IERC20(VAULT).decimals();
 
-        result.collections = getCollectionData(address(1));
+        result.collections = getCollectionData(_account);
         (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(msg.sender);
     }
 
