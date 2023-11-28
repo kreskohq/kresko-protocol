@@ -10,15 +10,6 @@ interface IDataV1 {
         address feed;
     }
 
-    struct ExternalTokenResult {
-        address token;
-        string name;
-        string symbol;
-        uint8 decimals;
-        uint256 price;
-        uint256 tSupply;
-    }
-
     struct DVAsset {
         address addr;
         string name;
@@ -61,7 +52,6 @@ interface IDataV1 {
     }
 
     struct DGlobal {
-        DVToken assetsExt;
         PType.Protocol protocol;
         DVault vault;
         DCollection[] collections;
