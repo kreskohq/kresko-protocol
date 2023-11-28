@@ -92,7 +92,16 @@ interface IDataV1 {
 
     function getGlobalsRs() external view returns (DGlobal memory result);
 
+    function getExternalTokens(
+        ExternalTokenArgs[] memory tokens,
+        address _account
+    ) external view returns (DVTokenBalance[] memory result);
+
     function getAccount(address _account, bytes memory redstoneData) external view returns (DAccount memory);
 
     function getAccountRs(address _account) external view returns (DAccount memory result);
+
+    function getVault() external view returns (DVault memory result);
+
+    function getVAssets() external view returns (DVAsset[] memory result);
 }
