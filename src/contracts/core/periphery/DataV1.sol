@@ -20,7 +20,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
     address public immutable KISS;
 
     uint256 public constant QUEST_FOR_KRESK_LAST_TOKEN_ID = 7;
-    uint256 public constant KRESKIAN_LAST_TOKEN_ID = 0;
+    uint256 public constant KRESKIAN_LAST_TOKEN_ID = 1;
     address public constant KRESKIAN_COLLECTION = 0xAbDb949a18d27367118573A217E5353EDe5A0f1E;
     address public constant QUEST_FOR_KRESK_COLLECTION = 0x1C04925779805f2dF7BbD0433ABE92Ea74829bF6;
 
