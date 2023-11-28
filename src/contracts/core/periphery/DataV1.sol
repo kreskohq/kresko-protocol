@@ -11,10 +11,15 @@ import {Enums} from "common/Constants.sol";
 import {RawPrice} from "common/Types.sol";
 import {PType} from "periphery/PTypes.sol";
 import {ProxyConnector} from "vendor/redstone/ProxyConnector.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
+import {toWad} from "common/funcs/Math.sol";
+import {WadRay} from "libs/WadRay.sol";
 
 // solhint-disable avoid-low-level-calls, var-name-mixedcase
 
 contract DataV1 is ProxyConnector, IDataV1 {
+    using WadRay for uint256;
+
     address public immutable VAULT;
     IDataFacet public immutable DIAMOND;
     address public immutable KISS;
@@ -53,6 +58,53 @@ contract DataV1 is ProxyConnector, IDataV1 {
 
         result.vault = getVault();
         result.collections = getCollectionData(address(1));
+    }
+
+    function getExternalTokens(
+        ExternalTokenArgs[] memory tokens,
+        address _account
+    ) external view returns (DVTokenBalance[] memory result) {
+        result = new DVTokenBalance[](tokens.length);
+
+        for (uint256 i; i < tokens.length; i++) {
+            ExternalTokenArgs memory token = tokens[i];
+            IERC20 tkn = IERC20(token.token);
+
+            (int256 answer, uint256 updatedAt, uint8 oracleDecimals) = _possibleOracleValue(token.feed);
+
+            uint256 balance = _account != address(0) ? tkn.balanceOf(_account) : 0;
+
+            uint8 decimals = tkn.decimals();
+            uint256 value = toWad(balance, decimals).wadMul(uint256(answer));
+
+            result[i] = DVTokenBalance({
+                addr: token.token,
+                name: tkn.name(),
+                symbol: tkn.symbol(),
+                decimals: decimals,
+                amount: balance,
+                val: value,
+                tSupply: tkn.totalSupply(),
+                price: answer >= 0 ? uint256(answer) : 0,
+                oracleDecimals: oracleDecimals,
+                priceRaw: RawPrice(
+                    answer,
+                    block.timestamp,
+                    block.timestamp - updatedAt > 86401,
+                    answer == 0,
+                    Enums.OracleType.Chainlink,
+                    token.feed
+                )
+            });
+        }
+    }
+
+    function _possibleOracleValue(address _feed) internal view returns (int256 answer, uint256 updatedAt, uint8 decimals) {
+        if (_feed == address(0)) {
+            return (0, 0, 8);
+        }
+        (, answer, , updatedAt, ) = IAggregatorV3(_feed).latestRoundData();
+        decimals = IAggregatorV3(_feed).decimals();
     }
 
     function getAccountRs(address _account) external view returns (DAccount memory result) {

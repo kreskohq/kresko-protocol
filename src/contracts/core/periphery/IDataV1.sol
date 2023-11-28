@@ -5,6 +5,20 @@ import {RawPrice} from "common/Types.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 
 interface IDataV1 {
+    struct ExternalTokenArgs {
+        address token;
+        address feed;
+    }
+
+    struct ExternalTokenResult {
+        address token;
+        string name;
+        string symbol;
+        uint8 decimals;
+        uint256 price;
+        uint256 tSupply;
+    }
+
     struct DVAsset {
         address addr;
         string name;
@@ -47,6 +61,7 @@ interface IDataV1 {
     }
 
     struct DGlobal {
+        DVToken assetsExt;
         PType.Protocol protocol;
         DVault vault;
         DCollection[] collections;
@@ -57,10 +72,12 @@ interface IDataV1 {
         string name;
         string symbol;
         uint256 amount;
+        uint256 tSupply;
         uint8 oracleDecimals;
         uint256 val;
         uint8 decimals;
         uint256 price;
+        RawPrice priceRaw;
     }
 
     struct DAccount {

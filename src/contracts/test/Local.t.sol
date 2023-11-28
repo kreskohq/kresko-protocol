@@ -91,39 +91,42 @@ contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getReds
     }
 
     function testPeripheryData() public {
-        kresko = IKresko(getDeployed(".Kresko"));
-        kiss = KISS(getDeployed(".KISS"));
-        vault = IVault(getDeployed(".Vault"));
-        __current_kresko = address(kresko);
+        IERC20(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8)
+            .allowance(getAddr(0), 0x23ab08d87BBAe90e8BDe56F87ad6e53683E08279)
+            .clg("allowance");
+        // kresko = IKresko(getDeployed(".Kresko"));
+        // kiss = KISS(getDeployed(".KISS"));
+        // vault = IVault(getDeployed(".Vault"));
+        // __current_kresko = address(kresko);
 
-        address gatingManager = IKresko(getDeployed(".Kresko")).getGatingManager();
-        gatingManager.clg("gatingManager");
+        // address gatingManager = IKresko(getDeployed(".Kresko")).getGatingManager();
+        // gatingManager.clg("gatingManager");
 
-        dataV1 = DataV1(getDeployed(".DataV1"));
+        // dataV1 = DataV1(getDeployed(".DataV1"));
 
-        uint8 phase = GatingManager(gatingManager).phase();
-        address kreskian = address(GatingManager(gatingManager).kreskian());
-        address questForKresk = address(GatingManager(gatingManager).questForKresk());
+        // uint8 phase = GatingManager(gatingManager).phase();
+        // address kreskian = address(GatingManager(gatingManager).kreskian());
+        // address questForKresk = address(GatingManager(gatingManager).questForKresk());
 
-        phase.clg("phase");
-        kreskian.clg("kreskian");
-        questForKresk.clg("questForKresk");
+        // phase.clg("phase");
+        // kreskian.clg("kreskian");
+        // questForKresk.clg("questForKresk");
 
-        DataV1.DVault memory vaultData = dataV1.getVault();
-        redstoneCallData.blg("rs-calldata");
+        // DataV1.DVault memory vaultData = dataV1.getVault();
+        // redstoneCallData.blg("rs-calldata");
 
-        address user = getAddr(0);
-        prank(user);
-        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krBTC"), 0.05 ether, user, rsPrices);
-        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krEUR"), 50 ether, user, rsPrices);
-        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krXAU"), 0.2 ether, user, rsPrices);
-        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krWTI"), 1 ether, user, rsPrices);
-        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krJPY"), 10000 ether, user, rsPrices);
-        // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krETH"), 0.2 ether, user, rsPrices);
-        PType.Protocol memory protocol = dataV1.getGlobals(redstoneCallData).protocol;
-        DataV1.DAccount memory account = dataV1.getAccount(user, redstoneCallData);
-        account.phase.clg("phase");
-        account.eligible.clg("eephase");
+        // address user = getAddr(0);
+        // prank(user);
+        // // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krBTC"), 0.05 ether, user, rsPrices);
+        // // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krEUR"), 50 ether, user, rsPrices);
+        // // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krXAU"), 0.2 ether, user, rsPrices);
+        // // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krWTI"), 1 ether, user, rsPrices);
+        // // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krJPY"), 10000 ether, user, rsPrices);
+        // // call(kresko.mintKreskoAsset.selector, user, getDeployed(".krETH"), 0.2 ether, user, rsPrices);
+        // PType.Protocol memory protocol = dataV1.getGlobals(redstoneCallData).protocol;
+        // DataV1.DAccount memory account = dataV1.getAccount(user, redstoneCallData);
+        // account.phase.clg("phase");
+        // account.eligible.clg("eephase");
     }
 
     function testArbitrumUniswapV3MulticallX() public {
@@ -188,6 +191,7 @@ contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getReds
 
         Tokens.WETH.balanceOf(getAddr(0)).clg("weth-bal-before");
         Tokens.USDC.balanceOf(getAddr(0)).clg("usdc-bal-before");
+        bytes.concat(bytes20(Addr.WETH), bytes3(uint24(500)), bytes20(Addr.USDC)).blg("path");
 
         Tokens.WETH.approve(address(multicall), 1 ether);
         KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](3);
