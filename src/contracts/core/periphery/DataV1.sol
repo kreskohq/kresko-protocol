@@ -70,14 +70,18 @@ contract DataV1 is ProxyConnector, IDataV1 {
         result.vault.decimals = IERC20(VAULT).decimals();
 
         result.collections = getCollectionData(_account);
-        (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(msg.sender);
+        (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(_account);
     }
 
     function getAccount(address _account, bytes memory redstoneData) external view returns (DAccount memory result) {
         (bool success, bytes memory data) = address(DIAMOND).staticcall(
             abi.encodePacked(abi.encodeWithSelector(DIAMOND.getAccountData.selector, _account), redstoneData)
         );
-        require(success, "DataV1: getAccount failed");
+        if (!success) {
+            assembly {
+                revert(add(32, data), mload(data))
+            }
+        }
 
         result.protocol = abi.decode(data, (PType.Account));
 
@@ -90,7 +94,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
         result.vault.decimals = IERC20(VAULT).decimals();
 
         result.collections = getCollectionData(_account);
-        (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(msg.sender);
+        (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(_account);
     }
 
     function getBalances(address _account, address[] memory _tokens) external view returns (PType.Balance[] memory result) {
