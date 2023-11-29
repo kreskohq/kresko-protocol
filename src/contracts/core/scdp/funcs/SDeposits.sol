@@ -185,6 +185,7 @@ library SDeposits {
         newIndex = self.assetIndexes[_assetAddr].currFeeIndex;
         self.accountIndexes[_account][_assetAddr].lastFeeIndex = self.assetIndexes[_assetAddr].currFeeIndex;
         self.accountIndexes[_account][_assetAddr].lastLiqIndex = self.assetIndexes[_assetAddr].currLiqIndex;
+        self.accountIndexes[_account][_assetAddr].timestamp = block.timestamp;
     }
 
     function mulByLiqIndex(SCDPState storage self, address _assetAddr, uint256 _amount) internal view returns (uint128) {

@@ -158,6 +158,7 @@ library PType {
         uint256 feeIndexCurrent;
         uint256 liqIndexAccount;
         uint256 liqIndexCurrent;
+        uint256 accountIndexTimestamp;
         uint256 valFees;
         uint256 price;
         Asset config;

@@ -490,7 +490,13 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
     }
 
     function deployPeriphery() internal {
-        state().dataProvider = new DataV1(IDataFacet(state().kresko), address(state().vault), address(state().kiss));
+        state().dataProvider = new DataV1(
+            IDataFacet(state().kresko),
+            address(state().vault),
+            address(state().kiss),
+            address(0),
+            address(0)
+        );
         state().multicall = new KrMulticall(address(state().kresko), address(state().kiss), address(address(0)));
         state().kresko.grantRole(Role.MANAGER, address(state().multicall));
     }

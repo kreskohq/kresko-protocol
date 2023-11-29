@@ -26,13 +26,15 @@ contract DataV1 is ProxyConnector, IDataV1 {
 
     uint256 public constant QUEST_FOR_KRESK_LAST_TOKEN_ID = 7;
     uint256 public constant KRESKIAN_LAST_TOKEN_ID = 1;
-    address public constant KRESKIAN_COLLECTION = 0xAbDb949a18d27367118573A217E5353EDe5A0f1E;
-    address public constant QUEST_FOR_KRESK_COLLECTION = 0x1C04925779805f2dF7BbD0433ABE92Ea74829bF6;
+    address public immutable KRESKIAN_COLLECTION;
+    address public immutable QUEST_FOR_KRESK_COLLECTION;
 
-    constructor(IDataFacet _diamond, address _vault, address _KISS) {
+    constructor(IDataFacet _diamond, address _vault, address _KISS, address _kreskian, address _questForKresk) {
         VAULT = _vault;
         DIAMOND = _diamond;
         KISS = _KISS;
+        KRESKIAN_COLLECTION = _kreskian;
+        QUEST_FOR_KRESK_COLLECTION = _questForKresk;
     }
 
     function getGlobals(bytes memory redstoneData) external view override returns (DGlobal memory result) {
@@ -155,6 +157,8 @@ contract DataV1 is ProxyConnector, IDataV1 {
 
     function getCollectionData(address _account) public view returns (DCollection[] memory result) {
         result = new DCollection[](2);
+
+        if (address(QUEST_FOR_KRESK_COLLECTION) == address(0) && address(KRESKIAN_COLLECTION) == address(0)) return result;
 
         result[0].uri = IERC1155(KRESKIAN_COLLECTION).contractURI();
         result[0].addr = KRESKIAN_COLLECTION;

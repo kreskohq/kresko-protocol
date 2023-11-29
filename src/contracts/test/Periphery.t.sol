@@ -133,7 +133,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         call(kresko.mintKreskoAsset.selector, user2, krETH.addr, 1.5e18, user2, initialPrices);
 
         prank(deployCfg.admin);
-        dataV1 = new DataV1(DataFacet(address(kresko)), address(vkiss), address(vkiss));
+        dataV1 = new DataV1(DataFacet(address(kresko)), address(vkiss), address(vkiss), address(0), address(0));
         mc = new KrMulticall(address(kresko), address(kiss), address(0));
         kresko.grantRole(Role.MANAGER, address(mc));
     }

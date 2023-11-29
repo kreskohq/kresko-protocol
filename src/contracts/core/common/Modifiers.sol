@@ -104,7 +104,7 @@ library LibModifiers {
         asset = self.assets[_assetAddr];
         if (
             !asset.isSharedCollateral ||
-            (_assetAddr != scdp().feeAsset && scdp().assetIndexes[_assetAddr].currFeeIndex > WadRay.RAY)
+            (_assetAddr != scdp().feeAsset && scdp().assetIndexes[_assetAddr].currFeeIndex <= WadRay.RAY)
         ) {
             revert Errors.ASSET_NOT_FEE_ACCUMULATING_ASSET(Errors.id(_assetAddr));
         }
@@ -208,32 +208,4 @@ contract Modifiers {
         }
         _;
     }
-    // modifier gate(address _account) {
-    //     uint8 phase = gs().phase;
-    //     if (phase != 0) {
-    //         IERC1155 questForKresk = IERC1155(gs().questForKresk);
-    //         bool hasKreskian = IERC1155(gs().kreskian).balanceOf(_account, 0) > 0;
-
-    //         if (phase == 3 && !hasKreskian) {
-    //             revert Errors.MISSING_PHASE_3_NFT();
-    //         }
-
-    //         bool hasAnalyzeThis = questForKresk.balanceOf(_account, 0) > 0;
-    //         bool validPhaseTwo = hasKreskian && hasAnalyzeThis;
-
-    //         if (phase == 2 && !validPhaseTwo) {
-    //             revert Errors.MISSING_PHASE_2_NFT();
-    //         }
-    //         if (phase == 1) {
-    //             bool validPhase1 = questForKresk.balanceOf(_account, 1) > 0 &&
-    //                 questForKresk.balanceOf(_account, 2) > 0 &&
-    //                 questForKresk.balanceOf(_account, 3) > 0;
-
-    //             if (!validPhaseTwo || !validPhase1) {
-    //                 revert Errors.MISSING_PHASE_1_NFT();
-    //             }
-    //         }
-    //     }
-    //     _;
-    // }
 }

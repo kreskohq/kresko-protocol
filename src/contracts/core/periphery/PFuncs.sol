@@ -467,8 +467,9 @@ library PFunc {
         result.symbol = _getSymbol(_assetAddr);
         result.addr = _assetAddr;
         result.liqIndexAccount = scdp().accountIndexes[_account][_assetAddr].lastLiqIndex;
-        result.liqIndexCurrent = scdp().assetIndexes[_assetAddr].currLiqIndex;
         result.feeIndexAccount = scdp().accountIndexes[_account][_assetAddr].lastFeeIndex;
+        result.accountIndexTimestamp = scdp().accountIndexes[_account][_assetAddr].timestamp;
+        result.liqIndexCurrent = scdp().assetIndexes[_assetAddr].currLiqIndex;
         result.feeIndexCurrent = scdp().assetIndexes[_assetAddr].currFeeIndex;
     }
 

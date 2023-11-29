@@ -54,7 +54,7 @@ contract MulticallTest is Local {
         AssetsOnChain memory assets = deploy(deployer, admin, treasury);
         setupUsers(userCfg, assets);
 
-        dataV1 = new DataV1(IDataFacet(address(kresko)), address(vkiss), address(kiss));
+        dataV1 = new DataV1(IDataFacet(address(kresko)), address(vkiss), address(kiss), address(0), address(0));
         kiss = state().kiss;
         mc = state().multicall;
 

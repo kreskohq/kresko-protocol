@@ -52,10 +52,11 @@ contract AuditTest is Local {
         AssetsOnChain memory assets = super.deploy(deployer, admin, treasury);
         setupUsers(userCfg, assets);
 
-        dataV1 = new DataV1(IDataFacet(address(kresko)), address(vkiss), address(kiss));
+        dataV1 = new DataV1(IDataFacet(address(kresko)), address(vkiss), address(kiss), address(0), address(0));
         kiss = state().kiss;
 
         prank(getAddr(0));
+        kresko.setAssetSwapFeesSCDP(krETH.addr, 390, 390, 5000);
         redstoneCallData = getRedstonePayload(rsPrices);
         mockUSDC.asToken.approve(address(kresko), type(uint256).max);
         krETH.asToken.approve(address(kresko), type(uint256).max);
@@ -366,7 +367,7 @@ contract AuditTest is Local {
     }
 
     function testFeeDistributionAfterMultipleLiquidationsOak6() external {
-        uint256 feePerSwapTotal = 40e18;
+        uint256 feePerSwapTotal = 16e18;
         uint256 feesStart = kresko.getAccountFeesSCDP(getAddr(0), address(kiss));
 
         // Swap, 1000 KISS -> 0.96 ETH
@@ -438,7 +439,7 @@ contract AuditTest is Local {
     }
 
     function testFeeDistributionAfterMultipleLiquidationsPositiveRebaseOak6() external {
-        uint256 feePerSwapTotal = 40e18;
+        uint256 feePerSwapTotal = 16e18;
         uint256 feesStart = kresko.getAccountFeesSCDP(getAddr(0), address(kiss));
 
         // Setup
@@ -518,7 +519,7 @@ contract AuditTest is Local {
     }
 
     function testFeeDistributionAfterMultipleLiquidationsNegativeRebaseOak6() external {
-        uint256 feePerSwapTotal = 40e18;
+        uint256 feePerSwapTotal = 16e18;
         uint256 feesStart = kresko.getAccountFeesSCDP(getAddr(0), address(kiss));
 
         // Setup
@@ -616,7 +617,7 @@ contract AuditTest is Local {
 
         kresko.getAccountFeesSCDP(userOther, address(kiss)).gt(0, "no-fees");
         // Make it liquidatable
-        _setETHPriceAndLiquidate(104071);
+        _setETHPriceAndLiquidate(109021);
 
         _setETHPrice(ETH_PRICE);
 

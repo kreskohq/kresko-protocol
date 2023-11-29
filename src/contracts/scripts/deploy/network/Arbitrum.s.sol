@@ -407,7 +407,13 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
     }
 
     function deployPeriphery() internal {
-        state().dataProvider = new DataV1(IDataFacet(state().kresko), address(state().vault), address(state().kiss));
+        state().dataProvider = new DataV1(
+            IDataFacet(state().kresko),
+            address(state().vault),
+            address(state().kiss),
+            0xAbDb949a18d27367118573A217E5353EDe5A0f1E,
+            0x1C04925779805f2dF7BbD0433ABE92Ea74829bF6
+        );
         state().multicall = new KrMulticall(address(state().kresko), address(state().kiss), address(Addr.V3_Router02));
         state().kresko.grantRole(Role.MANAGER, address(state().multicall));
     }
