@@ -3,24 +3,17 @@ pragma solidity ^0.8.0;
 
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
-import {Role} from "common/Constants.sol";
-import {Local} from "scripts/deploy/Run.s.sol";
-import {Test} from "forge-std/Test.sol";
-import {state} from "scripts/deploy/base/DeployState.s.sol";
-import {PType} from "periphery/PTypes.sol";
+import {Localnet} from "scripts/deploy/run/Localnet.s.sol";
+import {state} from "scripts/deploy/base/IDeployState.sol";
 import {DataV1} from "periphery/DataV1.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
-import {Errors} from "common/Errors.sol";
-import {VaultAsset} from "vault/VTypes.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {Asset} from "common/Types.sol";
-import {SCDPAssetIndexes} from "scdp/STypes.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
-contract MulticallTest is Local {
+contract MulticallTest is Localnet {
     using ShortAssert for *;
     using Help for *;
     using Log for *;
@@ -596,114 +589,6 @@ contract MulticallTest is Local {
 
     /* -------------------------------- Util -------------------------------- */
 
-    function _feeTestRebaseConfig(uint248 multiplier, bool positive) internal pure returns (FeeTestRebaseConfig memory) {
-        if (positive) {
-            return
-                FeeTestRebaseConfig({
-                    positive: positive,
-                    rebaseMultiplier: multiplier * 1e18,
-                    ethPrice: ETH_PRICE / multiplier,
-                    firstLiquidationPrice: 28000 / multiplier,
-                    secondLiquidationPrice: 17500 / multiplier
-                });
-        }
-        return
-            FeeTestRebaseConfig({
-                positive: positive,
-                rebaseMultiplier: multiplier * 1e18,
-                ethPrice: ETH_PRICE * multiplier,
-                firstLiquidationPrice: 28000 * multiplier,
-                secondLiquidationPrice: 17500 * multiplier
-            });
-    }
-
-    function _setETHPriceAndSwap(uint256 price, uint256 swapAmount) internal {
-        prank(getAddr(0));
-        _setETHPrice(price);
-        kresko.setAssetKFactor(krETH.addr, 1.2e4);
-        call(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETH.addr, swapAmount, 0, rsPrices);
-    }
-
-    function _tradeSetEthPriceAndLiquidate(uint256 price, uint256 count) internal {
-        prank(getAddr(0));
-        uint256 debt = kresko.getDebtSCDP(krETH.addr);
-        if (debt < krETH.asToken.balanceOf(getAddr(0))) {
-            mockUSDC.mock.mint(getAddr(0), 100_000e18);
-            call(kresko.depositCollateral.selector, getAddr(0), mockUSDC.addr, 100_000e18, rsPrices);
-            call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, debt, rsPrices);
-        }
-        kresko.setAssetKFactor(krETH.addr, 1e4);
-        for (uint256 i = 0; i < count; i++) {
-            _setETHPrice(ETH_PRICE);
-            _trades(1);
-            prank(getAddr(0));
-            _setETHPrice(price);
-            staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: before-liq");
-            _liquidate(krETH.addr, 1e8, address(kiss));
-        }
-    }
-
-    function _setETHPriceAndLiquidate(uint256 price) internal {
-        prank(getAddr(0));
-        uint256 debt = kresko.getDebtSCDP(krETH.addr);
-        if (debt < krETH.asToken.balanceOf(getAddr(0))) {
-            mockUSDC.mock.mint(getAddr(0), 100_000e18);
-            call(kresko.depositCollateral.selector, getAddr(0), mockUSDC.addr, 100_000e18, rsPrices);
-            call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, debt, rsPrices);
-        }
-
-        kresko.setAssetKFactor(krETH.addr, 1e4);
-        _setETHPrice(price);
-        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: before-liq");
-        _liquidate(krETH.addr, debt, address(kiss));
-        // staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: after-liq");
-    }
-
-    function _setETHPriceAndLiquidate(uint256 price, uint256 amount) internal {
-        prank(getAddr(0));
-        if (amount < krETH.asToken.balanceOf(getAddr(0))) {
-            mockUSDC.mock.mint(getAddr(0), 100_000e6);
-            call(kresko.depositCollateral.selector, getAddr(0), mockUSDC.addr, 100_000e6, rsPrices);
-            call(kresko.mintKreskoAsset.selector, getAddr(0), krETH.addr, amount, rsPrices);
-        }
-
-        kresko.setAssetKFactor(krETH.addr, 1e4);
-        _setETHPrice(price);
-        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: before-liq");
-        _liquidate(krETH.addr, amount.wadDiv(price * 1e18), address(kiss));
-        // staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: after-liq");
-    }
-
-    function _setETHPriceAndCover(uint256 price, uint256 amount) internal {
-        prank(getAddr(0));
-        // uint256 debt = kresko.getDebtSCDP(krETH.addr);
-        mockUSDC.mock.mint(getAddr(0), 100_000e6);
-        mockUSDC.asToken.approve(address(kiss), type(uint256).max);
-        kiss.vaultMint(address(USDC), amount, getAddr(0));
-        kiss.approve(address(kresko), type(uint256).max);
-
-        kresko.setAssetKFactor(krETH.addr, 1e4);
-        _setETHPrice(price);
-        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: before-cover");
-        _cover(amount);
-        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: after-cover");
-    }
-
-    function _setETHPriceAndCoverIncentive(uint256 price, uint256 amount) internal {
-        prank(getAddr(0));
-        // uint256 debt = kresko.getDebtSCDP(krETH.addr);
-        mockUSDC.mock.mint(getAddr(0), 100_000e6);
-        mockUSDC.asToken.approve(address(kiss), type(uint256).max);
-        kiss.vaultMint(address(USDC), amount, getAddr(0));
-        kiss.approve(address(kresko), type(uint256).max);
-
-        kresko.setAssetKFactor(krETH.addr, 1e4);
-        _setETHPrice(price);
-        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: before-cover");
-        _coverIncentive(amount, address(kiss));
-        staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices).pct("CR: after-cover");
-    }
-
     function _trades(uint256 count) internal {
         address trader = getAddr(777);
         prank(deployCfg.admin);
@@ -727,23 +612,6 @@ contract MulticallTest is Local {
     function _cover(uint256 _coverAmount) internal returns (uint256 crAfter, uint256 debtValAfter) {
         (bool success, bytes memory returndata) = address(kresko).call(
             abi.encodePacked(abi.encodeWithSelector(kresko.coverSCDP.selector, address(kiss), _coverAmount), redstoneCallData)
-        );
-        if (!success) _handleRevert(returndata);
-        return (
-            staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices),
-            staticCall(kresko.getTotalDebtValueSCDP.selector, true, rsPrices)
-        );
-    }
-
-    function _coverIncentive(
-        uint256 _coverAmount,
-        address _seizeAsset
-    ) internal returns (uint256 crAfter, uint256 debtValAfter) {
-        (bool success, bytes memory returndata) = address(kresko).call(
-            abi.encodePacked(
-                abi.encodeWithSelector(kresko.coverWithIncentiveSCDP.selector, address(kiss), _coverAmount, _seizeAsset),
-                redstoneCallData
-            )
         );
         if (!success) _handleRevert(returndata);
         return (

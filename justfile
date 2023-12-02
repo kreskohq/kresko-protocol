@@ -41,10 +41,8 @@ verify-contract:
 	--chain arbitrum-sepolia \
 	--watch
 
-
-
 dry-local:
-	forge script src/contracts/scripts/deploy/Run.s.sol:Local \
+	forge script src/contracts/scripts/deploy/run/Localnet.s.sol \
 	--with-gas-price 100000000 \
 	--skip-simulation \
 	--ffi \
@@ -52,7 +50,7 @@ dry-local:
 
 
 dry-arbitrum:
-	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
+	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
 	--with-gas-price 100000000 \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--skip-simulation \
@@ -61,7 +59,7 @@ dry-arbitrum:
 	-vvv
 
 dry-arbitrum-sepolia:
-	forge script src/contracts/scripts/deploy/Run.s.sol:ArbitrumSepolia \
+	forge script src/contracts/scripts/deploy/run/ArbitrumSepolia.s.sol \
 	--with-gas-price 100000000 \
 	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
 	--evm-version "paris" \
@@ -69,7 +67,7 @@ dry-arbitrum-sepolia:
 	-vvv
 
 deploy-arbitrum-sepolia:
-	forge script src/contracts/scripts/deploy/Run.s.sol:ArbitrumSepolia \
+	forge script src/contracts/scripts/deploy/run/ArbitrumSepolia.s.sol \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
 	--evm-version "paris" \
@@ -80,7 +78,7 @@ deploy-arbitrum-sepolia:
 	-vvv
 
 verify-arbitrum-sepolia:
-	forge script src/contracts/scripts/deploy/Run.s.sol:ArbitrumSepolia \
+	forge script src/contracts/scripts/deploy/run/ArbitrumSepolia.s.sol \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--rpc-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
 	--evm-version "paris" \
@@ -124,23 +122,14 @@ restart:
 
 deploy-local:
 	sleep 3
-	forge script src/contracts/scripts/deploy/Run.s.sol:Local \
+	forge script src/contracts/scripts/deploy/run/Localnet.s.sol \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \
 	--broadcast \
 	--ffi \
 	-vvv
 
-deploy-arbitrum:
-	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
-	--mnemonics "$MNEMONIC_DEVNET" \
-	--non-interactive \
-	--fork-url "$RPC_LOCAL" \
-	--evm-version "paris" \
-	--broadcast \
-	--with-gas-price 100000000 \
-	--ffi \
-	-vvv
+
 
 setup-arbitrum: 
 	just deploy-arbitrum && \
@@ -152,8 +141,19 @@ arb-users:
 	just arb-bal-wbtc && \
 	just arb-setup-users
 
+deploy-arbitrum:
+	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--non-interactive \
+	--fork-url "$RPC_LOCAL" \
+	--evm-version "paris" \
+	--broadcast \
+	--with-gas-price 100000000 \
+	--ffi \
+	-vvv
+
 arb-bal-stables:
-	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
+	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
 	--sig "setupStables()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--sender "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D" \
@@ -164,7 +164,7 @@ arb-bal-stables:
 	-vvv
 
 arb-bal-wbtc:
-	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
+	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
 	--sig "setupWBTC()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--sender "0x4bb7f4c3d47C4b431cb0658F44287d52006fb506" \
@@ -175,7 +175,7 @@ arb-bal-wbtc:
 	-vvv
 
 arb-bal-nfts:
-	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
+	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
 	--sig "setupNFTs()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--sender "0x99999A0B66AF30f6FEf832938a5038644a72180a" \
@@ -186,7 +186,7 @@ arb-bal-nfts:
 	-vvv
 
 arb-setup-users:
-	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
+	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
 	--sig "createUsers()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \

@@ -4,17 +4,12 @@
 pragma solidity ^0.8.19;
 import {RawPrice} from "common/Types.sol";
 import {VaultAsset} from "vault/VTypes.sol";
-import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
 import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
-import {IDeployState} from "./IDeployState.sol";
-import {state} from "./DeployState.s.sol";
+import {state} from "./IDeployState.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
-import {DataV1} from "periphery/DataV1.sol";
-import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
-import {KrMulticall} from "periphery/KrMulticall.sol";
-import {Role} from "common/Constants.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 
-abstract contract DeployCallbacks is IDeployState, KreskoForgeUtils {
+abstract contract DeployCallbacks is KreskoForgeUtils {
     function onConfigurationsCreated(
         State storage _ctx,
         CoreConfig memory _cfg,
@@ -34,7 +29,7 @@ abstract contract DeployCallbacks is IDeployState, KreskoForgeUtils {
 
     function onExtAssetAdded(State storage _ctx, ExtAssetInfo memory _onChainInfo) internal virtual {}
 
-    function onAssetsComplete(State storage _ctx, IDeployState.AssetsOnChain memory _onChainInfo) internal virtual {}
+    function onAssetsComplete(State storage _ctx, AssetsOnChain memory _onChainInfo) internal virtual {}
 
     function onDeploymentComplete(State storage _ctx) internal virtual {}
 
@@ -58,7 +53,7 @@ abstract contract BaseLogger is DeployCallbacks {
         if (!state().logEnabled) return;
         ("/* ------------------------------- Deploying -------------------------------- */").clg();
         Log.br();
-        Log.clg_callers();
+        Log.logCallers();
         Log.br();
         ("/* ------------------------------ Configuration ----------------------------- */").clg();
         Log.br();
@@ -195,7 +190,7 @@ abstract contract BaseLogger is DeployCallbacks {
                 uint256 balance = asset.token.balanceOf(_ctx.userCfg[j].addr);
                 balance.dlg(asset.symbol, asset.config.decimals);
             }
-            _ctx.kiss.balanceOf(_ctx.userCfg[j].addr).dlg("KISS", 18);
+            IERC20(address(_ctx.kiss)).balanceOf(_ctx.userCfg[j].addr).dlg("KISS", 18);
         }
         Log.hr();
     }

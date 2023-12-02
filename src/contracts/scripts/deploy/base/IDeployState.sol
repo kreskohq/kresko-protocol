@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
-import {KISS} from "kiss/KISS.sol";
+import {IKISS} from "kiss/interfaces/IKISS.sol";
 import {Enums} from "common/Constants.sol";
-import {IKreskoForgeTypes} from "scripts/utils/IKreskoForgeTypes.sol";
 import {Deployment} from "factory/DeploymentFactory.sol";
-import {Vault} from "vault/Vault.sol";
+import {IVault} from "vault/interfaces/IVault.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {IDataV1} from "periphery/IDataV1.sol";
@@ -13,12 +12,39 @@ import {Asset} from "common/Types.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {DeploymentFactory} from "factory/DeploymentFactory.sol";
+import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {GatingManager} from "periphery/GatingManager.sol";
+import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
+import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
+import {MockOracle} from "mocks/MockOracle.sol";
 
 /// @dev Stateful context for deployment scripts
-interface IDeployState is IKreskoForgeTypes {
+interface IDeployState {
+    struct AssetType {
+        bool krAsset;
+        bool collateral;
+        bool scdpKrAsset;
+        bool scdpDepositable;
+    }
+
+    struct CoreConfig {
+        uint32 minterMcr;
+        uint32 minterLt;
+        uint32 scdpMcr;
+        uint32 scdpLt;
+        uint48 coverThreshold;
+        uint48 coverIncentive;
+        uint32 staleTime;
+        uint8 sdiPrecision;
+        uint8 oraclePrecision; // @note deprecated, removed soon
+        address admin;
+        address seqFeed;
+        address council; // needs to be a contraaact
+        address treasury;
+        address gatingManager;
+    }
+
     struct State {
         mapping(uint256 => KrAssetInfo) krAssetAt;
         mapping(uint256 => ExtAssetInfo) extAssetAt;
@@ -37,10 +63,10 @@ interface IDeployState is IKreskoForgeTypes {
         IDataV1 dataProvider;
         KrMulticall multicall;
         GatingManager gatingManager;
-        KISS kiss;
+        IKISS kiss;
         IKresko kresko;
-        Vault vault;
-        DeploymentFactory factory;
+        IVault vault;
+        IDeploymentFactory factory;
         Deployment[] allProxies;
         IERC20[] allTokens;
         address[] allFeeds;
@@ -109,5 +135,77 @@ interface IDeployState is IKreskoForgeTypes {
         Enums.OracleType[2] oracleType;
         AssetType identity;
         bool setTickerFeeds;
+    }
+
+    struct ExtAssetInfo {
+        address addr;
+        string symbol;
+        Asset config;
+        IAggregatorV3 feed;
+        address feedAddr;
+        IERC20 token;
+    }
+
+    struct KISSInfo {
+        address addr;
+        IKISS kiss;
+        Asset config;
+        IVault vault;
+        Deployment proxy;
+        address vaultAddr;
+        IERC20 asToken;
+    }
+
+    struct KrAssetInfo {
+        address addr;
+        string symbol;
+        Asset config;
+        IKreskoAsset krAsset;
+        IKreskoAssetAnchor anchor;
+        string anchorSymbol;
+        address underlyingAddr;
+        address feedAddr;
+        MockOracle mockFeed;
+        IAggregatorV3 feed;
+        Deployment krAssetProxy;
+        Deployment anchorProxy;
+        IERC20 asToken;
+    }
+
+    struct KrAssetDeployInfo {
+        address addr;
+        string symbol;
+        IKreskoAsset krAsset;
+        IKreskoAssetAnchor anchor;
+        Deployment krAssetProxy;
+        Deployment anchorProxy;
+        string anchorSymbol;
+        address underlyingAddr;
+    }
+
+    struct MockConfig {
+        string symbol;
+        uint256 price;
+        uint8 dec;
+        uint8 feedDec;
+        bool setFeeds;
+    }
+
+    struct MockTokenInfo {
+        address addr;
+        string symbol;
+        Asset config;
+        IAggregatorV3 feed;
+        address feedAddr;
+        MockERC20 mock;
+        MockOracle mockFeed;
+        IERC20 asToken;
+    }
+}
+
+function state() pure returns (IDeployState.State storage ctx_) {
+    bytes32 slot = keccak256("devnet.deploy.ctx");
+    assembly {
+        ctx_.slot := slot
     }
 }

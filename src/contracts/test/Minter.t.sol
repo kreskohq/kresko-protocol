@@ -8,7 +8,7 @@ import {Strings} from "libs/Strings.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
 import {Asset} from "common/Types.sol";
-import {console2} from "forge-std/Console2.sol";
+import {console2} from "forge-std/console2.sol";
 
 // solhint-disable
 contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {

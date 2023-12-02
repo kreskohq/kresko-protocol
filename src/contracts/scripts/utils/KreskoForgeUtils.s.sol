@@ -7,7 +7,7 @@ import {Enums} from "common/Constants.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
-import {MockERC20, MockERC20Restricted} from "mocks/MockERC20.sol";
+import {MockERC20} from "mocks/MockERC20.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
@@ -38,9 +38,9 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
     AssetType internal ext_full = AssetType({collateral: true, krAsset: false, scdpDepositable: true, scdpKrAsset: false});
 
     function addKrAsset(
-        KrAssetDeployInfo memory deployment,
+        IDeployState.KrAssetDeployInfo memory deployment,
         IDeployState.KrAssetCfg memory cfg
-    ) internal returns (KrAssetInfo memory result_) {
+    ) internal returns (IDeployState.KrAssetInfo memory result_) {
         result_ = convertToInfo(deployment, cfg.feeds);
 
         result_.config.ticker = cfg.ticker;
@@ -82,26 +82,6 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         return result_;
     }
 
-    function addKrAsset(
-        bytes32 ticker,
-        bool setTickerFeeds,
-        Enums.OracleType[2] memory oracles,
-        address[2] memory feeds,
-        KrAssetInfo memory info,
-        AssetType memory identity
-    ) internal returns (KrAssetInfo memory) {
-        info.feedAddr = feeds[0] == address(0) ? feeds[1] : feeds[0];
-        info.feed = IAggregatorV3(info.feedAddr);
-        info.mockFeed = MockOracle(info.feedAddr);
-
-        info.config = kresko.addAsset(
-            address(info.krAsset),
-            _getTestKrAssetConfig(ticker, address(info.anchor), oracles, identity),
-            setTickerFeeds ? feeds : SKIP_FEEDS
-        );
-        return info;
-    }
-
     function _addKrAsset(
         bytes32 ticker,
         address assetAddr,
@@ -110,7 +90,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         Enums.OracleType[2] memory oracles,
         address[2] memory feeds,
         AssetType memory identity
-    ) internal requiresKresko returns (Asset memory) {
+    ) internal returns (Asset memory) {
         return
             kresko.addAsset(
                 assetAddr,
@@ -119,32 +99,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
             );
     }
 
-    function addKrAsset(
-        bytes32 ticker,
-        bool setTickerFeeds,
-        Enums.OracleType[2] memory oracles,
-        address[2] memory feeds,
-        KrAssetDeployInfo memory info,
-        AssetType memory identity
-    ) internal returns (KrAssetInfo memory assetInfo_) {
-        assetInfo_ = convertToInfo(info, feeds);
-
-        assetInfo_.config = _addKrAsset(
-            ticker,
-            assetInfo_.addr,
-            address(info.anchor),
-            setTickerFeeds,
-            oracles,
-            feeds,
-            identity
-        );
-        return assetInfo_;
-    }
-
-    function addCollateral(
-        address assetAddr,
-        IDeployState.ExtAssetCfg memory cfg
-    ) internal requiresKresko returns (Asset memory result_) {
+    function addCollateral(address assetAddr, IDeployState.ExtAssetCfg memory cfg) internal returns (Asset memory result_) {
         result_.ticker = cfg.ticker;
         result_.oracles = cfg.oracleType;
 
@@ -170,7 +125,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         Enums.OracleType[2] memory oracles,
         address[2] memory feeds,
         AssetType memory identity
-    ) internal requiresKresko returns (Asset memory result_) {
+    ) internal returns (Asset memory result_) {
         result_.ticker = ticker;
         result_.oracles = oracles;
         result_.factor = 1e4;
@@ -189,7 +144,10 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         return kresko.addAsset(assetAddr, result_, setTickerFeeds ? feeds : SKIP_FEEDS);
     }
 
-    function addKISS(address _kreskoAddr, KISSInfo memory _kissInfo) internal returns (KISSInfo memory) {
+    function addKISS(
+        address _kreskoAddr,
+        IDeployState.KISSInfo memory _kissInfo
+    ) internal returns (IDeployState.KISSInfo memory) {
         _kissInfo.config = addKISS(_kreskoAddr, _kissInfo.addr, _kissInfo.vaultAddr, kiss_default).config;
         return _kissInfo;
     }
@@ -199,7 +157,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         address _kissAddr,
         address _vaultAddr,
         AssetType memory _type
-    ) internal requiresKresko returns (KISSInfo memory kissInfo_) {
+    ) internal returns (IDeployState.KISSInfo memory kissInfo_) {
         kissInfo_.config.ticker = bytes32("KISS");
         kissInfo_.config.anchor = _kissAddr;
         kissInfo_.config.oracles = OT_KISS;
@@ -290,13 +248,13 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         return config_;
     }
 
-    function enableSwapBothWays(address asset0, address asset1, bool enabled) internal requiresKresko {
+    function enableSwapBothWays(address asset0, address asset1, bool enabled) internal {
         SwapRouteSetter[] memory swapPairsEnabled = new SwapRouteSetter[](1);
         swapPairsEnabled[0] = SwapRouteSetter({assetIn: asset0, assetOut: asset1, enabled: enabled});
         kresko.setSwapRoutesSCDP(swapPairsEnabled);
     }
 
-    function enableSwapSingleWay(address asset0, address asset1, bool enabled) internal requiresKresko {
+    function enableSwapSingleWay(address asset0, address asset1, bool enabled) internal {
         kresko.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: asset0, assetOut: asset1, enabled: enabled}));
     }
 }
@@ -329,7 +287,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         address kreskoAddr,
         address vaultAddr,
         address admin
-    ) internal needsDeploymentFactory returns (KISSInfo memory kissInfo_) {
+    ) internal needsDeploymentFactory returns (IDeployState.KISSInfo memory kissInfo_) {
         require(kreskoAddr != address(0), "deployKISS: Kresko address is zero");
         require(vaultAddr != address(0), "deployKISS: Vault address is zero");
         Deployment memory proxy = factory.create3ProxyAndLogic(
@@ -353,7 +311,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         address underlyingAddr,
         address admin,
         address treasury
-    ) internal needsDeploymentFactory returns (KrAssetDeployInfo memory result_) {
+    ) internal needsDeploymentFactory returns (IDeployState.KrAssetDeployInfo memory result_) {
         (string memory anchorName, string memory anchorSymbol) = getAnchorSymbolAndName(name, symbol);
         (bytes32 krAssetSalt, bytes32 anchorSalt) = getKrAssetSalts(symbol, anchorSymbol);
 
@@ -390,8 +348,14 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         uint256 price,
         address underlyingAddr,
         CoreConfig memory args
-    ) internal needsDeploymentFactory returns (KrAssetInfo memory result) {
-        KrAssetDeployInfo memory deployment = deployKrAsset(name, symbol, underlyingAddr, args.admin, args.treasury);
+    ) internal needsDeploymentFactory returns (IDeployState.KrAssetInfo memory result) {
+        IDeployState.KrAssetDeployInfo memory deployment = deployKrAsset(
+            name,
+            symbol,
+            underlyingAddr,
+            args.admin,
+            args.treasury
+        );
         result.addr = deployment.addr;
         result.krAsset = deployment.krAsset;
         result.anchor = deployment.anchor;
@@ -417,7 +381,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         MockConfig memory config,
         AssetType memory identity,
         CoreConfig memory args
-    ) internal returns (KrAssetInfo memory result) {
+    ) internal returns (IDeployState.KrAssetInfo memory result) {
         result = deployKrAssetWithOracle(config.symbol, config.symbol, config.price, underlyingAddr, args);
         result.config = _addKrAsset(
             ticker,
@@ -469,15 +433,6 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         uint256 initialSupply
     ) internal returns (MockERC20) {
         return new MockERC20(name, symbol, decimals, initialSupply);
-    }
-
-    function deployToken(
-        string memory name,
-        string memory symbol,
-        uint8 decimals,
-        uint256 initialSupply
-    ) internal returns (MockERC20Restricted) {
-        return new MockERC20Restricted(name, symbol, decimals, initialSupply);
     }
 
     function getAnchorSymbolAndName(

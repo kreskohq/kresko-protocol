@@ -5,7 +5,7 @@ import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
 import {RedstoneScript} from "kresko-lib/utils/Redstone.sol";
 import {DataV1, IDataV1} from "periphery/DataV1.sol";
 import {PType} from "periphery/PTypes.sol";
-import {console2} from "forge-std/Console2.sol";
+import {console2} from "forge-std/console2.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {ArbSepolia} from "kresko-lib/info/testnet/ArbitrumSepolia.sol";
 import {Sepolia} from "kresko-lib/info/testnet/Sepolia.sol";
@@ -28,13 +28,6 @@ contract QuickScript is ScriptBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/g
         broadcastWith(getAddr(0));
         AggregatorV3Normalizer feed = new AggregatorV3Normalizer(0x7aAB32404b077C77858e4fd476b42c7BD9D8AB00);
         DeploymentFactory factory = DeploymentFactory(getDeployed(".Factory"));
-        // address sender = peekSender();
-
-        // (, int256 answer, uint256 createdAt, uint256 updatedAt, ) = feed.latestRoundData();
-
-        // answer.clg("answer");
-        // updatedAt.clg("updatedAt");
-        // createdAt.clg("createdAt");
     }
 
     function getDeployed(string memory key) internal view returns (address) {

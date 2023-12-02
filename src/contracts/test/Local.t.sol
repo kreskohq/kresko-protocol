@@ -3,22 +3,14 @@
 pragma solidity ^0.8.0;
 
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
 import {Test} from "forge-std/Test.sol";
 import {Log} from "kresko-lib/utils/Libs.sol";
 import {KISS} from "kiss/KISS.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
-import {RedstoneScript} from "kresko-lib/utils/Redstone.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {Role} from "common/Constants.sol";
-import {MockERC20} from "mocks/MockERC20.sol";
-import {Addr, Tokens} from "kresko-lib/info/Arbitrum.sol";
-import {DataV1} from "periphery/DataV1.sol";
-import {PType} from "periphery/PTypes.sol";
-import {GatingManager} from "periphery/GatingManager.sol";
-import {IDataV1} from "periphery/IDataV1.sol";
-import {ArbitrumSepolia} from "scripts/deploy/Run.s.sol";
+import {ArbitrumSepolia} from "scripts/deploy/run/ArbitrumSepolia.s.sol";
+import {IDataV1} from "../core/periphery/IDataV1.sol";
 
 string constant rsPrices = "ETH:2075:8,BTC:37559.01:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,USDT:1.0006:8,JPY:0.0067:8,XAU:1981.68:8,WTI:77.5:8";
 
@@ -28,7 +20,7 @@ contract NewTest is ArbitrumSepolia, Test {
     using Log for *;
     bytes internal redstoneCallData;
     KrMulticall internal multicall;
-    DataV1 internal dataV1;
+    IDataV1 internal dataV1;
     IVault vault;
     IERC20 usdc;
     IERC20 dai;

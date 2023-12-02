@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import {IERC165} from "vendor/IERC165.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {IVaultExtender} from "vault/interfaces/IVaultExtender.sol";
+import {IERC20Permit} from "kresko-lib/token/IERC20Permit.sol";
 
-interface IKISS is IVaultExtender, IKreskoAssetIssuer, IERC165 {
+interface IKISS is IERC20Permit, IVaultExtender, IKreskoAssetIssuer, IERC165 {
     /* -------------------------------------------------------------------------- */
     /*                                   Events                                   */
     /* -------------------------------------------------------------------------- */

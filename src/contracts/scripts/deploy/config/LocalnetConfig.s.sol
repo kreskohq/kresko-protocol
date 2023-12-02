@@ -15,7 +15,7 @@ import {SwapRouteSetter} from "scdp/STypes.sol";
 import {Help} from "kresko-lib/utils/Libs.sol";
 import {StdCheats} from "forge-std/StdCheats.sol";
 import {VaultAsset} from "vault/VTypes.sol";
-import {state} from "scripts/deploy/base/DeployState.s.sol";
+import {state} from "scripts/deploy/base/IDeployState.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
 import {DeployLogicBase} from "scripts/deploy/base/DeployLogic.s.sol";
@@ -24,7 +24,7 @@ import {DataV1} from "periphery/DataV1.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
-import {console2} from "forge-std/console2.sol";
+import {Log} from "kresko-lib/utils/Libs.sol";
 
 using Help for string;
 
@@ -581,7 +581,7 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
         call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krETH"], 0.01 ether, _account, initialPrices);
         call(kresko.mintKreskoAsset.selector, _account, s.getAddress["krJPY"], 10000 ether, _account, initialPrices);
 
-        s.kiss.approve(address(s.kresko), type(uint256).max);
+        IERC20(address(s.kiss)).approve(address(s.kresko), type(uint256).max);
         s.kresko.depositSCDP(_account, address(s.kiss), liquidity);
     }
 
@@ -609,7 +609,7 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
         vm.serializeAddress(obj, "Multicall", address(state().multicall));
         string memory output = vm.serializeAddress(obj, "Factory", address(state().factory));
         vm.writeJson(output, "./out/local.json");
-        console2.log("Deployment JSON written to: ./out/local.json");
+        Log.clg("Deployment JSON written to: ./out/local.json");
     }
 
     function getDeployed(string memory key) internal view returns (address) {

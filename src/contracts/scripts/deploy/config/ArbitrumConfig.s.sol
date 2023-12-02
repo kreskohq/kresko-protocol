@@ -5,20 +5,19 @@ pragma solidity <0.9.0;
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {Help} from "kresko-lib/utils/Libs.sol";
-import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {ISCDPConfigFacet} from "scdp/interfaces/ISCDPConfigFacet.sol";
 import {Addr, Tokens, ChainLink} from "kresko-lib/info/Arbitrum.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
 import {DeployLogicBase} from "scripts/deploy/base/DeployLogic.s.sol";
-import {state} from "scripts/deploy/base/DeployState.s.sol";
+import {state} from "scripts/deploy/base/IDeployState.sol";
 import {DataV1} from "periphery/DataV1.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
-import {console2} from "forge-std/console2.sol";
+import {Log} from "kresko-lib/utils/Libs.sol";
 import {GatingManager} from "periphery/GatingManager.sol";
 import {KISS} from "kiss/KISS.sol";
 import {IKresko} from "periphery/IKresko.sol";
@@ -491,7 +490,7 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
             MockERC20(Addr.WBTC).transfer(user, 0.253333e8);
         }
         vm.stopBroadcast();
-        console2.log("WBTC sent to users");
+        Log.clg("WBTC sent to users");
     }
 
     function setupNFTs() external {
@@ -528,7 +527,7 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
             MockERC20(Addr.USDT).transfer(user, 5000e6);
         }
         vm.stopBroadcast();
-        console2.log("USDCe sent to users");
+        Log.clg("USDCe sent to users");
     }
 
     function writeDeploymentJSON() internal override {
@@ -556,7 +555,7 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
         vm.serializeAddress(obj, "GatingManager", address(state().gatingManager));
         string memory output = vm.serializeAddress(obj, "Factory", address(state().factory));
         vm.writeJson(output, "./out/arbitrum.json");
-        console2.log("Deployment JSON written to: ./out/arbitrum.json");
+        Log.clg("Deployment JSON written to: ./out/arbitrum.json");
     }
 
     function getDeployed(string memory key) internal view returns (address) {

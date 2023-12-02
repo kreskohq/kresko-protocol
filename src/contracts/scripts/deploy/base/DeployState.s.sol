@@ -11,22 +11,14 @@ import {IKresko} from "periphery/IKresko.sol";
 import {DeploymentFactory} from "factory/DeploymentFactory.sol";
 import {Deployment} from "factory/IDeploymentFactory.sol";
 import {Asset} from "common/Types.sol";
-import {LibVm} from "kresko-lib/utils/Libs.sol";
 import {VaultAsset} from "vault/VTypes.sol";
-import {Vault} from "vault/Vault.sol";
+import {IVault} from "vault/interfaces/IVault.sol";
 import {BaseLogger} from "./DeployCallbacks.s.sol";
-import {IDeployState} from "scripts/deploy/base/IDeployState.sol";
+import {state, IDeployState} from "scripts/deploy/base/IDeployState.sol";
 
 using Arrays for bytes32[];
 using Arrays for address[];
 using Arrays for string[];
-
-function state() pure returns (IDeployState.State storage ctx_) {
-    bytes32 slot = keccak256("devnet.deploy.ctx");
-    assembly {
-        ctx_.slot := slot
-    }
-}
 
 /// @notice Handles callbacks that update the state and logs.
 abstract contract DeployStateHandlers is BaseLogger {
@@ -49,7 +41,7 @@ abstract contract DeployStateHandlers is BaseLogger {
         super.onCoreContractsCreated($.saveCoreDeployments(_kresko, _proxyFactory));
     }
 
-    function afterVaultCreated(Vault _vault) internal {
+    function afterVaultCreated(IVault _vault) internal {
         $.saveVaultDeployment(_vault);
     }
 
@@ -75,7 +67,7 @@ abstract contract DeployStateHandlers is BaseLogger {
     }
 
     function afterVaultAssetAdded(VaultAsset memory _onChainInfo) internal {
-        (IDeployState.State storage _ctx, string memory symbol) = $.saveVaultAsset(_onChainInfo);
+        (State storage _ctx, string memory symbol) = $.saveVaultAsset(_onChainInfo);
         super.onVaultAssetAdded(_ctx, symbol, _onChainInfo);
     }
 
@@ -124,7 +116,7 @@ library $ {
         return state();
     }
 
-    function saveVaultDeployment(Vault _vault) internal {
+    function saveVaultDeployment(IVault _vault) internal {
         state().vault = _vault;
         saveToken(address(_vault), "vKISS");
         saveFeed(address(_vault), "vKISS");

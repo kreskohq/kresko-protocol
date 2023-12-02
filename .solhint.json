@@ -11,7 +11,7 @@
     ],
     "avoid-tx-origin": "error",
     "custom-errors": "off",
-    "compiler-version": ["error", "<=0.8.21"],
+    "compiler-version": ["error", "<=0.8.23"],
     "no-inline-assembly": "off",
     "func-name-mixedcase": "off",
     "prettier/prettier": "error",

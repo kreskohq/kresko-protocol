@@ -1,9 +1,11 @@
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
+
+import {IDeployState} from "scripts/deploy/base/IDeployState.sol";
 import {FacetScript} from "kresko-lib/utils/Diamond.sol";
 import {RedstoneScript} from "kresko-lib/utils/Redstone.sol";
 import {CommonInitArgs} from "common/Types.sol";
 import {MinterInitArgs} from "minter/MTypes.sol";
-import {IKreskoForgeTypes} from "./IKreskoForgeTypes.sol";
 import {FacetCut, Initializer, FacetCutAction} from "diamond/DSTypes.sol";
 import {Diamond} from "diamond/Diamond.sol";
 import {DiamondCutFacet} from "diamond/facets/DiamondCutFacet.sol";
@@ -32,14 +34,15 @@ import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {SDIFacet} from "scdp/facets/SDIFacet.sol";
 import {SCDPInitArgs} from "scdp/STypes.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {KISS} from "kiss/KISS.sol";
-import {Vault} from "vault/Vault.sol";
+import {IKISS} from "kiss/interfaces/IKISS.sol";
+import {IVault} from "vault/interfaces/IVault.sol";
 import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
 
 import {DataFacet} from "periphery/facets/DataFacet.sol";
+import {vm} from "kresko-lib/utils/Minimals.sol";
 
 abstract contract KreskoForgeBase is
-    IKreskoForgeTypes,
+    IDeployState,
     RedstoneScript("./utils/getRedstonePayload.js"),
     FacetScript("./utils/getFunctionSelectors.sh")
 {
@@ -52,15 +55,8 @@ abstract contract KreskoForgeBase is
 
     CoreConfig internal deployCfg;
     IKresko internal kresko;
-    KISS internal kiss;
-    Vault internal vkiss;
-
-    address[] internal councilUsers;
-
-    modifier requiresKresko() {
-        require(address(kresko) != address(0), "KreskoForgeBase: Deploy Kresko first");
-        _;
-    }
+    IKISS internal kiss;
+    IVault internal vkiss;
 
     function deployDiamond(CoreConfig memory _cfg) internal returns (IKresko kresko_) {
         FacetCut[] memory facets = new FacetCut[](FACET_COUNT);

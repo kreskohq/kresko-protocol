@@ -12,14 +12,13 @@ import {ArbSepolia} from "kresko-lib/info/testnet/ArbitrumSepolia.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
 import {DeployLogicBase} from "scripts/deploy/base/DeployLogic.s.sol";
-import {state} from "scripts/deploy/base/DeployState.s.sol";
+import {state} from "scripts/deploy/base/IDeployState.sol";
 import {DataV1} from "periphery/DataV1.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
-import {MockERC20} from "mocks/MockERC20.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
-import {console2} from "forge-std/console2.sol";
+import {Log} from "kresko-lib/utils/Libs.sol";
 
 interface INFT {
     function mint(address to, uint256 tokenId, uint256 amount) external;
@@ -388,7 +387,7 @@ abstract contract ArbitrumSepoliaDeployment is ArbitrumSepoliaDeployConfig {
         vm.serializeAddress(obj, "GatingManager", address(state().gatingManager));
         string memory output = vm.serializeAddress(obj, "Factory", address(state().factory));
         vm.writeJson(output, "./out/arbitrum-sepolia.json");
-        console2.log("Deployment JSON written to: ./out/arbitrum-sepolia.json");
+        Log.clg("Deployment JSON written to: ./out/arbitrum-sepolia.json");
     }
 
     function getDeployed(string memory key) internal view returns (address) {
