@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {Strings} from "libs/Strings.sol";
 import {SDIPrice} from "common/funcs/Prices.sol";

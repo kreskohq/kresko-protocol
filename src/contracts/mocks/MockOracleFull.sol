@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 

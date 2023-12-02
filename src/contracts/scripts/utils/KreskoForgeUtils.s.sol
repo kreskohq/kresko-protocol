@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 // solhint-disable var-name-mixedcase
 // solhint-disable no-empty-blocks
 import {Asset} from "common/Types.sol";
@@ -20,6 +20,7 @@ import {Deployment, DeploymentFactory} from "factory/DeploymentFactory.sol";
 import {Conversions} from "libs/Utils.sol";
 import {Vault} from "vault/Vault.sol";
 import {KISS} from "kiss/KISS.sol";
+import {IDeployState} from "scripts/deploy/base/IDeployState.sol";
 
 using Conversions for bytes;
 using Conversions for bytes[];
@@ -37,21 +38,68 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
     AssetType internal ext_full = AssetType({collateral: true, krAsset: false, scdpDepositable: true, scdpKrAsset: false});
 
     function addKrAsset(
+        KrAssetDeployInfo memory deployment,
+        IDeployState.KrAssetCfg memory cfg
+    ) internal returns (KrAssetInfo memory result_) {
+        result_ = convertToInfo(deployment, cfg.feeds);
+
+        result_.config.ticker = cfg.ticker;
+        result_.config.anchor = address(deployment.anchor);
+        result_.config.oracles = cfg.oracleType;
+
+        result_.config.factor = cfg.factor;
+        result_.config.kFactor = cfg.kFactor;
+
+        if (cfg.identity.krAsset) {
+            result_.config.isMinterMintable = true;
+            result_.config.openFee = cfg.openFee;
+            result_.config.closeFee = cfg.closeFee;
+            result_.config.maxDebtMinter = cfg.maxDebtMinter;
+        }
+
+        if (cfg.identity.collateral) {
+            result_.config.isMinterCollateral = true;
+            result_.config.liqIncentive = 1.075e4;
+        }
+
+        if (cfg.identity.scdpKrAsset) {
+            result_.config.isSwapMintable = true;
+            result_.config.liqIncentiveSCDP = 1.05e4;
+
+            result_.config.swapInFeeSCDP = cfg.swapInFeeSCDP;
+            result_.config.swapOutFeeSCDP = cfg.swapOutFeeSCDP;
+            result_.config.protocolFeeShareSCDP = cfg.protocolFeeShareSCDP;
+            result_.config.maxDebtSCDP = cfg.maxDebtSCDP;
+        }
+
+        if (cfg.identity.scdpDepositable) {
+            result_.config.isSharedCollateral = true;
+            result_.config.depositLimitSCDP = type(uint128).max;
+        }
+
+        result_.config = kresko.addAsset(deployment.addr, result_.config, cfg.setTickerFeeds ? cfg.feeds : SKIP_FEEDS);
+
+        return result_;
+    }
+
+    function addKrAsset(
         bytes32 ticker,
         bool setTickerFeeds,
         Enums.OracleType[2] memory oracles,
         address[2] memory feeds,
-        KrAssetInfo memory deployed,
+        KrAssetInfo memory info,
         AssetType memory identity
     ) internal returns (KrAssetInfo memory) {
-        deployed.config = _createKrAssetConfig(ticker, address(deployed.anchor), oracles, identity);
+        info.feedAddr = feeds[0] == address(0) ? feeds[1] : feeds[0];
+        info.feed = IAggregatorV3(info.feedAddr);
+        info.mockFeed = MockOracle(info.feedAddr);
 
-        deployed.feedAddr = feeds[0] == address(0) ? feeds[1] : feeds[0];
-        deployed.feed = IAggregatorV3(deployed.feedAddr);
-        deployed.mockFeed = MockOracle(deployed.feedAddr);
-
-        deployed.config = kresko.addAsset(address(deployed.krAsset), deployed.config, setTickerFeeds ? feeds : SKIP_FEEDS);
-        return deployed;
+        info.config = kresko.addAsset(
+            address(info.krAsset),
+            _getTestKrAssetConfig(ticker, address(info.anchor), oracles, identity),
+            setTickerFeeds ? feeds : SKIP_FEEDS
+        );
+        return info;
     }
 
     function _addKrAsset(
@@ -66,7 +114,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         return
             kresko.addAsset(
                 assetAddr,
-                _createKrAssetConfig(ticker, anchorAddr, oracles, identity),
+                _getTestKrAssetConfig(ticker, anchorAddr, oracles, identity),
                 setTickerFeeds ? feeds : SKIP_FEEDS
             );
     }
@@ -76,31 +124,43 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         bool setTickerFeeds,
         Enums.OracleType[2] memory oracles,
         address[2] memory feeds,
-        KrAssetDeployInfo memory deployed,
+        KrAssetDeployInfo memory info,
         AssetType memory identity
     ) internal returns (KrAssetInfo memory assetInfo_) {
-        assetInfo_.addr = address(deployed.krAsset);
-        assetInfo_.krAsset = deployed.krAsset;
-        assetInfo_.anchor = deployed.anchor;
-        assetInfo_.asToken = IERC20(assetInfo_.addr);
-
-        assetInfo_.feedAddr = feeds[0] == address(0) ? feeds[1] : feeds[0];
-        assetInfo_.feed = IAggregatorV3(assetInfo_.feedAddr);
-        assetInfo_.mockFeed = MockOracle(assetInfo_.feedAddr);
+        assetInfo_ = convertToInfo(info, feeds);
 
         assetInfo_.config = _addKrAsset(
             ticker,
             assetInfo_.addr,
-            address(deployed.anchor),
+            address(info.anchor),
             setTickerFeeds,
             oracles,
             feeds,
             identity
         );
-        assetInfo_.underlyingAddr = deployed.underlyingAddr;
-        assetInfo_.symbol = deployed.symbol;
-        assetInfo_.anchorSymbol = deployed.anchorSymbol;
         return assetInfo_;
+    }
+
+    function addCollateral(
+        address assetAddr,
+        IDeployState.ExtAssetCfg memory cfg
+    ) internal requiresKresko returns (Asset memory result_) {
+        result_.ticker = cfg.ticker;
+        result_.oracles = cfg.oracleType;
+
+        if (cfg.identity.collateral) {
+            result_.factor = cfg.factor;
+            result_.isMinterCollateral = true;
+            result_.liqIncentive = cfg.liqIncentive;
+        }
+
+        if (cfg.identity.scdpDepositable) {
+            result_.isSharedCollateral = true;
+            result_.isSharedOrSwappedCollateral = true;
+            result_.depositLimitSCDP = type(uint128).max;
+        }
+
+        return kresko.addAsset(assetAddr, result_, cfg.setTickerFeeds ? cfg.feeds : SKIP_FEEDS);
     }
 
     function addCollateral(
@@ -110,24 +170,23 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         Enums.OracleType[2] memory oracles,
         address[2] memory feeds,
         AssetType memory identity
-    ) internal requiresKresko returns (Asset memory config_) {
-        config_ = kresko.getAsset(assetAddr);
-        config_.ticker = ticker;
-        config_.oracles = oracles;
-        config_.factor = 1e4;
+    ) internal requiresKresko returns (Asset memory result_) {
+        result_.ticker = ticker;
+        result_.oracles = oracles;
+        result_.factor = 1e4;
 
         if (identity.collateral) {
-            config_.isMinterCollateral = true;
-            config_.liqIncentive = 1.05e4;
+            result_.isMinterCollateral = true;
+            result_.liqIncentive = 1.05e4;
         }
 
         if (identity.scdpDepositable) {
-            config_.isSharedCollateral = true;
-            config_.isSharedOrSwappedCollateral = true;
-            config_.depositLimitSCDP = type(uint128).max;
+            result_.isSharedCollateral = true;
+            result_.isSharedOrSwappedCollateral = true;
+            result_.depositLimitSCDP = type(uint128).max;
         }
 
-        return kresko.addAsset(assetAddr, config_, setTickerFeeds ? feeds : SKIP_FEEDS);
+        return kresko.addAsset(assetAddr, result_, setTickerFeeds ? feeds : SKIP_FEEDS);
     }
 
     function addKISS(address _kreskoAddr, KISSInfo memory _kissInfo) internal returns (KISSInfo memory) {
@@ -190,7 +249,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         return kissInfo_;
     }
 
-    function _createKrAssetConfig(
+    function _getTestKrAssetConfig(
         bytes32 _ticker,
         address _anchor,
         Enums.OracleType[2] memory _oracles,
@@ -440,6 +499,27 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         krAssetSalt = bytes32(bytes.concat(bytes(symbol), bytes(anchorSymbol)));
         anchorSalt = bytes32(bytes.concat(bytes(anchorSymbol), bytes(symbol)));
     }
+}
+
+function convertToInfo(
+    IDeployState.KrAssetDeployInfo memory info,
+    address[2] memory feeds
+) pure returns (IDeployState.KrAssetInfo memory result) {
+    result.addr = address(info.krAsset);
+    result.krAsset = info.krAsset;
+    result.anchor = info.anchor;
+    result.asToken = IERC20(info.addr);
+    result.krAssetProxy = info.krAssetProxy;
+    result.anchorProxy = info.anchorProxy;
+    result.symbol = info.symbol;
+    result.anchorSymbol = info.anchorSymbol;
+    result.underlyingAddr = info.underlyingAddr;
+
+    address feed = feeds[0] == address(0) ? feeds[1] : feeds[0];
+    result.feedAddr = feed;
+    result.feed = IAggregatorV3(feed);
+    result.mockFeed = MockOracle(feed);
+    return result;
 }
 
 abstract contract KreskoForgeUtils is NonDiamondDeployUtils {}

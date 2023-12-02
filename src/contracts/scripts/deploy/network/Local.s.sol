@@ -24,6 +24,7 @@ import {DataV1} from "periphery/DataV1.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
+import {console2} from "forge-std/console2.sol";
 
 using Help for string;
 
@@ -34,6 +35,9 @@ abstract contract LocalDeployConfig is ScriptBase, DeployLogicBase {
     using Help for *;
 
     constructor(string memory _mnemonicId) ScriptBase(_mnemonicId) {}
+
+    uint256 internal constant USER_COUNT = 6;
+    uint32[USER_COUNT] testUsers = [0, 1, 2, 3, 4, 5];
 
     uint256 constant EXT_COUNT = 6;
     uint256 constant KR_COUNT = 6;
@@ -123,12 +127,12 @@ abstract contract LocalDeployConfig is ScriptBase, DeployLogicBase {
         address[2][EXT_COUNT] memory _feeds
     ) internal view returns (ExtAssetCfg[] memory ext_) {
         ext_ = new ExtAssetCfg[](EXT_COUNT);
-        ext_[0] = ExtAssetCfg(bytes32("ETH"), _sym[0], _tokens[0], _feeds[0], OT_RS_CL, ext_default, false);
-        ext_[1] = ExtAssetCfg(bytes32("BTC"), _sym[1], _tokens[1], _feeds[1], OT_RS_CL, ext_default, false);
-        ext_[2] = ExtAssetCfg(bytes32("DAI"), _sym[2], _tokens[2], _feeds[2], OT_RS_CL, ext_default, true);
-        ext_[3] = ExtAssetCfg(bytes32("USDC"), _sym[3], _tokens[3], _feeds[3], OT_RS_CL, ext_default, true);
-        ext_[4] = ExtAssetCfg(bytes32("USDT"), _sym[4], _tokens[4], _feeds[4], OT_RS_CL, ext_default, true);
-        ext_[5] = ExtAssetCfg(bytes32("USDC"), _sym[5], _tokens[5], _feeds[5], OT_RS_CL, ext_default, true);
+        ext_[0] = ExtAssetCfg(bytes32("ETH"), _sym[0], _tokens[0], 1e4, 1.05e4, _feeds[0], OT_RS_CL, ext_default, false);
+        ext_[1] = ExtAssetCfg(bytes32("BTC"), _sym[1], _tokens[1], 1e4, 1.05e4, _feeds[1], OT_RS_CL, ext_default, false);
+        ext_[2] = ExtAssetCfg(bytes32("DAI"), _sym[2], _tokens[2], 1e4, 1.05e4, _feeds[2], OT_RS_CL, ext_default, true);
+        ext_[3] = ExtAssetCfg(bytes32("USDC"), _sym[3], _tokens[3], 1e4, 1.05e4, _feeds[3], OT_RS_CL, ext_default, true);
+        ext_[4] = ExtAssetCfg(bytes32("USDT"), _sym[4], _tokens[4], 1e4, 1.05e4, _feeds[4], OT_RS_CL, ext_default, true);
+        ext_[5] = ExtAssetCfg(bytes32("USDC"), _sym[5], _tokens[5], 1e4, 1.05e4, _feeds[5], OT_RS_CL, ext_default, true);
     }
 
     /// @notice ETH, BTC, EUR, JPY
@@ -146,10 +150,15 @@ abstract contract LocalDeployConfig is ScriptBase, DeployLogicBase {
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            factor: 1e4,
+            kFactor: 1.05e4,
+            protocolFeeShareSCDP: 0.2e4,
             openFee: 0,
             closeFee: 50,
             swapInFeeSCDP: 15,
-            swapOutFeeSCDP: 15
+            swapOutFeeSCDP: 10,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
         kra_[1] = KrAssetCfg({
             name: "Kresko: Bitcoin",
@@ -160,10 +169,15 @@ abstract contract LocalDeployConfig is ScriptBase, DeployLogicBase {
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            factor: 1e4,
+            kFactor: 1.05e4,
+            protocolFeeShareSCDP: 0.2e4,
             openFee: 0,
             closeFee: 50,
             swapInFeeSCDP: 15,
-            swapOutFeeSCDP: 15
+            swapOutFeeSCDP: 10,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
         kra_[2] = KrAssetCfg({
             name: "Kresko: Euro",
@@ -174,10 +188,15 @@ abstract contract LocalDeployConfig is ScriptBase, DeployLogicBase {
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            factor: 1e4,
+            kFactor: 1.01e4,
+            protocolFeeShareSCDP: 0.25e4,
             openFee: 0,
             closeFee: 50,
             swapInFeeSCDP: 25,
-            swapOutFeeSCDP: 25
+            swapOutFeeSCDP: 20,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
         kra_[3] = KrAssetCfg({
             name: "Kresko: Yen",
@@ -188,10 +207,15 @@ abstract contract LocalDeployConfig is ScriptBase, DeployLogicBase {
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            factor: 1e4,
+            kFactor: 1.01e4,
+            protocolFeeShareSCDP: 0.25e4,
             openFee: 0,
             closeFee: 50,
             swapInFeeSCDP: 25,
-            swapOutFeeSCDP: 25
+            swapOutFeeSCDP: 20,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
         kra_[4] = KrAssetCfg({
             name: "Kresko: Gold",
@@ -202,10 +226,15 @@ abstract contract LocalDeployConfig is ScriptBase, DeployLogicBase {
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            factor: 1e4,
+            kFactor: 1.025e4,
+            protocolFeeShareSCDP: 0.25e4,
             openFee: 0,
             closeFee: 50,
             swapInFeeSCDP: 25,
-            swapOutFeeSCDP: 25
+            swapOutFeeSCDP: 20,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
         kra_[5] = KrAssetCfg({
             name: "Kresko: Crude Oil",
@@ -216,10 +245,15 @@ abstract contract LocalDeployConfig is ScriptBase, DeployLogicBase {
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            factor: 1e4,
+            kFactor: 1.025e4,
+            protocolFeeShareSCDP: 0.25e4,
             openFee: 0,
             closeFee: 50,
             swapInFeeSCDP: 25,
-            swapOutFeeSCDP: 25
+            swapOutFeeSCDP: 25,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
     }
 
@@ -296,7 +330,6 @@ abstract contract LocalDeployConfig is ScriptBase, DeployLogicBase {
     }
 
     /* ---------------------------------- users --------------------------------- */
-    uint256 internal constant USER_COUNT = 6;
 
     function createUserConfig(uint32[USER_COUNT] memory _idxs) internal returns (UserCfg[] memory userCfg_) {
         userCfg_ = new UserCfg[](USER_COUNT);
@@ -550,5 +583,37 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
 
         s.kiss.approve(address(s.kresko), type(uint256).max);
         s.kresko.depositSCDP(_account, address(s.kiss), liquidity);
+    }
+
+    function writeDeploymentJSON() internal override {
+        string memory obj = "deployment";
+        vm.serializeString(obj, "EMPTY", "0xEMPTY");
+        vm.serializeAddress(obj, "KISS", address(state().kiss));
+        vm.serializeAddress(obj, "USDC", address(USDC));
+        vm.serializeAddress(obj, "USDC.e", address(USDCe));
+        vm.serializeAddress(obj, "ETH", 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+        vm.serializeAddress(obj, "WETH", address(WETH));
+        vm.serializeAddress(obj, "WBTC", address(WBTC));
+        vm.serializeAddress(obj, "USDT", address(USDT));
+        vm.serializeAddress(obj, "DAI", address(DAI));
+        vm.serializeAddress(obj, "krETH", krETH.addr);
+        vm.serializeAddress(obj, "krBTC", krBTC.addr);
+        vm.serializeAddress(obj, "krEUR", krEUR.addr);
+        vm.serializeAddress(obj, "krJPY", krJPY.addr);
+        vm.serializeAddress(obj, "krWTI", krWTI.addr);
+        vm.serializeAddress(obj, "krXAU", krXAU.addr);
+        vm.serializeAddress(obj, "Vault", address(state().vault));
+        vm.serializeAddress(obj, "UniswapRouter", address(0));
+        vm.serializeAddress(obj, "DataV1", address(state().dataProvider));
+        vm.serializeAddress(obj, "Kresko", address(state().kresko));
+        vm.serializeAddress(obj, "Multicall", address(state().multicall));
+        string memory output = vm.serializeAddress(obj, "Factory", address(state().factory));
+        vm.writeJson(output, "./out/local.json");
+        console2.log("Deployment JSON written to: ./out/local.json");
+    }
+
+    function getDeployed(string memory key) internal view returns (address) {
+        string memory json = vm.readFile(string.concat(vm.projectRoot(), "/out/local.json"));
+        return vm.parseJsonAddress(json, key);
     }
 }

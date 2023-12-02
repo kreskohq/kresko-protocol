@@ -43,9 +43,7 @@ abstract contract DeployStateHandlers is BaseLogger {
         $.saveUserDeployConfig(_cfg);
     }
 
-    function beforeCreateCore(CoreConfig memory) internal {
-        $.saveDeployer();
-    }
+    function beforeCreateCore(CoreConfig memory) internal {}
 
     function afterCoreCreated(IKresko _kresko, DeploymentFactory _proxyFactory) internal {
         super.onCoreContractsCreated($.saveCoreDeployments(_kresko, _proxyFactory));
@@ -117,10 +115,6 @@ abstract contract DeployStateHandlers is BaseLogger {
 
 /// @dev IDeployState.State lives here for easy access
 library $ {
-    function saveDeployer() internal {
-        state().deployer = LibVm.sender();
-    }
-
     function saveCoreDeployments(
         IKresko _kresko,
         DeploymentFactory _proxyFactory

@@ -79,13 +79,6 @@ contract vKISSTest is Test {
         _init();
     }
 
-    function testJsonParse() public {
-        console2.log("rot", vm.projectRoot());
-        string memory json = vm.readFile(string.concat(vm.projectRoot(), "/out/arbitrum.json"));
-        address json_dai = vm.parseJsonAddress(json, ".DAI");
-        console2.log("json_dai", json_dai);
-    }
-
     function testDepositsSingleToken() public {
         _deposit(user1, usdc, 1e18);
         assertEq(usdc.balanceOf(address(vkiss)), 1e18);

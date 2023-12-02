@@ -10,6 +10,8 @@ import {DeployStateHandlers} from "scripts/deploy/base/DeployState.s.sol";
 abstract contract DeployLogicBase is DeployStateHandlers {
     function createAssetConfig() internal virtual returns (AssetCfg memory assetCfg_);
 
+    function writeDeploymentJSON() internal virtual;
+
     function createCoreConfig(
         address _admin,
         address _treasury,
@@ -96,14 +98,7 @@ abstract contract DeployLogicBase is DeployStateHandlers {
         /* --------------------------- Whitelist krAssets --------------------------- */
         unchecked {
             for (uint256 i; i < _assetCfg.kra.length; i++) {
-                assetsOnChain_.kra[i] = super.addKrAsset(
-                    _assetCfg.kra[i].ticker,
-                    _assetCfg.kra[i].setTickerFeeds,
-                    _assetCfg.kra[i].oracleType,
-                    _assetCfg.kra[i].feeds,
-                    _kraContracts[i],
-                    _assetCfg.kra[i].identity
-                );
+                assetsOnChain_.kra[i] = super.addKrAsset(_kraContracts[i], _assetCfg.kra[i]);
                 super.afterKrAssetAdded(assetsOnChain_.kra[i]);
             }
         }

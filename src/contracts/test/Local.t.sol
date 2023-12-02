@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
+import {Test} from "forge-std/Test.sol";
 import {Log} from "kresko-lib/utils/Libs.sol";
 import {KISS} from "kiss/KISS.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
@@ -17,25 +18,37 @@ import {DataV1} from "periphery/DataV1.sol";
 import {PType} from "periphery/PTypes.sol";
 import {GatingManager} from "periphery/GatingManager.sol";
 import {IDataV1} from "periphery/IDataV1.sol";
+import {ArbitrumSepolia} from "scripts/deploy/Run.s.sol";
 
 string constant rsPrices = "ETH:2075:8,BTC:37559.01:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,USDT:1.0006:8,JPY:0.0067:8,XAU:1981.68:8,WTI:77.5:8";
 
-contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getRedstonePayload.js") {
+contract NewTest is ArbitrumSepolia, Test {
     address internal addr;
     uint256 internal value;
     using Log for *;
     bytes internal redstoneCallData;
     KrMulticall internal multicall;
     DataV1 internal dataV1;
-    KISS kiss;
     IVault vault;
     IERC20 usdc;
-    IKresko kresko;
+    IERC20 dai;
 
-    function setUp() public fork("localhost") {
+    function setUp() public {
+        vm.createSelectFork("arbitrumSepolia");
         addr = address(0x123);
         value = 1;
         redstoneCallData = getRedstonePayload(rsPrices);
+        super.run();
+        usdc = IERC20(getDeployed(".USDC"));
+        dai = IERC20(getDeployed(".DAI"));
+        kresko = IKresko(getDeployed(".Kresko"));
+        kiss = KISS(getDeployed(".KISS"));
+        vault = IVault(getDeployed(".Vault"));
+        multicall = KrMulticall(getDeployed(".Multicall"));
+    }
+
+    function testStuff() public {
+        usdc.balanceOf(getAddr(0)).clg("usdc-bal-before");
     }
 
     // function testLocalnet() public {
@@ -123,55 +136,52 @@ contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getReds
     // account.eligible.clg("eephase");
     // }
 
-    // function testArbitrumUniswapV3MulticallX() public {
-    //     prank(getAddr(0));
+    function testArbitrumUniswapV3MulticallX() public {
+        prank(getAddr(0));
 
-    //     kresko = IKresko(getDeployed(".Kresko"));
-    //     kiss = KISS(getDeployed(".KISS"));
-    //     vault = IVault(getDeployed(".Vault"));
-    //     multicall = new KrMulticall(address(kresko), address(kiss), address(Addr.V3_Router02));
+        // multicall = new KrMulticall(address(kresko), address(kiss), address(Addr.V3_Router02));
 
-    //     __current_kresko = address(kresko);
+        __current_kresko = address(kresko);
 
-    //     Tokens.USDCe.balanceOf(getAddr(0)).clg("usdc-bal-before");
-    //     Tokens.USDT.balanceOf(getAddr(0)).clg("usdt-bal-before");
+        usdc.balanceOf(getAddr(0)).clg("usdc-bal-before");
+        dai.balanceOf(getAddr(0)).clg("dai-bal-before");
 
-    //     Tokens.USDT.approve(address(multicall), 1000e6);
-    //     KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](2);
-    //     ops[0] = KrMulticall.Operation({
-    //         action: KrMulticall.Action.AMMExactInput,
-    //         data: KrMulticall.Data({
-    //             tokenIn: Addr.USDT,
-    //             amountIn: 1000e6,
-    //             tokensInMode: KrMulticall.TokensInMode.PullFromSender,
-    //             tokenOut: Addr.USDCe,
-    //             amountOut: 0,
-    //             tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
-    //             amountOutMin: 0,
-    //             path: bytes.concat(bytes20(Addr.USDT), bytes3(uint24(100)), bytes20(Addr.USDCe)),
-    //             index: 0
-    //         })
-    //     });
-    //     ops[1] = KrMulticall.Operation({
-    //         action: KrMulticall.Action.AMMExactInput,
-    //         data: KrMulticall.Data({
-    //             tokenIn: Addr.USDCe,
-    //             amountIn: 0,
-    //             tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
-    //             tokenOut: Addr.USDT,
-    //             amountOut: 0,
-    //             tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
-    //             amountOutMin: 0,
-    //             path: bytes.concat(bytes20(Addr.USDCe), bytes3(uint24(100)), bytes20(Addr.USDT)),
-    //             index: 0
-    //         })
-    //     });
+        dai.approve(address(multicall), 1000e18);
+        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](2);
+        ops[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.AMMExactInput,
+            data: KrMulticall.Data({
+                tokenIn: address(dai),
+                amountIn: 1000e18,
+                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokenOut: address(usdc),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                path: bytes.concat(bytes20(address(dai)), bytes3(uint24(100)), bytes20(address(usdc))),
+                index: 0
+            })
+        });
+        ops[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.AMMExactInput,
+            data: KrMulticall.Data({
+                tokenIn: address(usdc),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokenOut: address(dai),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                amountOutMin: 0,
+                path: bytes.concat(bytes20(address(usdc)), bytes3(uint24(100)), bytes20(address(dai))),
+                index: 0
+            })
+        });
 
-    //     multicall.execute(ops, redstoneCallData);
+        multicall.execute(ops, redstoneCallData);
 
-    //     Tokens.USDCe.balanceOf(getAddr(0)).clg("usdc-bal-after");
-    //     Tokens.USDT.balanceOf(getAddr(0)).clg("usdt-bal-after");
-    // }
+        usdc.balanceOf(getAddr(0)).clg("usdc-bal-after");
+        dai.balanceOf(getAddr(0)).clg("usdt-bal-after");
+    }
 
     // function testArbitrumUniswapV3MulticallToDeposit() public {
     //     prank(getAddr(0));
@@ -237,11 +247,6 @@ contract NewTest is TestBase("MNEMONIC_DEVNET"), RedstoneScript("./utils/getReds
     //     Tokens.USDC.balanceOf(getAddr(0)).clg("usdc-bal-after");
     //     kresko.getAccountDepositSCDP(getAddr(0), getDeployed(".KISS")).clg("deposits-after");
     // }
-
-    function getDeployed(string memory key) internal view returns (address) {
-        string memory json = vm.readFile(string.concat(vm.projectRoot(), "/out/arbitrum.json"));
-        return vm.parseJsonAddress(json, key);
-    }
 }
 
 // {

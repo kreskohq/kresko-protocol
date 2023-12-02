@@ -24,7 +24,7 @@
   "editor.formatOnSave": true,
   "solidity.linter.type": "solhint",
   "solidity.test.executeOnSave": true,
-  "solidity.compiler.version.remote": "v0.8.21+commit.d9974bed",
+  "solidity.compiler.version.remote": "v0.8.23+commit.f704f362",
   "solidity.compiler.outDir": "out/vsc",
   "solidity.compiler.version.local": "/Users/panukettunen/projects/kresko-protocol/soljson-v0.8.21+commit.d9974bed.js",
   "solidity.compiler.location": "Extension",

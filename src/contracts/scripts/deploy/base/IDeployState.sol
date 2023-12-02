@@ -48,8 +48,6 @@ interface IDeployState is IKreskoForgeTypes {
         Asset[] allAssets;
         string[] allSymbols;
         bytes32[] allTickers;
-        address deployer;
-        address msgSender;
         bool logEnabled;
     }
 
@@ -90,16 +88,23 @@ interface IDeployState is IKreskoForgeTypes {
         Enums.OracleType[2] oracleType;
         AssetType identity;
         bool setTickerFeeds;
+        uint16 protocolFeeShareSCDP;
+        uint16 factor;
+        uint16 kFactor;
         uint16 openFee;
         uint16 closeFee;
         uint16 swapInFeeSCDP;
         uint16 swapOutFeeSCDP;
+        uint128 maxDebtMinter;
+        uint128 maxDebtSCDP;
     }
 
     struct ExtAssetCfg {
         bytes32 ticker;
         string symbol;
         IERC20 token;
+        uint16 factor;
+        uint16 liqIncentive;
         address[2] feeds;
         Enums.OracleType[2] oracleType;
         AssetType identity;

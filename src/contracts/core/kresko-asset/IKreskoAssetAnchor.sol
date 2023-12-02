@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {IAccessControlEnumerable} from "@oz/access/extensions/IAccessControlEnumerable.sol";
 import {IERC165} from "vendor/IERC165.sol";

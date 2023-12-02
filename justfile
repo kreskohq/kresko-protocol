@@ -12,6 +12,37 @@ hasPNPM := `pnpm --help | grep -q 'Version' && echo true || echo false`
 hasFoundry := `forge --version | grep -q 'forge' && echo true || echo false`
 hasPM2 := `pnpm list --global pm2 | grep -q '' && echo true || echo false`
 
+
+
+@setup:
+	just deps
+	just dry-local
+	pnpm hh:dry
+	echo "*** kresko: Setup complete!"
+
+@deps:
+	{{ if hasFoundry == "true" { "echo '***' kresko: foundry exists, skipping install.." } else { "echo '***' kresko: Installing foundry && curl -L https://foundry.paradigm.xyz | bash && foundryup" } }}
+	echo "*** kresko: Installing forge dependencies" && forge install && echo "*** kresko: Forge dependencies installed"
+	{{ if hasEnv == "true" { "echo '***' kresko: .env exists, skipping copy.." } else { "echo '***' kresko: Copying .env.example to .env && cp .env.example .env" } }}
+	{{ if hasPNPM == "true" { "echo '***' kresko: pnpm exist, skipping install.." } else { "echo '***' kresko: Installing pnpm && npm i -g pnpm" } }}
+	echo "*** kresko: Installing node dependencies..." && pnpm i && echo "*** kresko: Node dependencies installed"
+	{{ if hasPM2 == "true" { "echo '***' kresko: PM2 exists, skipping install.." } else { "echo '***' kresko: Installing PM2 && pnpm i -g pm2 && echo '***' kresko: PM2 installed" } }}
+	echo "*** kresko: Finished installing dependencies"
+
+verify-proxy-contract:
+	forge verify-contract 0x9094BbD5C25ED120FAc349926BB65ab5e3276b11 \
+	src/contracts/core/factory/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy \
+	--chain arbitrum-sepolia \
+	--constructor-args "0x"
+
+verify-contract:
+	forge verify-contract 0x22b5E0c1fC80FB2F06C627C90d26Fe18e7d5FB0C \
+	Vault \
+	--chain arbitrum-sepolia \
+	--watch
+
+
+
 dry-local:
 	forge script src/contracts/scripts/deploy/Run.s.sol:Local \
 	--with-gas-price 100000000 \
@@ -19,6 +50,44 @@ dry-local:
 	--ffi \
 	-vvv
 
+
+dry-arbitrum:
+	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
+	--with-gas-price 100000000 \
+	--fork-url "$RPC_ARBITRUM_INFURA" \
+	--skip-simulation \
+	--evm-version "paris" \
+	--ffi \
+	-vvv
+
+dry-arbitrum-sepolia:
+	forge script src/contracts/scripts/deploy/Run.s.sol:ArbitrumSepolia \
+	--with-gas-price 100000000 \
+	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
+	--evm-version "paris" \
+	--ffi \
+	-vvv
+
+deploy-arbitrum-sepolia:
+	forge script src/contracts/scripts/deploy/Run.s.sol:ArbitrumSepolia \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
+	--evm-version "paris" \
+	--broadcast \
+	--with-gas-price 200000000 \
+	--ffi \
+	--resume \
+	-vvv
+
+verify-arbitrum-sepolia:
+	forge script src/contracts/scripts/deploy/Run.s.sol:ArbitrumSepolia \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--rpc-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
+	--evm-version "paris" \
+	--verify \
+	--resume \
+	--ffi \
+	-vvv
 
 local:
 	pm2 ping
@@ -45,37 +114,13 @@ arbitrum:
 	@echo "/*                                  LAUNCHED                                  */"
 	@echo "/* -------------------------------------------------------------------------- */"
 
+
+
 kill: 
 	pm2 delete all && pm2 cleardump && pm2 flush && pm2 kill 
 
 restart:
 	pm2 restart all --update-env
-
-
-@setup:
-	just deps
-	just dry-local
-	pnpm hh:dry
-	echo "*** kresko: Setup complete!"
-
-@deps:
-	{{ if hasFoundry == "true" { "echo '***' kresko: foundry exists, skipping install.." } else { "echo '***' kresko: Installing foundry && curl -L https://foundry.paradigm.xyz | bash && foundryup" } }}
-	echo "*** kresko: Installing forge dependencies" && forge install && echo "*** kresko: Forge dependencies installed"
-	{{ if hasEnv == "true" { "echo '***' kresko: .env exists, skipping copy.." } else { "echo '***' kresko: Copying .env.example to .env && cp .env.example .env" } }}
-	{{ if hasPNPM == "true" { "echo '***' kresko: pnpm exist, skipping install.." } else { "echo '***' kresko: Installing pnpm && npm i -g pnpm" } }}
-	echo "*** kresko: Installing node dependencies..." && pnpm i && echo "*** kresko: Node dependencies installed"
-	{{ if hasPM2 == "true" { "echo '***' kresko: PM2 exists, skipping install.." } else { "echo '***' kresko: Installing PM2 && pnpm i -g pm2 && echo '***' kresko: PM2 installed" } }}
-	echo "*** kresko: Finished installing dependencies"
-
-dry-arbitrum:
-	forge script src/contracts/scripts/deploy/Run.s.sol:Arbitrum \
-	--with-gas-price 100000000 \
-	--fork-url "$RPC_ARBITRUM_INFURA" \
-	--skip-simulation \
-	--evm-version "paris" \
-	--ffi \
-	-vvv
-
 
 deploy-local:
 	sleep 3

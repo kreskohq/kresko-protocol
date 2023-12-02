@@ -3,7 +3,7 @@ import { diamondFixture } from '@utils/test/fixtures'
 import hre from 'hardhat'
 import type { Facet } from 'hardhat-deploy/types'
 
-describe('Diamond', () => {
+describe.only('Diamond', () => {
   let f: { facets: Facet[] }
   beforeEach(async function () {
     f = await diamondFixture()

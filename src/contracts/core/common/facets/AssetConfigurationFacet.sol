@@ -1,6 +1,6 @@
 // solhint-disable avoid-low-level-calls
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 import {CommonConfigurationFacet} from "common/facets/CommonConfigurationFacet.sol";
 import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFacet.sol";
 import {DSModifiers} from "diamond/DSModifiers.sol";

@@ -41,7 +41,7 @@ abstract contract DeployCallbacks is IDeployState, KreskoForgeUtils {
     function onComplete(State storage _ctx) internal virtual {}
 }
 
-abstract contract BaseLogger is DeployCallbacks, ScriptBase {
+abstract contract BaseLogger is DeployCallbacks {
     using Help for *;
     using Log for *;
 
@@ -58,7 +58,7 @@ abstract contract BaseLogger is DeployCallbacks, ScriptBase {
         if (!state().logEnabled) return;
         ("/* ------------------------------- Deploying -------------------------------- */").clg();
         Log.br();
-        super.logCallers();
+        Log.clg_callers();
         Log.br();
         ("/* ------------------------------ Configuration ----------------------------- */").clg();
         Log.br();

@@ -1,4 +1,4 @@
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 import {FacetScript} from "kresko-lib/utils/Diamond.sol";
 import {RedstoneScript} from "kresko-lib/utils/Redstone.sol";
 import {CommonInitArgs} from "common/Types.sol";

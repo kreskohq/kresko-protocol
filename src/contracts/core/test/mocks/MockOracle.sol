@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 
 contract MockOracle is IAggregatorV3 {

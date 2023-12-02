@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
 import {ds, DiamondState} from "diamond/DState.sol";

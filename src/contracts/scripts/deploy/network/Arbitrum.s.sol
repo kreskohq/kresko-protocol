@@ -18,11 +18,25 @@ import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
+import {console2} from "forge-std/console2.sol";
+import {GatingManager} from "periphery/GatingManager.sol";
+import {KISS} from "kiss/KISS.sol";
+import {IKresko} from "periphery/IKresko.sol";
 
 interface INFT {
     function mint(address to, uint256 tokenId, uint256 amount) external;
 
     function grantRole(bytes32 role, address to) external;
+
+    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) external;
+
+    function safeBatchTransferFrom(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) external;
 }
 
 abstract contract ArbitrumDeployConfig is ScriptBase, DeployLogicBase {
@@ -30,16 +44,19 @@ abstract contract ArbitrumDeployConfig is ScriptBase, DeployLogicBase {
 
     constructor(string memory _mnemonicId) ScriptBase(_mnemonicId) {}
 
+    uint256 internal constant USER_COUNT = 6;
+    uint32[USER_COUNT] testUsers = [0, 1, 2, 3, 4, 5];
+
     uint256 constant EXT_COUNT = 6;
     uint256 constant KR_COUNT = 6;
     uint256 constant VAULT_COUNT = 2;
     /* --------------------------------- assets --------------------------------- */
-    IWETH9 internal WETH;
-    IERC20 internal WBTC;
-    IERC20 internal DAI;
-    IERC20 internal USDC;
-    IERC20 internal USDCe;
-    IERC20 internal USDT;
+    IWETH9 internal WETH = IWETH9(Addr.WETH);
+    IERC20 internal WBTC = IERC20(Addr.WBTC);
+    IERC20 internal DAI = IERC20(Addr.DAI);
+    IERC20 internal USDC = IERC20(Addr.USDC);
+    IERC20 internal USDCe = IERC20(Addr.USDCe);
+    IERC20 internal USDT = IERC20(Addr.USDT);
     /* ------------------------------------ . ----------------------------------- */
 
     KrAssetInfo internal krETH;
@@ -50,17 +67,17 @@ abstract contract ArbitrumDeployConfig is ScriptBase, DeployLogicBase {
     KrAssetInfo internal krXAU;
 
     /* ------------------------------------ . ----------------------------------- */
-    address[2] internal feeds_eth;
-    address[2] internal feeds_btc;
-    address[2] internal feeds_eur;
-    address[2] internal feeds_dai;
-    address[2] internal feeds_usdt;
-    address[2] internal feeds_usdc;
-    address[2] internal feeds_jpy;
-    address[2] internal feeds_wti;
-    address[2] internal feeds_xau;
+    address[2] internal feeds_eth = [address(0), Addr.CL_ETH];
+    address[2] internal feeds_btc = [address(0), Addr.CL_BTC];
+    address[2] internal feeds_eur = [address(0), Addr.CL_EUR];
+    address[2] internal feeds_dai = [address(0), Addr.CL_DAI];
+    address[2] internal feeds_usdt = [address(0), Addr.CL_USDT];
+    address[2] internal feeds_usdc = [address(0), Addr.CL_USDC];
+    address[2] internal feeds_jpy = [address(0), Addr.CL_JPY];
+    address[2] internal feeds_wti = [address(0), Addr.CL_WTI];
+    address[2] internal feeds_xau = [address(0), Addr.CL_XAU];
     /* ------------------------------------ . ----------------------------------- */
-    uint256 price_eth = 1911e8;
+    uint256 price_eth = 2075e8;
     uint256 price_btc = 35159.01e8;
     uint256 price_dai = 0.9998e8;
     uint256 price_eur = 1.07e8;
@@ -106,135 +123,155 @@ abstract contract ArbitrumDeployConfig is ScriptBase, DeployLogicBase {
     /* -------------------------------------------------------------------------- */
 
     /// @notice ETH, BTC, DAI, USDC, USDT
-    function EXT_ASSET_CONFIG(
-        IERC20[EXT_COUNT] memory _tokens,
-        string[EXT_COUNT] memory _sym,
-        address[2][EXT_COUNT] memory _feeds
-    ) internal view returns (ExtAssetCfg[] memory ext_) {
+    function EXT_ASSET_CONFIG() internal view returns (ExtAssetCfg[] memory ext_) {
         ext_ = new ExtAssetCfg[](EXT_COUNT);
-        ext_[0] = ExtAssetCfg(bytes32("ETH"), _sym[0], _tokens[0], _feeds[0], OT_RS_CL, ext_default, false);
-        ext_[1] = ExtAssetCfg(bytes32("BTC"), _sym[1], _tokens[1], _feeds[1], OT_RS_CL, ext_default, false);
-        ext_[2] = ExtAssetCfg(bytes32("DAI"), _sym[2], _tokens[2], _feeds[2], OT_RS_CL, ext_default, true);
-        ext_[3] = ExtAssetCfg(bytes32("USDC"), _sym[3], _tokens[3], _feeds[3], OT_RS_CL, ext_default, true);
-        ext_[4] = ExtAssetCfg(bytes32("USDT"), _sym[4], _tokens[4], _feeds[4], OT_RS_CL, ext_default, true);
-        ext_[5] = ExtAssetCfg(bytes32("USDC"), _sym[5], _tokens[5], _feeds[5], OT_RS_CL, ext_default, true);
+        ext_[0] = ExtAssetCfg(bytes32("ETH"), WETH.symbol(), WETH, 1e4, 1.05e4, feeds_eth, OT_RS_CL, ext_default, false);
+        ext_[1] = ExtAssetCfg(bytes32("BTC"), WBTC.symbol(), WBTC, 1e4, 1.05e4, feeds_btc, OT_RS_CL, ext_default, false);
+        ext_[2] = ExtAssetCfg(bytes32("DAI"), DAI.symbol(), DAI, 1e4, 1.05e4, feeds_dai, OT_RS_CL, ext_default, true);
+        ext_[3] = ExtAssetCfg(bytes32("USDC"), USDC.symbol(), USDC, 1e4, 1.05e4, feeds_usdc, OT_RS_CL, ext_default, true);
+        ext_[4] = ExtAssetCfg(bytes32("USDT"), USDT.symbol(), USDT, 1e4, 1.05e4, feeds_usdt, OT_RS_CL, ext_default, true);
+        ext_[5] = ExtAssetCfg(bytes32("USDC"), "USDC.e", USDCe, 1e4, 1.05e4, feeds_usdc, OT_RS_CL, ext_default, false);
     }
 
     /// @notice ETH, BTC, EUR, JPY
-    function KR_ASSET_CONFIG(
-        address[KR_COUNT] memory _ulying,
-        address[2][KR_COUNT] memory _feeds
-    ) internal view returns (KrAssetCfg[] memory kra_) {
+    function KR_ASSET_CONFIG() internal view returns (KrAssetCfg[] memory kra_) {
         kra_ = new KrAssetCfg[](KR_COUNT);
         kra_[0] = KrAssetCfg({
             name: "Kresko: Ether",
             symbol: "krETH",
             ticker: bytes32("ETH"),
-            underlying: _ulying[0],
-            feeds: _feeds[0],
+            underlying: Addr.WETH,
+            feeds: feeds_eth,
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            kFactor: 1.05e4,
+            factor: 1e4,
             openFee: 0,
             closeFee: 50,
             swapInFeeSCDP: 15,
-            swapOutFeeSCDP: 15
+            swapOutFeeSCDP: 10,
+            protocolFeeShareSCDP: 0.2e4,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
         kra_[1] = KrAssetCfg({
             name: "Kresko: Bitcoin",
             symbol: "krBTC",
             ticker: bytes32("BTC"),
-            underlying: _ulying[1],
-            feeds: _feeds[1],
+            underlying: Addr.WBTC,
+            feeds: feeds_btc,
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            kFactor: 1.05e4,
+            factor: 1e4,
             openFee: 0,
             closeFee: 50,
             swapInFeeSCDP: 15,
-            swapOutFeeSCDP: 15
+            swapOutFeeSCDP: 10,
+            protocolFeeShareSCDP: 0.2e4,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
         kra_[2] = KrAssetCfg({
             name: "Kresko: Euro",
             symbol: "krEUR",
             ticker: bytes32("EUR"),
-            underlying: _ulying[2],
-            feeds: _feeds[2],
+            underlying: address(0),
+            feeds: feeds_eur,
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            kFactor: 1.01e4,
+            factor: 1e4,
             openFee: 0,
             closeFee: 50,
-            swapInFeeSCDP: 25,
-            swapOutFeeSCDP: 25
+            swapInFeeSCDP: 15,
+            swapOutFeeSCDP: 10,
+            protocolFeeShareSCDP: 0.25e4,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
         kra_[3] = KrAssetCfg({
             name: "Kresko: Yen",
             symbol: "krJPY",
             ticker: bytes32("JPY"),
-            underlying: _ulying[3],
-            feeds: _feeds[3],
+            underlying: address(0),
+            feeds: feeds_jpy,
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            kFactor: 1.01e4,
+            factor: 1e4,
             openFee: 0,
             closeFee: 50,
-            swapInFeeSCDP: 25,
-            swapOutFeeSCDP: 25
+            swapInFeeSCDP: 20,
+            swapOutFeeSCDP: 25,
+            protocolFeeShareSCDP: 0.25e4,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
         kra_[4] = KrAssetCfg({
             name: "Kresko: Gold",
             symbol: "krXAU",
             ticker: bytes32("XAU"),
-            underlying: _ulying[4],
-            feeds: _feeds[4],
+            underlying: address(0),
+            feeds: feeds_xau,
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            kFactor: 1.025e4,
+            factor: 1e4,
             openFee: 0,
             closeFee: 50,
             swapInFeeSCDP: 25,
-            swapOutFeeSCDP: 25
+            swapOutFeeSCDP: 20,
+            protocolFeeShareSCDP: 0.25e4,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
         kra_[5] = KrAssetCfg({
             name: "Kresko: Crude Oil",
             symbol: "krWTI",
             ticker: bytes32("WTI"),
-            underlying: _ulying[5],
-            feeds: _feeds[5],
+            underlying: address(0),
+            feeds: feeds_wti,
             oracleType: OT_RS_CL,
             identity: kr_default,
             setTickerFeeds: true,
+            kFactor: 1.025e4,
+            factor: 1e4,
             openFee: 0,
             closeFee: 50,
             swapInFeeSCDP: 25,
-            swapOutFeeSCDP: 25
+            swapOutFeeSCDP: 20,
+            protocolFeeShareSCDP: 0.25e4,
+            maxDebtMinter: type(uint128).max,
+            maxDebtSCDP: type(uint128).max
         });
     }
 
     /// @notice DAI, USDC, USDT
-    function VAULT_ASSET_CONFIG(
-        IERC20[VAULT_COUNT] memory _tokens,
-        IAggregatorV3[VAULT_COUNT] memory _feeds
-    ) internal pure returns (VaultAsset[] memory vault_) {
+    function VAULT_ASSET_CONFIG() internal view returns (VaultAsset[] memory vault_) {
         vault_ = new VaultAsset[](VAULT_COUNT);
         vault_[0] = VaultAsset({
-            token: _tokens[0],
-            feed: _feeds[0],
+            token: USDC,
+            feed: ChainLink.USDC,
             staleTime: 86401,
             decimals: 0,
             depositFee: 2,
-            withdrawFee: 2,
+            withdrawFee: 3,
             maxDeposits: type(uint248).max,
             enabled: true
         });
         vault_[1] = VaultAsset({
-            token: _tokens[1],
-            feed: _feeds[1],
+            token: USDCe,
+            feed: ChainLink.USDC,
             staleTime: 86401,
             decimals: 0,
             depositFee: 2,
-            withdrawFee: 2,
+            withdrawFee: 3,
             maxDeposits: type(uint248).max,
             enabled: true
         });
@@ -255,18 +292,9 @@ abstract contract ArbitrumDeployConfig is ScriptBase, DeployLogicBase {
         krJPY = results_.kra[3];
         krXAU = results_.kra[4];
         krWTI = results_.kra[5];
-
-        WETH = IWETH9(results_.ext[0].addr);
-        WBTC = results_.ext[1].token;
-        DAI = results_.ext[2].token;
-        USDC = results_.ext[3].token;
-        USDT = results_.ext[4].token;
-        USDCe = results_.ext[5].token;
     }
 
     /* ---------------------------------- users --------------------------------- */
-    uint256 internal constant USER_COUNT = 6;
-
     function createUserConfig(uint32[USER_COUNT] memory _idxs) internal returns (UserCfg[] memory userCfg_) {
         userCfg_ = new UserCfg[](USER_COUNT);
 
@@ -315,39 +343,15 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
 
     function createAssetConfig() internal override returns (AssetCfg memory assetCfg_) {
         WETH = Tokens.WETH;
-        IERC20 WETH20 = IERC20(address(WETH));
-
-        feeds_eth = [address(0), Addr.CL_ETH];
-        feeds_btc = [address(0), Addr.CL_BTC];
-        feeds_dai = [address(0), Addr.CL_DAI];
-        feeds_eur = [address(0), Addr.CL_EUR];
-        feeds_usdc = [address(0), Addr.CL_USDC];
-        feeds_usdt = [address(0), Addr.CL_USDT];
-        feeds_jpy = [address(0), Addr.CL_JPY];
-        feeds_xau = [address(0), Addr.CL_XAU];
-        feeds_wti = [address(0), Addr.CL_WTI];
-
         assetCfg_.wethIndex = 0;
 
-        string memory symbol_USDC = Tokens.USDC.symbol();
-        string memory symbol_USDCe = Tokens.USDCe.symbol();
-
-        assetCfg_.ext = EXT_ASSET_CONFIG(
-            [WETH20, Tokens.WBTC, Tokens.DAI, Tokens.USDC, Tokens.USDT, Tokens.USDCe],
-            [WETH20.symbol(), Tokens.WBTC.symbol(), Tokens.DAI.symbol(), symbol_USDC, Tokens.USDT.symbol(), symbol_USDCe],
-            [feeds_eth, feeds_btc, feeds_dai, feeds_usdc, feeds_usdt, feeds_usdc]
-        );
-
-        assetCfg_.kra = KR_ASSET_CONFIG(
-            [address(WETH), address(Tokens.WBTC), address(0), address(0), address(0), address(0)],
-            [feeds_eth, feeds_btc, feeds_eur, feeds_jpy, feeds_xau, feeds_wti]
-        );
-
-        assetCfg_.vassets = VAULT_ASSET_CONFIG([Tokens.USDC, Tokens.USDCe], [ChainLink.USDC, ChainLink.USDC]);
+        assetCfg_.ext = EXT_ASSET_CONFIG();
+        assetCfg_.kra = KR_ASSET_CONFIG();
+        assetCfg_.vassets = VAULT_ASSET_CONFIG();
 
         string[] memory vAssetSymbols = new string[](VAULT_COUNT);
-        vAssetSymbols[0] = symbol_USDC;
-        vAssetSymbols[1] = symbol_USDCe;
+        vAssetSymbols[0] = Tokens.USDC.symbol();
+        vAssetSymbols[1] = "USDC.e";
         assetCfg_.vaultSymbols = vAssetSymbols;
 
         super.afterAssetConfigs(assetCfg_);
@@ -387,22 +391,34 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
         facet.setFeeAssetSCDP(kissAddr);
 
         // @todo Use assets only from _assetsOnChain
-        SwapRouteSetter[] memory routing = new SwapRouteSetter[](9);
+        SwapRouteSetter[] memory routing = new SwapRouteSetter[](20);
         routing[0] = SwapRouteSetter({assetIn: kissAddr, assetOut: krETH.addr, enabled: true});
         routing[1] = SwapRouteSetter({assetIn: kissAddr, assetOut: krBTC.addr, enabled: true});
         routing[2] = SwapRouteSetter({assetIn: kissAddr, assetOut: krEUR.addr, enabled: true});
+        routing[3] = SwapRouteSetter({assetIn: kissAddr, assetOut: krXAU.addr, enabled: true});
+        routing[4] = SwapRouteSetter({assetIn: kissAddr, assetOut: krWTI.addr, enabled: true});
+        routing[5] = SwapRouteSetter({assetIn: kissAddr, assetOut: krJPY.addr, enabled: true});
 
-        routing[3] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krBTC.addr, enabled: true});
-        routing[4] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krJPY.addr, enabled: true});
-        routing[5] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krEUR.addr, enabled: true});
+        routing[6] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krBTC.addr, enabled: true});
+        routing[7] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krJPY.addr, enabled: true});
+        routing[8] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krEUR.addr, enabled: true});
+        routing[9] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krXAU.addr, enabled: true});
+        routing[10] = SwapRouteSetter({assetIn: krETH.addr, assetOut: krWTI.addr, enabled: true});
 
-        routing[6] = SwapRouteSetter({assetIn: krBTC.addr, assetOut: krEUR.addr, enabled: true});
-        routing[7] = SwapRouteSetter({assetIn: krBTC.addr, assetOut: krJPY.addr, enabled: true});
+        routing[11] = SwapRouteSetter({assetIn: krBTC.addr, assetOut: krEUR.addr, enabled: true});
+        routing[12] = SwapRouteSetter({assetIn: krBTC.addr, assetOut: krJPY.addr, enabled: true});
+        routing[13] = SwapRouteSetter({assetIn: krBTC.addr, assetOut: krXAU.addr, enabled: true});
+        routing[14] = SwapRouteSetter({assetIn: krBTC.addr, assetOut: krWTI.addr, enabled: true});
 
-        routing[8] = SwapRouteSetter({assetIn: krEUR.addr, assetOut: krJPY.addr, enabled: true});
+        routing[15] = SwapRouteSetter({assetIn: krEUR.addr, assetOut: krJPY.addr, enabled: true});
+        routing[16] = SwapRouteSetter({assetIn: krEUR.addr, assetOut: krWTI.addr, enabled: true});
+        routing[17] = SwapRouteSetter({assetIn: krEUR.addr, assetOut: krXAU.addr, enabled: true});
+
+        routing[18] = SwapRouteSetter({assetIn: krXAU.addr, assetOut: krWTI.addr, enabled: true});
+        routing[19] = SwapRouteSetter({assetIn: krXAU.addr, assetOut: krJPY.addr, enabled: true});
 
         facet.setSwapRoutesSCDP(routing);
-        facet.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: krJPY.addr, assetOut: kissAddr, enabled: true})); //
+        facet.setSingleSwapRouteSCDP(SwapRouteSetter({assetIn: krJPY.addr, assetOut: krWTI.addr, enabled: true})); //
         super.configureSwap(_kreskoAddr, _assetsOnChain);
     }
 
@@ -419,4 +435,132 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
     }
 
     function setupUsers(UserCfg[] memory _userCfg, AssetsOnChain memory _results) internal override {}
+
+    /* ---------------------------------------------------------------------- */
+    /*                           Impersonation Setup                          */
+    /* ---------------------------------------------------------------------- */
+
+    function createUsers() external {
+        kresko = IKresko(getDeployed(".Kresko"));
+        __current_kresko = address(kresko);
+        kiss = KISS(getDeployed(".KISS"));
+
+        address krETHAddr = getDeployed(".krETH");
+        address krJPYAddr = getDeployed(".krJPY");
+
+        for (uint256 i; i < testUsers.length; i++) {
+            uint256 usdcDepositAmount = i == 1 ? 500e6 : 50000e6;
+
+            uint256 wethDepositAmount = i == 1 ? 0.05 ether : 10 ether;
+            uint256 wethCollateralAMount = i == 1 ? 0.02 ether : 5 ether;
+
+            uint256 usdcKissDepositAmount = i == 1 ? 100e6 : 10000e6;
+            uint256 krJpyMintAmount = i == 1 ? 5000 ether : 1000000 ether;
+            uint256 krEthMintAmount = i == 1 ? 0.01 ether : 5 ether;
+
+            address user = getAddr(testUsers[i]);
+            broadcastWith(user);
+            Tokens.USDC.approve(address(kresko), type(uint256).max);
+            Tokens.WETH.approve(address(kresko), type(uint256).max);
+            Tokens.USDC.approve(address(kiss), type(uint256).max);
+
+            kiss.vaultDeposit(Addr.USDC, usdcKissDepositAmount, user);
+
+            kresko.depositCollateral(user, Addr.USDC, usdcDepositAmount);
+
+            Tokens.WETH.deposit{value: wethDepositAmount}();
+            kresko.depositCollateral(user, Addr.WETH, wethCollateralAMount);
+
+            call(kresko.mintKreskoAsset.selector, user, krETHAddr, krEthMintAmount, user, initialPrices);
+            call(kresko.mintKreskoAsset.selector, user, krJPYAddr, krJpyMintAmount, user, initialPrices);
+            vm.stopBroadcast();
+        }
+
+        broadcastWith(getAddr(0));
+        (uint256 sharesOut, ) = kiss.vaultDeposit(Addr.USDC, 50000e6, getAddr(0));
+        kiss.approve(address(kresko), type(uint256).max);
+        kresko.depositSCDP(getAddr(0), address(kiss), sharesOut);
+        GatingManager(getDeployed(".GatingManager")).setPhase(1);
+        vm.stopBroadcast();
+    }
+
+    function setupWBTC() external {
+        vm.startBroadcast(0x4bb7f4c3d47C4b431cb0658F44287d52006fb506);
+        for (uint256 i; i < testUsers.length; i++) {
+            address user = getAddr(testUsers[i]);
+            MockERC20(Addr.WBTC).transfer(user, 0.253333e8);
+        }
+        vm.stopBroadcast();
+        console2.log("WBTC sent to users");
+    }
+
+    function setupNFTs() external {
+        address nftOwner = 0x99999A0B66AF30f6FEf832938a5038644a72180a;
+        vm.startBroadcast(nftOwner);
+        INFT kreskian = INFT(Addr.OFFICIALLY_KRESKIAN);
+        INFT questForKresko = INFT(Addr.QUEST_FOR_KRESK);
+
+        kreskian.safeTransferFrom(nftOwner, getAddr(0), 0, 1, "");
+        questForKresko.safeTransferFrom(nftOwner, getAddr(0), 0, 1, "");
+        questForKresko.safeTransferFrom(nftOwner, getAddr(0), 1, 1, "");
+        questForKresko.safeTransferFrom(nftOwner, getAddr(0), 2, 1, "");
+        questForKresko.safeTransferFrom(nftOwner, getAddr(0), 3, 1, "");
+        questForKresko.safeTransferFrom(nftOwner, getAddr(0), 4, 1, "");
+
+        kreskian.safeTransferFrom(nftOwner, getAddr(1), 0, 1, "");
+        questForKresko.safeTransferFrom(nftOwner, getAddr(1), 0, 1, "");
+
+        kreskian.safeTransferFrom(nftOwner, getAddr(2), 0, 1, "");
+        vm.stopBroadcast();
+    }
+
+    function setupStables() external {
+        vm.startBroadcast(0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D);
+        for (uint256 i; i < testUsers.length; i++) {
+            address user = getAddr(testUsers[i]);
+            if (i == 0) {
+                MockERC20(Addr.USDC).transfer(user, 200000e6);
+            } else {
+                MockERC20(Addr.USDC).transfer(user, 110000e6);
+            }
+            MockERC20(Addr.USDCe).transfer(user, 17500e6);
+            MockERC20(Addr.DAI).transfer(user, 25000 ether);
+            MockERC20(Addr.USDT).transfer(user, 5000e6);
+        }
+        vm.stopBroadcast();
+        console2.log("USDCe sent to users");
+    }
+
+    function writeDeploymentJSON() internal override {
+        string memory obj = "deployment";
+        vm.serializeString(obj, "EMPTY", "0xEMPTY");
+        vm.serializeAddress(obj, "KISS", address(state().kiss));
+        vm.serializeAddress(obj, "USDC", address(USDC));
+        vm.serializeAddress(obj, "USDC.e", address(USDCe));
+        vm.serializeAddress(obj, "ETH", 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+        vm.serializeAddress(obj, "WETH", address(WETH));
+        vm.serializeAddress(obj, "WBTC", address(WBTC));
+        vm.serializeAddress(obj, "USDT", address(USDT));
+        vm.serializeAddress(obj, "DAI", address(DAI));
+        vm.serializeAddress(obj, "krETH", krETH.addr);
+        vm.serializeAddress(obj, "krBTC", krBTC.addr);
+        vm.serializeAddress(obj, "krEUR", krEUR.addr);
+        vm.serializeAddress(obj, "krJPY", krJPY.addr);
+        vm.serializeAddress(obj, "krWTI", krWTI.addr);
+        vm.serializeAddress(obj, "krXAU", krXAU.addr);
+        vm.serializeAddress(obj, "Vault", address(state().vault));
+        vm.serializeAddress(obj, "UniswapRouter", Addr.V3_Router02);
+        vm.serializeAddress(obj, "DataV1", address(state().dataProvider));
+        vm.serializeAddress(obj, "Kresko", address(state().kresko));
+        vm.serializeAddress(obj, "Multicall", address(state().multicall));
+        vm.serializeAddress(obj, "GatingManager", address(state().gatingManager));
+        string memory output = vm.serializeAddress(obj, "Factory", address(state().factory));
+        vm.writeJson(output, "./out/arbitrum.json");
+        console2.log("Deployment JSON written to: ./out/arbitrum.json");
+    }
+
+    function getDeployed(string memory key) internal view returns (address) {
+        string memory json = vm.readFile(string.concat(vm.projectRoot(), "/out/arbitrum.json"));
+        return vm.parseJsonAddress(json, key);
+    }
 }

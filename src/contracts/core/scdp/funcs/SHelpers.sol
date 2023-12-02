@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
