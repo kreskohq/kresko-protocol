@@ -8,7 +8,7 @@ import {Strings} from "libs/Strings.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
 import {Asset} from "common/Types.sol";
-import {console2} from "forge-std/console2.sol";
+import {Log} from "kresko-lib/utils/Libs.sol";
 
 // solhint-disable
 contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
@@ -188,7 +188,7 @@ contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
 
         uint256 gasDeposit = gasleft();
         kresko.depositCollateral(user0, usdc.addr, depositAmount);
-        console2.log("gasDepositCollateral", gasDeposit - gasleft());
+        Log.clg("gasDepositCollateral", gasDeposit - gasleft());
 
         bytes memory mintData = abi.encodePacked(
             abi.encodeWithSelector(kresko.mintKreskoAsset.selector, user0, krJPY.addr, mintAmount, user0),
@@ -196,7 +196,7 @@ contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasMint = gasleft();
         (success, ) = address(kresko).call(mintData);
-        console2.log("gasMintKreskoAsset", gasMint - gasleft());
+        Log.clg("gasMintKreskoAsset", gasMint - gasleft());
         require(success, "!success");
 
         bytes memory burnData = abi.encodePacked(
@@ -205,7 +205,7 @@ contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasBurn = gasleft();
         (success, ) = address(kresko).call(burnData);
-        console2.log("gasBurnKreskoAsset", gasBurn - gasleft());
+        Log.clg("gasBurnKreskoAsset", gasBurn - gasleft());
         require(success, "!success");
 
         bytes memory withdrawData = abi.encodePacked(
@@ -214,7 +214,7 @@ contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasWithdraw = gasleft();
         (success, ) = address(kresko).call(withdrawData);
-        console2.log("gasWithdrawCollateral", gasWithdraw - gasleft());
+        Log.clg("gasWithdrawCollateral", gasWithdraw - gasleft());
         require(success, "!success");
     }
 }

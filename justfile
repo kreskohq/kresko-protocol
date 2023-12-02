@@ -29,18 +29,6 @@ hasPM2 := `pnpm list --global pm2 | grep -q '' && echo true || echo false`
 	{{ if hasPM2 == "true" { "echo '***' kresko: PM2 exists, skipping install.." } else { "echo '***' kresko: Installing PM2 && pnpm i -g pm2 && echo '***' kresko: PM2 installed" } }}
 	echo "*** kresko: Finished installing dependencies"
 
-verify-proxy-contract:
-	forge verify-contract 0x9094BbD5C25ED120FAc349926BB65ab5e3276b11 \
-	src/contracts/core/factory/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy \
-	--chain arbitrum-sepolia \
-	--constructor-args "0x"
-
-verify-contract:
-	forge verify-contract 0x22b5E0c1fC80FB2F06C627C90d26Fe18e7d5FB0C \
-	Vault \
-	--chain arbitrum-sepolia \
-	--watch
-
 dry-local:
 	forge script src/contracts/scripts/deploy/run/Localnet.s.sol \
 	--with-gas-price 100000000 \
@@ -66,26 +54,16 @@ dry-arbitrum-sepolia:
 	--ffi \
 	-vvv
 
-deploy-arbitrum-sepolia:
-	forge script src/contracts/scripts/deploy/run/ArbitrumSepolia.s.sol \
-	--mnemonics "$MNEMONIC_DEVNET" \
-	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
-	--evm-version "paris" \
-	--broadcast \
-	--with-gas-price 200000000 \
-	--ffi \
-	--resume \
-	-vvv
-
-verify-arbitrum-sepolia:
-	forge script src/contracts/scripts/deploy/run/ArbitrumSepolia.s.sol \
-	--mnemonics "$MNEMONIC_DEVNET" \
-	--rpc-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
-	--evm-version "paris" \
-	--verify \
-	--resume \
-	--ffi \
-	-vvv
+# deploy-arbitrum-sepolia:
+# 	forge script src/contracts/scripts/deploy/run/ArbitrumSepolia.s.sol \
+# 	--mnemonics "$MNEMONIC_DEVNET" \
+# 	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
+# 	--evm-version "paris" \
+# 	--broadcast \
+# 	--with-gas-price 200000000 \
+# 	--ffi \
+# 	--resume \
+# 	-vvv
 
 local:
 	pm2 ping
@@ -128,8 +106,6 @@ deploy-local:
 	--broadcast \
 	--ffi \
 	-vvv
-
-
 
 setup-arbitrum: 
 	just deploy-arbitrum && \
@@ -215,4 +191,27 @@ flats:
 	forge flatten src/contracts/core/kiss/interfaces/IKISS.sol > out/IKISS.sol && \
 	forge flatten src/contracts/core/vault/interfaces/IVault.sol > out/IVault.sol && \
 	forge flatten src/contracts/core/vault/interfaces/IVaultRateProvider.sol > out/IVaultRateProvider.sol 
+
+
+verify-proxy-contract:
+	forge verify-contract 0x9094BbD5C25ED120FAc349926BB65ab5e3276b11 \
+	src/contracts/core/factory/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy \
+	--chain arbitrum-sepolia \
+	--constructor-args "0x"
+
+verify-contract:
+	forge verify-contract 0x22b5E0c1fC80FB2F06C627C90d26Fe18e7d5FB0C \
+	Vault \
+	--chain arbitrum-sepolia \
+	--watch
+	
+verify-arbitrum-sepolia:
+	forge script src/contracts/scripts/deploy/run/ArbitrumSepolia.s.sol \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--rpc-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
+	--evm-version "paris" \
+	--verify \
+	--resume \
+	--ffi \
+	-vvv
 

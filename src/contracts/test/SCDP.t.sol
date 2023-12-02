@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {console} from "forge-std/Test.sol";
+// solhint-disable no-console, state-visibility, var-name-mixedcase, avoid-low-level-calls
+
+import {console2} from "forge-std/console2.sol";
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
 import {Log, Help} from "kresko-lib/utils/Libs.sol";
 import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
@@ -9,8 +11,6 @@ import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Asset} from "common/Types.sol";
-
-// solhint-disable
 
 contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
     using ShortAssert for *;
@@ -173,7 +173,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasDeposit = gasleft();
         (success, ) = address(kresko).call(depositData);
-        console.log("gasPoolDeposit", gasDeposit - gasleft());
+        console2.log("gasPoolDeposit", gasDeposit - gasleft());
         require(success, "!success");
 
         bytes memory withdrawData = abi.encodePacked(
@@ -182,7 +182,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasWithdraw = gasleft();
         (success, ) = address(kresko).call(withdrawData);
-        console.log("gasPoolWithdraw", gasWithdraw - gasleft());
+        console2.log("gasPoolWithdraw", gasWithdraw - gasleft());
 
         require(success, "!success");
 
@@ -194,7 +194,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasSwap = gasleft();
         (success, ) = address(kresko).call(swapData);
-        console.log("gasPoolSwap", gasSwap - gasleft());
+        console2.log("gasPoolSwap", gasSwap - gasleft());
 
         require(success, "!success");
 
@@ -204,7 +204,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasSwap2 = gasleft();
         (success, ) = address(kresko).call(swapData2);
-        console.log("gasPoolSwap2", gasSwap2 - gasleft());
+        console2.log("gasPoolSwap2", gasSwap2 - gasleft());
 
         require(success, "!success");
 
@@ -214,7 +214,7 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
         );
         uint256 gasSwap3 = gasleft();
         (success, ) = address(kresko).call(swapData3);
-        console.log("gasPoolSwap3", gasSwap3 - gasleft());
+        console2.log("gasPoolSwap3", gasSwap3 - gasleft());
     }
 
     /* -------------------------------------------------------------------------- */

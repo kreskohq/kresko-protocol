@@ -8,8 +8,7 @@ import {IERC20} from "kresko-lib/token/IERC20.sol";
 
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {DeploymentFactory} from "factory/DeploymentFactory.sol";
-import {Deployment} from "factory/IDeploymentFactory.sol";
+import {Deployment, IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {Asset} from "common/Types.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
@@ -37,7 +36,7 @@ abstract contract DeployStateHandlers is BaseLogger {
 
     function beforeCreateCore(CoreConfig memory) internal {}
 
-    function afterCoreCreated(IKresko _kresko, DeploymentFactory _proxyFactory) internal {
+    function afterCoreCreated(IKresko _kresko, IDeploymentFactory _proxyFactory) internal {
         super.onCoreContractsCreated($.saveCoreDeployments(_kresko, _proxyFactory));
     }
 
@@ -109,7 +108,7 @@ abstract contract DeployStateHandlers is BaseLogger {
 library $ {
     function saveCoreDeployments(
         IKresko _kresko,
-        DeploymentFactory _proxyFactory
+        IDeploymentFactory _proxyFactory
     ) internal returns (IDeployState.State storage ctx_) {
         state().kresko = _kresko;
         state().factory = _proxyFactory;

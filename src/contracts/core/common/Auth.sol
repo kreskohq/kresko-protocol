@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {EnumerableSet} from "@oz/utils/structs/EnumerableSet.sol";
 import {Strings} from "libs/Strings.sol";
-import {EnumerableSet} from "libs/EnumerableSet.sol";
 import {Meta} from "libs/Meta.sol";
 import {ds} from "diamond/DState.sol";
 

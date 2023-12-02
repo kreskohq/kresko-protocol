@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
-import {ERC20} from "kresko-lib/token/ERC20.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Test} from "forge-std/Test.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import {MockERC20, USDC, USDT, DAI} from "mocks/MockERC20.sol";
@@ -10,7 +10,6 @@ import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 
 import {VaultAsset} from "vault/VTypes.sol";
 import {Vault} from "vault/Vault.sol";
-import {console2} from "forge-std/console2.sol";
 
 // solhint-disable private-vars-leading-underscore
 // solhint-disable contract-name-camelcase
@@ -67,11 +66,11 @@ contract vKISSTest is Test {
 
         // add assets
         vkiss.addAsset(
-            VaultAsset(ERC20(usdcAddr), IAggregatorV3(address(usdcOracle)), 80000, 0, 0, 0, type(uint248).max, true)
+            VaultAsset(IERC20(usdcAddr), IAggregatorV3(address(usdcOracle)), 80000, 0, 0, 0, type(uint248).max, true)
         );
-        vkiss.addAsset(VaultAsset(ERC20(daiAddr), IAggregatorV3(address(daiOracle)), 80000, 0, 0, 0, type(uint248).max, true));
+        vkiss.addAsset(VaultAsset(IERC20(daiAddr), IAggregatorV3(address(daiOracle)), 80000, 0, 0, 0, type(uint248).max, true));
         vkiss.addAsset(
-            VaultAsset(ERC20(usdtAddr), IAggregatorV3(address(usdtOracle)), 80000, 0, 0, 0, type(uint248).max, true)
+            VaultAsset(IERC20(usdtAddr), IAggregatorV3(address(usdtOracle)), 80000, 0, 0, 0, type(uint248).max, true)
         );
         vm.stopPrank();
 
@@ -647,7 +646,7 @@ contract vKISSTest is Test {
 
     function _logBalances(MockERC20 asset, string memory assetName) internal {
         uint256 balUser0 = asset.balanceOf(user0);
-        uint256 decimals = ERC20(address(asset)).decimals();
+        uint256 decimals = IERC20(address(asset)).decimals();
         emit log_named_decimal_uint(string.concat(assetName, "balanceOf(user0)"), balUser0, decimals);
 
         uint256 balUser1 = asset.balanceOf(user1);

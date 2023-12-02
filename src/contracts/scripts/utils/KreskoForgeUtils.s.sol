@@ -18,7 +18,7 @@ import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {LibSafe, GnosisSafeL2Mock} from "kresko-lib/mocks/MockSafe.sol";
 import {Deployment, DeploymentFactory} from "factory/DeploymentFactory.sol";
 import {Conversions} from "libs/Utils.sol";
-import {Vault} from "vault/Vault.sol";
+import {IVault} from "vault/interfaces/IVault.sol";
 import {KISS} from "kiss/KISS.sol";
 import {IDeployState} from "scripts/deploy/base/IDeployState.sol";
 
@@ -201,7 +201,7 @@ abstract contract ConfigurationUtils is KreskoForgeBase {
         kissInfo_.addr = _kissAddr;
         kissInfo_.vaultAddr = _vaultAddr;
         kissInfo_.kiss = KISS(_kissAddr);
-        kissInfo_.vault = Vault(_vaultAddr);
+        kissInfo_.vault = IVault(_vaultAddr);
 
         kissInfo_.asToken = IERC20(_kissAddr);
         return kissInfo_;
@@ -288,8 +288,8 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         address vaultAddr,
         address admin
     ) internal needsDeploymentFactory returns (IDeployState.KISSInfo memory kissInfo_) {
-        require(kreskoAddr != address(0), "deployKISS: Kresko address is zero");
-        require(vaultAddr != address(0), "deployKISS: Vault address is zero");
+        require(kreskoAddr != address(0), "deployKISS: !Kresko");
+        require(vaultAddr != address(0), "deployKISS: !Vault ");
         Deployment memory proxy = factory.create3ProxyAndLogic(
             type(KISS).creationCode,
             abi.encodeCall(KISS.initialize, ("Kresko: KISS", "KISS", 18, admin, kreskoAddr, vaultAddr)),
@@ -300,7 +300,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         kissInfo_.proxy = proxy;
 
         kissInfo_.vaultAddr = vaultAddr;
-        kissInfo_.vault = Vault(vaultAddr);
+        kissInfo_.vault = IVault(vaultAddr);
         kissInfo_.asToken = IERC20(kissInfo_.addr);
         return kissInfo_;
     }

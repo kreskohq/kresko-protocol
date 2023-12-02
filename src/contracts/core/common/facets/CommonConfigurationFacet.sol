@@ -17,7 +17,7 @@ import {Errors} from "common/Errors.sol";
 import {cs, gm} from "common/State.sol";
 import {Auth} from "common/Auth.sol";
 import {Validations} from "common/Validations.sol";
-import {GatingManager} from "periphery/GatingManager.sol";
+import {IGatingManager} from "periphery/IGatingManager.sol";
 
 contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSModifiers {
     using Strings for bytes32;
@@ -53,7 +53,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
     }
 
     function setGatingManager(address _newManager) public override onlyRole(Role.ADMIN) {
-        gm().manager = GatingManager(_newManager);
+        gm().manager = IGatingManager(_newManager);
     }
 
     /// @inheritdoc ICommonConfigurationFacet

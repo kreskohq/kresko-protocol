@@ -17,7 +17,7 @@ const oldCompilerSettings = {
 export const compilers: { compilers: SolcUserConfig[] } = {
   compilers: [
     {
-      version: '0.8.21',
+      version: '0.8.23',
       settings: {
         evmVersion: 'paris',
         viaIR: false,

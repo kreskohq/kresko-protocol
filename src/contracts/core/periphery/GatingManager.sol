@@ -4,14 +4,15 @@ pragma solidity ^0.8.19;
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {Ownable} from "@oz/access/Ownable.sol";
 import {Errors} from "common/Errors.sol";
+import {IGatingManager} from "periphery/IGatingManager.sol";
 
 // solhint-disable code-complexity
 
-contract GatingManager is Ownable {
+contract GatingManager is IGatingManager, Ownable {
     IERC1155 public kreskian;
     IERC1155 public questForKresk;
     uint8 public phase;
-    uint256[] public phase1NFTs;
+    uint256[] internal phase1NFTs;
     mapping(address => bool) internal whitelisted;
     mapping(address => bool) internal blacklisted;
 
@@ -23,6 +24,10 @@ contract GatingManager is Ownable {
         phase1NFTs.push(1);
         phase1NFTs.push(2);
         phase1NFTs.push(3);
+    }
+
+    function getPhase1NFTs() external view returns (uint256[] memory) {
+        return phase1NFTs;
     }
 
     function isWhiteListed(address _account) external view returns (bool) {

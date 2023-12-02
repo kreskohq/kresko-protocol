@@ -19,7 +19,7 @@ abstract contract DeployLogicBase is DeployStateHandlers {
     ) internal virtual returns (CoreConfig memory cfg_);
 
     function createCore(CoreConfig memory _cfg) internal returns (address kreskoAddr_) {
-        require(_cfg.admin != address(0), "createCoreConfig: coreArgs should have some admin address set");
+        require(_cfg.admin != address(0), "createCoreConfig: !coreArgs.admin");
 
         super.beforeCreateCore(_cfg);
 
@@ -32,7 +32,7 @@ abstract contract DeployLogicBase is DeployStateHandlers {
     }
 
     function createVault(CoreConfig memory _cfg, address _kreskoAddr) internal returns (address vaultAddr_) {
-        require(_kreskoAddr != address(0), "createVault: Kresko should exist before createVault");
+        require(_kreskoAddr != address(0), "createVault: !kresko");
         vkiss = new Vault("vKISS", "vKISS", 18, 8, _cfg.treasury, address(_cfg.seqFeed));
         super.afterVaultCreated(vkiss);
         return address(vkiss);
@@ -52,7 +52,7 @@ abstract contract DeployLogicBase is DeployStateHandlers {
         CoreConfig memory _cfg,
         AssetCfg memory _assetCfg
     ) internal returns (KrAssetDeployInfo[] memory krAssetInfos_) {
-        require(_assetCfg.kra.length > 0, "createKrAssets: No KrAssets defined");
+        require(_assetCfg.kra.length > 0, "createKrAssets: !krAssets");
         krAssetInfos_ = new KrAssetDeployInfo[](_assetCfg.kra.length);
 
         unchecked {
@@ -71,7 +71,7 @@ abstract contract DeployLogicBase is DeployStateHandlers {
     }
 
     function addVaultAssets(AssetCfg memory _assetCfg, address _vaultAddr) internal {
-        require(_vaultAddr != address(0), "configureVault: vault needs to exist before configuring it");
+        require(_vaultAddr != address(0), "configureVault: !vault");
         unchecked {
             for (uint256 i; i < _assetCfg.vassets.length; i++) {
                 super.afterVaultAssetAdded(Vault(_vaultAddr).addAsset(_assetCfg.vassets[i]));
@@ -87,9 +87,9 @@ abstract contract DeployLogicBase is DeployStateHandlers {
         KISSInfo memory _kiss,
         address _kreskoAddr
     ) internal virtual returns (AssetsOnChain memory assetsOnChain_) {
-        require(_kraContracts[0].addr != address(0), "addAssets: krAssets not deployed");
-        require(_kiss.addr != address(0), "addAssets: KISS not deployed");
-        require(_kiss.vaultAddr != address(0), "addAssets: Vault not deployed");
+        require(_kraContracts[0].addr != address(0), "addAssets: !krAssets");
+        require(_kiss.addr != address(0), "addAssets: !KISS");
+        require(_kiss.vaultAddr != address(0), "addAssets: !Vault");
 
         assetsOnChain_.kra = new KrAssetInfo[](_assetCfg.kra.length);
         assetsOnChain_.ext = new ExtAssetInfo[](_assetCfg.ext.length);
@@ -116,14 +116,7 @@ abstract contract DeployLogicBase is DeployStateHandlers {
                 assetsOnChain_.ext[i] = ExtAssetInfo(
                     assetAddr,
                     _assetCfg.ext[i].symbol,
-                    super.addCollateral(
-                        _assetCfg.ext[i].ticker,
-                        assetAddr,
-                        _assetCfg.ext[i].setTickerFeeds,
-                        _assetCfg.ext[i].oracleType,
-                        _assetCfg.ext[i].feeds,
-                        _assetCfg.ext[i].identity
-                    ),
+                    super.addCollateral(assetAddr, _assetCfg.ext[i]),
                     IAggregatorV3(feedAddr),
                     feedAddr,
                     ERC20(assetAddr)

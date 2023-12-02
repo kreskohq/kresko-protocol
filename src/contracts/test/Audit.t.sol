@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// solhint-disable state-visibility, avoid-low-level-calls, no-console, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
+
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
 import {state} from "scripts/deploy/base/IDeployState.sol";
@@ -12,8 +14,6 @@ import {WadRay} from "libs/WadRay.sol";
 import {Localnet} from "scripts/deploy/run/Localnet.s.sol";
 import {console2} from "forge-std/console2.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-
-// solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
 contract AuditTest is Localnet {
     using ShortAssert for *;

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
 
-import {EnumerableSet} from "libs/EnumerableSet.sol";
+import {EnumerableSet} from "@oz/utils/structs/EnumerableSet.sol";
 import {LibModifiers} from "common/Modifiers.sol";
 import {Enums} from "common/Constants.sol";
 import {Asset, SafetyState, RoleData, Oracle} from "common/Types.sol";
-import {GatingManager} from "periphery/GatingManager.sol";
+import {IGatingManager} from "periphery/IGatingManager.sol";
 
 using LibModifiers for CommonState global;
 
@@ -57,7 +57,7 @@ bytes32 constant COMMON_STORAGE_POSITION = keccak256("kresko.common.storage");
 // Gating
 bytes32 constant GATING_MANAGER_POSITION = keccak256("kresko.gating.storage");
 struct GatingState {
-    GatingManager manager;
+    IGatingManager manager;
 }
 
 function gm() pure returns (GatingState storage state) {

@@ -10,12 +10,12 @@ describe('Gating', () => {
     f = await defaultFixture()
     // Set Gating phase to 3
     ;[this.nft] = await hre.deploy('MockERC1155', {
-      args: [],
+      args: ['MockERC1155_1', 'MockERC1155_1', 'https://mock.com/{id}.json', 'https://mock.com/contract.json'],
       deploymentName: 'MockERC1155_1',
       from: hre.users.deployer.address,
     })
     ;[this.nft2] = await hre.deploy('MockERC1155', {
-      args: [],
+      args: ['MockERC1155_2', 'MockERC1155_2', 'https://mock2.com/{id}.json', 'https://mock2.com/contract2.json'],
       deploymentName: 'MockERC1155_2',
       from: hre.users.deployer.address,
     })

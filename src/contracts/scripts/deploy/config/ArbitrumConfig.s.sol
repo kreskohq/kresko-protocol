@@ -18,7 +18,7 @@ import {Role} from "common/Constants.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {Log} from "kresko-lib/utils/Libs.sol";
-import {GatingManager} from "periphery/GatingManager.sol";
+import {IGatingManager} from "periphery/IGatingManager.sol";
 import {KISS} from "kiss/KISS.sol";
 import {IKresko} from "periphery/IKresko.sol";
 
@@ -479,7 +479,7 @@ abstract contract ArbitrumDeployment is ArbitrumDeployConfig {
         (uint256 sharesOut, ) = kiss.vaultDeposit(Addr.USDC, 50000e6, getAddr(0));
         kiss.approve(address(kresko), type(uint256).max);
         kresko.depositSCDP(getAddr(0), address(kiss), sharesOut);
-        GatingManager(getDeployed(".GatingManager")).setPhase(1);
+        IGatingManager(getDeployed(".GatingManager")).setPhase(1);
         vm.stopBroadcast();
     }
 
