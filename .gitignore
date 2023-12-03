@@ -8,8 +8,8 @@
 .coverage_cache/
 .coverage_contracts/
 dist/
-src/contracts/scripts/temp/
-src/contracts/test/temp/
+src/contracts/scripts/locals/
+src/contracts/test/locals/
 coverage/
 artifacts/
 cache/
