@@ -11,16 +11,16 @@ import {DataV1} from "periphery/DataV1.sol";
 import {Vault} from "vault/Vault.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {VaultAsset} from "vault/VTypes.sol";
-import {IDataV1} from "periphery/IDataV1.sol";
-import {ms} from "minter/MState.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
+import {IWETH9} from "kresko-lib/token/IWETH9.sol";
+import {WETH9} from "kresko-lib/token/WETH9.sol";
 
 contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
     using ShortAssert for *;
     using Help for *;
     using Log for *;
-
+    IWETH9 internal weth;
     MockTokenInfo internal usdc;
     MockTokenInfo internal wbtc;
     MockTokenInfo internal dai;
@@ -96,6 +96,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
             deployCfg
         );
 
+        weth = IWETH9(address(new WETH9()));
         usdc.mock.mint(user0, 100e18);
         usdc.mock.mint(user1, 10000e18);
         usdc.mock.mint(user2, 10000e18);
@@ -134,7 +135,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
 
         prank(deployCfg.admin);
         dataV1 = new DataV1(DataFacet(address(kresko)), address(vkiss), address(vkiss), address(0), address(0));
-        mc = new KrMulticall(address(kresko), address(kiss), address(0));
+        mc = new KrMulticall(address(kresko), address(kiss), address(0), address(weth));
         kresko.grantRole(Role.MANAGER, address(mc));
     }
 

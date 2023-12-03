@@ -109,6 +109,112 @@ contract MulticallTest is Localnet {
         results[1].amountOut.eq(10000e18, "jpy-borrow-amount");
     }
 
+    function testNativeDeposit() public {
+        address user = getAddr(100);
+        uint256 amount = 5 ether;
+        vm.deal(user, amount * 2);
+        prank(user);
+        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](1);
+
+        ops[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterDeposit,
+            data: KrMulticall.Data({
+                tokenIn: address(WETH),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.Native,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+
+        KrMulticall.Result[] memory results = mc.execute{value: 5 ether}(ops, redstoneCallData);
+        results[0].amountIn.eq(5 ether, "native-deposit-amount");
+        results[0].tokenIn.eq(address(WETH), "native-deposit-addr");
+        uint256 depositsAfter = kresko.getAccountCollateralAmount(user, address(WETH));
+        address(mc).balance.eq(0 ether, "native-contract-balance-after");
+
+        user.balance.eq(5 ether, "native-user-balance-after");
+        depositsAfter.eq(5 ether, "native-deposit-amount-after");
+    }
+
+    function testNativeDepositRevert() public {
+        address user = getAddr(100);
+        uint256 amount = 5 ether;
+        vm.deal(user, amount * 2);
+        prank(user);
+        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](1);
+
+        ops[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterDeposit,
+            data: KrMulticall.Data({
+                tokenIn: address(USDT),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.Native,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+
+        vm.expectRevert();
+        KrMulticall.Result[] memory results = mc.execute{value: 5 ether}(ops, redstoneCallData);
+    }
+
+    function testNativeDepositWithdraw() public {
+        address user = getAddr(100);
+        uint256 amount = 5 ether;
+        vm.deal(user, amount * 2);
+        prank(user);
+        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](2);
+
+        ops[0] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterDeposit,
+            data: KrMulticall.Data({
+                tokenIn: address(WETH),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.Native,
+                tokenOut: address(0),
+                amountOut: 0,
+                tokensOutMode: KrMulticall.TokensOutMode.None,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[1] = KrMulticall.Operation({
+            action: KrMulticall.Action.MinterWithdraw,
+            data: KrMulticall.Data({
+                tokenIn: address(0),
+                amountIn: 0,
+                tokensInMode: KrMulticall.TokensInMode.None,
+                tokenOut: address(WETH),
+                amountOut: 5 ether,
+                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSenderNative,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+
+        KrMulticall.Result[] memory results = mc.execute{value: 5 ether}(ops, redstoneCallData);
+        results[0].amountIn.eq(5 ether, "native-deposit-amount");
+        results[0].tokenIn.eq(address(WETH), "native-deposit-addr");
+        results[1].amountOut.eq(5 ether, "native-deposit-amount");
+        results[1].tokenOut.eq(address(WETH), "native-deposit-addr");
+        uint256 depositsAfter = kresko.getAccountCollateralAmount(user, address(WETH));
+        address(mc).balance.eq(0 ether, "native-contract-balance-after");
+
+        user.balance.eq(10 ether, "native-user-balance-after");
+        depositsAfter.eq(0 ether, "native-deposit-amount-after");
+    }
+
     function testMulticallDepositBorrowRepay() public {
         address user = getAddr(100);
         prank(user);

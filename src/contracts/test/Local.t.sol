@@ -36,7 +36,7 @@ contract NewTest is ArbitrumSepolia, Test {
         kresko = IKresko(getDeployed(".Kresko"));
         kiss = KISS(getDeployed(".KISS"));
         vkiss = IVault(getDeployed(".Vault"));
-        multicall = KrMulticall(getDeployed(".Multicall"));
+        multicall = KrMulticall(payable(getDeployed(".Multicall")));
     }
 
     function testStuff() public {

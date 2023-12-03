@@ -339,7 +339,12 @@ abstract contract ArbitrumSepoliaDeployment is ArbitrumSepoliaDeployConfig {
             ArbSepolia.OFFICIALLY_KRESKIAN,
             ArbSepolia.QUEST_FOR_KRESK
         );
-        state().multicall = new KrMulticall(address(state().kresko), address(state().kiss), address(ArbSepolia.V3_Router02));
+        state().multicall = new KrMulticall(
+            address(state().kresko),
+            address(state().kiss),
+            address(ArbSepolia.V3_Router02),
+            ArbSepolia.WETH
+        );
         state().kresko.grantRole(Role.MANAGER, address(state().multicall));
     }
 

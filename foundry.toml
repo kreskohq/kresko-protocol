@@ -49,7 +49,7 @@ remappings = [
 # "stackAllocation" = true
 [rpc_endpoints]
 arbitrum = "${RPC_ARBITRUM_ALCHEMY}"
-arbitrumSepolia = "${RPC_ARBITRUM_SEPOLIA_ALCHEMY}"
+arbitrumSepolia = "${RPC_ARBITRUM_SEPOLIA}"
 arbitrumGoerli = "${RPC_ARBITRUM_GOERLI_ALCHEMY}"
 mainnet = "${RPC_MAINNET_ALCHEMY}"
 goerli = "${RPC_GOERLI_ALCHEMY}"

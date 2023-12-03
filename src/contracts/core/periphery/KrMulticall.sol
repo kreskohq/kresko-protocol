@@ -9,6 +9,7 @@ import {IVaultExtender} from "vault/interfaces/IVaultExtender.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {Ownable} from "@oz/access/Ownable.sol";
+import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 
 interface ISwapRouter {
     struct ExactInputParams {
@@ -31,14 +32,17 @@ interface ISwapRouter {
  * @notice All tokens left in the contract after operations will be returned to the sender at the end.
  */
 contract KrMulticall is Ownable {
+    address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     address public kresko;
     address public kiss;
     ISwapRouter public uniswapRouter;
+    IWETH9 public wrappedNative;
 
-    constructor(address _kresko, address _kiss, address _uniswapRouter) Ownable(msg.sender) {
+    constructor(address _kresko, address _kiss, address _uniswapRouter, address _wrappedNative) Ownable(msg.sender) {
         kresko = _kresko;
         kiss = _kiss;
         uniswapRouter = ISwapRouter(_uniswapRouter);
+        wrappedNative = IWETH9(_wrappedNative);
     }
 
     function rescue(address _token, uint256 _amount, address _receiver) external onlyOwner {
@@ -66,6 +70,8 @@ contract KrMulticall is Ownable {
                     results[i].tokenOut = op.data.tokenOut;
                     if (op.data.tokensOutMode == TokensOutMode.ReturnToSender) {
                         results[i].amountOut = IERC20(op.data.tokenOut).balanceOf(msg.sender);
+                    } else if (op.data.tokensOutMode == TokensOutMode.ReturnToSenderNative) {
+                        results[i].amountOut = msg.sender.balance;
                     } else {
                         results[i].amountOut = IERC20(op.data.tokenOut).balanceOf(address(this));
                     }
@@ -93,6 +99,9 @@ contract KrMulticall is Ownable {
                     if (op.data.tokensOutMode == TokensOutMode.ReturnToSender) {
                         _handleTokensOut(op, balanceAfter);
                         results[i].amountOut = IERC20(op.data.tokenOut).balanceOf(msg.sender) - results[i].amountOut;
+                    } else if (op.data.tokensOutMode == TokensOutMode.ReturnToSenderNative) {
+                        _handleTokensOut(op, balanceAfter);
+                        results[i].amountOut = msg.sender.balance - results[i].amountOut;
                     } else {
                         results[i].amountOut = balanceAfter - results[i].amountOut;
                     }
@@ -104,6 +113,23 @@ contract KrMulticall is Ownable {
     }
 
     function _handleTokensIn(Operation memory _op) internal returns (uint256 amountIn) {
+        uint256 nativeAmount = msg.value;
+        if (_op.data.tokensInMode == TokensInMode.Native) {
+            if (nativeAmount == 0) {
+                revert ZERO_NATIVE_IN(_op.action);
+            }
+
+            if (address(wrappedNative) != _op.data.tokenIn) {
+                revert INVALID_NATIVE_TOKEN_IN(_op.action, _op.data.tokenIn, wrappedNative.symbol());
+            }
+
+            wrappedNative.deposit{value: nativeAmount}();
+            return nativeAmount;
+        }
+        if (nativeAmount != 0) {
+            revert VALUE_NOT_ZERO(_op.action, nativeAmount);
+        }
+
         IERC20 token = IERC20(_op.data.tokenIn);
 
         // Pull tokens from sender
@@ -127,8 +153,11 @@ contract KrMulticall is Ownable {
     }
 
     function _handleTokensOut(Operation memory _op, uint256 balance) internal {
-        // Transfer native to sender
-        if (address(this).balance > 0) payable(msg.sender).transfer(address(this).balance);
+        if (_op.data.tokensOutMode == TokensOutMode.ReturnToSenderNative) {
+            wrappedNative.withdraw(balance);
+            payable(msg.sender).transfer(balance);
+            return;
+        }
 
         // Transfer tokens to sender
         IERC20 tokenOut = IERC20(_op.data.tokenOut);
@@ -306,6 +335,8 @@ contract KrMulticall is Ownable {
         }
     }
 
+    receive() external payable {}
+
     /**
      * @notice An operation to execute.
      * @param action The operation to execute.
@@ -382,6 +413,7 @@ contract KrMulticall is Ownable {
      */
     enum TokensInMode {
         None,
+        Native,
         PullFromSender,
         UseContractBalance,
         UseContractBalanceExactAmountIn
@@ -390,17 +422,22 @@ contract KrMulticall is Ownable {
     /**
      * @notice The token out mode for an operation.
      * @param None Operation requires no tokens out.
+     * @param ReturnToSenderNative Operation will unwrap and transfer native to sender.
      * @param ReturnToSender Operation returns tokens received to sender.
      * @param LeaveInContract Operation leaves tokens received in the contract for later use.
      */
     enum TokensOutMode {
         None,
+        ReturnToSenderNative,
         ReturnToSender,
         LeaveInContract
     }
 
     error NO_ALLOWANCE(Action action, address token, string symbol);
     error ZERO_AMOUNT_IN(Action action, address token, string symbol);
+    error ZERO_NATIVE_IN(Action action);
+    error VALUE_NOT_ZERO(Action action, uint256 value);
+    error INVALID_NATIVE_TOKEN_IN(Action action, address token, string symbol);
     error ZERO_OR_INVALID_AMOUNT_IN(Action action, address token, string symbol, uint256 balance, uint256 amountOut);
     error INVALID_ACTION(Action action);
 

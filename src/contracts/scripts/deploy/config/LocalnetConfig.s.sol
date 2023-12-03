@@ -530,7 +530,7 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
             address(0),
             address(0)
         );
-        state().multicall = new KrMulticall(address(state().kresko), address(state().kiss), address(address(0)));
+        state().multicall = new KrMulticall(address(state().kresko), address(state().kiss), address(address(0)), address(WETH));
         state().kresko.grantRole(Role.MANAGER, address(state().multicall));
     }
 
