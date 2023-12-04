@@ -9,7 +9,7 @@ import {DataV1} from "periphery/DataV1.sol";
 import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
-import {KrMulticall} from "periphery/KrMulticall.sol";
+import {IKrMulticall, KrMulticall} from "periphery/KrMulticall.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
@@ -21,8 +21,8 @@ contract MulticallTest is Localnet {
     using PercentageMath for *;
 
     bytes redstoneCallData;
-    DataV1 internal dataV1;
     KrMulticall internal mc;
+    DataV1 internal dataV1;
     string internal rsPrices;
     uint256 constant ETH_PRICE = 2000;
 
@@ -69,38 +69,38 @@ contract MulticallTest is Localnet {
         prank(user);
         mockUSDC.asToken.approve(address(mc), type(uint256).max);
 
-        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](2);
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
 
-        ops[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterDeposit,
-            data: KrMulticall.Data({
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: mockUSDC.addr,
                 amountIn: 10_000e6,
-                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterBorrow,
-            data: KrMulticall.Data({
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterBorrow,
+            data: IKrMulticall.Data({
                 tokenIn: address(0),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.None,
+                tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: krJPY.addr,
                 amountOut: 10000e18,
-                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
 
-        KrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
+        IKrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
         mockUSDC.asToken.balanceOf(user).eq(0, "usdc-balance");
         krJPY.asToken.balanceOf(user).eq(10000e18, "jpy-borrow-balance");
         results[0].amountIn.eq(10_000e6, "usdc-deposit-amount");
@@ -114,24 +114,24 @@ contract MulticallTest is Localnet {
         uint256 amount = 5 ether;
         vm.deal(user, amount * 2);
         prank(user);
-        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](1);
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](1);
 
-        ops[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterDeposit,
-            data: KrMulticall.Data({
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: address(WETH),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.Native,
+                tokensInMode: IKrMulticall.TokensInMode.Native,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
 
-        KrMulticall.Result[] memory results = mc.execute{value: 5 ether}(ops, redstoneCallData);
+        IKrMulticall.Result[] memory results = mc.execute{value: 5 ether}(ops, redstoneCallData);
         results[0].amountIn.eq(5 ether, "native-deposit-amount");
         results[0].tokenIn.eq(address(WETH), "native-deposit-addr");
         uint256 depositsAfter = kresko.getAccountCollateralAmount(user, address(WETH));
@@ -146,17 +146,17 @@ contract MulticallTest is Localnet {
         uint256 amount = 5 ether;
         vm.deal(user, amount * 2);
         prank(user);
-        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](1);
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](1);
 
-        ops[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterDeposit,
-            data: KrMulticall.Data({
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: address(USDT),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.Native,
+                tokensInMode: IKrMulticall.TokensInMode.Native,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
@@ -164,7 +164,7 @@ contract MulticallTest is Localnet {
         });
 
         vm.expectRevert();
-        KrMulticall.Result[] memory results = mc.execute{value: 5 ether}(ops, redstoneCallData);
+        IKrMulticall.Result[] memory results = mc.execute{value: 5 ether}(ops, redstoneCallData);
     }
 
     function testNativeDepositWithdraw() public {
@@ -172,38 +172,38 @@ contract MulticallTest is Localnet {
         uint256 amount = 5 ether;
         vm.deal(user, amount * 2);
         prank(user);
-        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](2);
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
 
-        ops[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterDeposit,
-            data: KrMulticall.Data({
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: address(WETH),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.Native,
+                tokensInMode: IKrMulticall.TokensInMode.Native,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterWithdraw,
-            data: KrMulticall.Data({
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterWithdraw,
+            data: IKrMulticall.Data({
                 tokenIn: address(0),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.None,
+                tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: address(WETH),
                 amountOut: 5 ether,
-                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSenderNative,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSenderNative,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
 
-        KrMulticall.Result[] memory results = mc.execute{value: 5 ether}(ops, redstoneCallData);
+        IKrMulticall.Result[] memory results = mc.execute{value: 5 ether}(ops, redstoneCallData);
         results[0].amountIn.eq(5 ether, "native-deposit-amount");
         results[0].tokenIn.eq(address(WETH), "native-deposit-addr");
         results[1].amountOut.eq(5 ether, "native-deposit-amount");
@@ -220,52 +220,52 @@ contract MulticallTest is Localnet {
         prank(user);
         mockUSDC.asToken.approve(address(mc), type(uint256).max);
 
-        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](3);
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](3);
 
-        ops[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterDeposit,
-            data: KrMulticall.Data({
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: mockUSDC.addr,
                 amountIn: 10_000e6,
-                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterBorrow,
-            data: KrMulticall.Data({
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterBorrow,
+            data: IKrMulticall.Data({
                 tokenIn: address(0),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.None,
+                tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: krJPY.addr,
                 amountOut: 10000e18,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[2] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterRepay,
-            data: KrMulticall.Data({
+        ops[2] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterRepay,
+            data: IKrMulticall.Data({
                 tokenIn: krJPY.addr,
                 amountIn: 10000e18,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
 
-        KrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
+        IKrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
         mockUSDC.asToken.balanceOf(user).eq(0, "usdc-balance");
         krJPY.asToken.balanceOf(user).eq(0, "jpy-borrow-balance");
         results[0].amountIn.eq(10_000e6, "usdc-deposit-amount");
@@ -281,38 +281,38 @@ contract MulticallTest is Localnet {
         prank(user);
         mockUSDC.asToken.approve(address(mc), type(uint256).max);
 
-        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](2);
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
 
-        ops[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.VaultDeposit,
-            data: KrMulticall.Data({
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.VaultDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: mockUSDC.addr,
                 amountIn: 10_000e6,
-                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
                 tokenOut: address(kiss),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.SCDPDeposit,
-            data: KrMulticall.Data({
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SCDPDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: address(kiss),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
 
-        KrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
+        IKrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
         mockUSDC.asToken.balanceOf(user).eq(0, "usdc-balance");
         kresko.getAccountDepositSCDP(user, address(kiss)).eq(9998e18, "kiss-deposit-amount");
         kiss.balanceOf(user).eq(0, "jpy-borrow-balance");
@@ -328,30 +328,30 @@ contract MulticallTest is Localnet {
         prank(user);
         mockUSDC.asToken.approve(address(mc), type(uint256).max);
 
-        KrMulticall.Operation[] memory opsDeposit = new KrMulticall.Operation[](2);
-        opsDeposit[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.VaultDeposit,
-            data: KrMulticall.Data({
+        IKrMulticall.Operation[] memory opsDeposit = new IKrMulticall.Operation[](2);
+        opsDeposit[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.VaultDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: mockUSDC.addr,
                 amountIn: 10_000e6,
-                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
                 tokenOut: address(kiss),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        opsDeposit[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.SCDPDeposit,
-            data: KrMulticall.Data({
+        opsDeposit[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SCDPDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: address(kiss),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
@@ -360,37 +360,37 @@ contract MulticallTest is Localnet {
 
         mc.execute(opsDeposit, redstoneCallData);
 
-        KrMulticall.Operation[] memory opsWithdraw = new KrMulticall.Operation[](2);
-        opsWithdraw[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.SCDPWithdraw,
-            data: KrMulticall.Data({
+        IKrMulticall.Operation[] memory opsWithdraw = new IKrMulticall.Operation[](2);
+        opsWithdraw[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SCDPWithdraw,
+            data: IKrMulticall.Data({
                 tokenIn: address(0),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.None,
+                tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: address(kiss),
                 amountOut: 9998e18,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        opsWithdraw[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.VaultRedeem,
-            data: KrMulticall.Data({
+        opsWithdraw[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.VaultRedeem,
+            data: IKrMulticall.Data({
                 tokenIn: address(kiss),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: mockUSDC.addr,
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
 
-        KrMulticall.Result[] memory results = mc.execute(opsWithdraw, redstoneCallData);
+        IKrMulticall.Result[] memory results = mc.execute(opsWithdraw, redstoneCallData);
 
         mockUSDC.asToken.balanceOf(user).eq(9996000400, "usdc-balance");
         kresko.getAccountDepositSCDP(user, address(kiss)).eq(0, "kiss-deposit-amount");
@@ -414,36 +414,36 @@ contract MulticallTest is Localnet {
 
         kresko.depositCollateral(user, mockUSDC.addr, 10_000e6);
 
-        KrMulticall.Operation[] memory opsShort = new KrMulticall.Operation[](2);
-        opsShort[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterBorrow,
-            data: KrMulticall.Data({
+        IKrMulticall.Operation[] memory opsShort = new IKrMulticall.Operation[](2);
+        opsShort[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterBorrow,
+            data: IKrMulticall.Data({
                 tokenIn: address(0),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.None,
+                tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: krJPY.addr,
                 amountOut: 10_000e18,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        opsShort[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.SCDPTrade,
-            data: KrMulticall.Data({
+        opsShort[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SCDPTrade,
+            data: IKrMulticall.Data({
                 tokenIn: krJPY.addr,
                 amountIn: 10_000e18,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: address(kiss),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        KrMulticall.Result[] memory results = mc.execute(opsShort, redstoneCallData);
+        IKrMulticall.Result[] memory results = mc.execute(opsShort, redstoneCallData);
 
         krJPY.asToken.balanceOf(address(mc)).eq(0, "jpy-balance-mc-after");
         kiss.balanceOf(address(mc)).eq(0, "kiss-balance-mc-after");
@@ -471,30 +471,30 @@ contract MulticallTest is Localnet {
         kiss.approve(address(mc), type(uint256).max);
 
         kresko.depositCollateral(user, mockUSDC.addr, 10_000e6);
-        KrMulticall.Operation[] memory opsShort = new KrMulticall.Operation[](2);
-        opsShort[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterBorrow,
-            data: KrMulticall.Data({
+        IKrMulticall.Operation[] memory opsShort = new IKrMulticall.Operation[](2);
+        opsShort[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterBorrow,
+            data: IKrMulticall.Data({
                 tokenIn: address(0),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.None,
+                tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: krJPY.addr,
                 amountOut: 10_000e18,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        opsShort[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.SCDPTrade,
-            data: KrMulticall.Data({
+        opsShort[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SCDPTrade,
+            data: IKrMulticall.Data({
                 tokenIn: krJPY.addr,
                 amountIn: 10_000e18,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: address(kiss),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
                 path: "",
                 index: 0
@@ -502,37 +502,37 @@ contract MulticallTest is Localnet {
         });
         mc.execute(opsShort, redstoneCallData);
 
-        KrMulticall.Operation[] memory opsShortClose = new KrMulticall.Operation[](2);
+        IKrMulticall.Operation[] memory opsShortClose = new IKrMulticall.Operation[](2);
 
-        opsShortClose[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.SCDPTrade,
-            data: KrMulticall.Data({
+        opsShortClose[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SCDPTrade,
+            data: IKrMulticall.Data({
                 tokenIn: address(kiss),
                 amountIn: 66.7655e18,
-                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
                 tokenOut: krJPY.addr,
                 amountOut: 9930.1225e18,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        opsShortClose[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterRepay,
-            data: KrMulticall.Data({
+        opsShortClose[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterRepay,
+            data: IKrMulticall.Data({
                 tokenIn: krJPY.addr,
                 amountIn: 9930.1225e18,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        KrMulticall.Result[] memory results = mc.execute(opsShortClose, redstoneCallData);
+        IKrMulticall.Result[] memory results = mc.execute(opsShortClose, redstoneCallData);
 
         mockUSDC.asToken.balanceOf(user).eq(0, "usdc-balance");
         kresko.getAccountCollateralAmount(user, mockUSDC.addr).eq(9997520000, "usdc-deposit-amount");
@@ -554,127 +554,127 @@ contract MulticallTest is Localnet {
     }
 
     function testMulticallComplex() public {
-        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](9);
-        ops[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterBorrow,
-            data: KrMulticall.Data({
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](9);
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterBorrow,
+            data: IKrMulticall.Data({
                 tokenIn: address(0),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.None,
+                tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: krJPY.addr,
                 amountOut: 10000e18,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterBorrow,
-            data: KrMulticall.Data({
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterBorrow,
+            data: IKrMulticall.Data({
                 tokenIn: address(0),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.None,
+                tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: krJPY.addr,
                 amountOut: 10000e18,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[2] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterBorrow,
-            data: KrMulticall.Data({
+        ops[2] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterBorrow,
+            data: IKrMulticall.Data({
                 tokenIn: address(0),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.None,
+                tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: krJPY.addr,
                 amountOut: 10000e18,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[3] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterDeposit,
-            data: KrMulticall.Data({
+        ops[3] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: krJPY.addr,
                 amountIn: 10000e18,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalanceExactAmountIn,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalanceExactAmountIn,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[4] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterDeposit,
-            data: KrMulticall.Data({
+        ops[4] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: krJPY.addr,
                 amountIn: 10000e18,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalanceExactAmountIn,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalanceExactAmountIn,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[5] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterDeposit,
-            data: KrMulticall.Data({
+        ops[5] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: krJPY.addr,
                 amountIn: 10000e18,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalanceExactAmountIn,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalanceExactAmountIn,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[6] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterDeposit,
-            data: KrMulticall.Data({
+        ops[6] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterDeposit,
+            data: IKrMulticall.Data({
                 tokenIn: krJPY.addr,
                 amountIn: 10000e18,
-                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
                 tokenOut: address(0),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.None,
+                tokensOutMode: IKrMulticall.TokensOutMode.None,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[7] = KrMulticall.Operation({
-            action: KrMulticall.Action.MinterBorrow,
-            data: KrMulticall.Data({
+        ops[7] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.MinterBorrow,
+            data: IKrMulticall.Data({
                 tokenIn: address(0),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.None,
+                tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: krJPY.addr,
                 amountOut: 10000e18,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        ops[8] = KrMulticall.Operation({
-            action: KrMulticall.Action.SCDPTrade,
-            data: KrMulticall.Data({
+        ops[8] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SCDPTrade,
+            data: IKrMulticall.Data({
                 tokenIn: krJPY.addr,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 amountIn: 10000e18,
                 tokenOut: krETH.addr,
-                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
                 amountOut: 0,
                 amountOutMin: 0,
                 index: 0,
@@ -684,7 +684,7 @@ contract MulticallTest is Localnet {
 
         prank(getAddr(0));
         krJPY.asToken.approve(address(mc), type(uint256).max);
-        KrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
+        IKrMulticall.Result[] memory results = mc.execute(ops, redstoneCallData);
         for (uint256 i; i < results.length; i++) {
             results[i].tokenIn.clg("tokenIn");
             results[i].amountIn.clg("amountIn");

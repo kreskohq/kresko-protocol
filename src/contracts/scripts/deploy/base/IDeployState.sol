@@ -136,6 +136,18 @@ interface IDeployState {
         bool setTickerFeeds;
     }
 
+    struct ExtAssetCfg2 {
+        string ticker;
+        string symbol;
+        address token;
+        uint16 factor;
+        uint16 liqIncentive;
+        address[2] feeds;
+        Enums.OracleType[2] oracleType;
+        AssetType identity;
+        bool setTickerFeeds;
+    }
+
     struct ExtAssetInfo {
         address addr;
         string symbol;

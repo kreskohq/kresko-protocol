@@ -1,0 +1,41 @@
+{
+  "00_configId": "localhost",
+  "01_chainId": 1337,
+  "02_users": [0, 1, 2, 3],
+  "03_lowBalanceFactor": 10,
+  "04_highBalanceFactor": 10,
+  "05_external_balances": [
+    {
+      "00_addr": "WETH",
+      "01_balance": 5e18
+    },
+    {
+      "00_addr": "WBTC",
+      "01_balance": 10e8
+    },
+    {
+      "00_addr": "USDC",
+      "01_balance": 10000e6
+    },
+    {
+      "00_addr": "USDC.e",
+      "01_balance": 7500e6
+    },
+    {
+      "00_addr": "USDT",
+      "01_balance": 500e6
+    },
+    {
+      "00_addr": "DAI",
+      "01_balance": 2000e18
+    }
+  ],
+  "06_kiss_balance": 10000e18,
+  "07_kiss_scdp_deposits": 50000e8,
+  "08_krasset_mints": [
+    {
+      "00_addr": "krETH",
+      "01_amount": 1e18
+    }
+  ]
+}

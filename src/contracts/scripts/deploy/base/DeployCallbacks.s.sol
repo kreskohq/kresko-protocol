@@ -99,6 +99,7 @@ abstract contract BaseLogger is DeployCallbacks {
         ("/* ------------------------------ Kresko Asset ------------------------------ */").clg();
         _info.symbol.clg("Symbol");
         _info.addr.clg("Address");
+        address(_info.anchor).clg("Anchor");
 
         ("-------  Types --------").clg();
         _info.config.isMinterMintable.clg("Minter Mintable");

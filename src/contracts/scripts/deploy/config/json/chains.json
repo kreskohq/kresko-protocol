@@ -1,0 +1,107 @@
+{
+  "00_version": 1,
+  "01_configs": [
+    {
+      "00_configId": "localhost",
+      "01_chainId": 1337,
+      "02_common": {
+        "00_admin": "0xFcbB93547B7C1936fEbfe56b4cEeD9Ab66dA1857",
+        "01_council": "0x0000000000000000000000000000000000000000",
+        "02_treasury": "0x6cF4Fe1d046C26e3c2d9A1ED1Ee248aAda244ad2",
+        "03_maxPriceDeviationPct": 5e2,
+        "04_oracleDecimals": 8,
+        "05_sequencerGracePeriodTime": 3600,
+        "06_staleTime": 86401,
+        "07_sequencerUptimeFeed": "0x66B8d65720709E77207D39f180e60F81acB75286",
+        "08_gatingManager": "0x5486b21f3b1cc567A21781e6BA2102957dA259da"
+      },
+      "03_scdp": {
+        "00_minCollateralRatio": 250e2,
+        "01_liquidationThreshold": 150e2,
+        "03_sdiPricePrecision": 8,
+        "04_coverThreshold": 160e2,
+        "05_coverIncentive": 1.01e4
+      },
+      "04_minter": {
+        "00_liquidationThreshold": 140e2,
+        "01_minCollateralRatio": 150e2,
+        "02_minDebtValue": 10e8
+      },
+      "05_periphery": {
+        "00_officiallyKreskianNFT": "0x0000000000000000000000000000000000000000",
+        "01_questForKreskNFT": "0x0000000000000000000000000000000000000000",
+        "02_V3SwapRouter02": "0x0000000000000000000000000000000000000000",
+        "03_wrappedNative": "0x4af967bEa81384de529e403B14B655f4e8d5B19C"
+      },
+      "06_gatingPhase": 0
+    },
+    {
+      "00_configId": "arbitrumFork",
+      "01_chainId": 42161,
+      "02_common": {
+        "00_admin": "0x0000000000000000000000000000000000000000",
+        "01_council": "0x0000000000000000000000000000000000000000",
+        "02_treasury": "0x0000000000000000000000000000000000000000",
+        "03_maxPriceDeviationPct": 5e2,
+        "04_oracleDecimals": 8,
+        "05_sequencerGracePeriodTime": 3600,
+        "06_staleTime": 86401,
+        "07_sequencerUptimeFeed": "0x0000000000000000000000000000000000000000",
+        "08_gatingManager": "0x5486b21f3b1cc567A21781e6BA2102957dA259da"
+      },
+      "03_scdp": {
+        "00_minCollateralRatio": 250e2,
+        "01_liquidationThreshold": 150e2,
+        "03_sdiPricePrecision": 8,
+        "04_coverThreshold": 160e2,
+        "05_coverIncentive": 1.01e4
+      },
+      "04_minter": {
+        "00_liquidationThreshold": 140e2,
+        "01_minCollateralRatio": 150e2,
+        "02_minDebtValue": 10e8
+      },
+      "05_periphery": {
+        "00_officiallyKreskianNFT": "0x0000000000000000000000000000000000000000",
+        "01_questForKreskNFT": "0x0000000000000000000000000000000000000000",
+        "02_V3SwapRouter02": "0x0000000000000000000000000000000000000000",
+        "03_wrappedNative": "0x0000000000000000000000000000000000000000"
+      },
+      "06_gatingPhase": 0
+    },
+    {
+      "00_configId": "arbitrumSepolia",
+      "01_chainId": 421614,
+      "02_common": {
+        "00_admin": "0x0000000000000000000000000000000000000000",
+        "01_council": "0x0000000000000000000000000000000000000000",
+        "02_treasury": "0x0000000000000000000000000000000000000000",
+        "03_maxPriceDeviationPct": 5e2,
+        "04_oracleDecimals": 8,
+        "05_sequencerGracePeriodTime": 3600,
+        "06_staleTime": 86401,
+        "07_sequencerUptimeFeed": "0x0000000000000000000000000000000000000000",
+        "08_gatingManager": "0x0000000000000000000000000000000000000000"
+      },
+      "03_scdp": {
+        "00_minCollateralRatio": 250e2,
+        "01_liquidationThreshold": 150e2,
+        "03_sdiPricePrecision": 8,
+        "04_coverThreshold": 160e2,
+        "05_coverIncentive": 1.01e4
+      },
+      "04_minter": {
+        "00_liquidationThreshold": 140e2,
+        "01_minCollateralRatio": 150e2,
+        "02_minDebtValue": 10e8
+      },
+      "05_periphery": {
+        "00_officiallyKreskianNFT": "0x0000000000000000000000000000000000000000",
+        "01_questForKreskNFT": "0x0000000000000000000000000000000000000000",
+        "02_V3SwapRouter02": "0x0000000000000000000000000000000000000000",
+        "03_wrappedNative": "0x0000000000000000000000000000000000000000"
+      },
+      "06_gatingPhase": 0
+    }
+  ]
+}

@@ -319,7 +319,7 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
             KreskoAsset.initialize,
             (name, symbol, 18, admin, address(kresko), underlyingAddr, treasury, SYNTH_WRAP_FEE_IN, SYNTH_WRAP_FEE_OUT)
         );
-        (address predictedAddress, ) = factory.previewCreate2ProxyAndLogic(KR_ASSET_IMPL, KR_ASSET_INITIALIZER, krAssetSalt);
+        (address predictedAddress, ) = factory.previewCreate3ProxyAndLogic(krAssetSalt);
 
         bytes memory ANCHOR_IMPL = abi.encodePacked(type(KreskoAssetAnchor).creationCode, abi.encode(predictedAddress));
         bytes memory ANCHOR_INITIALIZER = abi.encodeCall(
@@ -328,8 +328,8 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         );
 
         bytes[] memory batch = new bytes[](2);
-        batch[0] = abi.encodeCall(factory.create2ProxyAndLogic, (KR_ASSET_IMPL, KR_ASSET_INITIALIZER, krAssetSalt));
-        batch[1] = abi.encodeCall(factory.create2ProxyAndLogic, (ANCHOR_IMPL, ANCHOR_INITIALIZER, anchorSalt));
+        batch[0] = abi.encodeCall(factory.create3ProxyAndLogic, (KR_ASSET_IMPL, KR_ASSET_INITIALIZER, krAssetSalt));
+        batch[1] = abi.encodeCall(factory.create3ProxyAndLogic, (ANCHOR_IMPL, ANCHOR_INITIALIZER, anchorSalt));
 
         Deployment[] memory proxies = factory.batch(batch).map(Conversions.toDeployment);
         result_.addr = address(proxies[0].proxy);
@@ -423,7 +423,9 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
     }
 
     function deployMockOracle(string memory symbol, uint256 price, uint8 decimals) internal returns (MockOracle) {
-        return new MockOracle(symbol, price, decimals);
+        bytes memory IMPL = abi.encodePacked(type(MockOracle).creationCode, abi.encode(symbol, price, decimals));
+        address oracle = factory.deployCreate3(IMPL, "", bytes32(bytes(string.concat(symbol, "feed")))).implementation;
+        return MockOracle(oracle);
     }
 
     function deployMockToken(
@@ -432,7 +434,9 @@ abstract contract NonDiamondDeployUtils is ConfigurationUtils {
         uint8 decimals,
         uint256 initialSupply
     ) internal returns (MockERC20) {
-        return new MockERC20(name, symbol, decimals, initialSupply);
+        bytes memory IMPL = abi.encodePacked(type(MockERC20).creationCode, abi.encode(name, symbol, decimals, initialSupply));
+        address token = factory.deployCreate3(IMPL, "", bytes32(bytes(symbol))).implementation;
+        return MockERC20(token);
     }
 
     function getAnchorSymbolAndName(

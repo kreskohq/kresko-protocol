@@ -26,14 +26,12 @@ abstract contract DeployLogicBase is DeployStateHandlers {
         kresko = super.deployDiamond(_cfg);
         kreskoAddr_ = address(kresko);
 
-        factory = super.deployDeploymentFactory(_cfg.admin);
-
         super.afterCoreCreated(kresko, factory);
     }
 
     function createVault(CoreConfig memory _cfg, address _kreskoAddr) internal returns (address vaultAddr_) {
         require(_kreskoAddr != address(0), "createVault: !kresko");
-        vkiss = new Vault("vKISS", "vKISS", 18, 8, _cfg.treasury, address(_cfg.seqFeed));
+        vkiss = new Vault("vKISS", "vKISS", 18, 8, _cfg.admin, _cfg.treasury, address(_cfg.seqFeed));
         super.afterVaultCreated(vkiss);
         return address(vkiss);
     }

@@ -103,7 +103,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         wbtc.mock.mint(user0, 1e8);
         dai.mock.mint(user2, 10000e18);
 
-        vkiss = new Vault("vKISS", "vKISS", 18, 8, deployCfg.treasury, deployCfg.seqFeed);
+        vkiss = new Vault("vKISS", "vKISS", 18, 8, deployCfg.admin, deployCfg.treasury, deployCfg.seqFeed);
         kiss = deployKISS(address(kresko), address(vkiss), deployCfg.admin).kiss;
 
         vkiss.addAsset(

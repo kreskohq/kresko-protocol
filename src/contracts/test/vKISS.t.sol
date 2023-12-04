@@ -48,7 +48,7 @@ contract vKISSTest is Test {
         vm.startPrank(user0);
 
         // Create a vault
-        vkiss = new Vault("vKISS", "vKISS", 18, 8, feeRecipient, address(new MockSequencerUptimeFeed()));
+        vkiss = new Vault("vKISS", "vKISS", 18, 8, user0, feeRecipient, address(new MockSequencerUptimeFeed()));
         vm.warp(3602);
 
         // tokens

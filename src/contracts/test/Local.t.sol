@@ -7,7 +7,7 @@ import {Test} from "forge-std/Test.sol";
 import {Log} from "kresko-lib/utils/Libs.sol";
 import {KISS} from "kiss/KISS.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {KrMulticall} from "periphery/KrMulticall.sol";
+import {IKrMulticall} from "periphery/KrMulticall.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {ArbitrumSepolia} from "scripts/deploy/run/ArbitrumSepolia.s.sol";
 import {IDataV1} from "../core/periphery/IDataV1.sol";
@@ -20,7 +20,7 @@ contract NewTest is ArbitrumSepolia, Test {
     address internal addr;
     uint256 internal value;
     bytes internal redstoneCallData;
-    KrMulticall internal multicall;
+    IKrMulticall internal multicall;
     IDataV1 internal dataV1;
     IERC20 usdc;
     IERC20 dai;
@@ -36,7 +36,7 @@ contract NewTest is ArbitrumSepolia, Test {
         kresko = IKresko(getDeployed(".Kresko"));
         kiss = KISS(getDeployed(".KISS"));
         vkiss = IVault(getDeployed(".Vault"));
-        multicall = KrMulticall(payable(getDeployed(".Multicall")));
+        multicall = IKrMulticall(payable(getDeployed(".Multicall")));
     }
 
     function testStuff() public {
@@ -54,30 +54,30 @@ contract NewTest is ArbitrumSepolia, Test {
         dai.balanceOf(getAddr(0)).clg("dai-bal-before");
 
         dai.approve(address(multicall), 1000e18);
-        KrMulticall.Operation[] memory ops = new KrMulticall.Operation[](2);
-        ops[0] = KrMulticall.Operation({
-            action: KrMulticall.Action.AMMExactInput,
-            data: KrMulticall.Data({
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.AMMExactInput,
+            data: IKrMulticall.Data({
                 tokenIn: address(dai),
                 amountIn: 1000e18,
-                tokensInMode: KrMulticall.TokensInMode.PullFromSender,
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
                 tokenOut: address(usdc),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.LeaveInContract,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
                 path: bytes.concat(bytes20(address(dai)), bytes3(uint24(100)), bytes20(address(usdc))),
                 index: 0
             })
         });
-        ops[1] = KrMulticall.Operation({
-            action: KrMulticall.Action.AMMExactInput,
-            data: KrMulticall.Data({
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.AMMExactInput,
+            data: IKrMulticall.Data({
                 tokenIn: address(usdc),
                 amountIn: 0,
-                tokensInMode: KrMulticall.TokensInMode.UseContractBalance,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: address(dai),
                 amountOut: 0,
-                tokensOutMode: KrMulticall.TokensOutMode.ReturnToSender,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
                 path: bytes.concat(bytes20(address(usdc)), bytes3(uint24(100)), bytes20(address(dai))),
                 index: 0

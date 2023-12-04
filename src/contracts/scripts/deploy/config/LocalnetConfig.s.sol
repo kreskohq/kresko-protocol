@@ -370,6 +370,47 @@ abstract contract LocalDeployConfig is ScriptBase, DeployLogicBase {
     function setupUsers(UserCfg[] memory _usersCfg, AssetsOnChain memory _assetsOnChain) internal virtual;
 }
 
+abstract contract LocalDeployConfigNew is ScriptBase, DeployLogicBase {
+    uint256 internal constant USER_COUNT = 6;
+    uint256 internal constant EXT_COUNT = 6;
+    uint32[USER_COUNT] testUsers = [0, 1, 2, 3, 4, 5];
+    using Help for *;
+
+    constructor(string memory _mnemonicId) ScriptBase(_mnemonicId) {}
+
+    function createUserConfig(uint32[USER_COUNT] memory _idxs) internal returns (UserCfg[] memory userCfg_) {
+        userCfg_ = new UserCfg[](USER_COUNT);
+
+        uint256[EXT_COUNT][] memory bals = new uint256[EXT_COUNT][](USER_COUNT);
+
+        bals[0] = [uint256(100 ether), 10e8, 10000e18, 10000e6, 10000e6, 15000e6]; // deployer
+        bals[1] = [uint256(0), 0, 0, 0, 0, 0]; // nothing
+        bals[2] = [uint256(100 ether), 10e8, 1e24, 1e12, 1e12, 2e12]; // a lot
+        bals[3] = [uint256(0.05 ether), 0.01e8, 50e18, 10e6, 5e6, 45e6]; // low
+        bals[4] = [uint256(2 ether), 0.05e8, 3000e18, 1000e6, 800e6, 750e6];
+        bals[5] = [uint256(2 ether), 0.05e8, 3000e18, 1000e6, 800e6, 750e6];
+
+        return createUserConfig(_idxs.dyn(), bals);
+    }
+
+    function createUserConfig(
+        uint32[] memory _idxs,
+        uint256[EXT_COUNT][] memory _bals
+    ) internal returns (UserCfg[] memory userCfg_) {
+        require(_idxs.length == _bals.length, "createUserConfig: idxs and bals length mismatch");
+        userCfg_ = new UserCfg[](_idxs.length);
+        unchecked {
+            for (uint256 i; i < _idxs.length; i++) {
+                address userAddr = getAddr(_idxs[i]);
+                vm.deal(userAddr, _bals[i][0] + 100 ether);
+                userCfg_[i] = UserCfg(userAddr, _bals[i].dyn());
+            }
+        }
+
+        super.afterUserConfig(userCfg_);
+    }
+}
+
 abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
     constructor(string memory _mnemonicId) LocalDeployConfig(_mnemonicId) {}
 
@@ -383,6 +424,59 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
     MockOracle internal mockFeedJPY;
     MockOracle internal mockFeedXAU;
     MockOracle internal mockFeedWTI;
+
+    function createAssetConfigNew(address _weth) internal returns (AssetCfg memory assetCfg_) {
+        WETH = IWETH9(_weth);
+        IERC20 WETH20 = IERC20(_weth);
+        Log.clg("Here");
+
+        // mockWBTC = super.deployMockTokenAndOracle(MockConfig("WBTC", price_btc, 8, 8, false));
+        // mockDAI = super.deployMockTokenAndOracle(MockConfig("DAI", price_dai, 18, 8, true));
+        // mockUSDC = super.deployMockTokenAndOracle(MockConfig("USDC", price_usdc, 6, 8, true));
+        // mockUSDCe = super.deployMockTokenAndOracle(MockConfig("USDC.e", price_usdc, 6, 8, true));
+        // mockUSDT = super.deployMockTokenAndOracle(MockConfig("USDT", price_usdt, 6, 8, true));
+
+        // mockFeedETH = new MockOracle("ETH", price_eth, 8);
+        // mockFeedEUR = new MockOracle("EUR", price_eur, 8);
+        // mockFeedJPY = new MockOracle("JPY", price_jpy, 8);
+        // mockFeedWTI = new MockOracle("WTI", price_wti, 8);
+        // mockFeedXAU = new MockOracle("JPY", price_xau, 8);
+
+        // feeds_eth = [address(0), address(mockFeedETH)];
+        // feeds_eur = [address(0), address(mockFeedEUR)];
+        // feeds_jpy = [address(0), address(mockFeedJPY)];
+        // feeds_xau = [address(0), address(mockFeedXAU)];
+        // feeds_wti = [address(0), address(mockFeedWTI)];
+        // feeds_btc = [address(0), mockWBTC.feedAddr];
+        // feeds_dai = [address(0), mockDAI.feedAddr];
+        // feeds_usdc = [address(0), mockUSDC.feedAddr];
+        // feeds_usdt = [address(0), mockUSDT.feedAddr];
+
+        // assetCfg_.ext = EXT_ASSET_CONFIG(
+        //     [WETH20, mockWBTC.asToken, mockDAI.asToken, mockUSDC.asToken, mockUSDT.asToken, mockUSDCe.asToken],
+        //     ["WETH", mockWBTC.symbol, mockDAI.symbol, mockUSDC.symbol, mockUSDT.symbol, mockUSDCe.symbol],
+        //     [feeds_eth, feeds_btc, feeds_dai, feeds_usdc, feeds_usdt, feeds_usdc]
+        // );
+        // assetCfg_.wethIndex = 0;
+
+        // assetCfg_.kra = KR_ASSET_CONFIG(
+        //     [address(WETH), mockWBTC.addr, address(0), address(0), address(0), address(0)],
+        //     [feeds_eth, feeds_btc, feeds_eur, feeds_jpy, feeds_xau, feeds_wti]
+        // );
+        // assetCfg_.vassets = VAULT_ASSET_CONFIG(
+        //     [mockDAI.asToken, mockUSDC.asToken, mockUSDT.asToken, mockUSDCe.asToken],
+        //     [mockDAI.feed, mockUSDC.feed, mockUSDT.feed, mockUSDCe.feed]
+        // );
+
+        // string[] memory vAssetSymbols = new string[](VAULT_COUNT);
+        // vAssetSymbols[0] = mockDAI.symbol;
+        // vAssetSymbols[1] = mockUSDC.symbol;
+        // vAssetSymbols[2] = mockUSDT.symbol;
+        // vAssetSymbols[3] = mockUSDCe.symbol;
+        // assetCfg_.vaultSymbols = vAssetSymbols;
+
+        super.afterAssetConfigs(assetCfg_);
+    }
 
     function createAssetConfig() internal override returns (AssetCfg memory assetCfg_) {
         WETH = IWETH9(address(new WETH9()));
@@ -434,6 +528,34 @@ abstract contract LocalDeployment is StdCheats, LocalDeployConfig {
         assetCfg_.vaultSymbols = vAssetSymbols;
 
         super.afterAssetConfigs(assetCfg_);
+    }
+
+    function createCoreConfigNew(
+        address _admin,
+        address _treasury,
+        address _seqFeed,
+        address _gatingManager
+    ) internal returns (CoreConfig memory cfg_) {
+        cfg_ = CoreConfig({
+            admin: _admin,
+            gatingManager: _gatingManager,
+            seqFeed: _seqFeed,
+            staleTime: 86401,
+            minterMcr: 150e2,
+            minterLt: 140e2,
+            coverThreshold: 160e2,
+            coverIncentive: 1.01e4,
+            scdpMcr: 200e2,
+            scdpLt: 150e2,
+            sdiPrecision: 8,
+            oraclePrecision: 8,
+            council: getMockSafe(_admin),
+            treasury: _treasury
+        });
+
+        deployCfg = cfg_;
+
+        super.afterCoreConfig(cfg_);
     }
 
     function createCoreConfig(

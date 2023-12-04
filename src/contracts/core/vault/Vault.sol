@@ -45,10 +45,11 @@ contract Vault is IVault, ERC20 {
         string memory _symbol,
         uint8 _decimals,
         uint8 _oracleDecimals,
+        address _governance,
         address _feeRecipient,
         address _sequencerUptimeFeed
     ) ERC20(_name, _symbol, _decimals) {
-        _config.governance = msg.sender;
+        _config.governance = _governance;
         _config.oracleDecimals = _oracleDecimals;
         _config.feeRecipient = _feeRecipient;
         _config.sequencerUptimeFeed = _sequencerUptimeFeed;

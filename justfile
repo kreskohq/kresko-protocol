@@ -30,7 +30,8 @@ hasPM2 := `pnpm list --global pm2 | grep -q '' && echo true || echo false`
 	echo "*** kresko: Finished installing dependencies"
 
 dry-local:
-	forge script src/contracts/scripts/deploy/run/Localnet.s.sol \
+	forge script src/contracts/scripts/deploy/run/Localnet.s.sol:LocalnetNew \
+	--sig $(cast calldata "run(string,uint32)" localhost 0) \
 	--with-gas-price 100000000 \
 	--skip-simulation \
 	--ffi \
