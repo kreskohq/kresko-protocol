@@ -106,6 +106,12 @@ library Deployed {
             uint256 balance = token.balanceOf(user);
             balance.dlg(token.symbol(), token.decimals());
         }
+        for (uint256 i; i < assetCfg.kreskoAssets.length; i++) {
+            JSON.KrAssetConfig memory krAsset = assetCfg.kreskoAssets[i];
+            IERC20 token = IERC20(tokenAddrRuntime(krAsset.symbol, assetCfg));
+            uint256 balance = token.balanceOf(user);
+            balance.dlg(token.symbol(), token.decimals());
+        }
         IERC20(kiss).balanceOf(user).dlg("KISS", 18);
     }
 

@@ -253,9 +253,16 @@ library JSON {
         bool useAdapter;
     }
 
-    struct UserAmountConfig {
+    struct BalanceConfig {
         string symbol;
         uint256 amount;
+    }
+
+    struct MinterUserConfig {
+        string depositSymbol;
+        uint256 collAmount;
+        string mintSymbol;
+        uint256 mintAmount;
     }
 
     struct TradeRouteConfig {
@@ -268,12 +275,10 @@ library JSON {
         string configId;
         uint256 chainId;
         uint32[] users;
-        uint256 lowBalanceFactor;
-        uint256 highBalanceFactor;
-        UserAmountConfig[] extAmounts;
+        BalanceConfig[] balances;
         uint256 kissAmount;
         uint256 kissDepositAmount;
-        UserAmountConfig[] mintAmounts;
+        MinterUserConfig[] minter;
     }
 }
 

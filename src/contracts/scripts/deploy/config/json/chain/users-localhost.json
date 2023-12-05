@@ -2,9 +2,7 @@
   "00_configId": "localhost",
   "01_chainId": 1337,
   "02_users": [0, 1, 2, 3],
-  "03_lowBalanceFactor": 10,
-  "04_highBalanceFactor": 10,
-  "05_external_balances": [
+  "03_external_balances": [
     {
       "00_addr": "WETH",
       "01_balance": 5e18
@@ -30,12 +28,20 @@
       "01_balance": 2000e18
     }
   ],
-  "06_kiss_balance": 10000e18,
-  "07_kiss_scdp_deposits": 50000e18,
-  "08_krasset_mints": [
+  "04_kiss_balance": 10000e18,
+  "05_kiss_scdp_deposits": 50000e18,
+  "06_minter": [
     {
-      "00_addr": "krETH",
-      "01_amount": 1e18
+      "00_deposit": "DAI",
+      "01_depositAmount": 15000e18,
+      "02_mint": "krETH",
+      "03_mintAmount": 3e18
+    },
+    {
+      "00_deposit": "DAI",
+      "01_depositAmount": 0,
+      "02_mint": "krJPY",
+      "03_mintAmount": 10000e18
     }
   ]
 }

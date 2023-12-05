@@ -7,6 +7,7 @@ import {IVault} from "vault/interfaces/IVault.sol";
 import {JSON} from "scripts/utils/libs/LibDeployConfig.s.sol";
 import {Deployed} from "scripts/utils/libs/Deployed.s.sol";
 import {MockERC1155} from "mocks/MockERC1155.sol";
+import {IKresko} from "periphery/IKresko.sol";
 
 library LibDeployUsers {
     bytes32 internal constant USERS_SLOT = keccak256("Users");
@@ -16,16 +17,59 @@ library LibDeployUsers {
         mapping(address => bool) users;
     }
 
-    function mockMint(address _account, JSON.UserConfig memory userCfg, JSON.Assets memory assetCfg) internal {
-        for (uint256 j; j < userCfg.extAmounts.length; j++) {
-            JSON.UserAmountConfig memory userAmount = userCfg.extAmounts[j];
-            MockERC20 token = MockERC20(Deployed.tokenAddrRuntime(userAmount.symbol, assetCfg));
+    function makeBalances(address _account, JSON.UserConfig memory userCfg, JSON.Assets memory assetCfg) internal {
+        for (uint256 j; j < userCfg.balances.length; j++) {
+            JSON.BalanceConfig memory cfg = userCfg.balances[j];
+            MockERC20 token = MockERC20(Deployed.tokenAddrRuntime(cfg.symbol, assetCfg));
             if (address(token) == address(assetCfg.nativeWrapper)) {
-                VM.deal(LibVm.sender(), userAmount.amount);
-                assetCfg.nativeWrapper.deposit{value: userAmount.amount}();
+                VM.deal(LibVm.sender(), cfg.amount);
+                assetCfg.nativeWrapper.deposit{value: cfg.amount}();
                 continue;
             }
-            token.mint(_account, userAmount.amount);
+            token.mint(_account, cfg.amount);
+        }
+    }
+
+    function makeMinter(
+        IKresko _kresko,
+        address _account,
+        JSON.UserConfig memory userCfg,
+        JSON.Assets memory assetCfg,
+        bytes memory _rsPayload
+    ) internal {
+        for (uint256 j; j < userCfg.minter.length; j++) {
+            JSON.MinterUserConfig memory cfg = userCfg.minter[j];
+
+            if (cfg.collAmount > 0) {
+                address collateral = Deployed.tokenAddrRuntime(cfg.depositSymbol, assetCfg);
+
+                MockERC20 collToken = MockERC20(collateral);
+                if (collateral == address(assetCfg.nativeWrapper)) {
+                    VM.deal(LibVm.sender(), cfg.collAmount);
+                    assetCfg.nativeWrapper.deposit{value: cfg.collAmount}();
+                } else {
+                    collToken.mint(_account, cfg.collAmount);
+                }
+
+                collToken.approve(address(_kresko), type(uint256).max);
+
+                _kresko.depositCollateral(_account, collateral, cfg.collAmount);
+            }
+
+            if (cfg.mintAmount == 0) continue;
+
+            (bool success, bytes memory data) = address(_kresko).call(
+                abi.encodePacked(
+                    abi.encodeCall(
+                        _kresko.mintKreskoAsset,
+                        (_account, Deployed.tokenAddrRuntime(cfg.mintSymbol, assetCfg), cfg.mintAmount, _account)
+                    ),
+                    _rsPayload
+                )
+            );
+            if (!success) {
+                revert(string(data));
+            }
         }
     }
 
