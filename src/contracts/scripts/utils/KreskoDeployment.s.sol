@@ -59,7 +59,7 @@ abstract contract KreskoDeployment is
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
 
-    JSON.ChainConfig internal deployCfg;
+    JSON.ChainConfig internal chainConfig;
     IKresko internal kresko;
     IKISS internal kiss;
     IVault internal vault;

@@ -20,6 +20,9 @@ contract MulticallTest is Localnet {
     using WadRay for *;
     using PercentageMath for *;
 
+    string internal rs_price_eth = "ETH:2000:8,";
+    string internal rs_prices_rest = "BTC:35159:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,XAU:1977:8,WTI:77.5:8,USDT:1:8,JPY:0.0067:8";
+
     bytes redstoneCallData;
     KrMulticall internal mc;
     DataV1 internal dataV1;
@@ -763,7 +766,7 @@ contract MulticallTest is Localnet {
 
     function _setETHPrice(uint256 _pushPrice) internal {
         mockFeedETH.setPrice(_pushPrice * 1e8);
-        price_eth_rs = ("ETH:").and(_pushPrice.str()).and(":8");
+        rs_price_eth = ("ETH:").and(_pushPrice.str()).and(":8,");
         _updateRsPrices();
     }
 
@@ -776,8 +779,7 @@ contract MulticallTest is Localnet {
     }
 
     function _updateRsPrices() internal {
-        rsPrices = createPriceString();
-        redstoneCallData = getRedstonePayload(rsPrices);
+        rsPrices = rs_price_eth.and(rs_prices_rest);
     }
 
     function _handleRevert(bytes memory data) internal pure {
