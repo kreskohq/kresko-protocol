@@ -85,8 +85,8 @@ library LibDeploy {
         state().deployments[LibConfig.VAULT_SALT] = deployment;
         state().vault = deployment.implementation;
 
-        Log.clg("Vault deployed");
-        Log.clg("address", address(deployment.implementation));
+        Log.hr();
+        Log.clg("Vault", address(deployment.implementation));
         return Vault(deployment.implementation);
     }
 
@@ -103,8 +103,8 @@ library LibDeploy {
         Deployment memory deployment = dataV1Impl.d3("", bytes32("DataV1"));
         state().deployments[bytes32("DataV1")] = deployment;
 
-        Log.clg("DataV1 deployed");
-        Log.clg("address", address(deployment.implementation));
+        Log.hr();
+        Log.clg("DataV1", address(deployment.implementation));
         return DataV1(deployment.implementation);
     }
 
@@ -121,8 +121,8 @@ library LibDeploy {
 
         state().deployments[bytes32("KrMulticall")] = deployment;
 
-        Log.clg("Multicall deployed");
-        Log.clg("address", address(deployment.implementation));
+        Log.hr();
+        Log.clg("Multicall", address(deployment.implementation));
         return KrMulticall(payable(deployment.implementation));
     }
 
@@ -238,6 +238,18 @@ library LibDeploy {
 
     function save() internal {
         state().outputJson = VM.serializeString("testing", state().currentKey, state().currentJson);
+    }
+
+    function saveChainConfig(JSON.Assets memory assets, JSON.ChainConfig memory cfg) internal {
+        for (uint256 i; i < assets.extAssets.length; i++) {
+            JSON.ExtAssetConfig memory ext = assets.extAssets[i];
+            init(ext.symbol);
+            setAddr("address", ext.addr);
+            save();
+        }
+        init("NativeWrapper");
+        setAddr("address", cfg.periphery.wrappedNative);
+        save();
     }
 
     bytes32 internal constant DEPLOY_STATE_SLOT = keccak256("DeployState");

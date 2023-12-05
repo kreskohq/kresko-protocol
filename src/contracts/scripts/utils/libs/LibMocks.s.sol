@@ -36,10 +36,7 @@ library LibMocks {
         }
     }
 
-    function createMocks(
-        address admin,
-        JSON.Assets memory cfg
-    ) internal returns (JSON.Assets memory, address seqFeed, address council) {
+    function createMocks(JSON.Assets memory cfg) internal returns (JSON.Assets memory, address seqFeed) {
         LibDeploy.init("NativeWrapper");
         address weth9 = LibDeploy.d3(type(WETH9).creationCode, "", bytes32("WETH9")).implementation;
         cfg.nativeWrapper = IWETH9(weth9);
@@ -66,7 +63,7 @@ library LibMocks {
             ticker.ticker.clg("Deployed mock oracle");
             cfg.tickers[i].chainlink.clg("address");
         }
-        return (cfg, address(deploySeqFeed()), address(deployMockSafe(admin)));
+        return (cfg, address(deploySeqFeed()));
     }
 
     function createNFTMocks() internal returns (address kreskian, address questForKresk) {

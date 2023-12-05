@@ -20,7 +20,7 @@ describe('Gating', () => {
       from: hre.users.deployer.address,
     })
     ;[this.GatingManager] = await hre.deploy('GatingManager', {
-      args: [this.nft.address, this.nft2.address, 1],
+      args: [hre.users.deployer.address, this.nft.address, this.nft2.address, 1],
       from: hre.users.deployer.address,
     })
     await hre.Diamond.setGatingManager(this.GatingManager.address)

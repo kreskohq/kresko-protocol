@@ -6,65 +6,53 @@ alias r := restart
 alias k := kill
 
 hasEnv := path_exists(absolute_path("./.env"))
-# hasFoundry := `forge --version` 
-# hasFoundry := `shell forge --version`
 hasPNPM := `pnpm --help | grep -q 'Version' && echo true || echo false`
 hasFoundry := `forge --version | grep -q 'forge' && echo true || echo false`
 hasPM2 := `pnpm list --global pm2 | grep -q '' && echo true || echo false`
 
-
-
-@setup:
-	just deps
-	just dry-local
-	pnpm hh:dry
-	echo "*** kresko: Setup complete!"
-
-@deps:
-	{{ if hasFoundry == "true" { "echo '***' kresko: foundry exists, skipping install.." } else { "echo '***' kresko: Installing foundry && curl -L https://foundry.paradigm.xyz | bash && foundryup" } }}
-	echo "*** kresko: Installing forge dependencies" && forge install && echo "*** kresko: Forge dependencies installed"
-	{{ if hasEnv == "true" { "echo '***' kresko: .env exists, skipping copy.." } else { "echo '***' kresko: Copying .env.example to .env && cp .env.example .env" } }}
-	{{ if hasPNPM == "true" { "echo '***' kresko: pnpm exist, skipping install.." } else { "echo '***' kresko: Installing pnpm && npm i -g pnpm" } }}
-	echo "*** kresko: Installing node dependencies..." && pnpm i && echo "*** kresko: Node dependencies installed"
-	{{ if hasPM2 == "true" { "echo '***' kresko: PM2 exists, skipping install.." } else { "echo '***' kresko: Installing PM2 && pnpm i -g pm2 && echo '***' kresko: PM2 installed" } }}
-	echo "*** kresko: Finished installing dependencies"
-
 dry-local:
 	forge script src/contracts/scripts/deploy/run/Deploy.s.sol:Deploy \
-	--sig $(cast calldata "run(string,uint32,bool)" localhost 0 true) \
+	--sig $(cast calldata "run(string,uint32,bool,string)" localhost 0 true '') \
 	--with-gas-price 100000000 \
 	--skip-simulation \
 	--ffi \
 	-vvv
 
+deploy-local:
+	sleep 3
+	--sig $(cast calldata "run(string,uint32,bool,string)" localhost 0 true '') \
+	--mnemonics "$MNEMONIC_DEVNET" \
+	--fork-url "$RPC_LOCAL" \
+	--broadcast \
+	--ffi \
+	-vvv
 
 dry-arbitrum:
-	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
-	--with-gas-price 100000000 \
+	forge script src/contracts/scripts/deploy/run/Deploy.s.sol:Deploy \
+	--sig $(cast calldata "run(string,uint32,bool,string)" arbitrumFork 0 true arb-fork-users) \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
-	--skip-simulation \
-	--evm-version "paris" \
-	--ffi \
-	-vvv
-
-dry-arbitrum-sepolia:
-	forge script src/contracts/scripts/deploy/run/ArbitrumSepolia.s.sol \
 	--with-gas-price 100000000 \
-	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
 	--evm-version "paris" \
+	--skip-simulation \
 	--ffi \
 	-vvv
 
-# deploy-arbitrum-sepolia:
-# 	forge script src/contracts/scripts/deploy/run/ArbitrumSepolia.s.sol \
-# 	--mnemonics "$MNEMONIC_DEVNET" \
-# 	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
-# 	--evm-version "paris" \
-# 	--broadcast \
-# 	--with-gas-price 200000000 \
-# 	--ffi \
-# 	--resume \
-# 	-vvv
+deploy-arbitrum:
+	forge script src/contracts/scripts/deploy/run/Deploy.s.sol:Deploy \
+	--sig $(cast calldata "run(string,uint32,bool,string)" arbitrumFork 0 true arb-fork-users) \
+	--fork-url "$RPC_LOCAL" \
+	--with-gas-price 100000000 \
+	--evm-version "paris" \
+	--non-interactive \
+	--broadcast \
+	--ffi \
+	-vvv
+
+arb-fork-users: 
+	just arb-bal-nfts && \
+	just arb-bal-stables && \
+	just arb-bal-wbtc
+
 
 local:
 	pm2 ping
@@ -72,7 +60,7 @@ local:
 	@echo "/*                                 LAUNCHING                                  */"
 	@echo "/* -------------------------------------------------------------------------- */"
 	pm2 start utils/pm2.config.js --only anvil-local
-	pm2 start utils/pm2.config.js --only setup-local
+	pm2 start utils/pm2.config.js --only deploy-local
 	pm2 save
 	@echo "/* -------------------------------------------------------------------------- */"
 	@echo "/*                                  LAUNCHED                                  */"
@@ -85,7 +73,7 @@ arbitrum:
 	@echo "/* -------------------------------------------------------------------------- */"
 	pm2 start utils/pm2.config.js --only anvil-fork
 	sleep 5
-	pm2 start utils/pm2.config.js --only setup-arbitrum
+	pm2 start utils/pm2.config.js --only deploy-arbitrum
 	pm2 save
 	@echo "/* -------------------------------------------------------------------------- */"
 	@echo "/*                                  LAUNCHED                                  */"
@@ -99,38 +87,8 @@ kill:
 restart:
 	pm2 restart all --update-env
 
-deploy-local:
-	sleep 3
-	forge script src/contracts/scripts/deploy/run/Localnet.s.sol \
-	--mnemonics "$MNEMONIC_DEVNET" \
-	--fork-url "$RPC_LOCAL" \
-	--broadcast \
-	--ffi \
-	-vvv
-
-setup-arbitrum: 
-	just deploy-arbitrum && \
-	just arb-users
-
-arb-users: 
-	just arb-bal-nfts && \
-	just arb-bal-stables && \
-	just arb-bal-wbtc && \
-	just arb-setup-users
-
-deploy-arbitrum:
-	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
-	--mnemonics "$MNEMONIC_DEVNET" \
-	--non-interactive \
-	--fork-url "$RPC_LOCAL" \
-	--evm-version "paris" \
-	--broadcast \
-	--with-gas-price 100000000 \
-	--ffi \
-	-vvv
-
 arb-bal-stables:
-	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
+	forge script src/contracts/scripts/deploy/run/Impersonated.s.sol \
 	--sig "setupStables()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--sender "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D" \
@@ -141,7 +99,7 @@ arb-bal-stables:
 	-vvv
 
 arb-bal-wbtc:
-	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
+	forge script src/contracts/scripts/deploy/run/Impersonated.s.sol \
 	--sig "setupWBTC()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--sender "0x4bb7f4c3d47C4b431cb0658F44287d52006fb506" \
@@ -152,20 +110,11 @@ arb-bal-wbtc:
 	-vvv
 
 arb-bal-nfts:
-	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
+	forge script src/contracts/scripts/deploy/run/Impersonated.s.sol \
 	--sig "setupNFTs()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--sender "0x99999A0B66AF30f6FEf832938a5038644a72180a" \
 	--unlocked \
-	--fork-url "$RPC_LOCAL" \
-	--broadcast \
-	--ffi \
-	-vvv
-
-arb-setup-users:
-	forge script src/contracts/scripts/deploy/run/ArbitrumFork.s.sol \
-	--sig "createUsers()" \
-	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \
 	--broadcast \
 	--ffi \
@@ -216,3 +165,18 @@ verify-arbitrum-sepolia:
 	--ffi \
 	-vvv
 
+
+@setup:
+	just deps
+	just dry-local
+	pnpm hh:dry
+	echo "*** kresko: Setup complete!"
+
+@deps:
+	{{ if hasFoundry == "true" { "echo '***' kresko: foundry exists, skipping install.." } else { "echo '***' kresko: Installing foundry && curl -L https://foundry.paradigm.xyz | bash && foundryup" } }}
+	echo "*** kresko: Installing forge dependencies" && forge install && echo "*** kresko: Forge dependencies installed"
+	{{ if hasEnv == "true" { "echo '***' kresko: .env exists, skipping copy.." } else { "echo '***' kresko: Copying .env.example to .env && cp .env.example .env" } }}
+	{{ if hasPNPM == "true" { "echo '***' kresko: pnpm exist, skipping install.." } else { "echo '***' kresko: Installing pnpm && npm i -g pnpm" } }}
+	echo "*** kresko: Installing node dependencies..." && pnpm i && echo "*** kresko: Node dependencies installed"
+	{{ if hasPM2 == "true" { "echo '***' kresko: PM2 exists, skipping install.." } else { "echo '***' kresko: Installing PM2 && pnpm i -g pm2 && echo '***' kresko: PM2 installed" } }}
+	echo "*** kresko: Finished installing dependencies"

@@ -73,6 +73,7 @@ task(TASK_DEPLOY_VAULT)
       'vKISS',
       18,
       8,
+      hre.users.deployer.address,
       treasury,
       SequencerFeed.address,
     ]
