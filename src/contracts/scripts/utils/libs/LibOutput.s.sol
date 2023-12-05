@@ -81,7 +81,7 @@ library LibOutput {
         string[] memory args = new string[](5);
         args[0] = "node";
         args[1] = SCRIPT_LOCATION;
-        args[2] = "getLatestDeployment";
+        args[2] = "getDeployment";
         args[3] = name;
         args[4] = chainId.str();
 

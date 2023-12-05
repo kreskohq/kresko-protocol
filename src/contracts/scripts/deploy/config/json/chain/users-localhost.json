@@ -31,7 +31,7 @@
     }
   ],
   "06_kiss_balance": 10000e18,
-  "07_kiss_scdp_deposits": 50000e8,
+  "07_kiss_scdp_deposits": 50000e18,
   "08_krasset_mints": [
     {
       "00_addr": "krETH",

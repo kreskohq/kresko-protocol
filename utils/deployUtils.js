@@ -12,17 +12,31 @@ const error = str => {
   process.exit(1)
 }
 
-const getLatestDeployment = () => {
+const getLatestBroadcastedDeployment = () => {
   const name = process.argv[3]
   const chainId = process.argv[4]
-  const deployments = findDeployments(name, chainId)
+  const deployments = findBroadcasted(name, chainId)
   if (!deployments.length) {
     error(`No deployment found for ${name} on chain ${chainId}`)
   }
   return deployments.sort((a, b) => Number(a.transaction.nonce) - Number(b.transaction.nonce)).pop().contractAddress
 }
 
-const findDeployments = (name, chainId) => {
+const getDeployment = () => {
+  const name = process.argv[3]
+  const chainId = process.argv[4]
+  const files = glob.sync(`${root}/deploy/${chainId}/*-latest.json`)
+  for (const file of files) {
+    const data = require(file)
+    if (!data || !Object.keys(data).length) continue
+    const keys = Object.keys(data)
+    const key = keys.find(k => k.toLowerCase() === name.toLowerCase())
+    if (!key) continue
+    return data[key].address
+  }
+}
+
+const findBroadcasted = (name, chainId) => {
   const results = []
   const files = glob.sync(`${root}/broadcast/**/${chainId}/*-latest.json`)
 
@@ -47,7 +61,8 @@ const findDeployments = (name, chainId) => {
 }
 
 const commands = {
-  getLatestDeployment,
+  getLatestBroadcastedDeployment,
+  getDeployment,
 }
 
 const command = process.argv[2]
