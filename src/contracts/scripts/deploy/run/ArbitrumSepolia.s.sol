@@ -29,7 +29,7 @@ contract ArbitrumSepolia is ArbitrumSepoliaDeployment("MNEMONIC_DEVNET") {
         address treasury
     ) internal broadcastWithAddr(deployer) returns (AssetsOnChain memory assets_) {
         // create configurations
-        state().gatingManager = new GatingManager(ArbSepolia.OFFICIALLY_KRESKIAN, ArbSepolia.QUEST_FOR_KRESK, 0);
+        state().gatingManager = new GatingManager(deployer, ArbSepolia.OFFICIALLY_KRESKIAN, ArbSepolia.QUEST_FOR_KRESK, 0);
         AssetCfg memory assetCfg = super.createAssetConfig();
         CoreConfig memory coreCfg = super.createCoreConfig(admin, treasury, address(state().gatingManager));
 

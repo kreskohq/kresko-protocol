@@ -43,6 +43,7 @@ import {JSON} from "scripts/utils/libs/LibConfig.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IKrMulticall} from "periphery/IKrMulticall.sol";
 import {IDataV1} from "../../core/periphery/IDataV1.sol";
+import {IGatingManager} from "periphery/IGatingManager.sol";
 
 abstract contract KreskoDeployment is
     RedstoneScript("./utils/getRedstonePayload.js"),
@@ -62,6 +63,7 @@ abstract contract KreskoDeployment is
     IVault internal vault;
     IDeploymentFactory internal factory;
     IKrMulticall internal multicall;
+    IGatingManager internal gatingManager;
     IDataV1 internal dataV1;
 
     function deployDiamond(JSON.ChainConfig memory _cfg) internal returns (IKresko kresko_) {

@@ -8,6 +8,7 @@
 .coverage_cache/
 .coverage_contracts/
 dist/
+deploy/
 src/contracts/scripts/locals/
 src/contracts/test/locals/
 coverage/

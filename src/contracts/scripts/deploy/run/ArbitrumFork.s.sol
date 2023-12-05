@@ -30,7 +30,7 @@ contract ArbitrumFork is ArbitrumDeployment("MNEMONIC_DEVNET") {
     ) internal broadcastWithAddr(deployer) returns (AssetsOnChain memory assets_) {
         factory = super.deployDeploymentFactory(admin);
         // create configurations
-        state().gatingManager = new GatingManager(Addr.OFFICIALLY_KRESKIAN, Addr.QUEST_FOR_KRESK, 0);
+        state().gatingManager = new GatingManager(deployer, Addr.OFFICIALLY_KRESKIAN, Addr.QUEST_FOR_KRESK, 0);
         AssetCfg memory assetCfg = super.createAssetConfig();
         CoreConfig memory coreCfg = super.createCoreConfig(admin, treasury, address(state().gatingManager));
 

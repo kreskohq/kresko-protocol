@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 import {MockOracle} from "mocks/MockOracle.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
-import {Deployment, IDeploymentFactory} from "factory/IDeploymentFactory.sol";
+import {Deployment} from "factory/IDeploymentFactory.sol";
 import {LibDeploy} from "scripts/utils/libs/LibDeploy.s.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {JSON, LibConfig} from "scripts/utils/libs/LibConfig.s.sol";
@@ -14,6 +14,8 @@ import {MockERC1155} from "mocks/MockERC1155.sol";
 
 library LibMocks {
     using Log for *;
+    using LibDeploy for bytes;
+    using LibDeploy for bytes32;
     bytes32 internal constant MOCKS_SLOT = keccak256("Mocks");
 
     bytes32 internal constant SEQ_FEED_SALT = bytes32("SEQ_FEED");
@@ -38,11 +40,12 @@ library LibMocks {
         address admin,
         JSON.Assets memory cfg
     ) internal returns (JSON.Assets memory, address seqFeed, address council) {
-        address weth9 = LibDeploy.state().factory.deployCreate3(type(WETH9).creationCode, "", bytes32("WETH9")).implementation;
+        LibDeploy.init("NativeWrapper");
+        address weth9 = LibDeploy.d3(type(WETH9).creationCode, "", bytes32("WETH9")).implementation;
         cfg.nativeWrapper = IWETH9(weth9);
-
         ("Deployed mock WETH").clg();
         weth9.clg("address");
+        LibDeploy.save();
 
         for (uint256 i; i < cfg.extAssets.length; i++) {
             JSON.ExtAssetConfig memory ext = cfg.extAssets[i];
@@ -86,16 +89,15 @@ library LibMocks {
             )
         );
 
-        Deployment memory deployment = LibDeploy.state().factory.deployCreate3(
-            implementation,
-            "",
-            bytes32("Officially Kreskian")
-        );
-        Deployment memory deployment2 = LibDeploy.state().factory.deployCreate3(
-            implementation2,
-            "",
-            bytes32("Quest for Kresk")
-        );
+        string memory nft1 = "Officially Kreskian";
+        string memory nft2 = "Quest for Kresk";
+
+        LibDeploy.init(nft1);
+        Deployment memory deployment = implementation.d3("", bytes32(bytes(nft1)));
+        LibDeploy.save();
+        LibDeploy.init(nft2);
+        Deployment memory deployment2 = implementation2.d3("", bytes32(bytes(nft2)));
+        LibDeploy.save();
 
         state().deployment[bytes32("Officially Kreskian")] = deployment;
         state().deployment[bytes32("Quest for Kresk")] = deployment2;
@@ -104,16 +106,14 @@ library LibMocks {
     }
 
     function deployMockOracle(string memory ticker, uint256 price, uint8 decimals) internal returns (MockOracle) {
-        bytes memory implementation = abi.encodePacked(type(MockOracle).creationCode, abi.encode(ticker, price, decimals));
-        Deployment memory deployment = LibDeploy.state().factory.deployCreate3(
-            implementation,
-            "",
-            LibConfig.feedBytesId(ticker)
-        );
+        LibDeploy.init(LibConfig.feedStringId(ticker));
+        bytes memory implementation = type(MockOracle).creationCode.ctor(abi.encode(ticker, price, decimals));
+        Deployment memory deployment = implementation.d3("", LibConfig.feedBytesId(ticker));
         MockOracle result = MockOracle(deployment.implementation);
 
         state().deployment[deployment.salt] = deployment;
         state().feed[ticker] = result;
+        LibDeploy.save();
         return result;
     }
 
@@ -123,32 +123,32 @@ library LibMocks {
         uint8 decimals,
         uint256 initialSupply
     ) internal returns (MockERC20) {
-        bytes memory implementation = abi.encodePacked(
-            type(MockERC20).creationCode,
-            abi.encode(name, symbol, decimals, initialSupply)
-        );
-        Deployment memory deployment = LibDeploy.state().factory.deployCreate3(implementation, "", mockTokenSalt(symbol));
+        LibDeploy.init(symbol);
+        bytes memory implementation = type(MockERC20).creationCode.ctor(abi.encode(name, symbol, decimals, initialSupply));
+        Deployment memory deployment = implementation.d3("", mockTokenSalt(symbol));
         MockERC20 result = MockERC20(deployment.implementation);
 
         state().deployment[deployment.salt] = deployment;
         state().tokens[symbol] = result;
+        LibDeploy.save();
         return result;
     }
 
     function deploySeqFeed() internal returns (MockSequencerUptimeFeed result) {
-        Deployment memory deployment = LibDeploy.state().factory.deployCreate3(
-            type(MockSequencerUptimeFeed).creationCode,
-            "",
-            SEQ_FEED_SALT
-        );
+        LibDeploy.init("SeqFeed");
+        Deployment memory deployment = type(MockSequencerUptimeFeed).creationCode.d3("", SEQ_FEED_SALT);
         state().deployment[deployment.salt] = deployment;
         state().seqFeed = deployment.implementation;
         result = MockSequencerUptimeFeed(deployment.implementation);
         result.setAnswers(0, 1699456910, 1699456910);
+        LibDeploy.save();
     }
 
-    function deployMockSafe(address admin) internal returns (address) {
-        return (state().mockSafe = address(LibSafe.createSafe(admin)));
+    function deployMockSafe(address admin) internal returns (address result) {
+        LibDeploy.init("council");
+        result = (state().mockSafe = address(LibSafe.createSafe(admin)));
+        LibDeploy.setAddr("address", result);
+        LibDeploy.save();
     }
 
     function mockTokenSalt(string memory symbol) internal pure returns (bytes32) {

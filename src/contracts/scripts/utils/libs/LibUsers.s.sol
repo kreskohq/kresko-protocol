@@ -16,10 +16,10 @@ library LibUsers {
         mapping(address => bool) users;
     }
 
-    function mockMint(address _account, address factory, JSON.UserConfig memory userCfg, JSON.Assets memory assetCfg) internal {
+    function mockMint(address _account, JSON.UserConfig memory userCfg, JSON.Assets memory assetCfg) internal {
         for (uint256 j; j < userCfg.extAmounts.length; j++) {
             JSON.UserAmountConfig memory userAmount = userCfg.extAmounts[j];
-            MockERC20 token = MockERC20(LibOutput.findAddress(factory, userAmount.symbol, assetCfg));
+            MockERC20 token = MockERC20(LibOutput.findAddress(userAmount.symbol, assetCfg));
             if (address(token) == address(assetCfg.nativeWrapper)) {
                 VM.deal(LibVm.sender(), userAmount.amount);
                 assetCfg.nativeWrapper.deposit{value: userAmount.amount}();
