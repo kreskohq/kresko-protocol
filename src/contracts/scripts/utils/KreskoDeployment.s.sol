@@ -44,6 +44,7 @@ import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IKrMulticall} from "periphery/IKrMulticall.sol";
 import {IDataV1} from "../../core/periphery/IDataV1.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
+import {LibDeploy} from "scripts/utils/libs/LibDeploy.s.sol";
 
 abstract contract KreskoDeployment is
     RedstoneScript("./utils/getRedstonePayload.js"),
@@ -51,9 +52,12 @@ abstract contract KreskoDeployment is
 {
     uint256 internal constant FACET_COUNT = 23;
     uint256 internal constant INITIALIZER_COUNT = 3;
+    bytes32 internal constant DIAMOND_SALT = bytes32("KRESKO");
 
     bytes internal rsPayload;
     string internal rsPrices;
+    using LibDeploy for bytes;
+    using LibDeploy for bytes32;
 
     JSON.ChainConfig internal deployCfg;
     IKresko internal kresko;
@@ -64,7 +68,8 @@ abstract contract KreskoDeployment is
     IGatingManager internal gatingManager;
     IDataV1 internal dataV1;
 
-    function deployDiamond(JSON.ChainConfig memory _cfg) internal returns (IKresko kresko_) {
+    function deployDiamond(JSON.ChainConfig memory _cfg) internal returns (IKresko) {
+        require(address(LibDeploy.state().factory) != address(0), "KreskoForgeBase: No factory");
         FacetCut[] memory facets = new FacetCut[](FACET_COUNT);
         Initializer[] memory initializers = new Initializer[](FACET_COUNT);
         /* --------------------------------- Diamond -------------------------------- */
@@ -78,8 +83,16 @@ abstract contract KreskoDeployment is
         /* ---------------------------- Periphery --------------------------- */
         peripheryFacets(facets);
 
-        (kresko_ = IKresko(address(new Diamond(_cfg.common.admin, facets, initializers))));
-        __current_kresko = address(kresko_); // @note mandatory
+        LibDeploy.init("Kresko");
+        bytes memory implementation = LibDeploy.ctor(
+            type(Diamond).creationCode,
+            abi.encode(_cfg.common.admin, facets, initializers)
+        );
+        kresko = IKresko(implementation.d3("", DIAMOND_SALT).implementation);
+        __current_kresko = address(kresko); // @note mandatory
+        LibDeploy.save();
+
+        return kresko;
     }
 
     function diamondFacets(FacetCut[] memory _facets) internal returns (Initializer memory) {

@@ -198,18 +198,18 @@ library LibDeploy {
         return state().factory.previewCreate3ProxyAndLogic(salt);
     }
 
-    function ctor(bytes memory bc, bytes memory args) internal returns (bytes memory) {
+    function ctor(bytes memory bcode, bytes memory args) internal returns (bytes memory ccode) {
         state().currentJson = VM.serializeBytes(state().currentKey, "ctor", args);
-        return abi.encodePacked(bc, args);
+        return abi.encodePacked(bcode, args);
     }
 
-    function d3(bytes memory bc, bytes memory d, bytes32 s) internal returns (Deployment memory result) {
-        result = state().factory.deployCreate3(bc, d, s);
+    function d3(bytes memory ccode, bytes memory d, bytes32 s) internal returns (Deployment memory result) {
+        result = state().factory.deployCreate3(ccode, d, s);
         setAddr("address", result.implementation);
     }
 
-    function p3(bytes memory bc, bytes memory d, bytes32 s) internal returns (Deployment memory result) {
-        result = state().factory.create3ProxyAndLogic(bc, d, s);
+    function p3(bytes memory ccode, bytes memory d, bytes32 s) internal returns (Deployment memory result) {
+        result = state().factory.create3ProxyAndLogic(ccode, d, s);
         setAddr("address", address(result.proxy));
         setAddr("implementation", result.implementation);
     }
