@@ -39,7 +39,7 @@ import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
 
 import {DataFacet} from "periphery/facets/DataFacet.sol";
 import {vm} from "kresko-lib/utils/IMinimalVM.sol";
-import {JSON} from "scripts/utils/libs/LibConfig.s.sol";
+import {JSON} from "scripts/utils/libs/LibDeployConfig.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IKrMulticall} from "periphery/IKrMulticall.sol";
 import {IDataV1} from "../../core/periphery/IDataV1.sol";
@@ -51,8 +51,6 @@ abstract contract KreskoDeployment is
 {
     uint256 internal constant FACET_COUNT = 23;
     uint256 internal constant INITIALIZER_COUNT = 3;
-    address internal constant TEST_ADMIN = address(0xABABAB);
-    address public constant TEST_TREASURY = address(0xFEE);
 
     bytes internal rsPayload;
     string internal rsPrices;

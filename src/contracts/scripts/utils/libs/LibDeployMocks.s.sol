@@ -5,15 +5,13 @@ import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployment} from "factory/IDeploymentFactory.sol";
 import {LibDeploy} from "scripts/utils/libs/LibDeploy.s.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
-import {JSON, LibConfig} from "scripts/utils/libs/LibConfig.s.sol";
+import {JSON, LibDeployConfig} from "scripts/utils/libs/LibDeployConfig.s.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
-import {Log} from "kresko-lib/utils/Libs.sol";
 import {LibSafe} from "kresko-lib/mocks/MockSafe.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {MockERC1155} from "mocks/MockERC1155.sol";
 
-library LibMocks {
-    using Log for *;
+library LibDeployMocks {
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
     bytes32 internal constant MOCKS_SLOT = keccak256("Mocks");
@@ -40,8 +38,6 @@ library LibMocks {
         LibDeploy.init("NativeWrapper");
         address weth9 = LibDeploy.d3(type(WETH9).creationCode, "", bytes32("WETH9")).implementation;
         cfg.nativeWrapper = IWETH9(weth9);
-        ("Deployed mock WETH").clg();
-        weth9.clg("address");
         LibDeploy.save();
 
         for (uint256 i; i < cfg.extAssets.length; i++) {
@@ -51,17 +47,12 @@ library LibMocks {
             }
 
             cfg.extAssets[i].addr = address(deployMockToken(ext.symbol, ext.symbol, ext.config.decimals, 0));
-
-            ext.symbol.clg("Deployed mock token");
-            cfg.extAssets[i].addr.clg("address");
         }
 
         for (uint256 i; i < cfg.tickers.length; i++) {
             JSON.TickerConfig memory ticker = cfg.tickers[i];
             if (address(ticker.vault) != address(0)) continue;
             cfg.tickers[i].chainlink = address(deployMockOracle(ticker.ticker, ticker.mockPrice, ticker.priceDecimals));
-            ticker.ticker.clg("Deployed mock oracle");
-            cfg.tickers[i].chainlink.clg("address");
         }
         return (cfg, address(deploySeqFeed()));
     }
@@ -103,9 +94,9 @@ library LibMocks {
     }
 
     function deployMockOracle(string memory ticker, uint256 price, uint8 decimals) internal returns (MockOracle) {
-        LibDeploy.init(LibConfig.feedStringId(ticker));
+        LibDeploy.init(LibDeployConfig.feedStringId(ticker));
         bytes memory implementation = type(MockOracle).creationCode.ctor(abi.encode(ticker, price, decimals));
-        Deployment memory deployment = implementation.d3("", LibConfig.feedBytesId(ticker));
+        Deployment memory deployment = implementation.d3("", LibDeployConfig.feedBytesId(ticker));
         MockOracle result = MockOracle(deployment.implementation);
 
         state().deployment[deployment.salt] = deployment;

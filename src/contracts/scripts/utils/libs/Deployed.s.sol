@@ -6,19 +6,19 @@ import {IKresko} from "periphery/IKresko.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {JSON, LibConfig} from "scripts/utils/libs/LibConfig.s.sol";
+import {JSON, LibDeployConfig} from "scripts/utils/libs/LibDeployConfig.s.sol";
 import {vm} from "kresko-lib/utils/IMinimalVM.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {LibDeploy} from "scripts/utils/libs/LibDeploy.s.sol";
 
-library LibOutput {
+library Deployed {
     using Log for *;
     using Help for *;
     using LibDeploy for address;
 
     string internal constant SCRIPT_LOCATION = "utils/deployUtils.js";
 
-    function findAddress(string memory symbol, JSON.Assets memory _assetCfg) internal view returns (address) {
+    function tokenAddrRuntime(string memory symbol, JSON.Assets memory _assetCfg) internal view returns (address) {
         for (uint256 i; i < _assetCfg.extAssets.length; i++) {
             if (_assetCfg.extAssets[i].symbol.equals(symbol)) {
                 return _assetCfg.extAssets[i].addr;
@@ -27,7 +27,7 @@ library LibOutput {
 
         for (uint256 i; i < _assetCfg.kreskoAssets.length; i++) {
             if (_assetCfg.kreskoAssets[i].symbol.equals(symbol)) {
-                return LibDeploy.pd3(LibConfig.getKrAssetMetadata(_assetCfg.kreskoAssets[i]).krAssetSalt);
+                return LibDeploy.pd3(LibDeployConfig.getKrAssetMetadata(_assetCfg.kreskoAssets[i]).krAssetSalt);
             }
         }
 
@@ -42,16 +42,16 @@ library LibOutput {
     ) internal {
         for (uint256 i; i < cfg.kreskoAssets.length; i++) {
             JSON.KrAssetConfig memory krAsset = cfg.kreskoAssets[i];
-            address assetIn = findAddress(krAsset.symbol, cfg);
-            bytes32 kissPairId = LibConfig.pairId(kiss, assetIn);
+            address assetIn = tokenAddrRuntime(krAsset.symbol, cfg);
+            bytes32 kissPairId = LibDeployConfig.pairId(kiss, assetIn);
             if (!routesAdded[kissPairId]) {
                 routesAdded[kissPairId] = true;
                 routes.push(SwapRouteSetter({assetIn: kiss, assetOut: assetIn, enabled: true}));
             }
             for (uint256 j; j < cfg.kreskoAssets.length; j++) {
-                address assetOut = findAddress(cfg.kreskoAssets[j].symbol, cfg);
+                address assetOut = tokenAddrRuntime(cfg.kreskoAssets[j].symbol, cfg);
                 if (assetIn == assetOut) continue;
-                bytes32 pairId = LibConfig.pairId(assetIn, assetOut);
+                bytes32 pairId = LibDeployConfig.pairId(assetIn, assetOut);
                 if (routesAdded[pairId]) continue;
 
                 routesAdded[pairId] = true;
@@ -65,8 +65,8 @@ library LibOutput {
             JSON.TradeRouteConfig memory tradeRoute = cfg.customTradeRoutes[i];
             routes.push(
                 SwapRouteSetter({
-                    assetIn: findAddress(tradeRoute.assetA, cfg),
-                    assetOut: findAddress(tradeRoute.assetB, cfg),
+                    assetIn: tokenAddrRuntime(tradeRoute.assetA, cfg),
+                    assetOut: tokenAddrRuntime(tradeRoute.assetB, cfg),
                     enabled: tradeRoute.enabled
                 })
             );
@@ -74,10 +74,14 @@ library LibOutput {
     }
 
     function getKrAssetAddr(JSON.KrAssetConfig memory _assetCfg) internal view returns (address) {
-        return LibDeploy.pd3(LibConfig.getKrAssetMetadata(_assetCfg).krAssetSalt);
+        return LibDeploy.pd3(LibDeployConfig.getKrAssetMetadata(_assetCfg).krAssetSalt);
     }
 
-    function getDeployedAddr(string memory name, uint256 chainId) internal returns (address) {
+    function addr(string memory name) internal returns (address) {
+        return addr(name, block.chainid);
+    }
+
+    function addr(string memory name, uint256 chainId) internal returns (address) {
         string[] memory args = new string[](5);
         args[0] = "node";
         args[1] = SCRIPT_LOCATION;
@@ -89,6 +93,7 @@ library LibOutput {
     }
 
     function printUser(address user, address kiss, JSON.Assets memory assetCfg) internal {
+        if (LibDeploy.state().disableLog) return;
         Log.br();
         Log.hr();
         Log.clg("Test User");
@@ -105,6 +110,7 @@ library LibOutput {
     }
 
     function print(Asset memory config, address kresko, address asset) internal {
+        if (LibDeploy.state().disableLog) return;
         IERC20 token = IERC20(asset);
         RawPrice memory price = IKresko(kresko).getPushPrice(asset);
         Log.br();
@@ -140,6 +146,7 @@ library LibOutput {
     }
 
     function print(VaultAsset memory config, address vault) internal {
+        if (LibDeploy.state().disableLog) return;
         address assetAddr = address(config.token);
         Log.br();
         ("/* ------------------------------- Vault Asset ------------------------------ */").clg();

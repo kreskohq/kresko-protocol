@@ -4,11 +4,11 @@ import {VM, LibVm} from "kresko-lib/utils/Libs.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {JSON} from "scripts/utils/libs/LibConfig.s.sol";
-import {LibOutput} from "scripts/utils/libs/LibOutput.s.sol";
+import {JSON} from "scripts/utils/libs/LibDeployConfig.s.sol";
+import {Deployed} from "scripts/utils/libs/Deployed.s.sol";
 import {MockERC1155} from "mocks/MockERC1155.sol";
 
-library LibUsers {
+library LibDeployUsers {
     bytes32 internal constant USERS_SLOT = keccak256("Users");
 
     /// @notice map tickers/symbols to deployed addresses
@@ -19,7 +19,7 @@ library LibUsers {
     function mockMint(address _account, JSON.UserConfig memory userCfg, JSON.Assets memory assetCfg) internal {
         for (uint256 j; j < userCfg.extAmounts.length; j++) {
             JSON.UserAmountConfig memory userAmount = userCfg.extAmounts[j];
-            MockERC20 token = MockERC20(LibOutput.findAddress(userAmount.symbol, assetCfg));
+            MockERC20 token = MockERC20(Deployed.tokenAddrRuntime(userAmount.symbol, assetCfg));
             if (address(token) == address(assetCfg.nativeWrapper)) {
                 VM.deal(LibVm.sender(), userAmount.amount);
                 assetCfg.nativeWrapper.deposit{value: userAmount.amount}();

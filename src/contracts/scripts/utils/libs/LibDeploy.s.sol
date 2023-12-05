@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 import {Deployment, DeploymentFactory} from "factory/DeploymentFactory.sol";
-import {JSON, LibConfig} from "scripts/utils/libs/LibConfig.s.sol";
+import {JSON, LibDeployConfig} from "scripts/utils/libs/LibDeployConfig.s.sol";
 import {Vault} from "vault/Vault.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {Conversions} from "libs/Utils.sol";
@@ -46,7 +46,6 @@ library LibDeploy {
         result = new DeploymentFactory(_admin);
         setAddr("address", address(result));
         state().factory = result;
-        Log.clg("Factory address", address(result));
     }
 
     function createGatingManager(JSON.ChainConfig memory cfg) internal json("GatingManager") returns (GatingManager) {
@@ -69,24 +68,21 @@ library LibDeploy {
 
         Deployment memory deployment = type(KISS).creationCode.p3(
             abi.encodeCall(KISS.initialize, (cfg.name, cfg.symbol, 18, chainCfg.common.admin, kresko, vault)),
-            LibConfig.KISS_SALT
+            LibDeployConfig.KISS_SALT
         );
-        state().deployments[LibConfig.KISS_SALT] = deployment;
+        state().deployments[LibDeployConfig.KISS_SALT] = deployment;
         state().kiss = DeployedKISS({addr: address(deployment.proxy), config: cfg});
         return KISS(address(deployment.proxy));
     }
 
     function createVault(JSON.ChainConfig memory cfg, JSON.KISSConfig memory kissCfg) internal json("Vault") returns (Vault) {
-        string memory name = string.concat(LibConfig.VAULT_NAME_PREFIX, kissCfg.name);
+        string memory name = string.concat(LibDeployConfig.VAULT_NAME_PREFIX, kissCfg.name);
         bytes memory impl = type(Vault).creationCode.ctor(
             abi.encode(name, "vKISS", 18, 8, cfg.common.admin, cfg.common.treasury, cfg.common.sequencerUptimeFeed)
         );
-        Deployment memory deployment = impl.d3("", LibConfig.VAULT_SALT);
-        state().deployments[LibConfig.VAULT_SALT] = deployment;
+        Deployment memory deployment = impl.d3("", LibDeployConfig.VAULT_SALT);
+        state().deployments[LibDeployConfig.VAULT_SALT] = deployment;
         state().vault = deployment.implementation;
-
-        Log.hr();
-        Log.clg("Vault", address(deployment.implementation));
         return Vault(deployment.implementation);
     }
 
@@ -102,9 +98,6 @@ library LibDeploy {
         );
         Deployment memory deployment = dataV1Impl.d3("", bytes32("DataV1"));
         state().deployments[bytes32("DataV1")] = deployment;
-
-        Log.hr();
-        Log.clg("DataV1", address(deployment.implementation));
         return DataV1(deployment.implementation);
     }
 
@@ -121,8 +114,6 @@ library LibDeploy {
 
         state().deployments[bytes32("KrMulticall")] = deployment;
 
-        Log.hr();
-        Log.clg("Multicall", address(deployment.implementation));
         return KrMulticall(payable(deployment.implementation));
     }
 
@@ -157,7 +148,7 @@ library LibDeploy {
         JSON.KrAssetConfig memory cfg
     ) internal returns (DeployedKrAsset memory result) {
         init(cfg.symbol);
-        LibConfig.KrAssetMetadata memory meta = LibConfig.getKrAssetMetadata(cfg);
+        LibDeployConfig.KrAssetMetadata memory meta = LibDeployConfig.getKrAssetMetadata(cfg);
         bytes memory KR_ASSET_INITIALIZER = abi.encodeCall(
             KreskoAsset.initialize,
             (
@@ -197,10 +188,6 @@ library LibDeploy {
         setAddr("address", result.anchorAddr);
         setAddr("implementation", proxies[1].implementation);
         save();
-
-        cfg.symbol.clg("Deployed");
-        result.addr.clg("Address");
-        result.anchorAddr.clg("Anchor");
     }
 
     function pd3(bytes32 salt) internal view returns (address) {
@@ -252,6 +239,10 @@ library LibDeploy {
         save();
     }
 
+    function disableLog() internal {
+        state().disableLog = true;
+    }
+
     bytes32 internal constant DEPLOY_STATE_SLOT = keccak256("DeployState");
 
     struct DeployedKrAsset {
@@ -273,6 +264,7 @@ library LibDeploy {
         DeployedKISS kiss;
         mapping(string => DeployedKrAsset) krAssets;
         mapping(bytes32 => Deployment) deployments;
+        bool disableLog;
     }
 
     using Conversions for bytes[];

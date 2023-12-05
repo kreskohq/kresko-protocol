@@ -9,7 +9,7 @@ import {Enums} from "common/Constants.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 
-library LibConfig {
+library LibDeployConfig {
     using Help for *;
 
     string internal constant DEFAULT_CHAIN_CONFIGS = "src/contracts/scripts/deploy/config/json/chains.json";
@@ -303,4 +303,4 @@ struct JSONAssetConfig {
     bool isCoverAsset;
 }
 
-using {LibConfig.toAsset} for JSONAssetConfig global;
+using {LibDeployConfig.toAsset} for JSONAssetConfig global;
