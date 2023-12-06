@@ -37,7 +37,7 @@ import {SCDPInitArgs} from "scdp/STypes.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
+import {DiamondBomb} from "scripts/utils/DiamondBomb.sol";
 
 import {DataFacet} from "periphery/facets/DataFacet.sol";
 import {vm} from "kresko-lib/utils/IMinimalVM.sol";
@@ -263,7 +263,7 @@ abstract contract _DeprecatedTestBase is
 
         (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vm.ffi(cmd), (bytes[], bytes4[][]));
         (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(selectors, _cfg);
-        __current_kresko = address(new DiamondDeployer().create(_cfg.admin, creationCodes, selectors, initializers, calldatas));
+        __current_kresko = address(new DiamondBomb().create(_cfg.admin, creationCodes, selectors, initializers, calldatas));
         kresko_ = IKresko(__current_kresko);
     }
 

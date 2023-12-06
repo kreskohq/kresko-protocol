@@ -2,13 +2,15 @@
   "extends": ["solhint:recommended"],
   "plugins": ["prettier"],
   "rules": {
-    "code-complexity": ["error", 7],
+    "code-complexity": ["error", 13],
     "func-visibility": [
       "warn",
       {
         "ignoreConstructors": true
       }
     ],
+    "avoid-low-level-calls": "off",
+    "var-name-mixedcase": "off",
     "avoid-tx-origin": "error",
     "custom-errors": "off",
     "compiler-version": ["error", "<=0.8.23"],

@@ -35,7 +35,7 @@ import {SCDPInitArgs} from "scdp/STypes.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
+import {DiamondBomb} from "scripts/utils/DiamondBomb.sol";
 
 import {DataFacet} from "periphery/facets/DataFacet.sol";
 import {vm} from "kresko-lib/utils/IMinimalVM.sol";
@@ -45,19 +45,21 @@ import {IKrMulticall} from "periphery/IKrMulticall.sol";
 import {IDataV1} from "../../core/periphery/IDataV1.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
+import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 
-abstract contract KreskoDeployment is
+abstract contract DeployBase is
     RedstoneScript("./utils/getRedstonePayload.js"),
     FacetScript("./utils/getFunctionSelectors.sh")
 {
+    using LibDeploy for bytes;
+    using LibDeploy for bytes32;
+
     uint256 internal constant FACET_COUNT = 23;
     uint256 internal constant INITIALIZER_COUNT = 3;
     bytes32 internal constant DIAMOND_SALT = bytes32("KRESKO");
 
     bytes internal rsPayload;
     string internal rsPrices;
-    using LibDeploy for bytes;
-    using LibDeploy for bytes32;
 
     JSON.ChainConfig internal chainConfig;
     IKresko internal kresko;
@@ -67,6 +69,7 @@ abstract contract KreskoDeployment is
     IKrMulticall internal multicall;
     IGatingManager internal gatingManager;
     IDataV1 internal dataV1;
+    IWETH9 internal weth;
 
     function deployDiamond(JSON.ChainConfig memory _cfg) internal returns (IKresko) {
         require(address(LibDeploy.state().factory) != address(0), "KreskoForgeBase: No factory");
@@ -252,7 +255,7 @@ abstract contract KreskoDeployment is
         (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vm.ffi(cmd), (bytes[], bytes4[][]));
         (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(selectors, _cfg);
         __current_kresko = address(
-            new DiamondDeployer().create(_cfg.common.admin, creationCodes, selectors, initializers, calldatas)
+            new DiamondBomb().create(_cfg.common.admin, creationCodes, selectors, initializers, calldatas)
         );
         kresko_ = IKresko(__current_kresko);
     }

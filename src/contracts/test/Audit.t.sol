@@ -42,7 +42,6 @@ contract AuditTest is Deploy {
     }
 
     function setUp() public {
-        address deployer = getAddr(0);
         super.localtest(0);
         rsPayload = getRedstonePayload(rsPrices);
 

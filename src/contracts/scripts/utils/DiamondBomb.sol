@@ -5,7 +5,7 @@ import {Diamond} from "diamond/Diamond.sol";
 error InitializerMismatch(uint256 initializerCount, uint256 initializerArgsCount);
 error SelectorBytecodeMismatch(uint256 selectorCount, uint256 bytecodeCount);
 
-contract DiamondDeployer {
+contract DiamondBomb {
     function create(
         address owner,
         bytes[] calldata facets,

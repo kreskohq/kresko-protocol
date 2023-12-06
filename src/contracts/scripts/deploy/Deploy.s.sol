@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
 
-import {KreskoDeployment} from "scripts/utils/KreskoDeployment.s.sol";
+import {DeployBase} from "scripts/deploy/DeployBase.s.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
 import {JSON, LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {LibDeployMocks} from "scripts/deploy/libs/LibDeployMocks.s.sol";
@@ -14,12 +14,10 @@ import {VaultAsset} from "vault/VTypes.sol";
 import {Asset} from "common/Types.sol";
 import {DeploymentFactory} from "factory/DeploymentFactory.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
-import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 
-contract Deploy is ScriptBase("MNEMONIC_DEVNET"), KreskoDeployment {
+contract Deploy is ScriptBase("MNEMONIC_DEVNET"), DeployBase {
     using Deployed for Asset;
     using Deployed for VaultAsset;
-    IWETH9 internal weth;
 
     mapping(string => bool) internal tickersAdded;
     mapping(bytes32 => bool) internal routesAdded;

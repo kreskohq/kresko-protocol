@@ -43,7 +43,6 @@ contract MulticallTest is Deploy {
     }
 
     function setUp() public {
-        address deployer = getAddr(0);
         super.localtest(0);
 
         usdc = MockERC20(Deployed.addr("usdc"));
@@ -167,7 +166,7 @@ contract MulticallTest is Deploy {
         });
 
         vm.expectRevert();
-        IKrMulticall.Result[] memory results = multicall.execute{value: 5 ether}(ops, rsPayload);
+        multicall.execute{value: 5 ether}(ops, rsPayload);
     }
 
     function testNativeDepositWithdraw() public {
