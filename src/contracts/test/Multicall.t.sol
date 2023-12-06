@@ -11,7 +11,6 @@ import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import {IERC20} from "kresko-lib/token/IERC20.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
@@ -43,7 +42,7 @@ contract MulticallTest is Deploy {
     }
 
     function setUp() public {
-        super.localtest(0);
+        Deploy.localtest(0);
 
         usdc = MockERC20(Deployed.addr("usdc"));
         usdt = MockERC20(Deployed.addr("USDT"));

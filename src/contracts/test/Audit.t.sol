@@ -42,7 +42,7 @@ contract AuditTest is Deploy {
     }
 
     function setUp() public {
-        super.localtest(0);
+        Deploy.localtest(0);
         rsPayload = getRedstonePayload(rsPrices);
 
         usdc = MockERC20(Deployed.addr("USDC"));
