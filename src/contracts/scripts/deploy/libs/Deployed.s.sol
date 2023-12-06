@@ -6,10 +6,10 @@ import {IKresko} from "periphery/IKresko.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {JSON, LibDeployConfig} from "scripts/utils/libs/LibDeployConfig.s.sol";
+import {JSON, LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {vm} from "kresko-lib/utils/IMinimalVM.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
-import {LibDeploy} from "scripts/utils/libs/LibDeploy.s.sol";
+import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 
 library Deployed {
     using Log for *;

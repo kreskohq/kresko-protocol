@@ -6,11 +6,11 @@ import {Help, Log} from "kresko-lib/utils/Libs.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {IKrMulticall, KrMulticall} from "periphery/KrMulticall.sol";
-import {Deploy} from "scripts/deploy/run/Deploy.s.sol";
+import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
-import {Deployed} from "scripts/utils/libs/Deployed.s.sol";
+import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console

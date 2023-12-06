@@ -1,0 +1,21 @@
+{
+  "DAI": { "address": "0x2880900E93eA590d2fD43914ADC9370299e45d36" },
+  "DataV1": { "address": "0xc4960675C4622C5bddF6B01b645a0D3a476ebdE0" },
+  "Factory": { "address": "0x8f4F7B6Cb1ae161a944D951feAa0Ae3613d8bb06" },
+  "GatingManager": { "address": "0xA2A49e39AbA6c36D89d63c2918bcfc0717D85F63" },
+  "KISS": { "address": "0xa93a7312e9C412F34B2f316C3473043c281C4061" },
+  "Kresko": { "address": "0xbD69e2362E272524d5A37ca1c99e7E4cA1d9C31D" },
+  "Multicall": { "address": "0xA6d9A2CA1E8d586A6906fC309DC0838b8e35C1e1" },
+  "USDC": { "address": "0xa6b98b891b9F780b52d21fE6d51055CD553C28c2" },
+  "USDC.e": { "address": "0x4b54D82B1BEda5fFe478b11fC1aB122438598022" },
+  "UniswapRouter": { "address": "0x021dAc9a7652A2C010AD4B4f412E2DEbBE76481a" },
+  "Vault": { "address": "0x22b5E0c1fC80FB2F06C627C90d26Fe18e7d5FB0C" },
+  "WBTC": { "address": "0xf4FF66F2128695f71C26CD6d427f16140Ec3D26B" },
+  "WETH": { "address": "0x0091f4e75a03C11cB9be8E3717219005eb780D89" },
+  "krARB": { "address": "0x53E384B667A920Ed249d152fa79EC143c033B862" },
+  "krBTC": { "address": "0x6531f16415f471010BD1e6a6F1F35122C1Fb9B94" },
+  "krETH": { "address": "0x9094BbD5C25ED120FAc349926BB65ab5e3276b11" },
+  "krSPY": { "address": "0x44dBa561537f3BeBe99949c4986498d7EC6e62E6" },
+  "QUEST_FOR_KRESK": { "address": "0x74e573b3Dd705406Fd4048a20Ab5ac9EE76D0B9E" },
+  "OFFICIALLY_KRESKIAN": { "address": "0x200945e331Af88e1D854Cb9D3503F257B33Fe19F" }
+}

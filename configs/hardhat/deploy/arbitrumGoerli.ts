@@ -10,7 +10,7 @@ import {
   MultiSendCallOnly,
   SignMessageLib,
   SimulateTxAccessor,
-} from '../../src/utils/gnosis/gnosis-safe'
+} from '../../../src/utils/gnosis/gnosis-safe'
 
 import type {
   CommonInitArgsStruct,

@@ -19,7 +19,7 @@ import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 
 /// @dev Stateful context for deployment scripts
-interface IDeployState {
+interface _IDeployState {
     struct AssetType {
         bool krAsset;
         bool collateral;
@@ -214,7 +214,7 @@ interface IDeployState {
     }
 }
 
-function state() pure returns (IDeployState.State storage ctx_) {
+function state() pure returns (_IDeployState.State storage ctx_) {
     bytes32 slot = keccak256("devnet.deploy.ctx");
     assembly {
         ctx_.slot := slot

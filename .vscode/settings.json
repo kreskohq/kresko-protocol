@@ -30,7 +30,7 @@
   "solidity.linter.type": "solhint",
   "solidity.test.executeOnSave": true,
   "solidity.compiler.version.remote": "v0.8.23+commit.f704f362",
-  "solidity.compiler.outDir": "out/vsc",
+  "solidity.compiler.outDir": "build/vsc",
   "solidity.compiler.location": "Extension",
   "solidity.project.monorepo": false,
   "solidity.project.sources": "src/contracts",

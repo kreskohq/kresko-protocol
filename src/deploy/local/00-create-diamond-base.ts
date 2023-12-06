@@ -1,4 +1,4 @@
-import { diamondFacets } from '@config/deploy'
+import { diamondFacets } from '@config/hardhat/deploy'
 import { getLogger } from '@utils/logging'
 import { mergeABIs } from 'hardhat-deploy/dist/src/utils'
 import { type DeployFunction, type FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types'

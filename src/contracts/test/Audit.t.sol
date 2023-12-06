@@ -9,10 +9,10 @@ import {VaultAsset} from "vault/VTypes.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {Deploy} from "scripts/deploy/run/Deploy.s.sol";
+import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
-import {Deployed} from "scripts/utils/libs/Deployed.s.sol";
+import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 
 contract AuditTest is Deploy {

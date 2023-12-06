@@ -5,7 +5,7 @@ import type {
   SwapEvent,
   SwapRouteSetterStruct,
 } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
-import { getSCDPInitializer } from '@config/deploy'
+import { getSCDPInitializer } from '@config/hardhat/deploy'
 import { Errors } from '@utils/errors'
 import { getNamedEvent } from '@utils/events'
 import { wrapKresko } from '@utils/redstone'

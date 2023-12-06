@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { ContractTypes } from '@/types'
 import { DeterministicProxy } from '@/types/functions'
-import { signatureFilters } from '@config/deploy'
+import { signatureFilters } from '@config/hardhat/deploy'
 import { Fragment } from '@ethersproject/abi'
 import { WrapperBuilder } from '@redstone-finance/evm-connector'
 import { getAddresses, getUsers } from '@utils/hardhat'

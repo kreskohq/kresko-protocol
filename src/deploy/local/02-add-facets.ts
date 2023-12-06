@@ -6,7 +6,7 @@ import {
   minterFacets,
   peripheryFacets,
   scdpFacets,
-} from '@config/deploy'
+} from '@config/hardhat/deploy'
 import { addFacets } from '@scripts/add-facets'
 import { getLogger } from '@utils/logging'
 import type { DeployFunction } from 'hardhat-deploy/dist/types'

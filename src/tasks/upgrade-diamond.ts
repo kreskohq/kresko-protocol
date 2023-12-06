@@ -1,4 +1,4 @@
-import { minterFacets } from '@config/deploy'
+import { minterFacets } from '@config/hardhat/deploy'
 import { updateFacets } from '@scripts/update-facets'
 import { getLogger } from '@utils/logging'
 import { task } from 'hardhat/config'

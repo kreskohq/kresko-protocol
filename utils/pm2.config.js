@@ -23,8 +23,8 @@ module.exports = {
       watch: false,
       autorestart: false,
       wait_ready: true,
-      name: 'deploy-arbitrum',
-      script: 'just deploy-arbitrum',
+      name: 'deploy-arbitrum-fork',
+      script: 'just deploy-arbitrum-fork',
     },
   ],
 }

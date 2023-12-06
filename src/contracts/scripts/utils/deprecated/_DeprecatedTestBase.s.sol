@@ -1,7 +1,8 @@
+// solhint-disable
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
 
-import {IDeployState} from "scripts/deploy/base/IDeployState.sol";
+import {_IDeployState} from "./_IDeployState.sol";
 import {FacetScript} from "kresko-lib/utils/Diamond.sol";
 import {RedstoneScript} from "kresko-lib/utils/Redstone.sol";
 import {CommonInitArgs} from "common/Types.sol";
@@ -41,8 +42,8 @@ import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
 import {DataFacet} from "periphery/facets/DataFacet.sol";
 import {vm} from "kresko-lib/utils/IMinimalVM.sol";
 
-abstract contract KreskoForgeBase is
-    IDeployState,
+abstract contract _DeprecatedTestBase is
+    _IDeployState,
     RedstoneScript("./utils/getRedstonePayload.js"),
     FacetScript("./utils/getFunctionSelectors.sh")
 {

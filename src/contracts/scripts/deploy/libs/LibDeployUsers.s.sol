@@ -4,8 +4,8 @@ import {VM, LibVm} from "kresko-lib/utils/Libs.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {JSON} from "scripts/utils/libs/LibDeployConfig.s.sol";
-import {Deployed} from "scripts/utils/libs/Deployed.s.sol";
+import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {MockERC1155} from "mocks/MockERC1155.sol";
 import {IKresko} from "periphery/IKresko.sol";
 

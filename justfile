@@ -11,7 +11,7 @@ hasFoundry := `forge --version | grep -q 'forge' && echo true || echo false`
 hasPM2 := `pnpm list --global pm2 | grep -q '' && echo true || echo false`
 
 dry-local:
-	forge script src/contracts/scripts/deploy/run/Deploy.s.sol:Deploy \
+	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata "run(string,uint32,bool,bool,string)" localhost 0 true false '') \
 	--with-gas-price 100000000 \
 	--skip-simulation \
@@ -19,7 +19,7 @@ dry-local:
 	-vvv
 
 deploy-local:
-	forge script src/contracts/scripts/deploy/run/Deploy.s.sol:Deploy \
+	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata "run(string,uint32,bool,bool,string)" localhost 0 true false '') \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \
@@ -28,9 +28,9 @@ deploy-local:
 	--ffi \
 	-vvv
 
-dry-arbitrum:
-	forge script src/contracts/scripts/deploy/run/Deploy.s.sol:Deploy \
-	--sig $(cast calldata "run(string,uint32,bool,bool,string)" arbitrumFork 0 true false arb-fork-users) \
+dry-arbitrum-fork:
+	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
+	--sig $(cast calldata "run(string,uint32,bool,bool,string)" arbitrumFork 0 true false arbitrum-fork-users) \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--with-gas-price 100000000 \
 	--evm-version "paris" \
@@ -38,9 +38,9 @@ dry-arbitrum:
 	--ffi \
 	-vvv
 
-deploy-arbitrum:
-	forge script src/contracts/scripts/deploy/run/Deploy.s.sol:Deploy \
-	--sig $(cast calldata "run(string,uint32,bool,bool,string)" arbitrumFork 0 true false arb-fork-users) \
+deploy-arbitrum-fork:
+	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
+	--sig $(cast calldata "run(string,uint32,bool,bool,string)" arbitrumFork 0 true false arbitrum-fork-users) \
 	--fork-url "$RPC_LOCAL" \
 	--with-gas-price 100000000 \
 	--evm-version "paris" \
@@ -49,11 +49,11 @@ deploy-arbitrum:
 	--ffi \
 	-vvv
 
-arb-fork-users: 
-	just arb-fork-bal-nfts && \
-	just arb-fork-bal-stables && \
-	just arb-fork-bal-wbtc && \
-	just arb-fork-setup-users
+arbitrum-fork-users: 
+	just arbitrum-fork-bal-nfts && \
+	just arbitrum-fork-bal-stables && \
+	just arbitrum-fork-bal-wbtc && \
+	just arbitrum-fork-setup-users
 
 
 local:
@@ -69,14 +69,14 @@ local:
 	@echo "/*                                  LAUNCHED                                  */"
 	@echo "/* -------------------------------------------------------------------------- */"
 
-arbitrum:
+arbitrum-fork:
 	pm2 ping
 	@echo "/* -------------------------------------------------------------------------- */"
 	@echo "/*                                 LAUNCHING                                  */"
 	@echo "/* -------------------------------------------------------------------------- */"
 	pm2 start utils/pm2.config.js --only anvil-fork
 	sleep 5
-	pm2 start utils/pm2.config.js --only deploy-arbitrum
+	pm2 start utils/pm2.config.js --only deploy-arbitrum-fork
 	pm2 save
 	@echo "/* -------------------------------------------------------------------------- */"
 	@echo "/*                                  LAUNCHED                                  */"
@@ -90,8 +90,8 @@ kill:
 restart:
 	pm2 restart all --update-env
 
-arb-fork-bal-stables:
-	forge script src/contracts/scripts/deploy/run/Impersonated.s.sol \
+arbitrum-fork-bal-stables:
+	forge script src/contracts/scripts/deploy/Impersonated.s.sol \
 	--sig "setupArbForkStables()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--sender "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D" \
@@ -101,8 +101,8 @@ arb-fork-bal-stables:
 	--ffi \
 	-vvv
 
-arb-fork-bal-wbtc:
-	forge script src/contracts/scripts/deploy/run/Impersonated.s.sol \
+arbitrum-fork-bal-wbtc:
+	forge script src/contracts/scripts/deploy/Impersonated.s.sol \
 	--sig "setupArbForkWBTC()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--sender "0x4bb7f4c3d47C4b431cb0658F44287d52006fb506" \
@@ -112,8 +112,8 @@ arb-fork-bal-wbtc:
 	--ffi \
 	-vvv
 
-arb-fork-bal-nfts:
-	forge script src/contracts/scripts/deploy/run/Impersonated.s.sol \
+arbitrum-fork-bal-nfts:
+	forge script src/contracts/scripts/deploy/Impersonated.s.sol \
 	--sig "setupArbForkNFTs()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--sender "0x99999A0B66AF30f6FEf832938a5038644a72180a" \
@@ -123,8 +123,8 @@ arb-fork-bal-nfts:
 	--ffi \
 	-vvv
 
-arb-fork-setup-users:
-	forge script src/contracts/scripts/deploy/run/Impersonated.s.sol \
+arbitrum-fork-setup-users:
+	forge script src/contracts/scripts/deploy/Impersonated.s.sol \
 	--sig "setupArbForkUsers()" \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \
@@ -168,7 +168,7 @@ verify-contract:
 	--watch
 	
 verify-arbitrum-sepolia:
-	forge script src/contracts/scripts/deploy/run/ArbitrumSepolia.s.sol \
+	forge script src/contracts/scripts/deploy/ArbitrumSepolia.s.sol \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--rpc-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
 	--evm-version "paris" \

@@ -1,5 +1,5 @@
-import type { AllTokenSymbols } from '@config/deploy';
-import type { AssetConfigExtended } from '@config/deploy/arbitrumGoerli';
+import type { AllTokenSymbols } from '@config/hardhat/deploy';
+import type { AssetConfigExtended } from '@config/hardhat/deploy/arbitrumGoerli';
 import type { AllTickers } from '@utils/redstone';
 import type { BigNumber, Overrides } from 'ethers';
 import type { Address } from 'hardhat-deploy/types';

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 import {Deployment, DeploymentFactory} from "factory/DeploymentFactory.sol";
-import {JSON, LibDeployConfig} from "scripts/utils/libs/LibDeployConfig.s.sol";
+import {JSON, LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {Vault} from "vault/Vault.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {Conversions} from "libs/Utils.sol";
@@ -18,15 +18,18 @@ import {GatingManager} from "periphery/GatingManager.sol";
 
 library LibDeploy {
     function initOutputJSON(string memory configId) internal {
-        string memory outputDir = string.concat("./deploy/", VM.toString(block.chainid));
+        string memory outputDir = string.concat("./deploy/", VM.toString(block.chainid), "/");
         if (!VM.exists(outputDir)) VM.createDir(outputDir, true);
-        state().outputName = string.concat(outputDir, "/", configId);
+        state().id = configId;
+        state().outputLocation = outputDir;
         state().outputJson = configId;
     }
 
     function saveOutputJSON() internal {
-        VM.writeFile(string.concat(state().outputName, "-", VM.toString(VM.unixTime()), ".json"), state().outputJson);
-        VM.writeFile(string.concat(state().outputName, "-", "latest", ".json"), state().outputJson);
+        string memory runsDir = string.concat(state().outputLocation, "runs/");
+        if (!VM.exists(runsDir)) VM.createDir(runsDir, true);
+        VM.writeFile(string.concat(runsDir, state().id, "-", VM.toString(VM.unixTime()), ".json"), state().outputJson);
+        VM.writeFile(string.concat(state().outputLocation, state().id, "-", "latest", ".json"), state().outputJson);
     }
 
     function state() internal pure returns (DeployState storage ds) {
@@ -255,7 +258,8 @@ library LibDeploy {
         JSON.KISSConfig config;
     }
     struct DeployState {
-        string outputName;
+        string id;
+        string outputLocation;
         string currentKey;
         string currentJson;
         string outputJson;

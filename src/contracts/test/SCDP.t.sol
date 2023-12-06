@@ -7,12 +7,12 @@ import {console2} from "forge-std/console2.sol";
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
 import {Log, Help} from "kresko-lib/utils/Libs.sol";
 import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
-import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
+import {_DeprecatedTestUtils} from "scripts/utils/deprecated/_DeprecatedTestUtils.s.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Asset} from "common/Types.sol";
 
-contract SCDPTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
+contract SCDPTest is TestBase("MNEMONIC_TESTNET"), _DeprecatedTestUtils {
     using ShortAssert for *;
     using Log for *;
     using Help for string;

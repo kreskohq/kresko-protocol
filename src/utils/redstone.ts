@@ -1,5 +1,5 @@
 import type { Kresko } from '@/types/typechain'
-import { assets } from '@config/deploy/arbitrumGoerli'
+import { assets } from '@config/hardhat/deploy/arbitrumGoerli'
 import { WrapperBuilder } from '@redstone-finance/evm-connector'
 
 export const wrapKresko = (contract: Kresko, signer?: any) =>

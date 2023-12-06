@@ -6,12 +6,12 @@ import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
 import {Strings} from "libs/Strings.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
-import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
+import {_DeprecatedTestUtils} from "scripts/utils/deprecated/_DeprecatedTestUtils.s.sol";
 import {Asset} from "common/Types.sol";
 import {Log} from "kresko-lib/utils/Libs.sol";
 
 // solhint-disable
-contract MinterTest is TestBase("MNEMONIC_TESTNET"), KreskoForgeUtils {
+contract MinterTest is TestBase("MNEMONIC_TESTNET"), _DeprecatedTestUtils {
     using ShortAssert for *;
     using Strings for uint256;
     using PercentageMath for uint256;

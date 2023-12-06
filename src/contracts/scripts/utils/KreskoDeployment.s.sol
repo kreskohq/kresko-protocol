@@ -39,12 +39,12 @@ import {DiamondDeployer} from "scripts/utils/DiamondDeployer.sol";
 
 import {DataFacet} from "periphery/facets/DataFacet.sol";
 import {vm} from "kresko-lib/utils/IMinimalVM.sol";
-import {JSON} from "scripts/utils/libs/LibDeployConfig.s.sol";
+import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IKrMulticall} from "periphery/IKrMulticall.sol";
 import {IDataV1} from "../../core/periphery/IDataV1.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
-import {LibDeploy} from "scripts/utils/libs/LibDeploy.s.sol";
+import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 
 abstract contract KreskoDeployment is
     RedstoneScript("./utils/getRedstonePayload.js"),

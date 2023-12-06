@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
 import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
-import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
+import {_DeprecatedTestUtils} from "scripts/utils/deprecated/_DeprecatedTestUtils.s.sol";
 import {DataFacet} from "periphery/facets/DataFacet.sol";
 import {PType} from "periphery/PTypes.sol";
 import {DataV1} from "periphery/DataV1.sol";
@@ -16,7 +16,7 @@ import {Role} from "common/Constants.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 
-contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
+contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), _DeprecatedTestUtils {
     using ShortAssert for *;
     using Help for *;
     using Log for *;

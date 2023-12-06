@@ -1,6 +1,7 @@
 const glob = require('glob')
 const path = require('path')
 const root = path.resolve(__dirname, '../')
+const deploysBroadcasts = `${root}/out/foundry`
 
 const success = str => {
   process.stdout.write(Buffer.from(str).toString('utf-8'))
@@ -25,7 +26,7 @@ const getLatestBroadcastedDeployment = () => {
 const getDeployment = () => {
   const name = process.argv[3]
   const chainId = process.argv[4]
-  const files = glob.sync(`${root}/deploy/${chainId}/*-latest.json`)
+  const files = glob.sync(`${deploysBroadcasts}/deploy/${chainId}/*-latest.json`)
   for (const file of files) {
     const data = require(file)
     if (!data || !Object.keys(data).length) continue
@@ -38,7 +39,7 @@ const getDeployment = () => {
 
 const findBroadcasted = (name, chainId) => {
   const results = []
-  const files = glob.sync(`${root}/broadcast/**/${chainId}/*-latest.json`)
+  const files = glob.sync(`${deploysBroadcasts}/broadcast/**/${chainId}/*-latest.json`)
 
   for (const file of files) {
     const data = require(file)

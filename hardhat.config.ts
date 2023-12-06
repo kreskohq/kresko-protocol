@@ -50,22 +50,24 @@ const config: HardhatUserConfig = {
   networks: handleForking(networks(mnemonic)),
   namedAccounts: users,
   mocha: {
-    reporter: 'mochawesome',
-    reporterOptions: {
-      reportDir: 'docs/test-report',
-      assetsDir: 'docs/test-report/assets',
-      reportTitle: 'Kresko Protocol Hardhat Test Report',
-      reportPageTitle: 'Kresko Protocol Hardhat Test Report',
-    },
+    reporter: process.env.CI ? 'spec' : 'mochawesome',
+    reporterOptions: process.env.CI
+      ? undefined
+      : {
+          reportDir: 'docs/test-report',
+          assetsDir: 'docs/test-report/assets',
+          reportTitle: 'Kresko Protocol Hardhat Test Report',
+          reportPageTitle: 'Kresko Protocol Hardhat Test Report',
+        },
     timeout: process.env.CI ? 45000 : process.env.FORKING ? 300000 : 30000,
   },
   paths: {
-    artifacts: 'artifacts',
-    cache: 'cache',
-    tests: 'src/test/',
-    sources: 'src/contracts/core/',
-    deploy: 'src/deploy/',
-    deployments: 'deployments/',
+    artifacts: 'build/hardhat/artifacts',
+    cache: 'build/hardhat/cache',
+    tests: 'src/test',
+    sources: 'src/contracts/core',
+    deploy: 'src/deploy',
+    deployments: 'out/hardhat/deploy',
   },
   diamondAbi: diamondAbiConfig,
   typechain: {

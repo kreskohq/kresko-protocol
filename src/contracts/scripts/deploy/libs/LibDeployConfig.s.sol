@@ -12,9 +12,9 @@ import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 library LibDeployConfig {
     using Help for *;
 
-    string internal constant DEFAULT_CHAIN_CONFIGS = "src/contracts/scripts/deploy/config/json/chains.json";
-    string internal constant ASSET_CONFIG_BASE_LOCATION = "src/contracts/scripts/deploy/config/json/chain/assets-";
-    string internal constant USER_CONFIG_BASE_LOCATION = "src/contracts/scripts/deploy/config/json/chain/users-";
+    string internal constant DEFAULT_CHAIN_CONFIGS = "configs/foundry/deploy/chains.json";
+    string internal constant ASSET_CONFIG_BASE_LOCATION = "configs/foundry/deploy/chain/assets-";
+    string internal constant USER_CONFIG_BASE_LOCATION = "configs/foundry/deploy/chain/users-";
 
     bytes32 internal constant KISS_SALT = bytes32("KISS");
     bytes32 internal constant VAULT_SALT = bytes32("vKISS");
