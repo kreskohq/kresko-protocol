@@ -18,7 +18,7 @@ import {GatingManager} from "periphery/GatingManager.sol";
 
 library LibDeploy {
     function initOutputJSON(string memory configId) internal {
-        string memory outputDir = string.concat("./deploy/", VM.toString(block.chainid), "/");
+        string memory outputDir = string.concat("./out/foundry/deploy/", VM.toString(block.chainid), "/");
         if (!VM.exists(outputDir)) VM.createDir(outputDir, true);
         state().id = configId;
         state().outputLocation = outputDir;
