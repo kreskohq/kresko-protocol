@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 import {Deployment, DeploymentFactory} from "factory/DeploymentFactory.sol";
-import {JSON, LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import "scripts/deploy/libs/JSON.s.sol" as JSON;
 import {Vault} from "vault/Vault.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {Conversions} from "libs/Utils.sol";
@@ -55,9 +56,7 @@ library LibDeploy {
         bytes memory implementation = type(GatingManager).creationCode.ctor(
             abi.encode(LibVm.sender(), cfg.periphery.officallyKreskianNFT, cfg.periphery.questForKreskNFT, 0)
         );
-        Deployment memory deployment = implementation.d3("", bytes32("GatingManager"));
-        state().deployments[bytes32("GatingManager")] = deployment;
-        return GatingManager(deployment.implementation);
+        return GatingManager(implementation.d3("", bytes32("GatingManager")).implementation);
     }
 
     function createKISS(
@@ -68,25 +67,19 @@ library LibDeploy {
     ) internal json("KISS") returns (KISS) {
         require(kresko != address(0), "deployKISS: !Kresko");
         require(vault != address(0), "deployKISS: !Vault");
-
-        Deployment memory deployment = type(KISS).creationCode.p3(
-            abi.encodeCall(KISS.initialize, (cfg.name, cfg.symbol, 18, chainCfg.common.admin, kresko, vault)),
-            LibDeployConfig.KISS_SALT
+        bytes memory initializer = abi.encodeCall(
+            KISS.initialize,
+            (cfg.name, cfg.symbol, 18, chainCfg.common.admin, kresko, vault)
         );
-        state().deployments[LibDeployConfig.KISS_SALT] = deployment;
-        state().kiss = DeployedKISS({addr: address(deployment.proxy), config: cfg});
-        return KISS(address(deployment.proxy));
+        return KISS(address(type(KISS).creationCode.p3(initializer, LibDeployConfig.KISS_SALT).proxy));
     }
 
     function createVault(JSON.ChainConfig memory cfg, JSON.KISSConfig memory kissCfg) internal json("Vault") returns (Vault) {
         string memory name = string.concat(LibDeployConfig.VAULT_NAME_PREFIX, kissCfg.name);
-        bytes memory impl = type(Vault).creationCode.ctor(
+        bytes memory implementation = type(Vault).creationCode.ctor(
             abi.encode(name, "vKISS", 18, 8, cfg.common.admin, cfg.common.treasury, cfg.common.sequencerUptimeFeed)
         );
-        Deployment memory deployment = impl.d3("", LibDeployConfig.VAULT_SALT);
-        state().deployments[LibDeployConfig.VAULT_SALT] = deployment;
-        state().vault = deployment.implementation;
-        return Vault(deployment.implementation);
+        return Vault(implementation.d3("", LibDeployConfig.VAULT_SALT).implementation);
     }
 
     function createDataV1(
@@ -95,13 +88,10 @@ library LibDeploy {
         address _kiss,
         JSON.ChainConfig memory cfg
     ) internal json("DataV1") returns (DataV1) {
-        bytes memory dataV1Impl = abi.encodePacked(
-            type(DataV1).creationCode,
+        bytes memory implementation = type(DataV1).creationCode.ctor(
             abi.encode(_kresko, _vault, _kiss, cfg.periphery.officallyKreskianNFT, cfg.periphery.questForKreskNFT)
         );
-        Deployment memory deployment = dataV1Impl.d3("", bytes32("DataV1"));
-        state().deployments[bytes32("DataV1")] = deployment;
-        return DataV1(deployment.implementation);
+        return DataV1(implementation.d3("", bytes32("DataV1")).implementation);
     }
 
     function createMulticall(
@@ -109,15 +99,12 @@ library LibDeploy {
         address _kiss,
         JSON.ChainConfig memory cfg
     ) internal json("Multicall") returns (KrMulticall) {
-        bytes memory multicallImpl = type(KrMulticall).creationCode.ctor(
+        bytes memory implementation = type(KrMulticall).creationCode.ctor(
             abi.encode(_kresko, _kiss, cfg.periphery.v3SwapRouter02, cfg.periphery.wrappedNative)
         );
-        Deployment memory deployment = multicallImpl.d3("", bytes32("KrMulticall"));
-        IKresko(_kresko).grantRole(Role.MANAGER, address(deployment.implementation));
-
-        state().deployments[bytes32("KrMulticall")] = deployment;
-
-        return KrMulticall(payable(deployment.implementation));
+        address multicall = implementation.d3("", bytes32("KrMulticall")).implementation;
+        IKresko(_kresko).grantRole(Role.MANAGER, multicall);
+        return KrMulticall(payable(multicall));
     }
 
     function createPeriphery(
@@ -133,16 +120,14 @@ library LibDeploy {
         address kresko,
         JSON.ChainConfig memory cfg,
         JSON.Assets memory _assetCfg
-    ) internal returns (JSON.Assets memory) {
+    ) internal returns (JSON.Assets memory, DeployedKrAsset[] memory) {
+        DeployedKrAsset[] memory result = new DeployedKrAsset[](_assetCfg.kreskoAssets.length);
         for (uint256 i; i < _assetCfg.kreskoAssets.length; i++) {
-            JSON.KrAssetConfig memory asset = _assetCfg.kreskoAssets[i];
-            DeployedKrAsset memory deployment = deployKrAsset(kresko, cfg, asset);
-
-            _assetCfg.kreskoAssets[i].config.anchor = deployment.anchorAddr;
-            state().krAssets[asset.symbol] = deployment;
+            result[i] = deployKrAsset(kresko, cfg, _assetCfg.kreskoAssets[i]);
+            _assetCfg.kreskoAssets[i].config.anchor = result[i].anchorAddr;
         }
 
-        return _assetCfg;
+        return (_assetCfg, result);
     }
 
     function deployKrAsset(
@@ -151,7 +136,7 @@ library LibDeploy {
         JSON.KrAssetConfig memory cfg
     ) internal returns (DeployedKrAsset memory result) {
         init(cfg.symbol);
-        LibDeployConfig.KrAssetMetadata memory meta = LibDeployConfig.getKrAssetMetadata(cfg);
+        LibDeployConfig.KrAssetMetadata memory meta = cfg.metadata();
         bytes memory KR_ASSET_INITIALIZER = abi.encodeCall(
             KreskoAsset.initialize,
             (
@@ -168,6 +153,7 @@ library LibDeploy {
         );
         (address proxyAddr, address implAddr) = meta.krAssetSalt.pp3();
         setAddr("address", proxyAddr);
+        setBytes("initializer", KR_ASSET_INITIALIZER);
         setAddr("implementation", implAddr);
         save();
 
@@ -177,6 +163,8 @@ library LibDeploy {
             KreskoAssetAnchor.initialize,
             (IKreskoAsset(proxyAddr), meta.anchorName, meta.anchorSymbol, chainCfg.common.admin)
         );
+
+        // deploy krasset + anchor in batch
         bytes[] memory batch = new bytes[](2);
         batch[0] = abi.encodeCall(
             state().factory.create3ProxyAndLogic,
@@ -184,13 +172,15 @@ library LibDeploy {
         );
         batch[1] = abi.encodeCall(state().factory.create3ProxyAndLogic, (ANCHOR_IMPL, ANCHOR_INITIALIZER, meta.anchorSalt));
         Deployment[] memory proxies = state().factory.batch(batch).map(Conversions.toDeployment);
+
         result.addr = address(proxies[0].proxy);
         result.anchorAddr = address(proxies[1].proxy);
-        state().deployments[meta.krAssetSalt] = proxies[0];
-        state().deployments[meta.anchorSalt] = proxies[1];
+
         setAddr("address", result.anchorAddr);
+        setBytes("initializer", ANCHOR_INITIALIZER);
         setAddr("implementation", proxies[1].implementation);
         save();
+        result.json = cfg;
     }
 
     function pd3(bytes32 salt) internal view returns (address) {
@@ -202,18 +192,19 @@ library LibDeploy {
     }
 
     function ctor(bytes memory bcode, bytes memory args) internal returns (bytes memory ccode) {
-        state().currentJson = VM.serializeBytes(state().currentKey, "ctor", args);
+        setBytes("ctor", args);
         return abi.encodePacked(bcode, args);
     }
 
-    function d3(bytes memory ccode, bytes memory d, bytes32 s) internal returns (Deployment memory result) {
-        result = state().factory.deployCreate3(ccode, d, s);
+    function d3(bytes memory ccode, bytes memory _init, bytes32 _salt) internal returns (Deployment memory result) {
+        result = state().factory.deployCreate3(ccode, _init, _salt);
         setAddr("address", result.implementation);
     }
 
-    function p3(bytes memory ccode, bytes memory d, bytes32 s) internal returns (Deployment memory result) {
-        result = state().factory.create3ProxyAndLogic(ccode, d, s);
+    function p3(bytes memory ccode, bytes memory _init, bytes32 _salt) internal returns (Deployment memory result) {
+        result = state().factory.create3ProxyAndLogic(ccode, _init, _salt);
         setAddr("address", address(result.proxy));
+        setBytes("initializer", _init);
         setAddr("implementation", result.implementation);
     }
 
@@ -226,8 +217,12 @@ library LibDeploy {
         state().currentJson = VM.serializeAddress(state().currentKey, key, val);
     }
 
+    function setBytes(string memory key, bytes memory val) internal {
+        state().currentJson = VM.serializeBytes(state().currentKey, key, val);
+    }
+
     function save() internal {
-        state().outputJson = VM.serializeString("testing", state().currentKey, state().currentJson);
+        state().outputJson = VM.serializeString("out", state().currentKey, state().currentJson);
     }
 
     function saveChainConfig(JSON.Assets memory assets, JSON.ChainConfig memory cfg) internal {
@@ -251,23 +246,16 @@ library LibDeploy {
     struct DeployedKrAsset {
         address addr;
         address anchorAddr;
-        JSON.KrAssetConfig config;
+        JSON.KrAssetConfig json;
     }
-    struct DeployedKISS {
-        address addr;
-        JSON.KISSConfig config;
-    }
+
     struct DeployState {
+        DeploymentFactory factory;
         string id;
         string outputLocation;
         string currentKey;
         string currentJson;
         string outputJson;
-        DeploymentFactory factory;
-        address vault;
-        DeployedKISS kiss;
-        mapping(string => DeployedKrAsset) krAssets;
-        mapping(bytes32 => Deployment) deployments;
         bool disableLog;
     }
 

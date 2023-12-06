@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 
 import {DeployBase} from "scripts/deploy/DeployBase.s.sol";
 import {ScriptBase} from "kresko-lib/utils/ScriptBase.s.sol";
-import {JSON, LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {LibDeployMocks} from "scripts/deploy/libs/LibDeployMocks.s.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {LibDeployUsers} from "scripts/deploy/libs/LibDeployUsers.s.sol";
@@ -12,21 +12,22 @@ import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {Log} from "kresko-lib/utils/Libs.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {Asset} from "common/Types.sol";
-import {DeploymentFactory} from "factory/DeploymentFactory.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
+import {Ownable} from "@oz/access/Ownable.sol";
+import "scripts/deploy/libs/JSON.s.sol" as JSON;
 
 contract Deploy is ScriptBase("MNEMONIC_DEVNET"), DeployBase {
     using Deployed for Asset;
     using Deployed for VaultAsset;
 
-    mapping(string => bool) internal tickersAdded;
-    mapping(bytes32 => bool) internal routesAdded;
-    SwapRouteSetter[] internal tradeRoutes;
+    mapping(string => bool) tickersAdded;
+    mapping(bytes32 => bool) routesAdded;
+    SwapRouteSetter[] tradeRoutes;
 
-    function run(string memory configId, uint32 deployer, bool saveOutput, bool disableLog, string memory justComand) public {
+    function run(string memory configId, uint32 deployer, bool saveOutput, bool disableLog, string memory afterDeploy) public {
         if (disableLog) LibDeploy.disableLog();
         if (saveOutput) LibDeploy.initOutputJSON(configId);
-        deploy(configId, getAddr(deployer), disableLog, justComand);
+        deploy(configId, getAddr(deployer), disableLog, afterDeploy);
         if (saveOutput) LibDeploy.saveOutputJSON();
     }
 
@@ -34,7 +35,7 @@ contract Deploy is ScriptBase("MNEMONIC_DEVNET"), DeployBase {
         string memory configId,
         address deployer,
         bool disableLog,
-        string memory justCommand
+        string memory afterDeploy
     ) internal broadcastWithAddr(deployer) {
         chainConfig = LibDeployConfig.getChainConfig(configId);
         JSON.Assets memory assetConfig = LibDeployConfig.getAssetConfig(configId);
@@ -43,7 +44,7 @@ contract Deploy is ScriptBase("MNEMONIC_DEVNET"), DeployBase {
         rsPayload = getRedstonePayload(rsPrices);
 
         // Create deployment factory first
-        DeploymentFactory factory = LibDeploy.createFactory(deployer);
+        factory = LibDeploy.createFactory(deployer);
 
         // Create mocks if needed
         if (chainConfig.common.council == address(0)) {
@@ -65,11 +66,13 @@ contract Deploy is ScriptBase("MNEMONIC_DEVNET"), DeployBase {
         chainConfig.common.gatingManager = address(gatingManager);
 
         // Create base contracts
-        kresko = super.deployDiamond(chainConfig);
+        kresko = DeployBase.deployDiamond(chainConfig);
 
         vault = LibDeploy.createVault(chainConfig, assetConfig.kiss);
         kiss = LibDeploy.createKISS(address(kresko), address(vault), chainConfig, assetConfig.kiss);
-        assetConfig = LibDeploy.createKrAssets(address(kresko), chainConfig, assetConfig);
+
+        LibDeploy.DeployedKrAsset[] memory deployedKrAssets;
+        (assetConfig, deployedKrAssets) = LibDeploy.createKrAssets(address(kresko), chainConfig, assetConfig);
 
         /* ---------------------------- Externals --------------------------- */
         for (uint256 i; i < assetConfig.extAssets.length; i++) {
@@ -90,18 +93,21 @@ contract Deploy is ScriptBase("MNEMONIC_DEVNET"), DeployBase {
         kresko.addAsset(address(kiss), assetConfig.kiss.config.toAsset(), kissFeeds).print(address(kresko), address(kiss));
         kresko.setFeeAssetSCDP(address(kiss));
 
-        for (uint256 i; i < assetConfig.kreskoAssets.length; i++) {
-            JSON.KrAssetConfig memory krAsset = assetConfig.kreskoAssets[i];
+        for (uint256 i; i < deployedKrAssets.length; i++) {
+            LibDeploy.DeployedKrAsset memory krAsset = deployedKrAssets[i];
             (JSON.TickerConfig memory ticker, address[2] memory feeds) = LibDeployConfig.getOracle(
-                krAsset.config.ticker,
-                krAsset.config.oracles,
+                krAsset.json.config.ticker,
+                krAsset.json.config.oracles,
                 assetConfig.tickers
             );
-            address addr = LibDeploy.state().krAssets[krAsset.symbol].addr;
 
             kresko
-                .addAsset(addr, krAsset.config.toAsset(), !tickersAdded[ticker.ticker] ? feeds : [address(0), address(0)])
-                .print(address(kresko), addr);
+                .addAsset(
+                    krAsset.addr,
+                    krAsset.json.config.toAsset(),
+                    !tickersAdded[ticker.ticker] ? feeds : [address(0), address(0)]
+                )
+                .print(address(kresko), krAsset.addr);
             tickersAdded[ticker.ticker] = true;
         }
 
@@ -125,11 +131,12 @@ contract Deploy is ScriptBase("MNEMONIC_DEVNET"), DeployBase {
         multicall = LibDeploy.createMulticall(address(kresko), address(kiss), chainConfig);
         dataV1 = LibDeploy.createDataV1(address(kresko), address(vault), address(kiss), chainConfig);
 
-        factory.transferOwnership(chainConfig.common.admin);
+        Ownable(address(factory)).transferOwnership(chainConfig.common.admin);
 
         /* ------------------------------ Users ----------------------------- */
         JSON.UserConfig memory userCfg = LibDeployConfig.getUserConfig(configId);
-        if (userCfg.chainId != 0) {
+
+        if (userCfg.useMockTokens) {
             for (uint256 i; i < userCfg.users.length; i++) {
                 address user = getAddr(userCfg.users[i]);
                 if (assetConfig.mocked) {
@@ -160,23 +167,14 @@ contract Deploy is ScriptBase("MNEMONIC_DEVNET"), DeployBase {
                 kresko.depositSCDP(deployer, address(kiss), userCfg.kissDepositAmount);
             }
         }
-
-        if (assetConfig.mocked) {
+        if (userCfg.useMockNFTs) {
             LibDeployUsers.mintMockNFTs([getAddr(0), getAddr(1), getAddr(2), getAddr(3)], chainConfig);
         }
 
+        just(userCfg.setupCommand);
+
         gatingManager.setPhase(chainConfig.gatingPhase);
-
-        if (!disableLog) {
-            Log.clg(chainConfig.gatingPhase, "Gating phase set to: ");
-        }
-
-        if (bytes(justCommand).length != 0) {
-            string[] memory args = new string[](2);
-            args[0] = "just";
-            args[1] = justCommand;
-            vm.ffi(args);
-        }
+        if (!disableLog) Log.clg(chainConfig.gatingPhase, "Gating phase set to: ");
 
         Deployed.printUser(getAddr(0), address(kiss), assetConfig);
         if (!disableLog) {
@@ -187,9 +185,19 @@ contract Deploy is ScriptBase("MNEMONIC_DEVNET"), DeployBase {
         }
 
         /* ------------------------------ Finish ----------------------------- */
+        just(afterDeploy);
     }
 
     function localtest(uint32 deployer) public {
         run("localhost", deployer, false, true, "");
+    }
+
+    function just(string memory _justCmd) internal returns (bool) {
+        if (bytes(_justCmd).length == 0) return false;
+        string[] memory args = new string[](2);
+        args[0] = "just";
+        args[1] = _justCmd;
+        vm.ffi(args);
+        return true;
     }
 }

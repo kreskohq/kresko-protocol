@@ -2,12 +2,10 @@
 pragma solidity ^0.8.0;
 import {vm} from "kresko-lib/utils/IMinimalVM.sol";
 import {Help} from "kresko-lib/utils/Libs.sol";
-import {Asset, CommonInitArgs} from "common/Types.sol";
-import {SCDPInitArgs} from "scdp/STypes.sol";
-import {MinterInitArgs} from "minter/MTypes.sol";
+import {Asset} from "common/Types.sol";
 import {Enums} from "common/Constants.sol";
 import {VaultAsset} from "vault/VTypes.sol";
-import {IWETH9} from "kresko-lib/token/IWETH9.sol";
+import "scripts/deploy/libs/JSON.s.sol" as JSON;
 
 library LibDeployConfig {
     using Help for *;
@@ -120,7 +118,7 @@ library LibDeployConfig {
         return address(0);
     }
 
-    function toAsset(JSONAssetConfig memory jsonData) internal pure returns (Asset memory result) {
+    function toAsset(JSON.AssetConfig memory jsonData) internal pure returns (Asset memory result) {
         assembly {
             result := jsonData
         }
@@ -136,7 +134,7 @@ library LibDeployConfig {
         return string.concat(ticker, ".feed");
     }
 
-    function getKrAssetMetadata(JSON.KrAssetConfig memory cfg) internal pure returns (KrAssetMetadata memory) {
+    function metadata(JSON.KrAssetConfig memory cfg) internal pure returns (KrAssetMetadata memory) {
         (string memory name, string memory symbol) = getKrAssetNameAndSymbol(cfg.name, cfg.symbol);
         (string memory anchorName, string memory anchorSymbol) = getAnchorSymbolAndName(cfg.name, cfg.symbol);
         (bytes32 krAssetSalt, bytes32 anchorSalt) = getKrAssetSalts(symbol, anchorSymbol);
@@ -183,129 +181,3 @@ library LibDeployConfig {
         return keccak256(abi.encodePacked(assetB, assetA));
     }
 }
-
-library JSON {
-    struct Chains {
-        uint32 version;
-        ChainConfig[] configs;
-    }
-
-    struct PeripheryConfig {
-        address officallyKreskianNFT;
-        address questForKreskNFT;
-        address v3SwapRouter02;
-        address wrappedNative;
-    }
-
-    struct ChainConfig {
-        string configId;
-        uint256 chainId;
-        CommonInitArgs common;
-        SCDPInitArgs scdp;
-        MinterInitArgs minter;
-        PeripheryConfig periphery;
-        uint8 gatingPhase;
-    }
-
-    struct Assets {
-        string configId;
-        uint256 chainId;
-        bool mocked;
-        IWETH9 nativeWrapper;
-        ExtAssetConfig[] extAssets;
-        KrAssetConfig[] kreskoAssets;
-        KISSConfig kiss;
-        TickerConfig[] tickers;
-        TradeRouteConfig[] customTradeRoutes;
-        string mockRedstoneStr;
-    }
-
-    struct KrAssetConfig {
-        string name;
-        string symbol;
-        address underlyingAddr;
-        uint48 wrapFee;
-        uint40 unwrapFee;
-        JSONAssetConfig config;
-    }
-
-    struct KISSConfig {
-        string name;
-        string symbol;
-        JSONAssetConfig config;
-    }
-
-    struct ExtAssetConfig {
-        string name;
-        string symbol;
-        address addr;
-        JSONAssetConfig config;
-        VaultAsset vault;
-    }
-
-    struct TickerConfig {
-        string ticker;
-        uint256 mockPrice;
-        uint8 priceDecimals;
-        address chainlink;
-        address api3;
-        address vault;
-        bool useAdapter;
-    }
-
-    struct BalanceConfig {
-        string symbol;
-        uint256 amount;
-    }
-
-    struct MinterUserConfig {
-        string depositSymbol;
-        uint256 collAmount;
-        string mintSymbol;
-        uint256 mintAmount;
-    }
-
-    struct TradeRouteConfig {
-        string assetA;
-        string assetB;
-        bool enabled;
-    }
-
-    struct UserConfig {
-        string configId;
-        uint256 chainId;
-        uint32[] users;
-        BalanceConfig[] balances;
-        uint256 kissAmount;
-        uint256 kissDepositAmount;
-        MinterUserConfig[] minter;
-    }
-}
-
-/// @notice forge cannot parse structs with fixed arrays so we use this intermediate struct
-struct JSONAssetConfig {
-    string ticker;
-    address anchor;
-    Enums.OracleType[] oracles;
-    uint16 factor;
-    uint16 kFactor;
-    uint16 openFee;
-    uint16 closeFee;
-    uint16 liqIncentive;
-    uint256 maxDebtMinter;
-    uint256 maxDebtSCDP;
-    uint256 depositLimitSCDP;
-    uint16 swapInFeeSCDP;
-    uint16 swapOutFeeSCDP;
-    uint16 protocolFeeShareSCDP;
-    uint16 liqIncentiveSCDP;
-    uint8 decimals;
-    bool isMinterCollateral;
-    bool isMinterMintable;
-    bool isSharedCollateral;
-    bool isSwapMintable;
-    bool isSharedOrSwappedCollateral;
-    bool isCoverAsset;
-}
-
-using {LibDeployConfig.toAsset} for JSONAssetConfig global;

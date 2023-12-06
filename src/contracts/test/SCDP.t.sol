@@ -51,8 +51,8 @@ contract SCDPTest is TestBase("MNEMONIC_TESTNET"), _DeprecatedTestUtils {
         });
         vm.startPrank(deployCfg.admin);
 
-        kresko = deployDiamond(deployCfg);
         factory = deployDeploymentFactory(TEST_ADMIN);
+        kresko = deployDiamondOneTx(deployCfg);
         vm.warp(3601);
 
         usdc = mockCollateral(

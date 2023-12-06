@@ -6,10 +6,11 @@ import {IKresko} from "periphery/IKresko.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
-import {JSON, LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {vm} from "kresko-lib/utils/IMinimalVM.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
+import "scripts/deploy/libs/JSON.s.sol" as JSON;
 
 library Deployed {
     using Log for *;
@@ -27,7 +28,7 @@ library Deployed {
 
         for (uint256 i; i < _assetCfg.kreskoAssets.length; i++) {
             if (_assetCfg.kreskoAssets[i].symbol.equals(symbol)) {
-                return LibDeploy.pd3(LibDeployConfig.getKrAssetMetadata(_assetCfg.kreskoAssets[i]).krAssetSalt);
+                return krAssetAddr(_assetCfg.kreskoAssets[i]);
             }
         }
 
@@ -73,8 +74,8 @@ library Deployed {
         }
     }
 
-    function getKrAssetAddr(JSON.KrAssetConfig memory _assetCfg) internal view returns (address) {
-        return LibDeploy.pd3(LibDeployConfig.getKrAssetMetadata(_assetCfg).krAssetSalt);
+    function krAssetAddr(JSON.KrAssetConfig memory _assetCfg) internal view returns (address) {
+        return LibDeploy.pd3(_assetCfg.metadata().krAssetSalt);
     }
 
     function addr(string memory name) internal returns (address) {

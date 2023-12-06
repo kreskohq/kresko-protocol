@@ -30,7 +30,7 @@ deploy-local:
 
 dry-arbitrum-fork:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
-	--sig $(cast calldata "run(string,uint32,bool,bool,string)" arbitrumFork 0 true false arbitrum-fork-users) \
+	--sig $(cast calldata "run(string,uint32,bool,bool,string)" arbitrumFork 0 true false '') \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--with-gas-price 100000000 \
 	--evm-version "paris" \
@@ -40,7 +40,7 @@ dry-arbitrum-fork:
 
 deploy-arbitrum-fork:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
-	--sig $(cast calldata "run(string,uint32,bool,bool,string)" arbitrumFork 0 true false arbitrum-fork-users) \
+	--sig $(cast calldata "run(string,uint32,bool,bool,string)" arbitrumFork 0 true false '') \
 	--fork-url "$RPC_LOCAL" \
 	--with-gas-price 100000000 \
 	--evm-version "paris" \

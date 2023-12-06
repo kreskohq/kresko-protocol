@@ -1,6 +1,6 @@
 {
-  "00_configId": "localhost",
-  "01_chainId": 1337,
+  "00_configId": "arbitrumFork",
+  "01_chainId": 41337,
   "02_users": [0, 1, 2, 3],
   "03_external_balances": [
     {
@@ -44,7 +44,7 @@
       "03_mintAmount": 10000e18
     }
   ],
-  "07_useMockTokens": true,
-  "08_useMockNFTs": true,
-  "09_setupCommand": ""
+  "07_useMockTokens": false,
+  "08_useMockNFTs": false,
+  "09_setupCommand": "arbitrum-fork-users"
 }

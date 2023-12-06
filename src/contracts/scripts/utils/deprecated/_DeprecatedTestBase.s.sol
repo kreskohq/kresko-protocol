@@ -59,22 +59,15 @@ abstract contract _DeprecatedTestBase is
     IKISS internal kiss;
     IVault internal vkiss;
 
-    function deployDiamond(CoreConfig memory _cfg) internal returns (IKresko kresko_) {
-        FacetCut[] memory facets = new FacetCut[](FACET_COUNT);
-        Initializer[] memory initializers = new Initializer[](FACET_COUNT);
-        /* --------------------------------- Diamond -------------------------------- */
-        diamondFacets(facets);
-        /* --------------------------------- Common --------------------------------- */
-        initializers[0] = commonFacets(_cfg, facets);
-        /* --------------------------------- Minter --------------------------------- */
-        initializers[1] = minterFacets(_cfg, facets);
-        /* ---------------------------------- SCDP ---------------------------------- */
-        initializers[2] = scdpFacets(_cfg, facets);
-        /* ---------------------------- Periphery --------------------------- */
-        peripheryFacets(_cfg, facets);
+    function deployDiamondOneTx(CoreConfig memory _cfg) internal returns (IKresko kresko_) {
+        string[] memory cmd = new string[](2);
+        cmd[0] = "./utils/getBytesAndSelectors.sh";
+        cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
 
-        (kresko_ = IKresko(address(new Diamond(_cfg.admin, facets, initializers))));
-        __current_kresko = address(kresko_); // @note mandatory
+        (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vm.ffi(cmd), (bytes[], bytes4[][]));
+        (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(selectors, _cfg);
+        __current_kresko = address(new DiamondBomb().create(_cfg.admin, creationCodes, selectors, initializers, calldatas));
+        kresko_ = IKresko(__current_kresko);
     }
 
     function getCommonInitArgs(CoreConfig memory _cfg) internal pure returns (CommonInitArgs memory init_) {
@@ -101,170 +94,6 @@ abstract contract _DeprecatedTestBase is
         init_.coverThreshold = _cfg.coverThreshold;
         init_.coverIncentive = _cfg.coverIncentive;
         init_.sdiPricePrecision = _cfg.sdiPrecision;
-    }
-
-    function diamondFacets(FacetCut[] memory _facets) internal returns (Initializer memory) {
-        _facets[0] = FacetCut({
-            facetAddress: address(new DiamondCutFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("DiamondCutFacet")
-        });
-        _facets[1] = FacetCut({
-            facetAddress: address(new DiamondStateFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("DiamondStateFacet")
-        });
-        _facets[2] = FacetCut({
-            facetAddress: address(new DiamondLoupeFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("DiamondLoupeFacet")
-        });
-        _facets[3] = FacetCut({
-            facetAddress: address(new ERC165Facet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("ERC165Facet")
-        });
-
-        return Initializer({initContract: address(0), initData: ""});
-    }
-
-    function commonFacets(CoreConfig memory _cfg, FacetCut[] memory _facets) internal returns (Initializer memory) {
-        address configurationFacetAddress = address(new CommonConfigurationFacet());
-        _facets[4] = FacetCut({
-            facetAddress: configurationFacetAddress,
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("CommonConfigurationFacet")
-        });
-        _facets[5] = FacetCut({
-            facetAddress: address(new AuthorizationFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("AuthorizationFacet")
-        });
-        _facets[6] = FacetCut({
-            facetAddress: address(new CommonStateFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("CommonStateFacet")
-        });
-        _facets[7] = FacetCut({
-            facetAddress: address(new AssetConfigurationFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("AssetConfigurationFacet")
-        });
-        _facets[8] = FacetCut({
-            facetAddress: address(new AssetStateFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("AssetStateFacet")
-        });
-        _facets[9] = FacetCut({
-            facetAddress: address(new SafetyCouncilFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("SafetyCouncilFacet")
-        });
-
-        return
-            Initializer(
-                configurationFacetAddress,
-                abi.encodeWithSelector(CommonConfigurationFacet.initializeCommon.selector, getCommonInitArgs(_cfg))
-            );
-    }
-
-    function minterFacets(CoreConfig memory _cfg, FacetCut[] memory _facets) internal returns (Initializer memory) {
-        address configurationFacetAddress = address(new MinterConfigurationFacet());
-        _facets[10] = FacetCut({
-            facetAddress: configurationFacetAddress,
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("MinterConfigurationFacet")
-        });
-        _facets[11] = FacetCut({
-            facetAddress: address(new MinterMintFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("MinterMintFacet")
-        });
-        _facets[12] = FacetCut({
-            facetAddress: address(new MinterBurnFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("MinterBurnFacet")
-        });
-        _facets[13] = FacetCut({
-            facetAddress: address(new MinterStateFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("MinterStateFacet")
-        });
-        _facets[14] = FacetCut({
-            facetAddress: address(new MinterDepositWithdrawFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("MinterDepositWithdrawFacet")
-        });
-        _facets[15] = FacetCut({
-            facetAddress: address(new MinterAccountStateFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("MinterAccountStateFacet")
-        });
-        _facets[16] = FacetCut({
-            facetAddress: address(new MinterLiquidationFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("MinterLiquidationFacet")
-        });
-
-        return
-            Initializer(
-                configurationFacetAddress,
-                abi.encodeWithSelector(MinterConfigurationFacet.initializeMinter.selector, getMinterInitArgs(_cfg))
-            );
-    }
-
-    function scdpFacets(CoreConfig memory _cfg, FacetCut[] memory _facets) internal returns (Initializer memory) {
-        address configurationFacetAddress = address(new SCDPConfigFacet());
-
-        _facets[17] = FacetCut({
-            facetAddress: address(new SCDPFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("SCDPFacet")
-        });
-        _facets[18] = FacetCut({
-            facetAddress: address(new SCDPStateFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("SCDPStateFacet")
-        });
-        _facets[19] = FacetCut({
-            facetAddress: configurationFacetAddress,
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("SCDPConfigFacet")
-        });
-        _facets[20] = FacetCut({
-            facetAddress: address(new SCDPSwapFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("SCDPSwapFacet")
-        });
-        _facets[21] = FacetCut({
-            facetAddress: address(new SDIFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("SDIFacet")
-        });
-        return
-            Initializer(
-                configurationFacetAddress,
-                abi.encodeWithSelector(SCDPConfigFacet.initializeSCDP.selector, getSCDPInitArgs(_cfg))
-            );
-    }
-
-    function peripheryFacets(CoreConfig memory, FacetCut[] memory _facets) internal {
-        _facets[22] = FacetCut({
-            facetAddress: address(new DataFacet()),
-            action: FacetCutAction.Add,
-            functionSelectors: getSelectorsFromArtifact("DataFacet")
-        });
-    }
-
-    function deployDiamondOneTx(CoreConfig memory _cfg) internal returns (IKresko kresko_) {
-        string[] memory cmd = new string[](2);
-        cmd[0] = "./utils/getBytecodes.sh";
-        cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
-
-        (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vm.ffi(cmd), (bytes[], bytes4[][]));
-        (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(selectors, _cfg);
-        __current_kresko = address(new DiamondBomb().create(_cfg.admin, creationCodes, selectors, initializers, calldatas));
-        kresko_ = IKresko(__current_kresko);
     }
 
     function getInitializers(

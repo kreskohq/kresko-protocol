@@ -46,7 +46,7 @@ contract MinterTest is TestBase("MNEMONIC_TESTNET"), _DeprecatedTestUtils {
         });
         vm.startPrank(deployCfg.admin);
         factory = deployDeploymentFactory(TEST_ADMIN);
-        kresko = deployDiamond(deployCfg);
+        kresko = deployDiamondOneTx(deployCfg);
         vm.warp(3601);
 
         usdc = mockCollateral(
