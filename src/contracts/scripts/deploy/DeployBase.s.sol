@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
 
-import {RedstoneScript} from "kresko-lib/utils/Redstone.sol";
 import {FacetCut, Initializer, FacetCutAction} from "diamond/DSTypes.sol";
 import {Diamond} from "diamond/Diamond.sol";
 
@@ -12,7 +11,7 @@ import {IKISS} from "kiss/interfaces/IKISS.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
 import {InitializerMismatch, SelectorBytecodeMismatch, DiamondBomb} from "scripts/utils/DiamondBomb.sol";
 
-import {vm} from "kresko-lib/utils/IMinimalVM.sol";
+import {vmFFI} from "kresko-lib/utils/Base.s.sol";
 import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IKrMulticall} from "periphery/IKrMulticall.sol";
@@ -25,16 +24,13 @@ import {MinterConfigurationFacet} from "minter/facets/MinterConfigurationFacet.s
 import {CommonConfigurationFacet} from "common/facets/CommonConfigurationFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 
-abstract contract DeployBase is RedstoneScript("./utils/getRedstonePayload.js") {
+abstract contract DeployBase {
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
 
     uint256 internal constant FACET_COUNT = 23;
     uint256 internal constant INITIALIZER_COUNT = 3;
     bytes32 internal constant DIAMOND_SALT = bytes32("KRESKO");
-
-    bytes rsPayload;
-    string rsPrices;
 
     JSON.ChainConfig chainConfig;
     IKresko kresko;
@@ -49,15 +45,13 @@ abstract contract DeployBase is RedstoneScript("./utils/getRedstonePayload.js") 
     function deployDiamond(JSON.ChainConfig memory _cfg) internal returns (IKresko) {
         require(address(LibDeploy.state().factory) != address(0), "KreskoForgeBase: No factory");
         (FacetCut[] memory facets, Initializer[] memory initializers) = createFacets(_cfg);
-        LibDeploy.init("Kresko");
+        LibDeploy.JSONKey("Kresko");
         bytes memory implementation = LibDeploy.ctor(
             type(Diamond).creationCode,
             abi.encode(_cfg.common.admin, facets, initializers)
         );
         kresko = IKresko(implementation.d3("", DIAMOND_SALT).implementation);
-        __current_kresko = address(kresko); // @note mandatory
-        LibDeploy.save();
-
+        LibDeploy.saveJSONKey();
         return kresko;
     }
 
@@ -66,7 +60,7 @@ abstract contract DeployBase is RedstoneScript("./utils/getRedstonePayload.js") 
         cmd[0] = "./utils/getBytesAndSelectors.sh";
         cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
 
-        (bytes[] memory facets, bytes4[][] memory selectors) = abi.decode(vm.ffi(cmd), (bytes[], bytes4[][]));
+        (bytes[] memory facets, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (bytes[], bytes4[][]));
         (uint256[] memory initIds, bytes[] memory initDatas) = getInitializers(selectors, _cfg);
 
         if (facets.length != selectors.length) {
@@ -135,11 +129,10 @@ abstract contract DeployBase is RedstoneScript("./utils/getRedstonePayload.js") 
         cmd[0] = "./utils/getBytesAndSelectors.sh";
         cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
 
-        (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vm.ffi(cmd), (bytes[], bytes4[][]));
+        (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (bytes[], bytes4[][]));
         (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(selectors, _cfg);
-        __current_kresko = address(
-            new DiamondBomb().create(_cfg.common.admin, creationCodes, selectors, initializers, calldatas)
+        kresko_ = IKresko(
+            address(new DiamondBomb().create(_cfg.common.admin, creationCodes, selectors, initializers, calldatas))
         );
-        kresko_ = IKresko(__current_kresko);
     }
 }

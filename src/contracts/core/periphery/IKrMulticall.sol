@@ -15,7 +15,7 @@ interface ISwapRouter {
 interface IKrMulticall {
     function rescue(address _token, uint256 _amount, address _receiver) external;
 
-    function execute(Operation[] calldata ops, bytes calldata rsPayload) external payable returns (Result[] memory results);
+    function execute(Operation[] calldata ops, bytes calldata rsPayload) external payable returns (Result[] memory);
 
     /**
      * @notice An operation to execute.

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
 
-import {_IDeployState} from "./_IDeployState.sol";
-import {FacetScript} from "kresko-lib/utils/Diamond.sol";
-import {RedstoneScript} from "kresko-lib/utils/Redstone.sol";
+import {IKISS, IKresko, IVault, _IDeployState} from "./_IDeployState.sol";
+import {FacetScript, vmFFI} from "kresko-lib/utils/ffi/FacetScript.s.sol";
+import {RsScript} from "kresko-lib/utils/ffi/RsScript.s.sol";
 import {CommonInitArgs} from "common/Types.sol";
 import {MinterInitArgs} from "minter/MTypes.sol";
 import {FacetCut, Initializer, FacetCutAction} from "diamond/DSTypes.sol";
@@ -34,17 +34,13 @@ import {SCDPSwapFacet} from "scdp/facets/SCDPSwapFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {SDIFacet} from "scdp/facets/SDIFacet.sol";
 import {SCDPInitArgs} from "scdp/STypes.sol";
-import {IKresko} from "periphery/IKresko.sol";
-import {IKISS} from "kiss/interfaces/IKISS.sol";
-import {IVault} from "vault/interfaces/IVault.sol";
 import {DiamondBomb} from "scripts/utils/DiamondBomb.sol";
 
 import {DataFacet} from "periphery/facets/DataFacet.sol";
-import {vm} from "kresko-lib/utils/IMinimalVM.sol";
 
 abstract contract _DeprecatedTestBase is
     _IDeployState,
-    RedstoneScript("./utils/getRedstonePayload.js"),
+    RsScript("./utils/rsPayload.js"),
     FacetScript("./utils/getFunctionSelectors.sh")
 {
     uint256 internal constant FACET_COUNT = 23;
@@ -64,10 +60,10 @@ abstract contract _DeprecatedTestBase is
         cmd[0] = "./utils/getBytesAndSelectors.sh";
         cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
 
-        (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vm.ffi(cmd), (bytes[], bytes4[][]));
+        (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (bytes[], bytes4[][]));
         (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(selectors, _cfg);
-        __current_kresko = address(new DiamondBomb().create(_cfg.admin, creationCodes, selectors, initializers, calldatas));
-        kresko_ = IKresko(__current_kresko);
+        kresko_ = IKresko(address(new DiamondBomb().create(_cfg.admin, creationCodes, selectors, initializers, calldatas)));
+        rsInit(address(kresko_));
     }
 
     function getCommonInitArgs(CoreConfig memory _cfg) internal pure returns (CommonInitArgs memory init_) {

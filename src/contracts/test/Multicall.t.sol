@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.sol";
+import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
+import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
-import {IKrMulticall, KrMulticall} from "periphery/KrMulticall.sol";
+import {IKrMulticall} from "periphery/KrMulticall.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
@@ -42,7 +42,7 @@ contract MulticallTest is Deploy {
     }
 
     function setUp() public {
-        Deploy.localtest(0);
+        Deploy.localtest("MNEMONIC_DEVNET", 0);
 
         usdc = MockERC20(Deployed.addr("usdc"));
         usdt = MockERC20(Deployed.addr("USDT"));
@@ -58,7 +58,7 @@ contract MulticallTest is Deploy {
         krETH.approve(address(kresko), type(uint256).max);
         _setETHPrice(ETH_PRICE);
         // 1000 KISS -> 0.48 ETH
-        call(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETHAddr, 1000e18, 0, rsPrices);
+        rsCall(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETHAddr, 1000e18, 0);
         vault.setDepositFee(address(usdt), 10e2);
         vault.setWithdrawFee(address(usdt), 10e2);
 
@@ -698,10 +698,7 @@ contract MulticallTest is Deploy {
 
     function _trades(uint256 count) internal {
         address trader = getAddr(777);
-        prank(chainConfig.common.admin);
         uint256 mintAmount = 20000e6;
-
-        kresko.setFeeAssetSCDP(address(kiss));
         usdc.mint(trader, mintAmount * count);
 
         prank(trader);
@@ -709,22 +706,15 @@ contract MulticallTest is Deploy {
         kiss.approve(address(kresko), type(uint256).max);
         krETH.approve(address(kresko), type(uint256).max);
         (uint256 tradeAmount, ) = kiss.vaultDeposit(address(usdc), mintAmount * count, trader);
-
         for (uint256 i = 0; i < count; i++) {
-            call(kresko.swapSCDP.selector, trader, address(kiss), krETHAddr, tradeAmount / count, 0, rsPrices);
-            call(kresko.swapSCDP.selector, trader, krETHAddr, address(kiss), krETH.balanceOf(trader), 0, rsPrices);
+            rsCall(kresko.swapSCDP.selector, trader, address(kiss), krETHAddr, tradeAmount / count, 0);
+            rsCall(kresko.swapSCDP.selector, trader, krETHAddr, address(kiss), krETH.balanceOf(trader), 0);
         }
     }
 
     function _cover(uint256 _coverAmount) internal returns (uint256 crAfter, uint256 debtValAfter) {
-        (bool success, bytes memory returndata) = address(kresko).call(
-            abi.encodePacked(abi.encodeWithSelector(kresko.coverSCDP.selector, address(kiss), _coverAmount), rsPayload)
-        );
-        if (!success) _handleRevert(returndata);
-        return (
-            staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices),
-            staticCall(kresko.getTotalDebtValueSCDP.selector, true, rsPrices)
-        );
+        rsCall(kresko.coverSCDP.selector, address(kiss), _coverAmount);
+        return (rsStatic(kresko.getCollateralRatioSCDP.selector), rsStatic(kresko.getTotalDebtValueSCDP.selector, true));
     }
 
     function _liquidate(
@@ -732,18 +722,22 @@ contract MulticallTest is Deploy {
         uint256 _repayAmount,
         address _seizeAsset
     ) internal returns (uint256 crAfter, uint256 debtValAfter, uint256 debtAmountAfter) {
-        (bool success, bytes memory returndata) = address(kresko).call(
-            abi.encodePacked(
-                abi.encodeWithSelector(kresko.liquidateSCDP.selector, _repayAsset, _repayAmount, _seizeAsset),
-                rsPayload
-            )
-        );
-        if (!success) _handleRevert(returndata);
+        rsCall(kresko.liquidateSCDP.selector, _repayAsset, _repayAmount, _seizeAsset);
         return (
-            staticCall(kresko.getCollateralRatioSCDP.selector, rsPrices),
-            staticCall(kresko.getDebtValueSCDP.selector, _repayAsset, true, rsPrices),
+            rsStatic(kresko.getCollateralRatioSCDP.selector),
+            rsStatic(kresko.getDebtValueSCDP.selector, _repayAsset, true),
             kresko.getDebtSCDP(_repayAsset)
         );
+    }
+
+    function _setETHPrice(uint256 _pushPrice) internal {
+        ethFeed.setPrice(_pushPrice * 1e8);
+        rs_price_eth = ("ETH:").and(_pushPrice.str()).and(":8");
+        rsInit(rs_price_eth.and(rs_prices_rest));
+    }
+
+    function _getPrice(address _asset) internal view returns (uint256) {
+        return rsStatic(kresko.getPrice.selector, _asset);
     }
 
     function _previewSwap(
@@ -752,38 +746,6 @@ contract MulticallTest is Deploy {
         uint256 _amountIn,
         uint256 _minAmountOut
     ) internal view returns (uint256 amountOut_) {
-        (bool success, bytes memory returndata) = address(kresko).staticcall(
-            abi.encodePacked(
-                abi.encodeWithSelector(kresko.previewSwapSCDP.selector, _assetIn, _assetOut, _amountIn, _minAmountOut),
-                rsPayload
-            )
-        );
-        if (!success) _handleRevert(returndata);
-        amountOut_ = abi.decode(returndata, (uint256));
-    }
-
-    function _setETHPrice(uint256 _pushPrice) internal {
-        ethFeed.setPrice(_pushPrice * 1e8);
-        rs_price_eth = ("ETH:").and(_pushPrice.str()).and(":8");
-        rsPrices = rs_price_eth.and(rs_prices_rest);
-        rsPayload = getRedstonePayload(rsPrices);
-    }
-
-    function _getPrice(address _asset) internal view returns (uint256 price_) {
-        (bool success, bytes memory returndata) = address(kresko).staticcall(
-            abi.encodePacked(abi.encodeWithSelector(kresko.getPrice.selector, _asset), rsPayload)
-        );
-        require(success, "getPrice-failed");
-        price_ = abi.decode(returndata, (uint256));
-    }
-
-    function _updateRsPrices() internal {
-        rsPrices = rs_price_eth.and(rs_prices_rest);
-    }
-
-    function _handleRevert(bytes memory data) internal pure {
-        assembly {
-            revert(add(32, data), mload(data))
-        }
+        return rsStatic(kresko.previewSwapSCDP.selector, _assetIn, _assetOut, _amountIn, _minAmountOut);
     }
 }

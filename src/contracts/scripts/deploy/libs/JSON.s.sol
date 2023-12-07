@@ -7,15 +7,16 @@ import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {Enums} from "common/Constants.sol";
 import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import {mAddr} from "../../../../../lib/kresko-foundry-helpers/src/utils/MinVm.s.sol";
 
 struct Chains {
     ChainConfig[] configs;
 }
 
 struct PeripheryConfig {
-    address officallyKreskianNFT;
-    address questForKreskNFT;
-    address v3SwapRouter02;
+    address okNFT;
+    address qfkNFT;
+    address v3Router;
     address wrappedNative;
 }
 
@@ -39,7 +40,7 @@ struct Assets {
     KISSConfig kiss;
     TickerConfig[] tickers;
     TradeRouteConfig[] customTradeRoutes;
-    string mockRedstoneStr;
+    string rsPrices;
 }
 
 struct KISSConfig {
@@ -66,16 +67,27 @@ struct TickerConfig {
     bool useAdapter;
 }
 
-struct BalanceConfig {
+struct Balance {
+    uint256 user;
     string symbol;
     uint256 amount;
+    address assetsFrom;
 }
 
-struct MinterUserConfig {
+struct MinterPosition {
+    uint256 user;
     string depositSymbol;
-    uint256 collAmount;
+    uint256 depositAmount;
+    address assetsFrom;
     string mintSymbol;
     uint256 mintAmount;
+}
+
+struct SCDPPosition {
+    uint256 user;
+    uint256 kissDeposits;
+    string vaultAssetSymbol;
+    address assetsFrom;
 }
 
 struct TradeRouteConfig {
@@ -84,17 +96,26 @@ struct TradeRouteConfig {
     bool enabled;
 }
 
-struct UserConfig {
+struct Account {
+    uint32 idx;
+    address addr;
+}
+
+struct NFTSetup {
+    bool useMocks;
+    address nftsFrom;
+    uint256 userCount;
+}
+
+struct Users {
     string configId;
     uint256 chainId;
-    uint32[] users;
-    BalanceConfig[] balances;
-    uint256 kissAmount;
-    uint256 kissDepositAmount;
-    MinterUserConfig[] minter;
-    bool useMockTokens;
-    bool useMockNFTs;
-    string setupCommand;
+    string mnemonicEnv;
+    Account[] accounts;
+    Balance[] balances;
+    SCDPPosition[] scdp;
+    MinterPosition[] minter;
+    NFTSetup nfts;
 }
 
 /// @notice forge cannot parse structs with fixed arrays so we use this intermediate struct
@@ -131,6 +152,17 @@ struct KrAssetConfig {
     uint40 unwrapFee;
     AssetConfig config;
 }
+
+function get(Users memory users, uint256 i) returns (address) {
+    Account memory acc = users.accounts[i];
+    if (acc.addr == address(0)) {
+        return mAddr(users.mnemonicEnv, acc.idx);
+    }
+    return acc.addr;
+}
+
+uint256 constant ALL_USERS = 9999;
+using {get} for Users global;
 
 using {LibDeployConfig.metadata} for KrAssetConfig global;
 

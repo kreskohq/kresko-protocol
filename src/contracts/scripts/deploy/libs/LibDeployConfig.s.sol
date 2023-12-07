@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import {vm} from "kresko-lib/utils/IMinimalVM.sol";
-import {Help} from "kresko-lib/utils/Libs.sol";
+import {mvm} from "kresko-lib/utils/MinVm.s.sol";
+import {Help} from "kresko-lib/utils/Libs.s.sol";
 import {Asset} from "common/Types.sol";
 import {Enums} from "common/Constants.sol";
 import {VaultAsset} from "vault/VTypes.sol";
@@ -34,13 +34,13 @@ library LibDeployConfig {
         bytes32 anchorSalt;
     }
 
-    function getChainConfigs(string memory location) internal returns (JSON.Chains memory) {
-        string memory json = vm.readFile(location);
-        return abi.decode(vm.parseJson(json), (JSON.Chains));
+    function getChainsJSON(string memory location) internal returns (JSON.Chains memory) {
+        string memory json = mvm.readFile(location);
+        return abi.decode(mvm.parseJson(json), (JSON.Chains));
     }
 
-    function getChainConfig(string memory configId) internal returns (JSON.ChainConfig memory) {
-        JSON.Chains memory chains = getChainConfigs(DEFAULT_CHAIN_CONFIGS);
+    function getChainJSON(string memory configId) internal returns (JSON.ChainConfig memory) {
+        JSON.Chains memory chains = getChainsJSON(DEFAULT_CHAIN_CONFIGS);
         for (uint256 i; i < chains.configs.length; i++) {
             if (keccak256(bytes(chains.configs[i].configId)) == keccak256(bytes(configId))) {
                 return chains.configs[i];
@@ -49,21 +49,21 @@ library LibDeployConfig {
         revert("Deployment config not found");
     }
 
-    function getAssetConfig(string memory configId) internal returns (JSON.Assets memory) {
-        string memory json = vm.readFile(ASSET_CONFIG_BASE_LOCATION.and(configId).and(".json"));
-        return abi.decode(vm.parseJson(json), (JSON.Assets));
+    function getAssetsJSON(string memory configId) internal returns (JSON.Assets memory) {
+        string memory json = mvm.readFile(ASSET_CONFIG_BASE_LOCATION.and(configId).and(".json"));
+        return abi.decode(mvm.parseJson(json), (JSON.Assets));
     }
 
-    function getUserConfig(string memory configId) internal returns (JSON.UserConfig memory result) {
+    function getUsersJSON(string memory configId) internal returns (JSON.Users memory result) {
         string memory file = USER_CONFIG_BASE_LOCATION.and(configId).and(".json");
-        if (!vm.exists(file)) return result;
+        if (!mvm.exists(file)) return result;
 
-        string memory json = vm.readFile(file);
-        return abi.decode(vm.parseJson(json), (JSON.UserConfig));
+        string memory json = mvm.readFile(file);
+        return abi.decode(mvm.parseJson(json), (JSON.Users));
     }
 
-    function getVaultAssetConfig(string memory configId) internal returns (VaultAsset[] memory) {
-        JSON.Assets memory assets = getAssetConfig(configId);
+    function getVaultAssets(string memory configId) internal returns (VaultAsset[] memory) {
+        JSON.Assets memory assets = getAssetsJSON(configId);
         uint256 vaultAssetCount;
         for (uint256 i; i < assets.extAssets.length; i++) {
             if (address(assets.extAssets[i].vault.token) != address(0)) {
@@ -83,7 +83,7 @@ library LibDeployConfig {
         return result;
     }
 
-    function getTicker(
+    function getTickerJSON(
         JSON.TickerConfig[] memory _tickers,
         string memory _assetTicker
     ) internal pure returns (JSON.TickerConfig memory) {
@@ -101,7 +101,7 @@ library LibDeployConfig {
         Enums.OracleType[] memory _assetOracles,
         JSON.TickerConfig[] memory _tickers
     ) internal pure returns (JSON.TickerConfig memory ticker, address[2] memory feeds) {
-        ticker = getTicker(_tickers, _assetTicker);
+        ticker = getTickerJSON(_tickers, _assetTicker);
         feeds = [getFeed(_assetOracles[0], ticker), getFeed(_assetOracles[1], ticker)];
     }
 
@@ -167,11 +167,11 @@ library LibDeployConfig {
     }
 
     function getKrAssetSalts(
-        string memory symbol,
+        string memory krAssetSymbol,
         string memory anchorSymbol
     ) internal pure returns (bytes32 krAssetSalt, bytes32 anchorSalt) {
-        krAssetSalt = bytes32(bytes.concat(bytes(symbol), bytes(anchorSymbol)));
-        anchorSalt = bytes32(bytes.concat(bytes(anchorSymbol), bytes(symbol)));
+        krAssetSalt = bytes32(bytes.concat(bytes(krAssetSymbol), bytes(anchorSymbol)));
+        anchorSalt = bytes32(bytes.concat(bytes(anchorSymbol), bytes(krAssetSymbol)));
     }
 
     function pairId(address assetA, address assetB) internal pure returns (bytes32) {
@@ -179,5 +179,17 @@ library LibDeployConfig {
             return keccak256(abi.encodePacked(assetA, assetB));
         }
         return keccak256(abi.encodePacked(assetB, assetA));
+    }
+
+    function getBalanceConfig(
+        JSON.Balance[] memory balances,
+        string memory symbol
+    ) internal pure returns (JSON.Balance memory) {
+        for (uint256 i; i < balances.length; i++) {
+            if (balances[i].symbol.equals(symbol)) {
+                return balances[i];
+            }
+        }
+        revert("Balance not found");
     }
 }
