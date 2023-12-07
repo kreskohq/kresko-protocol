@@ -554,5 +554,5 @@
       "02_enabled": false
     }
   ],
-  "09_redstoneMockString": "ETH:2075:8,BTC:37559:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,XAU:1980:8,WTI:77.5:8,USDT:1:8,JPY:0.0067:8"
+  "09_redstoneMockString": "ETH:2248.7577:8,BTC:43959:8,EUR:1.0764:8,DAI:0.9998:8,USDC:1:8,XAU:2029:8,WTI:69.889:8,USDT:1:8,JPY:0.006797:8"
 }

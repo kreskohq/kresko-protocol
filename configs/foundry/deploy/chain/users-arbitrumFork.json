@@ -105,7 +105,7 @@
       "00_user": 0,
       "01_deposit": "DAI",
       "02_depositAmount": 15000e18,
-      "03_assetsFrom": "0x0000000000000000000000000000000000000000",
+      "03_assetsFrom": "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D",
       "04_mint": "krETH",
       "05_mintAmount": 1.5e18
     }

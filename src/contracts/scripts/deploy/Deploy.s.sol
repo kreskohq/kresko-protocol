@@ -179,7 +179,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         setupBalances(users, assets);
         setupSCDP(users, assets);
         setupMinter(users, assets);
-        setupNFTs(deployer, users, chainCfg);
+        setupNFTs(users.nfts.nftsFrom == address(0) ? deployer : users.nfts.nftsFrom, users, chainCfg);
     }
 
     function setupBalances(JSON.Users memory users, JSON.Assets memory assets) internal {
@@ -326,6 +326,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     }
 
     function setupNFTs(address _owner, JSON.Users memory users, JSON.ChainConfig memory chain) internal broadcasted(_owner) {
+        if (users.nfts.userCount == 0) return;
         IERC1155 okNFT = IERC1155(chain.periphery.okNFT);
         IERC1155 qfkNFT = IERC1155(chain.periphery.qfkNFT);
         for (uint256 i; i < users.nfts.userCount; i++) {
@@ -352,7 +353,6 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
             } else {
                 if (i < 3) {
                     okNFT.safeTransferFrom(_owner, user, 0, 1, "");
-                    qfkNFT.safeTransferFrom(_owner, user, 0, 1, "");
                 }
                 if (i < 2) {
                     qfkNFT.safeTransferFrom(_owner, user, 1, 1, "");
@@ -362,8 +362,6 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
                     qfkNFT.safeTransferFrom(_owner, user, 3, 1, "");
                     qfkNFT.safeTransferFrom(_owner, user, 4, 1, "");
                     qfkNFT.safeTransferFrom(_owner, user, 5, 1, "");
-                    qfkNFT.safeTransferFrom(_owner, user, 6, 1, "");
-                    qfkNFT.safeTransferFrom(_owner, user, 7, 1, "");
                 }
             }
         }
