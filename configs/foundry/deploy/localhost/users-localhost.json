@@ -1,8 +1,7 @@
 {
   "00_configId": "localhost",
-  "01_chainId": 1337,
-  "02_mnemonicEnv": "MNEMONIC_DEVNET",
-  "03_users": [
+  "01_mnemonicEnv": "MNEMONIC_DEVNET",
+  "02_users": [
     {
       "00_mnemonicIdx": 0,
       "01_addr": "0x0000000000000000000000000000000000000000"
@@ -24,7 +23,7 @@
       "01_addr": "0x0000000000000000000000000000000000000000"
     }
   ],
-  "04_external_balances": [
+  "03_external_balances": [
     {
       "00_user": 9999,
       "01_addr": "WETH",
@@ -68,7 +67,7 @@
       "03_assetsFrom": "0x0000000000000000000000000000000000000000"
     }
   ],
-  "05_scdp": [
+  "04_scdp": [
     {
       "00_user": 0,
       "01_kissDeposits": 50000e18,
@@ -88,7 +87,7 @@
       "03_assetsFrom": "0x0000000000000000000000000000000000000000"
     }
   ],
-  "06_minter": [
+  "05_minter": [
     {
       "00_user": 0,
       "01_deposit": "USDC.e",
@@ -146,7 +145,7 @@
       "05_mintAmount": 0
     }
   ],
-  "07_nfts": {
+  "06_nfts": {
     "00_useMocks": true,
     "01_nftsFrom": "0x0000000000000000000000000000000000000000",
     "02_userCount": 5

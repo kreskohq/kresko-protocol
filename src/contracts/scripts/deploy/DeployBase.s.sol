@@ -23,16 +23,17 @@ import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {MinterConfigurationFacet} from "minter/facets/MinterConfigurationFacet.sol";
 import {CommonConfigurationFacet} from "common/facets/CommonConfigurationFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
+import {CONST} from "scripts/deploy/libs/CONST.s.sol";
 
 abstract contract DeployBase {
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
+    using LibDeploy for JSON.Config;
 
     uint256 internal constant FACET_COUNT = 23;
     uint256 internal constant INITIALIZER_COUNT = 3;
-    bytes32 internal constant DIAMOND_SALT = bytes32("KRESKO");
 
-    JSON.ChainConfig chainConfig;
+    JSON.Params paramsJSON;
     IKresko kresko;
     IKISS kiss;
     IVault vault;
@@ -42,26 +43,37 @@ abstract contract DeployBase {
     IDataV1 dataV1;
     IWETH9 weth;
 
-    function deployDiamond(JSON.ChainConfig memory _cfg) internal returns (IKresko) {
-        require(address(LibDeploy.state().factory) != address(0), "KreskoForgeBase: No factory");
-        (FacetCut[] memory facets, Initializer[] memory initializers) = createFacets(_cfg);
-        LibDeploy.JSONKey("Kresko");
-        bytes memory implementation = LibDeploy.ctor(
-            type(Diamond).creationCode,
-            abi.encode(_cfg.common.admin, facets, initializers)
-        );
-        kresko = IKresko(implementation.d3("", DIAMOND_SALT).implementation);
-        LibDeploy.saveJSONKey();
-        return kresko;
+    function deployDeploymentFactory(address _deployer) internal returns (address) {
+        return address(factory = LibDeploy.createFactory(_deployer));
     }
 
-    function createFacets(JSON.ChainConfig memory _cfg) private returns (FacetCut[] memory cuts, Initializer[] memory inits) {
+    function deployGatingManager(JSON.Config memory json, address _deployer) internal returns (address) {
+        return address(gatingManager = json.createGatingManager(_deployer));
+    }
+
+    function deployDiamond(JSON.Config memory json, address _deployer) internal returns (address) {
+        paramsJSON = json.params;
+        require(address(LibDeploy.state().factory) != address(0), "deployDiamond: No factory");
+        (FacetCut[] memory facets, Initializer[] memory initializers) = deployFacets(json);
+        LibDeploy.JSONKey("Kresko");
+        kresko = IKresko(
+            type(Diamond)
+                .creationCode
+                .ctor(abi.encode(_deployer, facets, initializers))
+                .d3("", CONST.DIAMOND_SALT)
+                .implementation
+        );
+        LibDeploy.saveJSONKey();
+        return address(kresko);
+    }
+
+    function deployFacets(JSON.Config memory json) private returns (FacetCut[] memory cuts, Initializer[] memory inits) {
         string[] memory cmd = new string[](2);
         cmd[0] = "./utils/getBytesAndSelectors.sh";
         cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
 
         (bytes[] memory facets, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (bytes[], bytes4[][]));
-        (uint256[] memory initIds, bytes[] memory initDatas) = getInitializers(selectors, _cfg);
+        (uint256[] memory initIds, bytes[] memory initDatas) = getInitializers(json, selectors);
 
         if (facets.length != selectors.length) {
             revert SelectorBytecodeMismatch(selectors.length, facets.length);
@@ -89,9 +101,9 @@ abstract contract DeployBase {
     }
 
     function getInitializers(
-        bytes4[][] memory selectors,
-        JSON.ChainConfig memory _cfg
-    ) internal pure returns (uint256[] memory initializers, bytes[] memory datas) {
+        JSON.Config memory json,
+        bytes4[][] memory selectors
+    ) private pure returns (uint256[] memory initializers, bytes[] memory datas) {
         initializers = new uint256[](INITIALIZER_COUNT);
         datas = new bytes[](INITIALIZER_COUNT);
         bytes4[3] memory initSelectors = [
@@ -100,9 +112,9 @@ abstract contract DeployBase {
             SCDPConfigFacet.initializeSCDP.selector
         ];
         bytes[3] memory initDatas = [
-            abi.encodeWithSelector(initSelectors[0], _cfg.common),
-            abi.encodeWithSelector(initSelectors[1], _cfg.minter),
-            abi.encodeWithSelector(initSelectors[2], _cfg.scdp)
+            abi.encodeWithSelector(initSelectors[0], json.params.common),
+            abi.encodeWithSelector(initSelectors[1], json.params.minter),
+            abi.encodeWithSelector(initSelectors[2], json.params.scdp)
         ];
 
         for (uint256 i; i < selectors.length; i++) {
@@ -124,15 +136,14 @@ abstract contract DeployBase {
         }
     }
 
-    function deployDiamondOneTx(JSON.ChainConfig memory _cfg) internal returns (IKresko kresko_) {
+    function deployDiamondOneTx(JSON.Config memory json, address _deployer) internal returns (IKresko) {
         string[] memory cmd = new string[](2);
         cmd[0] = "./utils/getBytesAndSelectors.sh";
         cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
 
         (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (bytes[], bytes4[][]));
-        (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(selectors, _cfg);
-        kresko_ = IKresko(
-            address(new DiamondBomb().create(_cfg.common.admin, creationCodes, selectors, initializers, calldatas))
-        );
+        (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(json, selectors);
+        kresko = IKresko(address(new DiamondBomb().create(_deployer, creationCodes, selectors, initializers, calldatas)));
+        return kresko;
     }
 }

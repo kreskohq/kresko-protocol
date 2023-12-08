@@ -1,29 +1,23 @@
+// solhint-disable state-visibility
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import {mvm} from "kresko-lib/utils/MinVm.s.sol";
-import {Help} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {Asset} from "common/Types.sol";
 import {Enums} from "common/Constants.sol";
 import {VaultAsset} from "vault/VTypes.sol";
+import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import "scripts/deploy/libs/JSON.s.sol" as JSON;
+import {CONST} from "scripts/deploy/libs/CONST.s.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 
 library LibDeployConfig {
     using Help for *;
-
-    string internal constant DEFAULT_CHAIN_CONFIGS = "configs/foundry/deploy/chains.json";
-    string internal constant ASSET_CONFIG_BASE_LOCATION = "configs/foundry/deploy/chain/assets-";
-    string internal constant USER_CONFIG_BASE_LOCATION = "configs/foundry/deploy/chain/users-";
-
-    bytes32 internal constant KISS_SALT = bytes32("KISS");
-    bytes32 internal constant VAULT_SALT = bytes32("vKISS");
-
-    string internal constant KRASSET_NAME_PREFIX = "Kresko: ";
-    string internal constant KISS_PREFIX = "Kresko: ";
-
-    string internal constant ANCHOR_NAME_PREFIX = "Kresko Asset Anchor: ";
-    string internal constant ANCHOR_SYMBOL_PREFIX = "a";
-
-    string internal constant VAULT_NAME_PREFIX = "Kresko Vault: ";
+    using LibDeploy for string;
+    using LibDeployConfig for *;
+    using Deployed for *;
 
     struct KrAssetMetadata {
         string name;
@@ -34,48 +28,24 @@ library LibDeployConfig {
         bytes32 anchorSalt;
     }
 
-    function getChainsJSON(string memory location) internal returns (JSON.Chains memory) {
-        string memory json = mvm.readFile(location);
-        return abi.decode(mvm.parseJson(json), (JSON.Chains));
-    }
-
-    function getChainJSON(string memory configId) internal returns (JSON.ChainConfig memory) {
-        JSON.Chains memory chains = getChainsJSON(DEFAULT_CHAIN_CONFIGS);
-        for (uint256 i; i < chains.configs.length; i++) {
-            if (keccak256(bytes(chains.configs[i].configId)) == keccak256(bytes(configId))) {
-                return chains.configs[i];
-            }
-        }
-        revert("Deployment config not found");
-    }
-
-    function getAssetsJSON(string memory configId) internal returns (JSON.Assets memory) {
-        string memory json = mvm.readFile(ASSET_CONFIG_BASE_LOCATION.and(configId).and(".json"));
-        return abi.decode(mvm.parseJson(json), (JSON.Assets));
-    }
-
-    function getUsersJSON(string memory configId) internal returns (JSON.Users memory result) {
-        string memory file = USER_CONFIG_BASE_LOCATION.and(configId).and(".json");
-        if (!mvm.exists(file)) return result;
-
-        string memory json = mvm.readFile(file);
-        return abi.decode(mvm.parseJson(json), (JSON.Users));
-    }
-
-    function getVaultAssets(string memory configId) internal returns (VaultAsset[] memory) {
-        JSON.Assets memory assets = getAssetsJSON(configId);
+    function getVaultAssets(JSON.Config memory json) internal view returns (VaultAsset[] memory) {
         uint256 vaultAssetCount;
-        for (uint256 i; i < assets.extAssets.length; i++) {
-            if (address(assets.extAssets[i].vault.token) != address(0)) {
-                vaultAssetCount++;
-            }
+        for (uint256 i; i < json.assets.extAssets.length; i++) {
+            if (json.assets.extAssets[i].isVaultAsset) vaultAssetCount++;
         }
         VaultAsset[] memory result = new VaultAsset[](vaultAssetCount);
 
         uint256 current;
-        for (uint256 i; i < assets.extAssets.length; i++) {
-            if (address(assets.extAssets[i].vault.token) != address(0)) {
-                result[current] = assets.extAssets[i].vault;
+        for (uint256 i; i < json.assets.extAssets.length; i++) {
+            if (json.assets.extAssets[i].isVaultAsset) {
+                result[current].token = IERC20(json.assets.extAssets[i].symbol.cached());
+                result[current].feed = json.getFeed(json.assets.extAssets[i].vault.feed);
+                result[current].withdrawFee = json.assets.extAssets[i].vault.withdrawFee;
+                result[current].depositFee = json.assets.extAssets[i].vault.depositFee;
+                result[current].maxDeposits = json.assets.extAssets[i].vault.maxDeposits;
+                result[current].staleTime = json.assets.extAssets[i].vault.staleTime;
+                result[current].enabled = json.assets.extAssets[i].vault.enabled;
+
                 current++;
             }
         }
@@ -83,29 +53,46 @@ library LibDeployConfig {
         return result;
     }
 
-    function getTickerJSON(
-        JSON.TickerConfig[] memory _tickers,
-        string memory _assetTicker
-    ) internal pure returns (JSON.TickerConfig memory) {
-        for (uint256 i; i < _tickers.length; i++) {
-            if (_tickers[i].ticker.equals(_assetTicker)) {
-                return _tickers[i];
+    function getTicker(JSON.Config memory json, string memory _ticker) internal pure returns (JSON.TickerConfig memory) {
+        for (uint256 i; i < json.assets.tickers.length; i++) {
+            if (json.assets.tickers[i].ticker.equals(_ticker)) {
+                return json.assets.tickers[i];
             }
         }
 
-        revert("Feed not found");
+        revert(string.concat("!feed: ", _ticker));
     }
 
-    function getOracle(
+    function getFeeds(
+        JSON.Config memory json,
         string memory _assetTicker,
-        Enums.OracleType[] memory _assetOracles,
-        JSON.TickerConfig[] memory _tickers
-    ) internal pure returns (JSON.TickerConfig memory ticker, address[2] memory feeds) {
-        ticker = getTickerJSON(_tickers, _assetTicker);
-        feeds = [getFeed(_assetOracles[0], ticker), getFeed(_assetOracles[1], ticker)];
+        Enums.OracleType[] memory _assetOracles
+    ) internal pure returns (address[2] memory) {
+        JSON.TickerConfig memory ticker = json.getTicker(_assetTicker);
+        return [ticker.getFeed(_assetOracles[0]), ticker.getFeed(_assetOracles[1])];
     }
 
-    function getFeed(Enums.OracleType oracle, JSON.TickerConfig memory ticker) internal pure returns (address) {
+    function getFeed(JSON.Config memory json, string[] memory config) internal pure returns (IAggregatorV3) {
+        return IAggregatorV3(json.getTicker(config[0]).getFeed(config[1]));
+    }
+
+    function getFeed(JSON.TickerConfig memory ticker, string memory oracle) internal pure returns (address) {
+        if (oracle.equals("chainlink")) {
+            return ticker.chainlink;
+        }
+        if (oracle.equals("api3")) {
+            return ticker.api3;
+        }
+        if (oracle.equals("vault")) {
+            return ticker.vault;
+        }
+        if (oracle.equals("redstone")) {
+            return address(0);
+        }
+        return address(0);
+    }
+
+    function getFeed(JSON.TickerConfig memory ticker, Enums.OracleType oracle) internal pure returns (address) {
         if (oracle == Enums.OracleType.Chainlink) {
             return ticker.chainlink;
         }
@@ -115,15 +102,18 @@ library LibDeployConfig {
         if (oracle == Enums.OracleType.Vault) {
             return ticker.vault;
         }
+        if (oracle == Enums.OracleType.Redstone) {
+            return address(0);
+        }
         return address(0);
     }
 
-    function toAsset(JSON.AssetConfig memory jsonData) internal pure returns (Asset memory result) {
+    function toAsset(JSON.AssetJSON memory assetJson) internal pure returns (Asset memory result) {
         assembly {
-            result := jsonData
+            result := assetJson
         }
-        result.oracles = [jsonData.oracles[0], jsonData.oracles[1]];
-        result.ticker = bytes32(bytes(jsonData.ticker));
+        result.oracles = [assetJson.oracles[0], assetJson.oracles[1]];
+        result.ticker = bytes32(bytes(assetJson.ticker));
     }
 
     function feedBytesId(string memory ticker) internal pure returns (bytes32) {
@@ -154,7 +144,7 @@ library LibDeployConfig {
         string memory krAssetName,
         string memory krAssetSymbol
     ) internal pure returns (string memory name, string memory symbol) {
-        name = string.concat(KRASSET_NAME_PREFIX, krAssetName);
+        name = string.concat(CONST.KRASSET_NAME_PREFIX, krAssetName);
         symbol = krAssetSymbol;
     }
 
@@ -162,8 +152,8 @@ library LibDeployConfig {
         string memory krAssetName,
         string memory krAssetSymbol
     ) internal pure returns (string memory name, string memory symbol) {
-        name = string.concat(ANCHOR_NAME_PREFIX, krAssetName);
-        symbol = string.concat(ANCHOR_SYMBOL_PREFIX, krAssetSymbol);
+        name = string.concat(CONST.ANCHOR_NAME_PREFIX, krAssetName);
+        symbol = string.concat(CONST.ANCHOR_SYMBOL_PREFIX, krAssetSymbol);
     }
 
     function getKrAssetSalts(
@@ -172,6 +162,10 @@ library LibDeployConfig {
     ) internal pure returns (bytes32 krAssetSalt, bytes32 anchorSalt) {
         krAssetSalt = bytes32(bytes.concat(bytes(krAssetSymbol), bytes(anchorSymbol)));
         anchorSalt = bytes32(bytes.concat(bytes(anchorSymbol), bytes(krAssetSymbol)));
+    }
+
+    function mockTokenSalt(string memory symbol) internal pure returns (bytes32) {
+        return bytes32(bytes(symbol));
     }
 
     function pairId(address assetA, address assetB) internal pure returns (bytes32) {

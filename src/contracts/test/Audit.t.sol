@@ -42,7 +42,7 @@ contract AuditTest is Deploy {
     }
 
     function setUp() public {
-        Deploy.localtest("MNEMONIC_DEVNET", 0);
+        Deploy.testDeploy("MNEMONIC_DEVNET", "base", 0);
 
         usdc = MockERC20(Deployed.addr("USDC"));
         usdt = MockERC20(Deployed.addr("USDT"));
@@ -101,7 +101,7 @@ contract AuditTest is Deploy {
         // make it liquidatable
         _setETHPrice(20000);
         uint256 crAfter = rsStatic(kresko.getCollateralRatioSCDP.selector);
-        crAfter.lt(chainConfig.scdp.liquidationThreshold); // cr-after: 112.65%
+        crAfter.lt(paramsJSON.scdp.liquidationThreshold); // cr-after: 112.65%
         // this fails without the fix as normalized debt amount is 0.96 krETH
         // vm.expectRevert();
         _liquidate(krETHAddr, 0.96e18 + 1, address(kiss));
@@ -515,7 +515,7 @@ contract AuditTest is Deploy {
 
         // Make it liquidatable
         _setETHPriceAndCoverIncentive(104071, 5000e18);
-        uint256 amountFromUsers = (5000e18).percentMul(chainConfig.scdp.coverIncentive) - swapDeposits;
+        uint256 amountFromUsers = (5000e18).percentMul(paramsJSON.scdp.coverIncentive) - swapDeposits;
         kresko.getSwapDepositsSCDP(address(kiss)).eq(0, "swap-deps-after");
         uint256 depositsAfterUser = kresko.getAccountDepositSCDP(getAddr(0), address(kiss));
         depositsAfterUser.lt(depositsBeforeUser, "deposits-after-cover-user");

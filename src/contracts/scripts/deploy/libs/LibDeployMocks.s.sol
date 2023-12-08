@@ -4,16 +4,21 @@ import {MockOracle} from "mocks/MockOracle.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployment} from "factory/IDeploymentFactory.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
+import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {JSON, LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {LibSafe} from "kresko-lib/mocks/MockSafe.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {MockERC1155} from "mocks/MockERC1155.sol";
+import {VM} from "kresko-lib/utils/LibVM.s.sol";
+import {Help} from "kresko-lib/utils/Libs.s.sol";
 
 library LibDeployMocks {
+    using Help for *;
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
+    using LibDeployConfig for *;
     bytes32 internal constant MOCKS_SLOT = keccak256("Mocks");
 
     bytes32 internal constant SEQ_FEED_SALT = bytes32("SEQ_FEED");
@@ -34,27 +39,51 @@ library LibDeployMocks {
         }
     }
 
-    function createMocks(JSON.Assets memory cfg) internal returns (JSON.Assets memory, address seqFeed) {
-        LibDeploy.JSONKey("NativeWrapper");
-        address weth9 = LibDeploy.d3(type(WETH9).creationCode, "", bytes32("WETH9")).implementation;
-        cfg.nativeWrapper = IWETH9(weth9);
-        LibDeploy.saveJSONKey();
+    function createMocks(JSON.Config memory json, address deployer) internal returns (JSON.Config memory) {
+        if (json.assets.wNative.mocked) {
+            LibDeploy.JSONKey("wNative");
+            address wNative = LibDeploy
+                .d3(type(WETH9).creationCode, "", json.assets.wNative.symbol.mockTokenSalt())
+                .implementation;
+            json.assets.wNative.token = IWETH9(wNative);
+            LibDeploy.saveJSONKey();
+        }
 
-        for (uint256 i; i < cfg.extAssets.length; i++) {
-            JSON.ExtAssetConfig memory ext = cfg.extAssets[i];
-            if (address(ext.addr) == weth9) {
+        if (json.params.common.sequencerUptimeFeed == address(0)) {
+            json.params.common.sequencerUptimeFeed = address(deploySeqFeed());
+            VM.warp(VM.unixTime());
+        }
+
+        if (json.params.common.council == address(0)) {
+            json.params.common.council = LibDeployMocks.deployMockSafe(deployer);
+        }
+
+        for (uint256 i; i < json.assets.extAssets.length; i++) {
+            JSON.ExtAsset memory ext = json.assets.extAssets[i];
+            if (ext.addr == address(json.assets.wNative.token) || ext.symbol.equals(json.assets.wNative.symbol)) {
+                json.assets.extAssets[i].addr = address(json.assets.wNative.token);
+                json.assets.extAssets[i].symbol = json.assets.wNative.symbol;
                 continue;
             }
+            if (!ext.mocked) continue;
 
-            cfg.extAssets[i].addr = address(deployMockToken(ext.symbol, ext.symbol, ext.config.decimals, 0));
+            json.assets.extAssets[i].addr = address(deployMockToken(ext.name, ext.symbol, ext.config.decimals, 0));
         }
 
-        for (uint256 i; i < cfg.tickers.length; i++) {
-            JSON.TickerConfig memory ticker = cfg.tickers[i];
-            if (address(ticker.vault) != address(0)) continue;
-            cfg.tickers[i].chainlink = address(deployMockOracle(ticker.ticker, ticker.mockPrice, ticker.priceDecimals));
+        if (json.assets.mockFeeds) {
+            for (uint256 i; i < json.assets.tickers.length; i++) {
+                JSON.TickerConfig memory ticker = json.assets.tickers[i];
+                if (ticker.ticker.equals("KISS")) continue;
+                json.assets.tickers[i].chainlink = address(
+                    deployMockOracle(ticker.ticker, ticker.mockPrice, ticker.priceDecimals)
+                );
+            }
         }
-        return (cfg, address(deploySeqFeed()));
+
+        if (json.users.nfts.useMocks) {
+            (json.params.periphery.okNFT, json.params.periphery.qfkNFT) = createNFTMocks();
+        }
+        return json;
     }
 
     function createNFTMocks() internal returns (address kreskian, address questForKresk) {
@@ -87,9 +116,6 @@ library LibDeployMocks {
         Deployment memory deployment2 = implementation2.d3("", bytes32(bytes(nft2)));
         LibDeploy.saveJSONKey();
 
-        state().deployment[bytes32("Officially Kreskian")] = deployment;
-        state().deployment[bytes32("Quest for Kresk")] = deployment2;
-
         return (deployment.implementation, deployment2.implementation);
     }
 
@@ -98,9 +124,6 @@ library LibDeployMocks {
         bytes memory implementation = type(MockOracle).creationCode.ctor(abi.encode(ticker, price, decimals));
         Deployment memory deployment = implementation.d3("", LibDeployConfig.feedBytesId(ticker));
         MockOracle result = MockOracle(deployment.implementation);
-
-        state().deployment[deployment.salt] = deployment;
-        state().feed[ticker] = result;
         LibDeploy.saveJSONKey();
         return result;
     }
@@ -112,34 +135,29 @@ library LibDeployMocks {
         uint256 initialSupply
     ) internal returns (MockERC20) {
         LibDeploy.JSONKey(symbol);
-        bytes memory implementation = type(MockERC20).creationCode.ctor(abi.encode(name, symbol, decimals, initialSupply));
-        Deployment memory deployment = implementation.d3("", mockTokenSalt(symbol));
-        MockERC20 result = MockERC20(deployment.implementation);
 
-        state().deployment[deployment.salt] = deployment;
-        state().tokens[symbol] = result;
+        MockERC20 result = MockERC20(
+            type(MockERC20)
+                .creationCode
+                .ctor(abi.encode(name, symbol, decimals, initialSupply))
+                .d3("", symbol.mockTokenSalt())
+                .implementation
+        );
         LibDeploy.saveJSONKey();
         return result;
     }
 
     function deploySeqFeed() internal returns (MockSequencerUptimeFeed result) {
         LibDeploy.JSONKey("SeqFeed");
-        Deployment memory deployment = type(MockSequencerUptimeFeed).creationCode.d3("", SEQ_FEED_SALT);
-        state().deployment[deployment.salt] = deployment;
-        state().seqFeed = deployment.implementation;
-        result = MockSequencerUptimeFeed(deployment.implementation);
+        result = MockSequencerUptimeFeed(type(MockSequencerUptimeFeed).creationCode.d3("", SEQ_FEED_SALT).implementation);
         result.setAnswers(0, 1699456910, 1699456910);
         LibDeploy.saveJSONKey();
     }
 
     function deployMockSafe(address admin) internal returns (address result) {
         LibDeploy.JSONKey("council");
-        result = (state().mockSafe = address(LibSafe.createSafe(admin)));
+        result = address(LibSafe.createSafe(admin));
         LibDeploy.setJsonAddr("address", result);
         LibDeploy.saveJSONKey();
-    }
-
-    function mockTokenSalt(string memory symbol) internal pure returns (bytes32) {
-        return bytes32(bytes(symbol));
     }
 }

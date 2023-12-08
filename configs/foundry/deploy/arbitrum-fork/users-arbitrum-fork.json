@@ -1,8 +1,7 @@
 {
-  "00_configId": "arbitrumFork",
-  "01_chainId": 41337,
-  "02_mnemonicEnv": "MNEMONIC_DEVNET",
-  "03_users": [
+  "00_configId": "arbitrum-fork",
+  "01_mnemonicEnv": "MNEMONIC_DEVNET",
+  "02_users": [
     {
       "00_mnemonicIdx": 0,
       "01_addr": "0x0000000000000000000000000000000000000000"
@@ -24,7 +23,7 @@
       "01_addr": "0x0000000000000000000000000000000000000000"
     }
   ],
-  "04_external_balances": [
+  "03_external_balances": [
     {
       "00_user": 9999,
       "01_asset": "WETH",
@@ -62,7 +61,7 @@
       "03_assetsFrom": "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D"
     }
   ],
-  "05_scdp": [
+  "04_scdp": [
     {
       "00_user": 0,
       "01_kissDeposits": 50000e18,
@@ -76,13 +75,21 @@
       "03_assetsFrom": "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D"
     }
   ],
-  "06_minter": [
+  "05_minter": [
     {
       "00_user": 9999,
       "01_deposit": "USDC.e",
       "02_depositAmount": 0,
       "03_assetsFrom": "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D",
       "04_krAsset": "KISS",
+      "05_mintAmount": 10000e18
+    },
+    {
+      "00_user": 9999,
+      "01_deposit": "WETH",
+      "02_depositAmount": 10e18,
+      "03_assetsFrom": "0xf584F8728B874a6a5c7A8d4d387C9aae9172D621",
+      "04_krAsset": "krEUR",
       "05_mintAmount": 10000e18
     },
     {
@@ -95,11 +102,35 @@
     },
     {
       "00_user": 9999,
-      "01_deposit": "DAI",
-      "02_depositAmount": 0,
-      "03_assetsFrom": "0x0000000000000000000000000000000000000000",
+      "01_deposit": "USDC",
+      "02_depositAmount": 15000e6,
+      "03_assetsFrom": "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D",
       "04_mint": "krJPY",
-      "05_mintAmount": 10000e18
+      "05_mintAmount": 1500000e18
+    },
+    {
+      "00_user": 9999,
+      "01_deposit": "WBTC",
+      "02_depositAmount": 0.55e8,
+      "03_assetsFrom": "0x4bb7f4c3d47C4b431cb0658F44287d52006fb506",
+      "04_mint": "krXAU",
+      "05_mintAmount": 2e18
+    },
+    {
+      "00_user": 9999,
+      "01_deposit": "USDT",
+      "02_depositAmount": 0,
+      "03_assetsFrom": "0x4bb7f4c3d47C4b431cb0658F44287d52006fb506",
+      "04_mint": "krBTC",
+      "05_mintAmount": 0.2e18
+    },
+    {
+      "00_user": 9999,
+      "01_deposit": "USDT",
+      "02_depositAmount": 75e6,
+      "03_assetsFrom": "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D",
+      "04_mint": "krWTI",
+      "05_mintAmount": 91e18
     },
     {
       "00_user": 0,
@@ -110,7 +141,7 @@
       "05_mintAmount": 1.5e18
     }
   ],
-  "07_nfts": {
+  "06_nfts": {
     "00_useMocks": false,
     "01_nftsFrom": "0x99999A0B66AF30f6FEf832938a5038644a72180a",
     "02_userCount": 3

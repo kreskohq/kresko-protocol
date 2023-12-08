@@ -42,9 +42,9 @@ contract MulticallTest is Deploy {
     }
 
     function setUp() public {
-        Deploy.localtest("MNEMONIC_DEVNET", 0);
+        Deploy.testDeploy(0);
 
-        usdc = MockERC20(Deployed.addr("usdc"));
+        usdc = MockERC20(Deployed.addr("USDC"));
         usdt = MockERC20(Deployed.addr("USDT"));
         krETHAddr = Deployed.addr("krETH");
         krJPYAddr = Deployed.addr("krJPY");

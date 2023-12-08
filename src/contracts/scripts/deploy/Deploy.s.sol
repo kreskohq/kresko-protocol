@@ -8,178 +8,207 @@ import {RsScript} from "kresko-lib/utils/ffi/RsScript.s.sol";
 import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {LibDeployMocks} from "scripts/deploy/libs/LibDeployMocks.s.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
-import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
+import {LibDeployUtils} from "scripts/deploy/libs/LibDeployUtils.s.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {VaultAsset} from "vault/VTypes.sol";
-import {Asset} from "common/Types.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {Ownable} from "@oz/access/Ownable.sol";
 import "scripts/deploy/libs/JSON.s.sol" as JSON;
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
+import {Role} from "common/Constants.sol";
+import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 
 contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
-    using Deployed for Asset;
-    using Deployed for VaultAsset;
+    using LibDeployConfig for *;
+    using LibDeployMocks for *;
+    using LibDeploy for *;
+    using Deployed for *;
+    using LibDeployUtils for *;
     using Help for *;
 
-    mapping(string => bool) tickersAdded;
-    mapping(bytes32 => bool) routesAdded;
-    SwapRouteSetter[] tradeRoutes;
+    mapping(string => bool) tickerExists;
+    mapping(bytes32 => bool) routeExists;
+    SwapRouteSetter[] routeCache;
 
-    function run(
-        string memory config,
+    function deploy(
+        string memory network,
+        string memory mnemonicEnv,
+        uint32 deployer,
+        bool saveOutput,
+        bool disableLog
+    ) public mnemonic(mnemonicEnv) {
+        deploy(network, network, mnemonicEnv, deployer, saveOutput, disableLog);
+    }
+
+    function deploy(
+        string memory network,
+        string memory configId,
         string memory mnemonicEnv,
         uint32 deployer,
         bool saveOutput,
         bool disableLog
     ) public mnemonic(mnemonicEnv) {
         if (disableLog) LibDeploy.disableLog();
-        if (saveOutput) LibDeploy.initJSON(config);
-        deploy(config, getAddr(deployer), disableLog);
-        if (saveOutput) LibDeploy.writeJSON();
+        else Log.clg(network.and(":").and(configId), "Deploying");
+        if (saveOutput) LibDeploy.initOutputJSON(configId);
+
+        exec(JSON.getConfig(network, configId), getAddr(deployer), disableLog);
+
+        if (saveOutput) LibDeploy.writeOutputJSON();
     }
 
-    function deploy(string memory config, address deployer, bool disableLog) internal broadcasted(deployer) {
-        chainConfig = LibDeployConfig.getChainJSON(config);
-        JSON.Assets memory assetConfig = LibDeployConfig.getAssetsJSON(config);
+    function testDeploy(uint32 deployer) public {
+        deploy("test", "test-base", "MNEMONIC_DEVNET", deployer, false, true);
+    }
 
-        // Create deployment factory first
-        factory = LibDeploy.createFactory(deployer);
+    function testDeploy(string memory mnemonic, string memory configId, uint32 deployer) public {
+        deploy("test", configId, mnemonic, deployer, false, true);
+    }
 
-        // Create mocks if needed
-        if (chainConfig.common.council == address(0)) {
-            chainConfig.common.council = LibDeployMocks.deployMockSafe(deployer);
+    function deployFrom(
+        string memory dir,
+        string memory configId,
+        string memory mnemonicEnv,
+        uint32 deployer,
+        bool saveOutput,
+        bool disableLog
+    ) public mnemonic(mnemonicEnv) {
+        if (disableLog) LibDeploy.disableLog();
+        else Log.clg(dir.and(configId), "Deploying from");
+        if (saveOutput) LibDeploy.initOutputJSON(configId);
+
+        exec(JSON.getConfigFrom(dir, configId), getAddr(deployer), disableLog);
+
+        if (saveOutput) LibDeploy.writeOutputJSON();
+    }
+
+    function testDeployFrom(string memory mnemonic, string memory dir, string memory configId, uint32 deployer) public {
+        deployFrom(dir, configId, mnemonic, deployer, false, true);
+    }
+
+    function exec(JSON.Config memory json, address deployer, bool disableLog) private broadcasted(deployer) {
+        // Deploy the deployment factory first.
+        if (json.params.deploymentFactory == address(0)) {
+            json.params.deploymentFactory = super.deployDeploymentFactory(deployer);
         }
+        // Create configured mocks, updates the received config with addresses.
+        json = json.createMocks(deployer);
+        weth = json.assets.wNative.token;
+        // Set tokens to cache as we know them at this point.
+        json.cacheExtTokens();
 
-        if (assetConfig.mocked) {
-            vm.warp(vm.unixTime());
-            (assetConfig, chainConfig.common.sequencerUptimeFeed) = LibDeployMocks.createMocks(assetConfig);
-            (chainConfig.periphery.okNFT, chainConfig.periphery.qfkNFT) = LibDeployMocks.createNFTMocks();
-        } else {
-            LibDeploy.saveChainInputJSON(assetConfig, chainConfig);
+        if (json.params.common.gatingManager == address(0)) {
+            json.params.common.gatingManager = super.deployGatingManager(json, deployer);
         }
-        weth = assetConfig.nativeWrapper;
-
-        // Gating managerrrrrr
-        gatingManager = LibDeploy.createGatingManager(chainConfig);
-        chainConfig.common.gatingManager = address(gatingManager);
 
         // Create base contracts
-        kresko = DeployBase.deployDiamond(chainConfig);
-        rsInit(address(kresko), assetConfig.rsPrices);
+        address diamond = super.deployDiamond(json, deployer);
+        super.rsInit(diamond, json.assets.rsPrices);
 
-        vault = LibDeploy.createVault(chainConfig, assetConfig.kiss);
-        kiss = LibDeploy.createKISS(address(kresko), address(vault), chainConfig, assetConfig.kiss);
+        vault = json.createVault(deployer);
+        kiss = json.createKISS(diamond, address(vault));
 
-        LibDeploy.DeployedKrAsset[] memory deployedKrAssets;
-        (assetConfig, deployedKrAssets) = LibDeploy.createKrAssets(address(kresko), chainConfig, assetConfig);
+        json = json.createKrAssets(diamond);
 
         /* ---------------------------- Externals --------------------------- */
-        for (uint256 i; i < assetConfig.extAssets.length; i++) {
-            JSON.ExtAssetConfig memory ext = assetConfig.extAssets[i];
-            (JSON.TickerConfig memory ticker, address[2] memory feeds) = LibDeployConfig.getOracle(
-                ext.config.ticker,
-                ext.config.oracles,
-                assetConfig.tickers
-            );
 
-            kresko.addAsset(ext.addr, ext.config.toAsset(), !tickersAdded[ticker.ticker] ? feeds : [address(0), address(0)]);
-            tickersAdded[ticker.ticker] = true;
+        for (uint256 i; i < json.assets.extAssets.length; i++) {
+            JSON.ExtAsset memory asset = json.assets.extAssets[i];
+            address[2] memory feeds = !tickerExists[asset.config.ticker]
+                ? json.getFeeds(asset.config.ticker, asset.config.oracles)
+                : [address(0), address(0)];
+
+            tickerExists[asset.config.ticker] = true;
+            kresko.addAsset(asset.addr, asset.config.toAsset(), feeds);
         }
 
-        /* ------------------------------ KrAssets ------------------------------ */
-        address[2] memory kissFeeds = [address(vault), address(0)];
-
-        kresko.addAsset(address(kiss), assetConfig.kiss.config.toAsset(), kissFeeds).print(address(kresko), address(kiss));
+        /* ------------------------------ KISS ------------------------------ */
+        kresko.addAsset(address(kiss), json.assets.kiss.config.toAsset(), [address(vault), address(0)]).logOutput(
+            diamond,
+            address(kiss)
+        );
         kresko.setFeeAssetSCDP(address(kiss));
 
-        for (uint256 i; i < deployedKrAssets.length; i++) {
-            LibDeploy.DeployedKrAsset memory krAsset = deployedKrAssets[i];
-            (JSON.TickerConfig memory ticker, address[2] memory feeds) = LibDeployConfig.getOracle(
-                krAsset.json.config.ticker,
-                krAsset.json.config.oracles,
-                assetConfig.tickers
-            );
+        /* ------------------------------ KrAssets ------------------------------ */
+        for (uint256 i; i < json.assets.kreskoAssets.length; i++) {
+            JSON.KrAssetConfig memory asset = json.assets.kreskoAssets[i];
+            address assetAddr = asset.symbol.cached();
 
-            kresko
-                .addAsset(
-                    krAsset.addr,
-                    krAsset.json.config.toAsset(),
-                    !tickersAdded[ticker.ticker] ? feeds : [address(0), address(0)]
-                )
-                .print(address(kresko), krAsset.addr);
-            tickersAdded[ticker.ticker] = true;
+            address[2] memory feeds = !tickerExists[asset.config.ticker]
+                ? json.getFeeds(asset.config.ticker, asset.config.oracles)
+                : [address(0), address(0)];
+
+            tickerExists[asset.config.ticker] = true;
+            kresko.addAsset(assetAddr, asset.config.toAsset(), feeds).logOutput(diamond, assetAddr);
         }
 
         /* -------------------------- Vault Assets -------------------------- */
-        VaultAsset[] memory vaultAssets = LibDeployConfig.getVaultAssets(config);
+        VaultAsset[] memory vaultAssets = json.getVaultAssets();
         for (uint256 i; i < vaultAssets.length; i++) {
-            vault.addAsset(vaultAssets[i]).print(address(vault));
+            vault.addAsset(vaultAssets[i]).logOutput(address(vault));
         }
 
-        Deployed.getAllTradeRoutes(tradeRoutes, address(kiss), assetConfig, routesAdded);
-        kresko.setSwapRoutesSCDP(tradeRoutes);
-        delete tradeRoutes;
+        /* -------------------------- Setup states -------------------------- */
+        json.getAllTradeRoutes(routeCache, routeExists, address(kiss));
+        kresko.setSwapRoutesSCDP(routeCache);
+        delete routeCache;
 
-        Deployed.getCustomTradeRoutes(tradeRoutes, assetConfig);
-        for (uint256 i; i < tradeRoutes.length; i++) {
-            kresko.setSingleSwapRouteSCDP(tradeRoutes[i]);
+        json.getCustomTradeRoutes(routeCache);
+        for (uint256 i; i < routeCache.length; i++) {
+            kresko.setSingleSwapRouteSCDP(routeCache[i]);
         }
-        delete tradeRoutes;
+        delete routeCache;
 
         /* ---------------------------- Periphery --------------------------- */
-        multicall = LibDeploy.createMulticall(address(kresko), address(kiss), chainConfig);
-        dataV1 = LibDeploy.createDataV1(address(kresko), address(vault), address(kiss), chainConfig);
-
-        Ownable(address(factory)).transferOwnership(chainConfig.common.admin);
+        multicall = json.createMulticall(diamond, address(kiss));
+        dataV1 = json.createDataV1(diamond, address(vault), address(kiss));
 
         /* ------------------------------ Users ----------------------------- */
-        JSON.Users memory users = LibDeployConfig.getUsersJSON(config);
-
-        if (users.accounts.length > 0) {
-            setupUsers(deployer, chainConfig, users, assetConfig);
-
-            if (!disableLog) {
-                for (uint256 i; i < users.accounts.length; i++) {
-                    Deployed.printUser(users.get(i), kresko, address(kiss), assetConfig);
-                }
-                Log.hr();
-                Log.clg("Users setup finished!");
-                Log.hr();
-            }
+        if (json.users.accounts.length > 0) {
+            setupUsers(json, deployer, disableLog);
         }
 
         broadcastWith(deployer);
 
-        gatingManager.setPhase(chainConfig.gatingPhase);
-        if (!disableLog) Log.clg(chainConfig.gatingPhase, "Gating phase set to: ");
+        gatingManager.setPhase(json.params.gatingPhase);
+        if (!disableLog) Log.clg(json.params.gatingPhase, "Gating phase set to: ");
+
+        /* --------------------- Remove deployer access --------------------- */
+        address admin = json.params.common.admin;
+        kresko.transferOwnership(admin);
+        vault.setGovernance(admin);
+        Ownable(address(factory)).transferOwnership(admin);
+        kresko.grantRole(Role.DEFAULT_ADMIN, admin);
+        kresko.grantRole(Role.ADMIN, admin);
 
         if (!disableLog) {
-            Deployed.printProtocol(assetConfig, kresko, address(kiss));
+            json.logOutput(kresko, address(kiss));
             Log.br();
             Log.hr();
             Log.clg("Deployment finished!");
             Log.hr();
         }
-
-        /* ------------------------------ Finish ----------------------------- */
     }
 
-    function localtest(string memory mnemonic, uint32 deployer) public {
-        run("localhost", mnemonic, deployer, false, true);
-    }
+    /* ---------------------------------------------------------------------- */
+    /*                               USER SETUPS                              */
+    /* ---------------------------------------------------------------------- */
 
-    function setupUsers(
-        address deployer,
-        JSON.ChainConfig memory chainCfg,
-        JSON.Users memory users,
-        JSON.Assets memory assets
-    ) internal {
-        setupBalances(users, assets);
-        setupSCDP(users, assets);
-        setupMinter(users, assets);
-        setupNFTs(users.nfts.nftsFrom == address(0) ? deployer : users.nfts.nftsFrom, users, chainCfg);
+    function setupUsers(JSON.Config memory json, address deployer, bool disableLog) internal {
+        setupBalances(json.users, json.assets);
+        setupSCDP(json.users, json.assets);
+        setupMinter(json.users, json.assets);
+        setupNFTs(json.users.nfts.nftsFrom == address(0) ? deployer : json.users.nfts.nftsFrom, json.users, json.params);
+
+        if (!disableLog) {
+            for (uint256 i; i < json.users.accounts.length; i++) {
+                json.logUserOutput(json.users.get(i), kresko, address(kiss));
+            }
+            Log.hr();
+            Log.clg("Users setup finished!");
+            Log.hr();
+        }
     }
 
     function setupBalances(JSON.Users memory users, JSON.Assets memory assets) internal {
@@ -195,15 +224,15 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
     }
 
-    function setupNativeWrapper(JSON.Assets memory assets, address user, JSON.Balance memory bal) internal broadcasted(user) {
+    function setupNativeWrapper(address user, JSON.Balance memory bal) internal broadcasted(user) {
         if (bal.amount == 0) return;
         if (bal.assetsFrom == address(0)) {
             vm.deal(user, bal.amount);
-            assets.nativeWrapper.deposit{value: bal.amount}();
+            weth.deposit{value: bal.amount}();
         } else if (bal.assetsFrom == address(1)) {
-            assets.nativeWrapper.deposit{value: bal.amount}();
+            weth.deposit{value: bal.amount}();
         } else {
-            _transfer(bal.assetsFrom, user, address(assets.nativeWrapper), bal.amount);
+            _transfer(bal.assetsFrom, user, address(weth), bal.amount);
         }
     }
 
@@ -212,11 +241,11 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         address user,
         JSON.Balance memory bal
     ) internal rebroadcasted(user) returns (address tokenAddr) {
-        tokenAddr = Deployed.tokenAddrRuntime(bal.symbol, assets);
+        tokenAddr = bal.symbol.cached();
         if (bal.amount == 0) return tokenAddr;
 
-        if (tokenAddr == address(assets.nativeWrapper)) {
-            setupNativeWrapper(assets, user, bal);
+        if (tokenAddr == address(assets.wNative.token)) {
+            setupNativeWrapper(user, bal);
             return tokenAddr;
         }
 
@@ -278,8 +307,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
 
         if (pos.mintAmount == 0) return;
-        address krAssetAddr = Deployed.tokenAddrRuntime(pos.mintSymbol, assets);
-        rsCall(kresko.mintKreskoAsset.selector, user, krAssetAddr, pos.mintAmount, user);
+        rsCall(kresko.mintKreskoAsset.selector, user, pos.mintSymbol.cached(), pos.mintAmount, user);
     }
 
     function setupKISSBalance(
@@ -297,7 +325,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
             _maybeApprove(assetAddr, address(kiss), 1);
             kiss.vaultDeposit(assetAddr, pos.depositAmount, user);
         } else {
-            (uint256 assetsIn, ) = vault.previewMint(Deployed.tokenAddrRuntime(pos.depositSymbol, assets), pos.mintAmount);
+            (uint256 assetsIn, ) = vault.previewMint(pos.depositSymbol.cached(), pos.mintAmount);
             address assetAddr = setupBalance(assets, user, JSON.Balance(index, pos.depositSymbol, assetsIn, pos.assetsFrom));
 
             _maybeApprove(assetAddr, address(kiss), 1);
@@ -312,7 +340,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         JSON.SCDPPosition memory pos
     ) internal broadcasted(user) {
         if (pos.kissDeposits > 0) {
-            address assetAddr = Deployed.tokenAddrRuntime(pos.vaultAssetSymbol, assets);
+            address assetAddr = pos.vaultAssetSymbol.cached();
             (uint256 assetsIn, ) = vault.previewMint(assetAddr, pos.kissDeposits);
 
             setupBalance(assets, user, JSON.Balance(index, pos.vaultAssetSymbol, assetsIn, pos.assetsFrom));
@@ -325,10 +353,10 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
     }
 
-    function setupNFTs(address _owner, JSON.Users memory users, JSON.ChainConfig memory chain) internal broadcasted(_owner) {
+    function setupNFTs(address _owner, JSON.Users memory users, JSON.Params memory params) internal broadcasted(_owner) {
         if (users.nfts.userCount == 0) return;
-        IERC1155 okNFT = IERC1155(chain.periphery.okNFT);
-        IERC1155 qfkNFT = IERC1155(chain.periphery.qfkNFT);
+        IERC1155 okNFT = IERC1155(params.periphery.okNFT);
+        IERC1155 qfkNFT = IERC1155(params.periphery.qfkNFT);
         for (uint256 i; i < users.nfts.userCount; i++) {
             address user = users.get(i);
             if (users.nfts.useMocks) {
@@ -380,12 +408,4 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     function _transfer(address from, address to, address token, uint256 amount) internal rebroadcasted(from) {
         MockERC20(token).transfer(to, amount);
     }
-
-    // function mintKissMocked(address _account, uint256 _amount, address _vaultAsset, address _vault, address _kiss) internal {
-    //     MockERC20 asset = MockERC20(_vaultAsset);
-    //     (uint256 assetsIn, ) = IVault(_vault).previewMint(_vaultAsset, _amount);
-    //     asset.mint(_account, assetsIn);
-    //     asset.approve(_kiss, type(uint256).max);
-    //     IKISS(_kiss).vaultMint(_vaultAsset, _amount, _account);
-    // }
 }

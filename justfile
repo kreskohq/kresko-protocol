@@ -12,7 +12,7 @@ hasPM2 := `pnpm list --global pm2 | grep -q '' && echo true || echo false`
 
 dry-local:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
-	--sig $(cast calldata "run(string,string,uint32,bool,bool)" localhost "MNEMONIC_DEVNET" 0 true false) \
+	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "localhost" "MNEMONIC_DEVNET" 0 true false) \
 	--with-gas-price 100000000 \
 	--skip-simulation \
 	--ffi \
@@ -20,7 +20,7 @@ dry-local:
 
 deploy-local:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
-	--sig $(cast calldata  "run(string,string,uint32,bool,bool)" localhost "MNEMONIC_DEVNET" 0 true false) \
+	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "localhost" "MNEMONIC_DEVNET" 0 true false) \
 	--mnemonics "$MNEMONIC_DEVNET" \
 	--fork-url "$RPC_LOCAL" \
 	--broadcast \
@@ -30,7 +30,7 @@ deploy-local:
 
 dry-arbitrum-fork:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
-	--sig $(cast calldata  "run(string,string,uint32,bool,bool)" arbitrumFork "MNEMONIC_DEVNET" 0 true false) \
+	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "arbitrum-fork" "MNEMONIC_DEVNET" 0 true false) \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--with-gas-price 100000000 \
 	--evm-version "paris" \
@@ -40,7 +40,7 @@ dry-arbitrum-fork:
 
 deploy-arbitrum-fork:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
-	--sig $(cast calldata  "run(string,string,uint32,bool,bool)" arbitrumFork "MNEMONIC_DEVNET" 0 true false) \
+	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "arbitrum-fork" "MNEMONIC_DEVNET" 0 true false) \
 	--fork-url "$RPC_LOCAL" \
 	--sender "0x4bb7f4c3d47C4b431cb0658F44287d52006fb506" \
 	--unlocked \

@@ -4,38 +4,71 @@ import {CommonInitArgs} from "common/Types.sol";
 import {SCDPInitArgs} from "scdp/STypes.sol";
 import {MinterInitArgs} from "minter/MTypes.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
-import {VaultAsset} from "vault/VTypes.sol";
 import {Enums} from "common/Constants.sol";
 import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {mAddr} from "../../../../../lib/kresko-foundry-helpers/src/utils/MinVm.s.sol";
+import {mvm} from "kresko-lib/utils/MinVm.s.sol";
+import {CONST} from "scripts/deploy/libs/CONST.s.sol";
 
-struct Chains {
-    ChainConfig[] configs;
+struct Files {
+    string params;
+    string assets;
+    string users;
 }
 
-struct PeripheryConfig {
-    address okNFT;
-    address qfkNFT;
-    address v3Router;
-    address wrappedNative;
+function getConfig(string memory network, string memory configId) returns (Config memory json) {
+    string memory dir = string.concat(CONST.CONFIG_DIR, network, "/");
+    return getConfigFrom(dir, configId);
 }
 
-struct ChainConfig {
+function getConfigFrom(string memory dir, string memory configId) returns (Config memory json) {
+    Files memory files;
+
+    files.params = string.concat(dir, "params-", configId, ".json");
+    if (!mvm.exists(files.params)) {
+        revert(string.concat("No configuration exists: ", files.params));
+    }
+    files.assets = string.concat(dir, "assets-", configId, ".json");
+    if (!mvm.exists(files.assets)) {
+        revert(string.concat("No asset configuration exists: ", files.assets));
+    }
+
+    json.params = abi.decode(mvm.parseJson(mvm.readFile(files.params)), (Params));
+    json.assets = abi.decode(mvm.parseJson(mvm.readFile(files.assets)), (Assets));
+
+    files.users = string.concat(dir, "users-", configId, ".json");
+    if (mvm.exists(files.users)) {
+        json.users = abi.decode(mvm.parseJson(mvm.readFile(files.users)), (Users));
+    }
+}
+
+struct Config {
+    Params params;
+    Assets assets;
+    Users users;
+}
+
+struct Params {
     string configId;
-    uint256 chainId;
+    address deploymentFactory;
     CommonInitArgs common;
     SCDPInitArgs scdp;
     MinterInitArgs minter;
-    PeripheryConfig periphery;
+    Periphery periphery;
     uint8 gatingPhase;
+}
+
+struct Periphery {
+    address okNFT;
+    address qfkNFT;
+    address v3Router;
 }
 
 struct Assets {
     string configId;
-    uint256 chainId;
-    bool mocked;
-    IWETH9 nativeWrapper;
-    ExtAssetConfig[] extAssets;
+    bool mockFeeds;
+    WNative wNative;
+    ExtAsset[] extAssets;
     KrAssetConfig[] kreskoAssets;
     KISSConfig kiss;
     TickerConfig[] tickers;
@@ -46,15 +79,24 @@ struct Assets {
 struct KISSConfig {
     string name;
     string symbol;
-    AssetConfig config;
+    AssetJSON config;
 }
 
-struct ExtAssetConfig {
+struct WNative {
+    bool mocked;
+    string name;
+    string symbol;
+    IWETH9 token;
+}
+
+struct ExtAsset {
+    bool mocked;
+    bool isVaultAsset;
     string name;
     string symbol;
     address addr;
-    AssetConfig config;
-    VaultAsset vault;
+    AssetJSON config;
+    VaultAssetJSON vault;
 }
 
 struct TickerConfig {
@@ -109,7 +151,6 @@ struct NFTSetup {
 
 struct Users {
     string configId;
-    uint256 chainId;
     string mnemonicEnv;
     Account[] accounts;
     Balance[] balances;
@@ -119,7 +160,7 @@ struct Users {
 }
 
 /// @notice forge cannot parse structs with fixed arrays so we use this intermediate struct
-struct AssetConfig {
+struct AssetJSON {
     string ticker;
     address anchor;
     Enums.OracleType[] oracles;
@@ -144,13 +185,22 @@ struct AssetConfig {
     bool isCoverAsset;
 }
 
+struct VaultAssetJSON {
+    string[] feed;
+    uint24 staleTime;
+    uint32 depositFee;
+    uint32 withdrawFee;
+    uint248 maxDeposits;
+    bool enabled;
+}
+
 struct KrAssetConfig {
     string name;
     string symbol;
-    address underlyingAddr;
+    string underlyingSymbol;
     uint48 wrapFee;
     uint40 unwrapFee;
-    AssetConfig config;
+    AssetJSON config;
 }
 
 function get(Users memory users, uint256 i) returns (address) {
@@ -165,5 +215,4 @@ uint256 constant ALL_USERS = 9999;
 using {get} for Users global;
 
 using {LibDeployConfig.metadata} for KrAssetConfig global;
-
-using {LibDeployConfig.toAsset} for AssetConfig global;
+using {LibDeployConfig.toAsset} for AssetJSON global;
