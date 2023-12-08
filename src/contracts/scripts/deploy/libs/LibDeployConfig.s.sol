@@ -108,9 +108,12 @@ library LibDeployConfig {
         return address(0);
     }
 
-    function toAsset(JSON.AssetJSON memory assetJson) internal pure returns (Asset memory result) {
+    function toAsset(JSON.AssetJSON memory assetJson) internal view returns (Asset memory result) {
         assembly {
             result := assetJson
+        }
+        if (assetJson.ticker.equals("KISS")) {
+            result.anchor = assetJson.ticker.cached();
         }
         result.oracles = [assetJson.oracles[0], assetJson.oracles[1]];
         result.ticker = bytes32(bytes(assetJson.ticker));

@@ -73,6 +73,12 @@
       "01_kissDeposits": 50000e18,
       "02_vaultAsset": "USDC.e",
       "03_assetsFrom": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_user": 1,
+      "01_kissDeposits": 10000e18,
+      "02_vaultAsset": "USDC.e",
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000"
     }
   ],
   "05_minter": [

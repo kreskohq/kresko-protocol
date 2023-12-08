@@ -21,7 +21,7 @@
         "04_factor": 1e4,
         "05_kFactor": 0,
         "06_openFee": 0,
-        "07_closeFee": 50,
+        "07_closeFee": 0,
         "08_liqIncentive": 1.05e4,
         "09_maxDebtMinter": 0,
         "10_maxDebtSCDP": 0,
