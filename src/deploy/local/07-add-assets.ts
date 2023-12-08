@@ -1,4 +1,4 @@
-import { testnetConfigs } from '@config/deploy/arbitrumGoerli'
+import { testnetConfigs } from '@config/hardhat/deploy/arbitrumGoerli'
 import { TASK_ADD_ASSET } from '@tasks'
 import { getLogger } from '@utils/logging'
 import type { DeployFunction } from 'hardhat-deploy/dist/types'

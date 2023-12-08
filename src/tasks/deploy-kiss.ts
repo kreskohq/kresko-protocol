@@ -1,4 +1,4 @@
-import { getDeploymentUsers } from '@config/deploy'
+import { getDeploymentUsers } from '@config/hardhat/deploy'
 import { getLogger } from '@utils/logging'
 import { testKrAssetConfig } from '@utils/test/mocks'
 import { Role } from '@utils/test/roles'

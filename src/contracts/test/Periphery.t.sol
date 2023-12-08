@@ -1,10 +1,11 @@
+// solhint-disable state-visibility
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.sol";
-import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
-import {KreskoForgeUtils} from "scripts/utils/KreskoForgeUtils.s.sol";
+import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
+import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
+import {Tested} from "kresko-lib/utils/Tested.t.sol";
+import {_DeprecatedTestUtils} from "scripts/utils/deprecated/_DeprecatedTestUtils.s.sol";
 import {DataFacet} from "periphery/facets/DataFacet.sol";
 import {PType} from "periphery/PTypes.sol";
 import {DataV1} from "periphery/DataV1.sol";
@@ -16,7 +17,7 @@ import {Role} from "common/Constants.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 
-contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
+contract PeripheryTest is Tested, _DeprecatedTestUtils {
     using ShortAssert for *;
     using Help for *;
     using Log for *;
@@ -35,7 +36,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
     bytes redstoneCallData;
 
     function setUp() public users(address(11), address(22), address(33)) {
-        redstoneCallData = getRedstonePayload(initialPrices);
+        redstoneCallData = getRsPayload(initialPrices);
 
         deployCfg = CoreConfig({
             admin: TEST_ADMIN,
@@ -57,6 +58,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         prank(deployCfg.admin);
         kresko = deployDiamondOneTx(deployCfg);
         factory = deployDeploymentFactory(TEST_ADMIN);
+        rsInit(address(kresko), initialPrices);
         vm.warp(3601);
 
         usdc = mockCollateral(
@@ -103,7 +105,7 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         wbtc.mock.mint(user0, 1e8);
         dai.mock.mint(user2, 10000e18);
 
-        vkiss = new Vault("vKISS", "vKISS", 18, 8, deployCfg.treasury, deployCfg.seqFeed);
+        vkiss = new Vault("vKISS", "vKISS", 18, 8, deployCfg.admin, deployCfg.treasury, deployCfg.seqFeed);
         kiss = deployKISS(address(kresko), address(vkiss), deployCfg.admin).kiss;
 
         vkiss.addAsset(
@@ -111,18 +113,19 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         );
         vkiss.addAsset(VaultAsset(dai.asToken, IAggregatorV3(address(usdc.feedAddr)), 80000, 0, 0, 0, type(uint248).max, true));
         kresko.setFeeAssetSCDP(usdc.addr);
+
         prank(user0);
         usdc.mock.approve(address(kresko), type(uint256).max);
         wbtc.mock.approve(address(kresko), type(uint256).max);
         kresko.depositCollateral(user0, usdc.addr, 50e18);
         kresko.depositCollateral(user0, wbtc.addr, 0.1e8);
-        call(kresko.mintKreskoAsset.selector, user0, krETH.addr, 0.01e18, user0, initialPrices);
+        rsCall(kresko.mintKreskoAsset.selector, user0, krETH.addr, 0.01e18, user0);
 
         prank(user1);
         usdc.mock.approve(address(kresko), type(uint256).max);
         kresko.depositCollateral(user1, usdc.addr, 5000e18);
-        call(kresko.mintKreskoAsset.selector, user1, krETH.addr, 1e18, user1, initialPrices);
-        call(kresko.mintKreskoAsset.selector, user1, krJPY.addr, 10000e18, user1, initialPrices);
+        rsCall(kresko.mintKreskoAsset.selector, user1, krETH.addr, 1e18, user1);
+        rsCall(kresko.mintKreskoAsset.selector, user1, krJPY.addr, 10000e18, user1);
 
         prank(user2);
         usdc.mock.approve(address(kresko), type(uint256).max);
@@ -130,8 +133,8 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         kresko.depositCollateral(user2, usdc.addr, 5000e18);
         kresko.depositCollateral(user2, dai.addr, 2000e18);
 
-        call(kresko.depositSCDP.selector, user2, usdc.addr, 1000e18, initialPrices);
-        call(kresko.mintKreskoAsset.selector, user2, krETH.addr, 1.5e18, user2, initialPrices);
+        rsCall(kresko.depositSCDP.selector, user2, usdc.addr, 1000e18);
+        rsCall(kresko.mintKreskoAsset.selector, user2, krETH.addr, 1.5e18, user2);
 
         prank(deployCfg.admin);
         dataV1 = new DataV1(DataFacet(address(kresko)), address(vkiss), address(vkiss), address(0), address(0));
@@ -254,104 +257,104 @@ contract PeripheryTest is TestBase("MNEMONIC_DEVNET"), KreskoForgeUtils {
         //     abi.encodePacked(abi.encodeWithSelector(dataV1.getAccountRs.selector, user0), redstoneCallData)
         // );
         // PType.Account memory account = abi.decode(data, (IDataV1.DAccount)).protocol;
-        PType.Account memory account = dataV1.getAccount(user0, redstoneCallData).protocol;
-        account.addr.eq(user0, "account.addr");
+        PType.Account memory acc = dataV1.getAccount(user0, redstoneCallData).protocol;
+        acc.addr.eq(user0, "acc.addr");
 
-        account.bals[0].symbol.eq("USDC", "account.bals[0].symbol");
-        account.bals[1].symbol.eq("DAI", "account.bals[1].symbol");
-        account.bals[2].symbol.eq("WBTC", "account.bals[2].symbol");
-        account.bals[2].val.eq(3166110000000, "account.bals[2].val");
+        acc.bals[0].symbol.eq("USDC", "acc.bals[0].symbol");
+        acc.bals[1].symbol.eq("DAI", "acc.bals[1].symbol");
+        acc.bals[2].symbol.eq("WBTC", "acc.bals[2].symbol");
+        acc.bals[2].val.eq(3166110000000, "acc.bals[2].val");
 
-        account.minter.deposits.length.eq(5, "user0.minter.deposits.length");
+        acc.minter.deposits.length.eq(5, "user0.minter.deposits.length");
 
-        account.minter.deposits[0].symbol.eq("USDC", "account0.minter.deposits[0].symbol");
-        account.minter.deposits[0].amount.eq(50e18, "account0.minter.deposits[0].amount");
-        account.minter.deposits[0].val.eq(50e8, "account0.minter.deposits[0].val");
-        account.minter.deposits[0].valAdj.eq(50e8, "account0.minter.deposits[0].valAdj");
+        acc.minter.deposits[0].symbol.eq("USDC", "acc.minter.deposits[0].symbol");
+        acc.minter.deposits[0].amount.eq(50e18, "acc.minter.deposits[0].amount");
+        acc.minter.deposits[0].val.eq(50e8, "acc.minter.deposits[0].val");
+        acc.minter.deposits[0].valAdj.eq(50e8, "acc.minter.deposits[0].valAdj");
 
-        account.minter.deposits[1].symbol.eq("DAI", "account0.minter.deposits[1].symbol");
-        account.minter.deposits[1].amount.eq(0, "account0.minter.deposits[1].amount");
-        account.minter.deposits[1].val.eq(0, "account0.minter.deposits[1].val");
+        acc.minter.deposits[1].symbol.eq("DAI", "acc.minter.deposits[1].symbol");
+        acc.minter.deposits[1].amount.eq(0, "acc.minter.deposits[1].amount");
+        acc.minter.deposits[1].val.eq(0, "acc.minter.deposits[1].val");
 
-        account.minter.deposits[2].symbol.eq("WBTC", "account0.minter.deposits[2].symbol");
-        account.minter.deposits[2].amount.eq(9998863, "account0.minter.deposits[2].amount");
-        account.minter.deposits[2].val.eq(351750001477, "account0.minter.deposits[2].val");
+        acc.minter.deposits[2].symbol.eq("WBTC", "acc.minter.deposits[2].symbol");
+        acc.minter.deposits[2].amount.eq(9998863, "acc.minter.deposits[2].amount");
+        acc.minter.deposits[2].val.eq(351750001477, "acc.minter.deposits[2].val");
 
-        account.minter.deposits[3].symbol.eq("krETH", "account0.minter.deposits[3].symbol");
-        account.minter.deposits[3].amount.eq(0, "account0.minter.deposits[3].amount");
-        account.minter.deposits[3].val.eq(0, "account0.minter.deposits[3].val");
+        acc.minter.deposits[3].symbol.eq("krETH", "acc.minter.deposits[3].symbol");
+        acc.minter.deposits[3].amount.eq(0, "acc.minter.deposits[3].amount");
+        acc.minter.deposits[3].val.eq(0, "acc.minter.deposits[3].val");
 
-        account.minter.deposits[4].symbol.eq("krJPY", "account0.minter.deposits[4].symbol");
-        account.minter.deposits[4].amount.eq(0, "account0.minter.deposits[4].amount");
-        account.minter.deposits[4].val.eq(0, "account0.minter.deposits[4].val");
+        acc.minter.deposits[4].symbol.eq("krJPY", "acc.minter.deposits[4].symbol");
+        acc.minter.deposits[4].amount.eq(0, "acc.minter.deposits[4].amount");
+        acc.minter.deposits[4].val.eq(0, "acc.minter.deposits[4].val");
 
-        account.minter.debts.length.eq(2, "account0.minter.deposits.length");
+        acc.minter.debts.length.eq(2, "acc.minter.deposits.length");
 
-        account.minter.debts[0].symbol.eq("krETH", "account0.minter.debts[0].symbol");
-        account.minter.debts[0].amount.eq(0.01e18, "account0.minter.debts[0].amount");
-        account.minter.debts[0].val.eq(20e8, "account0.minter.debts[0].val");
-        account.minter.debts[0].valAdj.eq(24e8, "account0.minter.debts[0].valAdj");
+        acc.minter.debts[0].symbol.eq("krETH", "acc.minter.debts[0].symbol");
+        acc.minter.debts[0].amount.eq(0.01e18, "acc.minter.debts[0].amount");
+        acc.minter.debts[0].val.eq(20e8, "acc.minter.debts[0].val");
+        acc.minter.debts[0].valAdj.eq(24e8, "acc.minter.debts[0].valAdj");
 
-        account.minter.debts[1].symbol.eq("krJPY", "account0.minter.debts[1].symbol");
-        account.minter.debts[1].amount.eq(0, "account0.minter.debts[1].amount");
-        account.minter.debts[1].val.eq(0, "account0.minter.debts[1].val");
-        account.minter.debts[1].valAdj.eq(0, "account0.minter.debts[1].valAdj");
+        acc.minter.debts[1].symbol.eq("krJPY", "acc.minter.debts[1].symbol");
+        acc.minter.debts[1].amount.eq(0, "acc.minter.debts[1].amount");
+        acc.minter.debts[1].val.eq(0, "acc.minter.debts[1].val");
+        acc.minter.debts[1].valAdj.eq(0, "acc.minter.debts[1].valAdj");
 
-        account.scdp.deposits.length.eq(1, "account0.scdp.deposits.length");
-        account.scdp.deposits[0].addr.eq(usdc.addr, "account0.scdp.deposits[0].token");
-        account.scdp.deposits[0].symbol.eq("USDC", "account0.scdp.deposits[0].symbol");
-        account.scdp.deposits[0].config.decimals.eq(18, "account0.scdp.deposits[0].config.decimals");
-        account.scdp.deposits[0].price.eq(1e8, "account0.scdp.deposits[0].token");
-        account.scdp.deposits[0].amount.eq(0, "account0.scdp.deposits[0].amount");
-        account.scdp.deposits[0].val.eq(0, "account0.scdp.deposits[0].val");
-        account.scdp.deposits[0].valFees.eq(0, "account0.scdp.deposits[0].valFees");
+        acc.scdp.deposits.length.eq(1, "acc.scdp.deposits.length");
+        acc.scdp.deposits[0].addr.eq(usdc.addr, "acc.scdp.deposits[0].token");
+        acc.scdp.deposits[0].symbol.eq("USDC", "acc.scdp.deposits[0].symbol");
+        acc.scdp.deposits[0].config.decimals.eq(18, "acc.scdp.deposits[0].config.decimals");
+        acc.scdp.deposits[0].price.eq(1e8, "acc.scdp.deposits[0].token");
+        acc.scdp.deposits[0].amount.eq(0, "acc.scdp.deposits[0].amount");
+        acc.scdp.deposits[0].val.eq(0, "acc.scdp.deposits[0].val");
+        acc.scdp.deposits[0].valFees.eq(0, "acc.scdp.deposits[0].valFees");
 
         /* ------------------------------ user2 ----------------------------- */
-        PType.Account memory account2 = dataV1.getAccount(user2, redstoneCallData).protocol;
-        account2.addr.eq(user2, "account2.addr");
+        PType.Account memory acc2 = dataV1.getAccount(user2, redstoneCallData).protocol;
+        acc2.addr.eq(user2, "acc2.addr");
 
-        account2.minter.deposits.length.eq(5, "account2.minter.deposits.length");
+        acc2.minter.deposits.length.eq(5, "acc2.minter.deposits.length");
 
-        account2.minter.deposits[0].symbol.eq("USDC", "account2.minter.deposits[0].symbol");
-        account2.minter.deposits[0].amount.eq(5000e18, "account2.minter.deposits[0].amount");
-        account2.minter.deposits[0].val.eq(5000e8, "account2.minter.deposits[0].val");
-        account2.minter.deposits[0].valAdj.eq(5000e8, "account2.minter.deposits[0].valAdj");
+        acc2.minter.deposits[0].symbol.eq("USDC", "acc2.minter.deposits[0].symbol");
+        acc2.minter.deposits[0].amount.eq(5000e18, "acc2.minter.deposits[0].amount");
+        acc2.minter.deposits[0].val.eq(5000e8, "acc2.minter.deposits[0].val");
+        acc2.minter.deposits[0].valAdj.eq(5000e8, "acc2.minter.deposits[0].valAdj");
 
-        account2.minter.deposits[1].symbol.eq("DAI", "account2.minter.deposits[1].symbol");
-        account2.minter.deposits[1].amount.gt(1900e18, "account2.minter.deposits[1].amount");
-        account2.minter.deposits[1].val.gt(1900e8, "account2.minter.deposits[1].val");
+        acc2.minter.deposits[1].symbol.eq("DAI", "acc2.minter.deposits[1].symbol");
+        acc2.minter.deposits[1].amount.gt(1900e18, "acc2.minter.deposits[1].amount");
+        acc2.minter.deposits[1].val.gt(1900e8, "acc2.minter.deposits[1].val");
 
-        account2.minter.deposits[2].symbol.eq("WBTC", "account2.minter.deposits[2].symbol");
-        account2.minter.deposits[2].amount.eq(0, "account2.minter.deposits[2].amount");
-        account2.minter.deposits[2].val.eq(0, "account2.minter.deposits[2].val");
+        acc2.minter.deposits[2].symbol.eq("WBTC", "acc2.minter.deposits[2].symbol");
+        acc2.minter.deposits[2].amount.eq(0, "acc2.minter.deposits[2].amount");
+        acc2.minter.deposits[2].val.eq(0, "acc2.minter.deposits[2].val");
 
-        account2.minter.deposits[3].symbol.eq("krETH", "account2.minter.deposits[3].symbol");
-        account2.minter.deposits[3].amount.eq(0, "account2.minter.deposits[3].amount");
-        account2.minter.deposits[3].val.eq(0, "account2.minter.deposits[3].val");
+        acc2.minter.deposits[3].symbol.eq("krETH", "acc2.minter.deposits[3].symbol");
+        acc2.minter.deposits[3].amount.eq(0, "acc2.minter.deposits[3].amount");
+        acc2.minter.deposits[3].val.eq(0, "acc2.minter.deposits[3].val");
 
-        account2.minter.deposits[4].symbol.eq("krJPY", "account2.minter.deposits[4].symbol");
-        account2.minter.deposits[4].amount.eq(0, "account2.minter.deposits[4].amount");
-        account2.minter.deposits[4].val.eq(0, "account2.minter.deposits[4].val");
+        acc2.minter.deposits[4].symbol.eq("krJPY", "acc2.minter.deposits[4].symbol");
+        acc2.minter.deposits[4].amount.eq(0, "acc2.minter.deposits[4].amount");
+        acc2.minter.deposits[4].val.eq(0, "acc2.minter.deposits[4].val");
 
-        account2.minter.debts.length.eq(2, "account2.minter.deposits.length");
+        acc2.minter.debts.length.eq(2, "acc2.minter.deposits.length");
 
-        account2.minter.debts[0].symbol.eq("krETH", "account2.minter.debts[0].symbol");
-        account2.minter.debts[0].amount.eq(1.5e18, "account2.minter.debts[0].amount");
-        account2.minter.debts[0].val.eq(3000e8, "account2.minter.debts[0].val");
-        account2.minter.debts[0].valAdj.eq(3600e8, "account2.minter.debts[0].valAdj");
+        acc2.minter.debts[0].symbol.eq("krETH", "acc2.minter.debts[0].symbol");
+        acc2.minter.debts[0].amount.eq(1.5e18, "acc2.minter.debts[0].amount");
+        acc2.minter.debts[0].val.eq(3000e8, "acc2.minter.debts[0].val");
+        acc2.minter.debts[0].valAdj.eq(3600e8, "acc2.minter.debts[0].valAdj");
 
-        account2.minter.debts[1].symbol.eq("krJPY", "account2.minter.debts[1].symbol");
-        account2.minter.debts[1].amount.eq(0, "account2.minter.debts[1].amount");
-        account2.minter.debts[1].val.eq(0, "account2.minter.debts[1].val");
-        account2.minter.debts[1].valAdj.eq(0, "account2.minter.debts[1].valAdj");
+        acc2.minter.debts[1].symbol.eq("krJPY", "acc2.minter.debts[1].symbol");
+        acc2.minter.debts[1].amount.eq(0, "acc2.minter.debts[1].amount");
+        acc2.minter.debts[1].val.eq(0, "acc2.minter.debts[1].val");
+        acc2.minter.debts[1].valAdj.eq(0, "acc2.minter.debts[1].valAdj");
 
-        account2.scdp.deposits.length.eq(1, "account2.scdp.deposits.length");
-        account2.scdp.deposits[0].addr.eq(usdc.addr, "account2.scdp.deposits[0].token");
-        account2.scdp.deposits[0].symbol.eq("USDC", "account2.scdp.deposits[0].symbol");
-        account2.scdp.deposits[0].price.eq(1e8, "account2.scdp.deposits[0].token");
-        account2.scdp.deposits[0].amount.eq(1000e18, "account2.scdp.deposits[0].amount");
+        acc2.scdp.deposits.length.eq(1, "acc2.scdp.deposits.length");
+        acc2.scdp.deposits[0].addr.eq(usdc.addr, "acc2.scdp.deposits[0].token");
+        acc2.scdp.deposits[0].symbol.eq("USDC", "acc2.scdp.deposits[0].symbol");
+        acc2.scdp.deposits[0].price.eq(1e8, "acc2.scdp.deposits[0].token");
+        acc2.scdp.deposits[0].amount.eq(1000e18, "acc2.scdp.deposits[0].amount");
 
-        account2.scdp.deposits[0].val.eq(1000e8, "account2.scdp.deposits[0].val");
-        account2.scdp.deposits[0].valFees.eq(0, "account2.scdp.deposits[0].valFees");
+        acc2.scdp.deposits[0].val.eq(1000e8, "acc2.scdp.deposits[0].val");
+        acc2.scdp.deposits[0].valFees.eq(0, "acc2.scdp.deposits[0].valFees");
     }
 }

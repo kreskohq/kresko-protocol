@@ -1,4 +1,4 @@
-import type { AllTokenSymbols } from '@config/deploy'
+import type { AllTokenSymbols } from '@config/hardhat/deploy'
 
 export const getAnchorNameAndSymbol = (symbol: AllTokenSymbols, name?: string) => {
   return {

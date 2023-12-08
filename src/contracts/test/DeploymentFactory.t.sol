@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 import {Ownable} from "@oz/access/Ownable.sol";
-import {TestBase} from "kresko-lib/utils/TestBase.t.sol";
-import {ShortAssert} from "kresko-lib/utils/ShortAssert.sol";
+import {Tested} from "kresko-lib/utils/Tested.t.sol";
+import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
 import {stdStorage, StdStorage} from "forge-std/StdStorage.sol";
 import {console2} from "forge-std/console2.sol";
 import {Conversions, Deploys, Proxies} from "libs/Utils.sol";
@@ -19,7 +19,7 @@ import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 bytes32 constant EIP1967_ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 bytes32 constant EIP1967_IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
 
-contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
+contract DeploymentFactoryTest is Tested {
     using stdStorage for StdStorage;
     using ShortAssert for *;
     using Proxies for *;
@@ -39,7 +39,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
     bytes CALLDATA_LOGIC_A;
     bytes CALLDATA_LOGIC_B;
 
-    function setUp() public pranked(0) {
+    function setUp() public mnemonic("MNEMONIC_DEVNET") {
         initialOwner = getAddr(0);
         factory = new DeploymentFactory(initialOwner);
 
@@ -51,7 +51,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         factory.owner().eq(initialOwner);
     }
 
-    function testCreateProxy() public pranked(0) {
+    function testCreateProxy() public prankedById(0) {
         LogicA logicA = new LogicA();
         Deployment memory proxy = factory.createProxy(address(logicA), CALLDATA_LOGIC_A);
         address proxyAddr = address(proxy.proxy);
@@ -81,7 +81,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
-    function testCreate2Proxy() public pranked(0) {
+    function testCreate2Proxy() public prankedById(0) {
         LogicA logicA = new LogicA();
 
         address expectedProxyAddress = factory.previewCreate2Proxy(address(logicA), CALLDATA_LOGIC_A, salt);
@@ -117,7 +117,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
-    function testCreate3Proxy() public pranked(0) {
+    function testCreate3Proxy() public prankedById(0) {
         LogicA logicA = new LogicA();
 
         address expectedSaltAddress = factory.getCreate3Address(salt);
@@ -157,7 +157,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
-    function testCreateProxyAndLogic() public pranked(0) {
+    function testCreateProxyAndLogic() public prankedById(0) {
         Deployment memory proxy = factory.createProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A);
         address proxyAddr = address(proxy.proxy);
 
@@ -189,7 +189,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
-    function testCreateProxy2AndLogic() public pranked(0) {
+    function testCreateProxy2AndLogic() public prankedById(0) {
         bytes32 implementationSalt = salt.add(1);
 
         (address expectedProxy, address expectedImplementation) = factory.previewCreate2ProxyAndLogic(
@@ -240,7 +240,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
-    function testCreate3ProxyAndLogic() public pranked(0) {
+    function testCreate3ProxyAndLogic() public prankedById(0) {
         bytes32 implementationSalt = bytes32(uint256(salt) + 1);
 
         (address expectedProxy, address expectedImplementation) = factory.previewCreate3ProxyAndLogic(salt);
@@ -281,7 +281,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
-    function testUpgradeAndCall() public pranked(0) {
+    function testUpgradeAndCall() public prankedById(0) {
         Deployment memory proxy = factory.createProxy(
             address(new LogicA()),
             abi.encodeWithSelector(LogicA.initialize.selector)
@@ -324,7 +324,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
-    function testCreate2UpgradeAndCall() public pranked(0) {
+    function testCreate2UpgradeAndCall() public prankedById(0) {
         Deployment memory proxy = factory.create2ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
         address newOwner = getAddr(1);
         uint256 newValue = 100;
@@ -371,7 +371,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
-    function testCreate3UpgradeAndCall() public pranked(0) {
+    function testCreate3UpgradeAndCall() public prankedById(0) {
         Deployment memory proxy = factory.create3ProxyAndLogic(LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt);
 
         (address expectedImplementation, uint256 version) = factory.previewCreate3Upgrade(proxy.proxy);
@@ -409,7 +409,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         assertTrue(factory.getDeployments()[0].proxy == proxy.proxy);
     }
 
-    function testBatching() public pranked(0) {
+    function testBatching() public prankedById(0) {
         bytes[] memory initCalls = new bytes[](3);
         initCalls[0] = abi.encodeCall(factory.createProxy, (address(new LogicA()), CALLDATA_LOGIC_A));
         initCalls[1] = abi.encodeCall(factory.create2ProxyAndLogic, (LOGIC_A_CREATION_CODE, CALLDATA_LOGIC_A, salt));
@@ -660,7 +660,7 @@ contract DeploymentFactoryTest is TestBase("MNEMONIC_DEVNET") {
         vm.stopPrank();
     }
 
-    function testDeployKrAssetAndAnchor() public pranked(0) {
+    function testDeployKrAssetAndAnchor() public prankedById(0) {
         address kresko = 0x7366d18831e535f3Ab0b804C01d454DaD72B4c36;
         address feeRecipient = 0xC4489F3A82079C5a7b0b610Fc85952B6E585E697;
         address admin = 0xFcbB93547B7C1936fEbfe56b4cEeD9Ab66dA1857;

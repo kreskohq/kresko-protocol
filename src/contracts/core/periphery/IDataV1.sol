@@ -78,20 +78,20 @@ interface IDataV1 {
         uint8 phase;
     }
 
-    function getGlobals(bytes memory redstoneData) external view returns (DGlobal memory);
+    function getGlobals(bytes memory rsPayload) external view returns (DGlobal memory);
 
-    function getGlobalsRs() external view returns (DGlobal memory result);
+    function getGlobalsRs() external view returns (DGlobal memory);
 
     function getExternalTokens(
         ExternalTokenArgs[] memory tokens,
         address _account
-    ) external view returns (DVTokenBalance[] memory result);
+    ) external view returns (DVTokenBalance[] memory);
 
-    function getAccount(address _account, bytes memory redstoneData) external view returns (DAccount memory);
+    function getAccount(address _account, bytes memory rsPayload) external view returns (DAccount memory);
 
-    function getAccountRs(address _account) external view returns (DAccount memory result);
+    function getAccountRs(address _account) external view returns (DAccount memory);
 
-    function getVault() external view returns (DVault memory result);
+    function getVault() external view returns (DVault memory);
 
-    function getVAssets() external view returns (DVAsset[] memory result);
+    function getVAssets() external view returns (DVAsset[] memory);
 }

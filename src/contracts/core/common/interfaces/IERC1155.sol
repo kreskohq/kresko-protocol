@@ -28,4 +28,8 @@ interface IERC1155 {
     function storeClearKey(uint256 _tokenId, address _account, bytes32 _key) external returns (bool);
 
     function storeClearKeys(uint256 _tokenId, address _account, bytes32[] memory _keys) external returns (bool);
+
+    function safeTransferFrom(address from, address to, uint256 id, uint256 value, bytes memory data) external;
+
+    function mint(address _to, uint256 _tokenId, uint256 _amount, bytes memory) external;
 }

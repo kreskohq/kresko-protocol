@@ -1,5 +1,5 @@
 import { type KreskoAssetAnchor } from '@/types/typechain'
-import { type AllTokenSymbols, getDeploymentUsers } from '@config/deploy'
+import { type AllTokenSymbols, getDeploymentUsers } from '@config/hardhat/deploy'
 import { getAnchorNameAndSymbol } from '@utils/strings'
 
 export async function createKrAsset<T extends AllTokenSymbols>(

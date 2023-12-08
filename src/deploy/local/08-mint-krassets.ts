@@ -1,4 +1,4 @@
-import { testnetConfigs } from '@config/deploy/arbitrumGoerli'
+import { testnetConfigs } from '@config/hardhat/deploy/arbitrumGoerli'
 import { TASK_MINT_OPTIMAL } from '@tasks'
 import { getLogger } from '@utils/logging'
 import { wrapKresko } from '@utils/redstone'

@@ -1,13 +1,14 @@
 [profile.default]
 src = 'src/contracts/core'
-out = 'out/foundry'
-libs = ['lib']
 script = 'src/contracts/scripts'
 test = 'src/contracts/test'
-cache_path = 'cache/forge'
-ffi = true
+libs = ['lib']
+out = 'build/foundry'
+broadcast = 'out/foundry/broadcast'
+cache_path = 'build/foundry/cache'
 fs_permissions = [{ access = "read-write", path = "./" }]
-solc_version = '0.8.23'
+ffi = true
+solc = '0.8.23'
 evm_version = 'paris'
 via_ir = false
 optimizer = true

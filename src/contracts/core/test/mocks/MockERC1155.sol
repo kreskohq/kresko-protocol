@@ -19,6 +19,10 @@ contract MockERC1155 is ERC1155 {
         _mint(account, id, amount, "");
     }
 
+    function mint(address account, uint256 id, uint256 amount, bytes memory) external {
+        _mint(account, id, amount, "");
+    }
+
     function contractURI() public view returns (string memory) {
         return __contractUri;
     }

@@ -16,15 +16,15 @@ module.exports = {
       watch: false,
       autorestart: false,
       wait_ready: true,
-      name: 'setup-local',
+      name: 'deploy-local',
       script: 'just deploy-local',
     },
     {
       watch: false,
       autorestart: false,
       wait_ready: true,
-      name: 'setup-arbitrum',
-      script: 'just setup-arbitrum',
+      name: 'deploy-arbitrum-fork',
+      script: 'just deploy-arbitrum-fork',
     },
   ],
 }

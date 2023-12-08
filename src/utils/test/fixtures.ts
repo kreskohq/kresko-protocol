@@ -1,7 +1,7 @@
 import type { SCDPKrAssetConfig } from '@/types'
 import { SmockCollateralReceiver, SmockCollateralReceiver__factory } from '@/types/typechain'
 import type { Kresko } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
-import type { AllTokenSymbols } from '@config/deploy'
+import type { AllTokenSymbols } from '@config/hardhat/deploy'
 import { type MockContract, smock } from '@defi-wonderland/smock'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { createKrAsset } from '@scripts/create-krasset'

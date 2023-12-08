@@ -7,7 +7,7 @@ import {
   minterFacets,
   peripheryFacets,
   scdpFacets,
-} from '@config/deploy'
+} from '@config/hardhat/deploy'
 import { expect } from '@test/chai'
 import { defaultFixture } from '@utils/test/fixtures'
 import { Role } from '@utils/test/roles'

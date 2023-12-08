@@ -16,7 +16,7 @@ contract GatingManager is IGatingManager, Ownable {
     mapping(address => bool) internal whitelisted;
     mapping(address => bool) internal blacklisted;
 
-    constructor(address _kreskian, address _questForKresk, uint8 _phase) Ownable(msg.sender) {
+    constructor(address _admin, address _kreskian, address _questForKresk, uint8 _phase) Ownable(_admin) {
         kreskian = IERC1155(_kreskian);
         questForKresk = IERC1155(_questForKresk);
         phase = _phase;
@@ -24,6 +24,10 @@ contract GatingManager is IGatingManager, Ownable {
         phase1NFTs.push(1);
         phase1NFTs.push(2);
         phase1NFTs.push(3);
+    }
+
+    function transferOwnership(address newOwner) public override(IGatingManager, Ownable) onlyOwner {
+        Ownable.transferOwnership(newOwner);
     }
 
     function getPhase1NFTs() external view returns (uint256[] memory) {
