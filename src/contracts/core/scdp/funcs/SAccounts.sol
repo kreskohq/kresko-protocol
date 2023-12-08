@@ -6,7 +6,6 @@ import {SCDPState} from "scdp/SState.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 import {SCDPAccountIndexes, SCDPAssetIndexes, SCDPSeizeData} from "scdp/STypes.sol";
-import {console2} from "forge-std/console2.sol";
 
 library SAccounts {
     using WadRay for uint256;
@@ -68,8 +67,6 @@ library SAccounts {
     ) internal view returns (uint256 feeAmount) {
         SCDPAssetIndexes memory assetIndexes = self.assetIndexes[_assetAddr];
         SCDPAccountIndexes memory accountIndexes = self.accountIndexes[_account][_assetAddr];
-        console2.log("accountIndexes.lastFeeIndex", accountIndexes.lastFeeIndex);
-        console2.log("assetIndexes.currFeeIndex", assetIndexes.currFeeIndex);
         // Return early if there are no fees accrued.
         if (accountIndexes.lastFeeIndex == 0 || accountIndexes.lastFeeIndex == assetIndexes.currFeeIndex) return 0;
 
@@ -79,8 +76,6 @@ library SAccounts {
         // If accounts last liquidation index is lower than current, it means they endured a liquidation.
         SCDPSeizeData memory latestSeize = self.seizeEvents[_assetAddr][assetIndexes.currLiqIndex];
 
-        console2.log("accountIndexes.lastLiqIndex", accountIndexes.lastLiqIndex);
-        console2.log("latestSeize.liqIndex", latestSeize.liqIndex);
         if (accountIndexes.lastLiqIndex < latestSeize.liqIndex) {
             // Accumulated fees before now and after latest seize.
             uint256 feesAfterLastSeize = principalDeposits.rayDiv(latestSeize.liqIndex).rayMul(
@@ -90,7 +85,6 @@ library SAccounts {
             uint256 feesBeforeLastSeize;
             // Just loop through all events until we hit the same index as the account.
             while (accountIndexes.lastLiqIndex < latestSeize.liqIndex) {
-                console2.log("value: %s", "looping");
                 SCDPSeizeData memory previousSeize = self.seizeEvents[_assetAddr][latestSeize.prevLiqIndex];
                 // Get the historical balance according to liquidation index at the time
                 // Then we simply multiply by fee index difference to get the fees accrued.
