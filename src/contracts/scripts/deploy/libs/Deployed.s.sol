@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import {VM, Help} from "kresko-lib/utils/Libs.s.sol";
 import {PLog} from "kresko-lib/utils/PLog.s.sol";
+import {Asset} from "common/Types.sol";
 
 library Deployed {
     using Help for *;
@@ -11,6 +12,7 @@ library Deployed {
 
     struct Cache {
         mapping(string => address) cache;
+        mapping(string => Asset) assets;
     }
 
     function addr(string memory name) internal returns (address) {
@@ -33,9 +35,17 @@ library Deployed {
         return (state().cache[id] = _addr);
     }
 
+    function cache(string memory id, Asset memory asset) internal returns (Asset memory) {
+        return (state().assets[id] = asset);
+    }
+
     function cached(string memory id) internal view returns (address result) {
         result = state().cache[id];
         ensureAddr(id, result);
+    }
+
+    function cachedAsset(string memory id) internal view returns (Asset memory) {
+        return state().assets[id];
     }
 
     function ensureAddr(string memory id, address _addr) internal pure {

@@ -1,5 +1,5 @@
 {
-  "00_configId": "localhost",
+  "00_configId": "test-base",
   "01_deploymentFactory": "0x0000000000000000000000000000000000000000",
   "02_common": {
     "00_admin": "0xFcbB93547B7C1936fEbfe56b4cEeD9Ab66dA1857",
@@ -15,8 +15,8 @@
   "03_scdp": {
     "00_minCollateralRatio": 250e2,
     "01_liquidationThreshold": 150e2,
-    "02_coverThreshold": 160e2,
-    "03_coverIncentive": 1.01e4
+    "03_coverThreshold": 160e2,
+    "04_coverIncentive": 1.01e4
   },
   "04_minter": {
     "00_liquidationThreshold": 140e2,

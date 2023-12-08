@@ -16,6 +16,7 @@ import {scdp, sdi} from "scdp/SState.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
 import {RawPrice, Oracle} from "common/Types.sol";
 import {Percents, Enums} from "common/Constants.sol";
+import {fromWad, toWad} from "common/funcs/Math.sol";
 
 using WadRay for uint256;
 using PercentageMath for uint256;
@@ -93,16 +94,16 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
  * @return uint256 The price of the vault share in 8 decimal precision.
  */
 function vaultPrice(address _vaultAddr) view returns (uint256) {
-    return IVaultRateProvider(_vaultAddr).exchangeRate() / 1e10;
+    return fromWad(IVaultRateProvider(_vaultAddr).exchangeRate(), cs().oracleDecimals);
 }
 
-/// @notice Get the price of SDI in USD, oracle precision.
+/// @notice Get the price of SDI in USD (WAD precision, so 18 decimals).
 function SDIPrice() view returns (uint256) {
     uint256 totalValue = scdp().totalDebtValueAtRatioSCDP(Percents.HUNDRED, false);
     if (totalValue == 0) {
-        return 10 ** sdi().sdiPricePrecision;
+        return 1e18;
     }
-    return totalValue.wadDiv(sdi().totalDebt);
+    return toWad(totalValue, cs().oracleDecimals).wadDiv(sdi().totalDebt);
 }
 
 /**
@@ -138,7 +139,7 @@ function API3Price(address _feedAddr, uint256 _staleTime) view returns (uint256)
     if (block.timestamp - updatedAt > _staleTime) {
         return 0;
     }
-    return uint256(answer / 1e10); // @todo actual decimals
+    return fromWad(uint256(answer), cs().oracleDecimals); // API3 returns 18 decimals always.
 }
 
 /* -------------------------------------------------------------------------- */

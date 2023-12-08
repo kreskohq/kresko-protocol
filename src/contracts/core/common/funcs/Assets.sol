@@ -154,7 +154,7 @@ library Assets {
 
     /// @notice Preview SDI amount from krAsset amount.
     function debtAmountToSDI(Asset storage asset, uint256 amount, bool ignoreFactors) internal view returns (uint256 shares) {
-        return asset.debtAmountToValue(amount, ignoreFactors).wadDiv(SDIPrice());
+        return toWad(asset.debtAmountToValue(amount, ignoreFactors), cs().oracleDecimals).wadDiv(SDIPrice());
     }
 
     /* -------------------------------------------------------------------------- */

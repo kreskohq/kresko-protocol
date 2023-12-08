@@ -15,9 +15,8 @@
   "03_scdp": {
     "00_minCollateralRatio": 250e2,
     "01_liquidationThreshold": 150e2,
-    "03_sdiPricePrecision": 8,
-    "04_coverThreshold": 160e2,
-    "05_coverIncentive": 1.01e4
+    "02_coverThreshold": 160e2,
+    "03_coverIncentive": 1.01e4
   },
   "04_minter": {
     "00_liquidationThreshold": 140e2,

@@ -67,7 +67,6 @@ library SAccounts {
     ) internal view returns (uint256 feeAmount) {
         SCDPAssetIndexes memory assetIndexes = self.assetIndexes[_assetAddr];
         SCDPAccountIndexes memory accountIndexes = self.accountIndexes[_account][_assetAddr];
-
         // Return early if there are no fees accrued.
         if (accountIndexes.lastFeeIndex == 0 || accountIndexes.lastFeeIndex == assetIndexes.currFeeIndex) return 0;
 
@@ -76,6 +75,7 @@ library SAccounts {
 
         // If accounts last liquidation index is lower than current, it means they endured a liquidation.
         SCDPSeizeData memory latestSeize = self.seizeEvents[_assetAddr][assetIndexes.currLiqIndex];
+
         if (accountIndexes.lastLiqIndex < latestSeize.liqIndex) {
             // Accumulated fees before now and after latest seize.
             uint256 feesAfterLastSeize = principalDeposits.rayDiv(latestSeize.liqIndex).rayMul(

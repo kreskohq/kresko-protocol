@@ -89,7 +89,6 @@ abstract contract _DeprecatedTestBase is
         init_.liquidationThreshold = _cfg.scdpLt;
         init_.coverThreshold = _cfg.coverThreshold;
         init_.coverIncentive = _cfg.coverIncentive;
-        init_.sdiPricePrecision = _cfg.sdiPrecision;
     }
 
     function getInitializers(

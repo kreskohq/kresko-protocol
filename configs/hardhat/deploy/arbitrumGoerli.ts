@@ -233,7 +233,6 @@ export const minterInitArgs: MinterInitArgsStruct = {
 export const scdpInitArgs: SCDPInitArgsStruct = {
   minCollateralRatio: 5e4,
   liquidationThreshold: 2e4,
-  sdiPricePrecision: 8,
   coverThreshold: 2.25e4,
   coverIncentive: 1.01e4,
 }

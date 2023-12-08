@@ -92,8 +92,6 @@ library VAssets {
         VaultConfiguration storage config,
         uint256 amount
     ) internal view returns (uint256) {
-        // uint256 result = amount.wadMul(self.price(config)).wadDiv(10 ** config.oracleDecimals);
-        // uint256 oldResult = (amount * (10 ** (18 - config.oracleDecimals)) * self.price(config)) / 10 ** self.decimals;
         return wadUSD(amount, self.decimals, self.price(config), config.oracleDecimals);
     }
 

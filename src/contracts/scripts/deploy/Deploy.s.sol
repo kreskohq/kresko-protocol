@@ -37,8 +37,8 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         uint32 deployer,
         bool saveOutput,
         bool disableLog
-    ) public mnemonic(mnemonicEnv) {
-        deploy(network, network, mnemonicEnv, deployer, saveOutput, disableLog);
+    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory) {
+        return deploy(network, network, mnemonicEnv, deployer, saveOutput, disableLog);
     }
 
     function deploy(
@@ -48,22 +48,22 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         uint32 deployer,
         bool saveOutput,
         bool disableLog
-    ) public mnemonic(mnemonicEnv) {
+    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
         if (disableLog) LibDeploy.disableLog();
         else Log.clg(network.and(":").and(configId), "Deploying");
         if (saveOutput) LibDeploy.initOutputJSON(configId);
 
-        exec(JSON.getConfig(network, configId), getAddr(deployer), disableLog);
+        json = exec(JSON.getConfig(network, configId), getAddr(deployer), disableLog);
 
         if (saveOutput) LibDeploy.writeOutputJSON();
     }
 
-    function deployTest(uint32 deployer) public {
-        deploy("test", "test-base", "MNEMONIC_DEVNET", deployer, false, true);
+    function deployTest(uint32 deployer) public returns (JSON.Config memory) {
+        return deploy("test", "test-base", "MNEMONIC_DEVNET", deployer, false, true);
     }
 
-    function deployTest(string memory mnemonic, string memory configId, uint32 deployer) public {
-        deploy("test", configId, mnemonic, deployer, false, true);
+    function deployTest(string memory mnemonic, string memory configId, uint32 deployer) public returns (JSON.Config memory) {
+        return deploy("test", configId, mnemonic, deployer, false, true);
     }
 
     function deployFrom(
@@ -73,21 +73,30 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         uint32 deployer,
         bool saveOutput,
         bool disableLog
-    ) public mnemonic(mnemonicEnv) {
+    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
         if (disableLog) LibDeploy.disableLog();
         else Log.clg(dir.and(configId), "Deploying from");
         if (saveOutput) LibDeploy.initOutputJSON(configId);
 
-        exec(JSON.getConfigFrom(dir, configId), getAddr(deployer), disableLog);
+        json = exec(JSON.getConfigFrom(dir, configId), getAddr(deployer), disableLog);
 
         if (saveOutput) LibDeploy.writeOutputJSON();
     }
 
-    function deployFromTest(string memory mnemonic, string memory dir, string memory configId, uint32 deployer) public {
-        deployFrom(dir, configId, mnemonic, deployer, false, true);
+    function deployFromTest(
+        string memory mnemonic,
+        string memory dir,
+        string memory configId,
+        uint32 deployer
+    ) public returns (JSON.Config memory) {
+        return deployFrom(dir, configId, mnemonic, deployer, false, true);
     }
 
-    function exec(JSON.Config memory json, address deployer, bool disableLog) private broadcasted(deployer) {
+    function exec(
+        JSON.Config memory json,
+        address deployer,
+        bool disableLog
+    ) private broadcasted(deployer) returns (JSON.Config memory) {
         // Deploy the deployment factory first.
         if (json.params.deploymentFactory == address(0)) {
             json.params.deploymentFactory = super.deployDeploymentFactory(deployer);
@@ -120,14 +129,16 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
                 : [address(0), address(0)];
 
             tickerExists[asset.config.ticker] = true;
-            kresko.addAsset(asset.addr, asset.config.toAsset(), feeds);
+            asset.symbol.cache(kresko.addAsset(asset.addr, asset.config.toAsset(), feeds)).logOutput(diamond, asset.addr);
         }
 
         /* ------------------------------ KISS ------------------------------ */
-        kresko.addAsset(address(kiss), json.assets.kiss.config.toAsset(), [address(vault), address(0)]).logOutput(
-            diamond,
-            address(kiss)
-        );
+        json
+            .assets
+            .kiss
+            .symbol
+            .cache(kresko.addAsset(address(kiss), json.assets.kiss.config.toAsset(), [address(vault), address(0)]))
+            .logOutput(diamond, address(kiss));
         kresko.setFeeAssetSCDP(address(kiss));
 
         /* ------------------------------ KrAssets ------------------------------ */
@@ -140,7 +151,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
                 : [address(0), address(0)];
 
             tickerExists[asset.config.ticker] = true;
-            kresko.addAsset(assetAddr, asset.config.toAsset(), feeds).logOutput(diamond, assetAddr);
+            asset.symbol.cache(kresko.addAsset(assetAddr, asset.config.toAsset(), feeds)).logOutput(diamond, assetAddr);
         }
 
         /* -------------------------- Vault Assets -------------------------- */
@@ -189,6 +200,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
             Log.clg("Deployment finished!");
             Log.hr();
         }
+        return json;
     }
 
     /* ---------------------------------------------------------------------- */
