@@ -33,16 +33,8 @@ contract MulticallTest is Deploy {
     MockERC20 usdc;
     MockERC20 usdt;
 
-    struct FeeTestRebaseConfig {
-        uint248 rebaseMultiplier;
-        bool positive;
-        uint256 ethPrice;
-        uint256 firstLiquidationPrice;
-        uint256 secondLiquidationPrice;
-    }
-
     function setUp() public {
-        Deploy.testDeploy(0);
+        Deploy.deployTest(0);
 
         usdc = MockERC20(Deployed.addr("USDC"));
         usdt = MockERC20(Deployed.addr("USDT"));

@@ -58,11 +58,11 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         if (saveOutput) LibDeploy.writeOutputJSON();
     }
 
-    function testDeploy(uint32 deployer) public {
+    function deployTest(uint32 deployer) public {
         deploy("test", "test-base", "MNEMONIC_DEVNET", deployer, false, true);
     }
 
-    function testDeploy(string memory mnemonic, string memory configId, uint32 deployer) public {
+    function deployTest(string memory mnemonic, string memory configId, uint32 deployer) public {
         deploy("test", configId, mnemonic, deployer, false, true);
     }
 
@@ -83,7 +83,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         if (saveOutput) LibDeploy.writeOutputJSON();
     }
 
-    function testDeployFrom(string memory mnemonic, string memory dir, string memory configId, uint32 deployer) public {
+    function deployFromTest(string memory mnemonic, string memory dir, string memory configId, uint32 deployer) public {
         deployFrom(dir, configId, mnemonic, deployer, false, true);
     }
 

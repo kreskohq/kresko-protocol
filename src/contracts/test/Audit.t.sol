@@ -42,7 +42,7 @@ contract AuditTest is Deploy {
     }
 
     function setUp() public {
-        Deploy.testDeploy("MNEMONIC_DEVNET", "base", 0);
+        Deploy.deployTest("MNEMONIC_DEVNET", "test-base", 0);
 
         usdc = MockERC20(Deployed.addr("USDC"));
         usdt = MockERC20(Deployed.addr("USDT"));
