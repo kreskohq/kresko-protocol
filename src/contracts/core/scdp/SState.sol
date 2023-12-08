@@ -44,6 +44,8 @@ struct SCDPState {
     mapping(address => SCDPAssetIndexes) assetIndexes;
     /// @notice Mapping of account -> depositAsset -> indices.
     mapping(address => mapping(address => SCDPAccountIndexes)) accountIndexes;
+    /// @notice Mapping of account -> depositAsset -> indices.
+    mapping(address => mapping(address => SCDPAccountIndexes)) accountClaims;
     /// @notice Mapping of account -> liquidationIndex -> Seize data.
     mapping(address => mapping(uint256 => SCDPSeizeData)) seizeEvents;
     /// @notice The asset to convert fees into
@@ -65,7 +67,6 @@ struct SDIState {
     /// @notice Incentive for covering debt
     uint48 coverIncentive;
     address[] coverAssets;
-    uint8 sdiPricePrecision;
 }
 
 /* -------------------------------------------------------------------------- */

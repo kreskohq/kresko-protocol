@@ -4,7 +4,7 @@ import { type DefaultFixture, defaultFixture } from '@utils/test/fixtures'
 import { wrapContractWithSigner } from '@utils/test/helpers/general'
 import { toBig } from '@utils/values'
 
-describe.only('Gating', () => {
+describe('Gating', () => {
   let f: DefaultFixture
   let nft: MockERC1155
   let nft2: MockERC1155

@@ -8,6 +8,7 @@ import {cs} from "common/State.sol";
 import {Errors} from "common/Errors.sol";
 import {Asset} from "common/Types.sol";
 import {SCDPState, sdi} from "scdp/SState.sol";
+import {toWad} from "common/funcs/Math.sol";
 
 library SGlobal {
     using WadRay for uint256;

@@ -5,12 +5,12 @@ pragma solidity ^0.8.0;
  * @notice SCDP initializer configuration.
  * @param minCollateralRatio The minimum collateralization ratio.
  * @param liquidationThreshold The liquidation threshold.
- * @param sdiPricePrecision The decimals in SDI price.
+ * @param coverThreshold Threshold after which cover can be performed.
+ * @param coverIncentive Incentive for covering debt instead of performing a liquidation.
  */
 struct SCDPInitArgs {
     uint32 minCollateralRatio;
     uint32 liquidationThreshold;
-    uint8 sdiPricePrecision;
     uint48 coverThreshold;
     uint48 coverIncentive;
 }
@@ -23,7 +23,6 @@ struct SCDPInitArgs {
  * @param maxLiquidationRatio The maximum CR resulting from liquidations.
  * @param coverThreshold Threshold after which cover can be performed.
  * @param coverIncentive Incentive for covering debt instead of performing a liquidation.
- * @param sdiPricePrecision The decimal precision of SDI price.
  */
 struct SCDPParameters {
     address feeAsset;
@@ -32,7 +31,6 @@ struct SCDPParameters {
     uint32 maxLiquidationRatio;
     uint128 coverThreshold;
     uint128 coverIncentive;
-    uint8 sdiPricePrecision;
 }
 
 // Used for setting swap pairs enabled or disabled in the pool.

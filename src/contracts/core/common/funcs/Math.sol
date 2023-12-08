@@ -24,7 +24,7 @@ function valueToAmount(uint256 _value, uint256 _price, uint16 _multiplier) pure 
 }
 
 /**
- * @notice Converts decimal precision of `_amount` to wad decimal precision, which is 18 decimals.
+ * @notice Converts some decimal precision of `_amount` to wad decimal precision, which is 18 decimals.
  * @dev Multiplies if precision is less and divides if precision is greater than 18 decimals.
  * @param _amount Amount to convert.
  * @param _decimals Decimal precision for `_amount`.
@@ -55,11 +55,11 @@ function toWad(int256 _amount, uint8 _decimals) pure returns (uint256) {
 }
 
 /**
- * @notice  Converts wad precision `_amount`  to wad decimal precision, which is 18 decimals.
+ * @notice  Converts wad precision `_amount`  to some decimal precision.
  * @dev Multiplies if precision is greater and divides if precision is less than 18 decimals.
- * @param _wadAmount Wad precision amount to convert.
- * @param _decimals Decimal precision for the result.
- * @return uint256 Amount converted to `_decimals` precision.
+ * @param _wadAmount Wad amount to convert.
+ * @param _decimals Decimals for the result.
+ * @return uint256 Converted amount.
  */
 function fromWad(uint256 _wadAmount, uint8 _decimals) pure returns (uint256) {
     // Most tokens use 18 decimals.

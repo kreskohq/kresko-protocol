@@ -262,7 +262,7 @@ function getSwapFees(
     Asset storage _assetOut
 ) view returns (uint256 feePercentage, uint256 protocolFee) {
     unchecked {
-        feePercentage = _assetIn.swapOutFeeSCDP + _assetOut.swapInFeeSCDP;
+        feePercentage = _assetIn.swapInFeeSCDP + _assetOut.swapOutFeeSCDP;
         protocolFee = _assetIn.protocolFeeShareSCDP + _assetOut.protocolFeeShareSCDP;
     }
 }

@@ -24,8 +24,6 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, Modifiers {
         setLiquidationThresholdSCDP(args.liquidationThreshold);
         setCoverThresholdSCDP(args.coverThreshold);
         setCoverIncentiveSCDP(args.coverIncentive);
-        Validations.validateOraclePrecision(args.sdiPricePrecision);
-        sdi().sdiPricePrecision = args.sdiPricePrecision;
     }
 
     /// @inheritdoc ISCDPConfigFacet
@@ -36,7 +34,6 @@ contract SCDPConfigFacet is ISCDPConfigFacet, DSModifiers, Modifiers {
                 minCollateralRatio: scdp().minCollateralRatio,
                 liquidationThreshold: scdp().liquidationThreshold,
                 maxLiquidationRatio: scdp().maxLiquidationRatio,
-                sdiPricePrecision: sdi().sdiPricePrecision,
                 coverThreshold: sdi().coverThreshold,
                 coverIncentive: sdi().coverIncentive
             });
