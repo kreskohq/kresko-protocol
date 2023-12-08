@@ -1,26 +1,29 @@
+import { MockERC1155 } from '@/types/typechain'
 import { expect } from '@test/chai'
 import { type DefaultFixture, defaultFixture } from '@utils/test/fixtures'
 import { wrapContractWithSigner } from '@utils/test/helpers/general'
 import { toBig } from '@utils/values'
 
-describe('Gating', () => {
+describe.only('Gating', () => {
   let f: DefaultFixture
+  let nft: MockERC1155
+  let nft2: MockERC1155
 
   beforeEach(async function () {
     f = await defaultFixture()
     // Set Gating phase to 3
-    ;[this.nft] = await hre.deploy('MockERC1155', {
+    ;[nft] = await hre.deploy('MockERC1155', {
       args: ['MockERC1155_1', 'MockERC1155_1', 'https://mock.com/{id}.json', 'https://mock.com/contract.json'],
       deploymentName: 'MockERC1155_1',
       from: hre.users.deployer.address,
     })
-    ;[this.nft2] = await hre.deploy('MockERC1155', {
+    ;[nft2] = await hre.deploy('MockERC1155', {
       args: ['MockERC1155_2', 'MockERC1155_2', 'https://mock2.com/{id}.json', 'https://mock2.com/contract2.json'],
       deploymentName: 'MockERC1155_2',
       from: hre.users.deployer.address,
     })
     ;[this.GatingManager] = await hre.deploy('GatingManager', {
-      args: [hre.users.deployer.address, this.nft.address, this.nft2.address, 1],
+      args: [hre.users.deployer.address, nft.address, nft2.address, 1],
       from: hre.users.deployer.address,
     })
     await hre.Diamond.setGatingManager(this.GatingManager.address)
@@ -52,10 +55,10 @@ describe('Gating', () => {
       ),
     ).to.be.reverted
 
-    await this.nft.mint(this.depositArgsOne.user.address, 0, 1)
-    await this.nft2.mint(this.depositArgsOne.user.address, 0, 1)
-    await this.nft2.mint(this.depositArgsOne.user.address, 1, 1)
-    await this.nft2.mint(this.depositArgsOne.user.address, 2, 1)
+    await nft['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
+    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
+    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 1, 1)
+    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 2, 1)
 
     await expect(
       wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
@@ -67,11 +70,11 @@ describe('Gating', () => {
   })
 
   it('should allow users to access in phase 1', async function () {
-    await this.nft.mint(this.depositArgsOne.user.address, 0, 1)
-    await this.nft2.mint(this.depositArgsOne.user.address, 0, 1)
-    await this.nft2.mint(this.depositArgsOne.user.address, 1, 1)
-    await this.nft2.mint(this.depositArgsOne.user.address, 2, 1)
-    await this.nft2.mint(this.depositArgsOne.user.address, 3, 1)
+    await nft['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
+    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
+    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 1, 1)
+    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 2, 1)
+    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 3, 1)
     await expect(
       wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
@@ -90,7 +93,7 @@ describe('Gating', () => {
       ),
     ).to.be.reverted
 
-    await this.nft.mint(this.depositArgsOne.user.address, 0, 1)
+    await nft['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
     await expect(
       wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
@@ -102,8 +105,8 @@ describe('Gating', () => {
 
   it('should allow users to access in phase 2', async function () {
     await this.GatingManager.setPhase(2)
-    await this.nft.mint(this.depositArgsOne.user.address, 0, 1)
-    await this.nft2.mint(this.depositArgsOne.user.address, 0, 1)
+    await nft['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
+    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
     await expect(
       wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
@@ -125,7 +128,7 @@ describe('Gating', () => {
 
   it('should allow users to access in phase 3', async function () {
     await this.GatingManager.setPhase(3)
-    await this.nft.mint(this.depositArgsOne.user.address, 0, 1)
+    await nft['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
     await expect(
       wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
