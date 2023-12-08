@@ -527,12 +527,12 @@ contract AuditTest is Deploy {
 
     function testClaimAfterMultipleLiquidations() external {
         vm.pauseGasMetering();
-        address claimer = getAddr(1);
+        address claimer = getAddr(0);
         prank(claimer);
-        kresko.getAccountDepositSCDP(claimer, address(kiss)).eq(10_000e18, "deposits");
+        kresko.getAccountDepositSCDP(claimer, address(kiss)).eq(50_000e18, "deposits");
 
         uint256 feesBefore = kresko.getAccountFeesSCDP(claimer, address(kiss));
-        _swapAndLiquidate(1000, 10e18, 100e18);
+        _swapAndLiquidate(1, 10e18, 100e18);
         kresko.getAccountFeesSCDP(claimer, address(kiss)).gt(feesBefore, "fees-before");
         uint256 checkpoint = gasleft();
         vm.resumeGasMetering();
@@ -540,8 +540,6 @@ contract AuditTest is Deploy {
         vm.pauseGasMetering();
         uint256 used = checkpoint - gasleft();
         used.clg("gas-used");
-        // 1 liq = 29886
-        // 10 liq = 49139testClaimAfterMultipleLiquidations
     }
 
     function _swapAndLiquidate(uint256 times, uint256 swapAmount, uint256 liquidateAmount) internal repranked(getAddr(0)) {

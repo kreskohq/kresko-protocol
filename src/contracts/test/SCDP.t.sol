@@ -163,7 +163,7 @@ contract SCDPTest is Tested, Deploy {
         _printInfo("after liquidation");
     }
 
-    function testSCDPGas() public pranked(user0) {
+    function testSCDPGas() public withDeposits pranked(user0) {
         bool success;
         uint256 amount = 1000e18;
 
