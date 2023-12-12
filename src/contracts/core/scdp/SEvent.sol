@@ -11,7 +11,7 @@ library SEvent {
         uint256 amount,
         uint256 timestamp
     );
-    event SCDPFeesSkipped(
+    event SCDPFeeReceipt(
         address indexed account,
         address indexed collateralAsset,
         uint256 accDeposits,

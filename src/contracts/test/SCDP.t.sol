@@ -299,38 +299,52 @@ contract SCDPTest is Tested, Deploy {
         kresko.getAccountFeesSCDP(user1, address(kiss)).eq(feesDistributed, "feesDistributed9");
     }
 
-    function testSwapFeeGas() public {
-        vm.pauseGasMetering();
+    function testClaimFeeGas() public {
         prank(deployer);
         _poolDeposit(deployer, address(kiss), 50000e18);
         _swapAndLiquidate(75, 1000e18, 0.01e18);
 
-        kresko.getAccountFeesSCDP(deployer, address(kiss)).clg("fees");
+        uint256 fees = kresko.getAccountFeesSCDP(deployer, address(kiss));
+        uint256 kissBalBefore = kiss.balanceOf(deployer);
         uint256 checkpoint = gasleft();
-        vm.resumeGasMetering();
         kresko.claimFeesSCDP(deployer, address(kiss), deployer);
-        vm.pauseGasMetering();
         uint256 used = checkpoint - gasleft();
-        used.gt(900000, "gas-used-gt");
-        used.lt(1000000, "gas-used-lt");
+        used.gt(100000, "gas-used-gt"); // warm
+        used.lt(110000, "gas-used-lt");
+
+        (kiss.balanceOf(deployer) - kissBalBefore).eq(fees, "received-fees");
     }
 
-    function testSwapFeeGasNoSwaps() public {
-        vm.pauseGasMetering();
+    function testClaimFeeGasNoSwaps() public {
         prank(deployer);
         _poolDeposit(deployer, address(kiss), 50000e18);
         (, uint256 feesDistributed, ) = _previewSwap(address(kiss), address(krETH), 1000e18, 0);
+
         rsCall(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETHAddr, 1000e18, 0);
         _liquidate(75, 1000e18, 0.01e18);
 
+        uint256 kissBalBefore = kiss.balanceOf(deployer);
         kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed, "feesDistributed");
         uint256 checkpoint = gasleft();
-        vm.resumeGasMetering();
         kresko.claimFeesSCDP(deployer, address(kiss), deployer);
-        vm.pauseGasMetering();
         uint256 used = checkpoint - gasleft();
-        used.gt(340000, "gas-used-gt");
-        used.lt(350000, "gas-used-lt");
+        used.gt(80000, "gas-used-gt"); // warm
+        used.lt(82000, "gas-used-lt");
+        (kiss.balanceOf(deployer) - kissBalBefore).eq(feesDistributed, "received-fees");
+    }
+
+    function testEmergencyWithdraw() public {
+        prank(deployer);
+
+        _poolDeposit(deployer, address(kiss), 50000e18);
+        _swapAndLiquidate(75, 1000e18, 0.01e18);
+
+        uint256 fees = kresko.getAccountFeesSCDP(deployer, address(kiss));
+        fees.gt(0, "fees");
+        uint256 kissBalBefore = kiss.balanceOf(deployer);
+        rsCall(kresko.emergencyWithdrawSCDP.selector, deployer, address(kiss), 1000e18, deployer);
+
+        (kiss.balanceOf(deployer) - kissBalBefore).eq(1000e18, "received-withdraw");
     }
 
     function testSCDPGas() public withDeposits pranked(user0) {
