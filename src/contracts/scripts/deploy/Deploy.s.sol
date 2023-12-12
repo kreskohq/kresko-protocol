@@ -19,6 +19,8 @@ import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {Role} from "common/Constants.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {Asset} from "common/Types.sol";
+import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
+import {IGatingManager} from "periphery/IGatingManager.sol";
 
 contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     using LibDeployConfig for *;
@@ -101,6 +103,9 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         // Deploy the deployment factory first.
         if (json.params.deploymentFactory == address(0)) {
             json.params.deploymentFactory = super.deployDeploymentFactory(deployer);
+        } else {
+            factory = IDeploymentFactory(json.params.deploymentFactory);
+            LibDeploy.state().factory = factory;
         }
         // Create configured mocks, updates the received config with addresses.
         json = json.createMocks(deployer);
@@ -110,6 +115,8 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
 
         if (json.params.common.gatingManager == address(0)) {
             json.params.common.gatingManager = super.deployGatingManager(json, deployer);
+        } else {
+            gatingManager = IGatingManager(json.params.common.gatingManager);
         }
 
         // Create base contracts

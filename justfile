@@ -29,12 +29,14 @@ deploy-local:
 	-vvv
 
 
-dry-arbitrum-sepolia:
+deploy-arbitrum-sepolia:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
-	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "arbitrum-sepolia" "MNEMONIC_DEVNET" 0 true false) \
+	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "arbitrum-sepolia" "MNEMONIC_DEVNET" 0 false true) \
 	--with-gas-price 100000000 \
 	--evm-version "paris" \
+	--skip-simulation \
 	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
+	--fork-block-number 2680581 \
 	--ffi \
 	-vvv
 
@@ -43,6 +45,8 @@ dry-arbitrum-fork:
 	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "arbitrum-fork" "MNEMONIC_DEVNET" 0 true false) \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--with-gas-price 100000000 \
+	--fork-block-number 159492977 \
+	--skip-simulation \
 	--evm-version "paris" \
 	--ffi \
 	-vvv
@@ -160,7 +164,7 @@ anvil-fork:
 	--chain-id 41337 \
 	--hardfork "paris" \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
-	--fork-block-number 154603658
+	--fork-block-number 159492977
 
 anvil-local:
 	anvil -m "$MNEMONIC_DEVNET" \
@@ -177,16 +181,17 @@ flats:
 
 
 verify-proxy-contract:
-	forge verify-contract 0x9094BbD5C25ED120FAc349926BB65ab5e3276b11 \
+	forge verify-contract 0x13b3c432420f77F8Cd50497962A4cfA0EF70200E \
 	src/contracts/core/factory/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy \
 	--chain arbitrum-sepolia \
 	--constructor-args "0x"
 
 verify-contract:
-	forge verify-contract 0x22b5E0c1fC80FB2F06C627C90d26Fe18e7d5FB0C \
-	Vault \
+	forge verify-contract 0x2c3CeB92EF9ce5876512c9caAC85550DF1E2d0b5 \
+	KreskoAsset \
 	--chain arbitrum-sepolia \
-	--watch
+	--watch \
+	--constructor-args "0x"
 	
 verify-arbitrum-sepolia:
 	forge script src/contracts/scripts/deploy/ArbitrumSepolia.s.sol \

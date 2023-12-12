@@ -18,6 +18,7 @@ import {Help, Log, VM} from "kresko-lib/utils/Libs.s.sol";
 import {GatingManager} from "periphery/GatingManager.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {CONST} from "scripts/deploy/libs/CONST.s.sol";
+import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 
 library LibDeploy {
     using Conversions for bytes[];
@@ -31,6 +32,7 @@ library LibDeploy {
     function createFactory(address _owner) internal saveOutput("Factory") returns (DeploymentFactory result) {
         result = new DeploymentFactory(_owner);
         setJsonAddr("address", address(result));
+        setJsonBytes("ctor", abi.encode(_owner));
         state().factory = result;
     }
 
@@ -138,7 +140,7 @@ library LibDeploy {
         );
         (address proxyAddr, address implAddr) = meta.krAssetSalt.pp3();
         setJsonAddr("address", proxyAddr);
-        setJsonBytes("initializer", KR_ASSET_INITIALIZER);
+        setJsonBytes("initializer", abi.encode(implAddr, address(factory()), KR_ASSET_INITIALIZER));
         setJsonAddr("implementation", implAddr);
         saveJSONKey();
 
@@ -161,9 +163,8 @@ library LibDeploy {
         result.addr = address(proxies[0].proxy);
         result.anchorAddr = address(proxies[1].proxy);
         result.anchorSymbol = meta.anchorSymbol;
-
         setJsonAddr("address", result.anchorAddr);
-        setJsonBytes("initializer", ANCHOR_INITIALIZER);
+        setJsonBytes("initializer", abi.encode(proxies[1].implementation, address(factory()), ANCHOR_INITIALIZER));
         setJsonAddr("implementation", proxies[1].implementation);
         saveJSONKey();
         result.json = asset;
@@ -190,7 +191,7 @@ library LibDeploy {
     function p3(bytes memory ccode, bytes memory _init, bytes32 _salt) internal returns (Deployment memory result) {
         result = factory().create3ProxyAndLogic(ccode, _init, _salt);
         setJsonAddr("address", address(result.proxy));
-        setJsonBytes("initializer", _init);
+        setJsonBytes("initializer", abi.encode(result.implementation, address(factory()), _init));
         setJsonAddr("implementation", result.implementation);
     }
 
@@ -227,7 +228,7 @@ library LibDeploy {
     }
 
     struct DeployState {
-        DeploymentFactory factory;
+        IDeploymentFactory factory;
         string id;
         string outputLocation;
         string currentKey;
@@ -285,9 +286,9 @@ library LibDeploy {
         state().disableLog = true;
     }
 
-    function factory() internal returns (DeploymentFactory) {
+    function factory() internal returns (IDeploymentFactory) {
         if (address(state().factory) == address(0)) {
-            state().factory = DeploymentFactory(Deployed.addr("Factory"));
+            state().factory = IDeploymentFactory(Deployed.addr("Factory"));
         }
         return state().factory;
     }

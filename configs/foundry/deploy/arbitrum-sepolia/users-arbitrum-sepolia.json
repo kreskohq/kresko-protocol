@@ -1,0 +1,68 @@
+{
+  "00_configId": "arbitrum-sepolia",
+  "01_mnemonicEnv": "MNEMONIC_DEVNET",
+  "02_users": [
+    {
+      "00_mnemonicIdx": 0,
+      "01_addr": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_mnemonicIdx": 1,
+      "01_addr": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_mnemonicIdx": 2,
+      "01_addr": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_mnemonicIdx": 3,
+      "01_addr": "0x0000000000000000000000000000000000000000"
+    }
+  ],
+  "03_external_balances": [],
+  "04_scdp": [
+    {
+      "00_user": 9999,
+      "01_kissDeposits": 5000e18,
+      "02_vaultAsset": "USDC",
+      "03_assetsFrom": "0x0000000000000000000000000000000000000001"
+    },
+    {
+      "00_user": 0,
+      "01_kissDeposits": 70000e18,
+      "02_vaultAsset": "USDC.e",
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000"
+    }
+  ],
+  "05_minter": [
+    {
+      "00_user": 9999,
+      "01_deposit": "USDC.e",
+      "02_depositAmount": 2500e6,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000001",
+      "04_krAsset": "KISS",
+      "05_mintAmount": 0
+    },
+    {
+      "00_user": 0,
+      "01_deposit": "DAI",
+      "02_depositAmount": 10000e18,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000001",
+      "04_mint": "krETH",
+      "05_mintAmount": 1.5e18
+    },
+    {
+      "00_user": 0,
+      "01_deposit": "krETH",
+      "02_depositAmount": 0.1e18,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000001",
+      "04_mint": "krBTC",
+      "05_mintAmount": 0.02e18
+    }
+  ],
+  "06_nfts": {
+    "00_useMocks": false,
+    "01_nftsFrom": "0x0000000000000000000000000000000000000000",
+    "02_userCount": 0
+  }
+}
