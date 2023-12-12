@@ -36,7 +36,8 @@ library Deployed {
     }
 
     function cache(string memory id, Asset memory asset) internal returns (Asset memory) {
-        return (state().assets[id] = asset);
+        state().assets[id] = asset;
+        return asset;
     }
 
     function cached(string memory id) internal view returns (address result) {

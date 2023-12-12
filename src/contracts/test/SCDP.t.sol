@@ -406,7 +406,7 @@ contract SCDPTest is Tested, Deploy {
     /*                                   helpers                                  */
     /* -------------------------------------------------------------------------- */
 
-    function _liquidate(uint256 times, uint256 swapAmount, uint256 liquidateAmount) internal repranked(getAddr(0)) {
+    function _liquidate(uint256 times, uint256, uint256 liquidateAmount) internal repranked(getAddr(0)) {
         for (uint256 i; i < times; i++) {
             _setETHPrice(uint256(90000e8));
             rsStatic(kresko.getCollateralRatioSCDP.selector).clg("CR-before");

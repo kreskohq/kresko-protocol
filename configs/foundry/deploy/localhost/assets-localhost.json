@@ -252,7 +252,7 @@
       "04_unwrapFee": 50,
       "05_config": {
         "00_ticker": "ETH",
-        "02_anchor": "0x63879cEc8B7D323Ca7d035Afae686b2Bf0960120",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [1, 2],
         "04_factor": 1e4,
         "05_kFactor": 1.05e4,
@@ -283,7 +283,7 @@
       "04_unwrapFee": 50,
       "05_config": {
         "00_ticker": "BTC",
-        "02_anchor": "0xc1F3662801d2765BdAe6f84003C949b7c31741f6",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [1, 2],
         "04_factor": 1e4,
         "05_kFactor": 1.05e4,
@@ -314,7 +314,7 @@
       "04_unwrapFee": 0,
       "05_config": {
         "00_ticker": "EUR",
-        "02_anchor": "0x091A3DdA5fA99d57A407D8a95303edb6520c9412",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [1, 2],
         "04_factor": 1e4,
         "05_kFactor": 1.01e4,
@@ -345,7 +345,7 @@
       "04_unwrapFee": 0,
       "05_config": {
         "00_ticker": "JPY",
-        "02_anchor": "0x0972068A7B7CF476CC5c306ee4e45297841289db",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [1, 2],
         "04_factor": 1e4,
         "05_kFactor": 1.01e4,
@@ -376,7 +376,7 @@
       "04_unwrapFee": 0,
       "05_config": {
         "00_ticker": "XAU",
-        "02_anchor": "0x9636e49bffA8280836b9d2C42788aeE27bf1130a",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [1, 2],
         "04_factor": 1e4,
         "05_kFactor": 1.025e4,
@@ -407,7 +407,7 @@
       "04_unwrapFee": 0,
       "05_config": {
         "00_ticker": "WTI",
-        "02_anchor": "0x14702D07d543B55f099E617AfE7609c8a49674a4",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [1, 2],
         "04_factor": 1e4,
         "05_kFactor": 1.025e4,

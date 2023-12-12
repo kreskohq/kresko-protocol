@@ -143,7 +143,7 @@ library LibDeployUtils {
         }
     }
 
-    function logOutput(Asset memory config, address kresko, address asset) internal {
+    function logAsset(Asset memory config, address kresko, address asset) internal {
         if (LibDeploy.state().disableLog) return;
         IERC20 token = IERC20(asset);
         RawPrice memory price = IKresko(kresko).getPushPrice(asset);

@@ -18,6 +18,7 @@ import {MockERC20} from "mocks/MockERC20.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {Role} from "common/Constants.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
+import {Asset} from "common/Types.sol";
 
 contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     using LibDeployConfig for *;
@@ -27,7 +28,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     using LibDeployUtils for *;
     using Help for *;
 
-    mapping(string => bool) tickerExists;
+    mapping(bytes32 => bool) tickerExists;
     mapping(bytes32 => bool) routeExists;
     SwapRouteSetter[] routeCache;
 
@@ -121,44 +122,13 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         json = json.createKrAssets(diamond);
 
         /* ---------------------------- Externals --------------------------- */
-
-        for (uint256 i; i < json.assets.extAssets.length; i++) {
-            JSON.ExtAsset memory asset = json.assets.extAssets[i];
-            address[2] memory feeds = !tickerExists[asset.config.ticker]
-                ? json.getFeeds(asset.config.ticker, asset.config.oracles)
-                : [address(0), address(0)];
-
-            tickerExists[asset.config.ticker] = true;
-            asset.symbol.cache(kresko.addAsset(asset.addr, asset.config.toAsset(), feeds)).logOutput(diamond, asset.addr);
-        }
-
+        _addExtAssets(json, diamond);
         /* ------------------------------ KISS ------------------------------ */
-        json
-            .assets
-            .kiss
-            .symbol
-            .cache(kresko.addAsset(address(kiss), json.assets.kiss.config.toAsset(), [address(vault), address(0)]))
-            .logOutput(diamond, address(kiss));
-        kresko.setFeeAssetSCDP(address(kiss));
-
+        _addKISS(json);
         /* ------------------------------ KrAssets ------------------------------ */
-        for (uint256 i; i < json.assets.kreskoAssets.length; i++) {
-            JSON.KrAssetConfig memory asset = json.assets.kreskoAssets[i];
-            address assetAddr = asset.symbol.cached();
-
-            address[2] memory feeds = !tickerExists[asset.config.ticker]
-                ? json.getFeeds(asset.config.ticker, asset.config.oracles)
-                : [address(0), address(0)];
-
-            tickerExists[asset.config.ticker] = true;
-            asset.symbol.cache(kresko.addAsset(assetAddr, asset.config.toAsset(), feeds)).logOutput(diamond, assetAddr);
-        }
-
+        _addKrAssets(json, diamond);
         /* -------------------------- Vault Assets -------------------------- */
-        VaultAsset[] memory vaultAssets = json.getVaultAssets();
-        for (uint256 i; i < vaultAssets.length; i++) {
-            vault.addAsset(vaultAssets[i]).logOutput(address(vault));
-        }
+        _addVaultAssets(json);
 
         /* -------------------------- Setup states -------------------------- */
         json.getAllTradeRoutes(routeCache, routeExists, address(kiss));
@@ -180,18 +150,19 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
             setupUsers(json, deployer, disableLog);
         }
 
-        broadcastWith(deployer);
-
         gatingManager.setPhase(json.params.gatingPhase);
         if (!disableLog) Log.clg(json.params.gatingPhase, "Gating phase set to: ");
-
         /* --------------------- Remove deployer access --------------------- */
         address admin = json.params.common.admin;
-        kresko.transferOwnership(admin);
-        vault.setGovernance(admin);
-        Ownable(address(factory)).transferOwnership(admin);
-        kresko.grantRole(Role.DEFAULT_ADMIN, admin);
-        kresko.grantRole(Role.ADMIN, admin);
+        if (admin != deployer) {
+            kresko.transferOwnership(admin);
+            vault.setGovernance(admin);
+            Ownable(address(factory)).transferOwnership(admin);
+            kresko.grantRole(Role.DEFAULT_ADMIN, admin);
+            kresko.grantRole(Role.ADMIN, admin);
+            kresko.renounceRole(Role.ADMIN, deployer);
+            kresko.renounceRole(Role.DEFAULT_ADMIN, deployer);
+        }
 
         if (!disableLog) {
             json.logOutput(kresko, address(kiss));
@@ -203,11 +174,60 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         return json;
     }
 
+    function _addKISS(JSON.Config memory json) private {
+        address[2] memory kissFeeds = [address(vault), address(0)];
+        json
+            .assets
+            .kiss
+            .symbol
+            .cache(kresko.addAsset(address(kiss), json.assets.kiss.config.toAsset(json.assets.kiss.symbol), kissFeeds))
+            .logAsset(address(kresko), address(kiss));
+        kresko.setFeeAssetSCDP(address(kiss));
+    }
+
+    function _addVaultAssets(JSON.Config memory json) private {
+        VaultAsset[] memory vaultAssets = json.getVaultAssets();
+        for (uint256 i; i < vaultAssets.length; i++) {
+            vault.addAsset(vaultAssets[i]).logOutput(address(vault));
+        }
+    }
+
+    function _addExtAssets(JSON.Config memory json, address diamond) private {
+        for (uint256 i; i < json.assets.extAssets.length; i++) {
+            JSON.ExtAsset memory eAsset = json.assets.extAssets[i];
+            Asset memory assetConfig = eAsset.config.toAsset(eAsset.symbol);
+            address[2] memory feeds = [address(0), address(0)];
+            if (!tickerExists[assetConfig.ticker]) {
+                feeds = json.getFeeds(eAsset.config.ticker, eAsset.config.oracles);
+                tickerExists[assetConfig.ticker] = true;
+            }
+
+            tickerExists[assetConfig.ticker] = true;
+            eAsset.symbol.cache(kresko.addAsset(eAsset.addr, assetConfig, feeds)).logAsset(diamond, eAsset.addr);
+        }
+    }
+
+    function _addKrAssets(JSON.Config memory json, address diamond) private {
+        for (uint256 i; i < json.assets.kreskoAssets.length; i++) {
+            JSON.KrAssetConfig memory krAsset = json.assets.kreskoAssets[i];
+
+            Asset memory assetConfig = krAsset.config.toAsset(krAsset.symbol);
+            address[2] memory feeds = [address(0), address(0)];
+            if (!tickerExists[assetConfig.ticker]) {
+                feeds = json.getFeeds(krAsset.config.ticker, krAsset.config.oracles);
+                tickerExists[assetConfig.ticker] = true;
+            }
+
+            address assetAddr = krAsset.symbol.cached();
+            krAsset.symbol.cache(kresko.addAsset(assetAddr, assetConfig, feeds)).logAsset(diamond, assetAddr);
+        }
+    }
+
     /* ---------------------------------------------------------------------- */
     /*                               USER SETUPS                              */
     /* ---------------------------------------------------------------------- */
 
-    function setupUsers(JSON.Config memory json, address deployer, bool disableLog) internal {
+    function setupUsers(JSON.Config memory json, address deployer, bool disableLog) private reclearCallers {
         setupBalances(json.users, json.assets);
         setupSCDP(json.users, json.assets);
         setupMinter(json.users, json.assets);
@@ -223,7 +243,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
     }
 
-    function setupBalances(JSON.Users memory users, JSON.Assets memory assets) internal {
+    function setupBalances(JSON.Users memory users, JSON.Assets memory assets) private {
         for (uint256 i; i < users.balances.length; i++) {
             JSON.Balance memory bal = users.balances[i];
             if (bal.user == JSON.ALL_USERS) {
@@ -236,7 +256,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
     }
 
-    function setupNativeWrapper(address user, JSON.Balance memory bal) internal broadcasted(user) {
+    function setupNativeWrapper(address user, JSON.Balance memory bal) private broadcasted(user) {
         if (bal.amount == 0) return;
         if (bal.assetsFrom == address(0)) {
             vm.deal(user, bal.amount);
@@ -272,7 +292,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
     }
 
-    function setupSCDP(JSON.Users memory users, JSON.Assets memory assets) internal {
+    function setupSCDP(JSON.Users memory users, JSON.Assets memory assets) private {
         for (uint256 i; i < users.scdp.length; i++) {
             JSON.SCDPPosition memory pos = users.scdp[i];
             if (pos.user == JSON.ALL_USERS) {
@@ -285,7 +305,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
     }
 
-    function setupMinter(JSON.Users memory users, JSON.Assets memory assets) internal {
+    function setupMinter(JSON.Users memory users, JSON.Assets memory assets) private {
         for (uint256 i; i < users.minter.length; i++) {
             JSON.MinterPosition memory pos = users.minter[i];
             bool isKISS = pos.mintSymbol.equals("KISS");
@@ -306,7 +326,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         address user,
         uint256 index,
         JSON.MinterPosition memory pos
-    ) internal broadcasted(user) {
+    ) private broadcasted(user) {
         if (pos.depositAmount > 0) {
             address collAddr = setupBalance(
                 assets,
@@ -327,7 +347,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         address user,
         uint256 index,
         JSON.MinterPosition memory pos
-    ) internal broadcasted(user) {
+    ) private broadcasted(user) {
         if (pos.depositAmount > 0) {
             address assetAddr = setupBalance(
                 assets,
@@ -350,7 +370,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         address user,
         uint256 index,
         JSON.SCDPPosition memory pos
-    ) internal broadcasted(user) {
+    ) private broadcasted(user) {
         if (pos.kissDeposits > 0) {
             address assetAddr = pos.vaultAssetSymbol.cached();
             (uint256 assetsIn, ) = vault.previewMint(assetAddr, pos.kissDeposits);
@@ -365,7 +385,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
     }
 
-    function setupNFTs(address _owner, JSON.Users memory users, JSON.Params memory params) internal broadcasted(_owner) {
+    function setupNFTs(address _owner, JSON.Users memory users, JSON.Params memory params) private broadcasted(_owner) {
         if (users.nfts.userCount == 0) return;
         IERC1155 okNFT = IERC1155(params.periphery.okNFT);
         IERC1155 qfkNFT = IERC1155(params.periphery.qfkNFT);

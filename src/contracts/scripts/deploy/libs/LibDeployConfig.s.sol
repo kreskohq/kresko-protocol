@@ -67,9 +67,11 @@ library LibDeployConfig {
         JSON.Config memory json,
         string memory _assetTicker,
         Enums.OracleType[] memory _assetOracles
-    ) internal pure returns (address[2] memory) {
+    ) internal pure returns (address[2] memory result) {
         JSON.TickerConfig memory ticker = json.getTicker(_assetTicker);
-        return [ticker.getFeed(_assetOracles[0]), ticker.getFeed(_assetOracles[1])];
+        address feed1 = ticker.getFeed(_assetOracles[0]);
+        address feed2 = ticker.getFeed(_assetOracles[1]);
+        return [feed1, feed2];
     }
 
     function getFeed(JSON.Config memory json, string[] memory config) internal pure returns (IAggregatorV3) {
@@ -108,15 +110,39 @@ library LibDeployConfig {
         return address(0);
     }
 
-    function toAsset(JSON.AssetJSON memory assetJson) internal view returns (Asset memory result) {
-        assembly {
-            result := assetJson
-        }
-        if (assetJson.ticker.equals("KISS")) {
-            result.anchor = assetJson.ticker.cached();
-        }
-        result.oracles = [assetJson.oracles[0], assetJson.oracles[1]];
+    function toAsset(JSON.AssetJSON memory assetJson, string memory symbol) internal view returns (Asset memory result) {
+        // assembly {
+        //     result := assetJson
+        // }
         result.ticker = bytes32(bytes(assetJson.ticker));
+        if (assetJson.kFactor > 0) {
+            if (symbol.equals("KISS")) {
+                result.anchor = ("KISS").cached();
+            } else {
+                result.anchor = string.concat(CONST.ANCHOR_SYMBOL_PREFIX, symbol).cached();
+            }
+        }
+        Enums.OracleType[2] memory oracles = [assetJson.oracles[0], assetJson.oracles[1]];
+        result.oracles = oracles;
+        result.factor = assetJson.factor;
+        result.kFactor = assetJson.kFactor;
+        result.openFee = assetJson.openFee;
+        result.closeFee = assetJson.closeFee;
+        result.liqIncentive = assetJson.liqIncentive;
+        result.maxDebtMinter = assetJson.maxDebtMinter;
+        result.maxDebtSCDP = assetJson.maxDebtSCDP;
+        result.depositLimitSCDP = assetJson.depositLimitSCDP;
+        result.swapInFeeSCDP = assetJson.swapInFeeSCDP;
+        result.swapOutFeeSCDP = assetJson.swapOutFeeSCDP;
+        result.protocolFeeShareSCDP = assetJson.protocolFeeShareSCDP;
+        result.liqIncentiveSCDP = assetJson.liqIncentiveSCDP;
+        result.decimals = assetJson.decimals;
+        result.isMinterCollateral = assetJson.isMinterCollateral;
+        result.isMinterMintable = assetJson.isMinterMintable;
+        result.isSharedCollateral = assetJson.isSharedCollateral;
+        result.isSwapMintable = assetJson.isSwapMintable;
+        result.isSharedOrSwappedCollateral = assetJson.isSharedOrSwappedCollateral;
+        result.isCoverAsset = assetJson.isCoverAsset;
     }
 
     function feedBytesId(string memory ticker) internal pure returns (bytes32) {

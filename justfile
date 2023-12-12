@@ -14,8 +14,8 @@ dry-local:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "localhost" "MNEMONIC_DEVNET" 0 true false) \
 	--with-gas-price 100000000 \
-	--skip-simulation \
 	--ffi \
+	--skip-simulation \
 	-vvv
 
 deploy-local:
@@ -28,13 +28,22 @@ deploy-local:
 	--ffi \
 	-vvv
 
+
+dry-arbitrum-sepolia:
+	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
+	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "arbitrum-sepolia" "MNEMONIC_DEVNET" 0 true false) \
+	--with-gas-price 100000000 \
+	--evm-version "paris" \
+	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
+	--ffi \
+	-vvv
+
 dry-arbitrum-fork:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "arbitrum-fork" "MNEMONIC_DEVNET" 0 true false) \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--with-gas-price 100000000 \
 	--evm-version "paris" \
-	--skip-simulation \
 	--ffi \
 	-vvv
 

@@ -34,12 +34,29 @@ function getConfigFrom(string memory dir, string memory configId) returns (Confi
     }
 
     json.params = abi.decode(mvm.parseJson(mvm.readFile(files.params)), (Params));
-    json.assets = abi.decode(mvm.parseJson(mvm.readFile(files.assets)), (Assets));
+    json.assets = getAssetConfigFrom(dir, configId);
 
     files.users = string.concat(dir, "users-", configId, ".json");
     if (mvm.exists(files.users)) {
         json.users = abi.decode(mvm.parseJson(mvm.readFile(files.users)), (Users));
     }
+}
+
+// stacks too deep so need to split assets into separate function
+function getAssetConfig(string memory network, string memory configId) returns (Assets memory json) {
+    string memory dir = string.concat(CONST.CONFIG_DIR, network, "/");
+    return getAssetConfigFrom(dir, configId);
+}
+
+function getAssetConfigFrom(string memory dir, string memory configId) returns (Assets memory) {
+    Files memory files;
+
+    files.assets = string.concat(dir, "assets-", configId, ".json");
+    if (!mvm.exists(files.assets)) {
+        revert(string.concat("No asset configuration exists: ", files.assets));
+    }
+
+    return abi.decode(mvm.parseJson(mvm.readFile(files.assets)), (Assets));
 }
 
 struct Config {
