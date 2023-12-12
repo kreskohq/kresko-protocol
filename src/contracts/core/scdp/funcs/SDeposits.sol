@@ -128,10 +128,9 @@ library SDeposits {
 
             // Increase liquidation index, note this uses rebased amounts instead of normalized.
             self.assetIndexes[_assetAddr].currLiqIndex += uint128(
-                (_seizeAmount - swapDeposits)
-                    .wadToRay()
-                    .rayDiv(_sAsset.toRebasingAmount(self.assetData[_assetAddr].totalDeposits.wadToRay()))
-                    .rayMul(prevLiqIndex)
+                (_seizeAmount - swapDeposits).wadToRay().rayMul(prevLiqIndex).rayDiv(
+                    _sAsset.toRebasingAmount(self.assetData[_assetAddr].totalDeposits.wadToRay())
+                )
             );
 
             // Save the seize data.

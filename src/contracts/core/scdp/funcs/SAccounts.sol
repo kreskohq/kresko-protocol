@@ -78,8 +78,8 @@ library SAccounts {
 
         if (accountIndexes.lastLiqIndex < latestSeize.liqIndex) {
             // Accumulated fees before now and after latest seize.
-            uint256 feesAfterLastSeize = principalDeposits.rayDiv(latestSeize.liqIndex).rayMul(
-                assetIndexes.currFeeIndex - latestSeize.feeIndex
+            uint256 feesAfterLastSeize = principalDeposits.rayMul(assetIndexes.currFeeIndex - latestSeize.feeIndex).rayDiv(
+                latestSeize.liqIndex
             );
 
             uint256 feesBeforeLastSeize;
@@ -90,7 +90,7 @@ library SAccounts {
                 if (feePct > 0) {
                     // Get the historical balance according to liquidation index at the time
                     // Then we simply multiply by fee index difference to get the fees accrued.
-                    feesBeforeLastSeize += principalDeposits.rayDiv(latestSeize.prevLiqIndex).rayMul(feePct);
+                    feesBeforeLastSeize += principalDeposits.rayMul(feePct).rayDiv(latestSeize.prevLiqIndex);
                 }
                 // Iterate backwards in time.
                 latestSeize = previousSeize;
@@ -103,8 +103,8 @@ library SAccounts {
         // We can simply calculate the fees by multiplying the difference in fee indexes with the principal deposits.
         return
             principalDeposits
-                .rayDiv(assetIndexes.currLiqIndex)
                 .rayMul(assetIndexes.currFeeIndex - accountIndexes.lastFeeIndex)
+                .rayDiv(assetIndexes.currLiqIndex)
                 .rayToWad();
     }
 
