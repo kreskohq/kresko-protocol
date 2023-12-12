@@ -49,7 +49,44 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         _receiver = _receiver == address(0) ? _account : _receiver;
 
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
-        s.handleWithdrawSCDP(cs().onlyActiveSharedCollateral(_collateralAsset), _account, _collateralAsset, _amount, _receiver);
+        s.handleWithdrawSCDP(
+            cs().onlyActiveSharedCollateral(_collateralAsset),
+            _account,
+            _collateralAsset,
+            _amount,
+            _receiver,
+            false
+        );
+
+        // ensure that global pool is left with CR over MCR.
+        s.ensureCollateralRatio(s.minCollateralRatio);
+
+        // Send out the collateral.
+        IERC20(_collateralAsset).safeTransfer(_receiver, _amount);
+
+        // Emit event.
+        emit SEvent.SCDPWithdraw(_account, _receiver, _collateralAsset, msg.sender, _amount, block.timestamp);
+    }
+
+    /// @inheritdoc ISCDPFacet
+    function emergencyWithdrawSCDP(
+        address _account,
+        address _collateralAsset,
+        uint256 _amount,
+        address _receiver
+    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) nonReentrant {
+        SCDPState storage s = scdp();
+        _receiver = _receiver == address(0) ? _account : _receiver;
+
+        // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
+        s.handleWithdrawSCDP(
+            cs().onlyActiveSharedCollateral(_collateralAsset),
+            _account,
+            _collateralAsset,
+            _amount,
+            _receiver,
+            true
+        );
 
         // ensure that global pool is left with CR over MCR.
         s.ensureCollateralRatio(s.minCollateralRatio);
@@ -71,7 +108,8 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
             cs().onlyFeeAccumulatingCollateral(_collateralAsset),
             _account,
             _collateralAsset,
-            _receiver == address(0) ? _account : _receiver
+            _receiver == address(0) ? _account : _receiver,
+            false
         );
         if (feeAmount == 0) revert Errors.NO_FEES_TO_CLAIM(Errors.id(_collateralAsset), _account);
     }

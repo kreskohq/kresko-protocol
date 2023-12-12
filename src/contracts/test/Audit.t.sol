@@ -532,21 +532,21 @@ contract AuditTest is Deploy {
         kresko.getAccountDepositSCDP(claimer, address(kiss)).eq(50_000e18, "deposits");
 
         uint256 feesBefore = kresko.getAccountFeesSCDP(claimer, address(kiss));
-        _swapAndLiquidate(1, 10e18, 100e18);
+        _swapAndLiquidate(35, 10e18, 1000e18);
         kresko.getAccountFeesSCDP(claimer, address(kiss)).gt(feesBefore, "fees-before");
         uint256 checkpoint = gasleft();
         vm.resumeGasMetering();
         kresko.claimFeesSCDP(claimer, address(kiss), claimer);
         vm.pauseGasMetering();
         uint256 used = checkpoint - gasleft();
-        used.clg("gas-used");
+        used.clg("gas-used"); //19723
     }
 
     function _swapAndLiquidate(uint256 times, uint256 swapAmount, uint256 liquidateAmount) internal repranked(getAddr(0)) {
         for (uint256 i; i < times; i++) {
             uint256 amountOut = _previewSwap(address(kiss), krETHAddr, swapAmount, 0);
             rsCall(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETHAddr, swapAmount, 0);
-            _setETHPriceAndLiquidate(109021, liquidateAmount);
+            _setETHPriceAndLiquidate(95021, liquidateAmount);
             _setETHPrice(ETH_PRICE);
             rsCall(kresko.swapSCDP.selector, getAddr(0), krETHAddr, address(kiss), amountOut, 0);
         }

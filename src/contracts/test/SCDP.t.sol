@@ -39,6 +39,9 @@ contract SCDPTest is Tested, Deploy {
     address feeRecipient;
     address liquidator;
 
+    address krETHAddr;
+    address kissAddr;
+
     string usdcPrice = "USDC:1:8";
     string ethPrice = "ETH:2000:8";
     string jpyPrice = "JPY:1:8";
@@ -54,8 +57,10 @@ contract SCDPTest is Tested, Deploy {
         feeRecipient = json.params.common.treasury;
         liquidator = getAddr(777);
 
+        krETHAddr = ("krETH").cached();
+        kissAddr = address(kiss);
         usdc = MockERC20(("USDC").cached());
-        krETH = IKreskoAsset(("krETH").cached());
+        krETH = IKreskoAsset(krETHAddr);
         krJPY = IKreskoAsset(("krJPY").cached());
         krTSLA = IKreskoAsset(("krTSLA").cached());
         krETHConfig = ("krETH").cachedAsset();
@@ -99,6 +104,64 @@ contract SCDPTest is Tested, Deploy {
         rsStatic(kresko.getTotalCollateralValueSCDP.selector, true).eq(1000e8, "collateral value should be 1000");
     }
 
+    function testDepositModified() public pranked(user0) {
+        _poolDeposit(deployer, address(kiss), 10000e18);
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+
+        _setETHPrice(18000e8);
+        _liquidate(address(krETH), 0.1e18, address(kiss));
+
+        uint256 depositsBefore = kresko.getAccountDepositSCDP(deployer, address(kiss));
+        _poolDeposit(deployer, address(kiss), 1000e18);
+        kresko.getAccountDepositSCDP(deployer, address(kiss)).eq(depositsBefore + 1000e18, "depositsAfter");
+
+        _liquidate(address(krETH), 0.1e18, address(kiss));
+
+        uint256 depositsAfter2 = kresko.getAccountDepositSCDP(deployer, address(kiss));
+        _poolDeposit(deployer, address(kiss), 1000e18);
+        kresko.getAccountDepositSCDP(deployer, address(kiss)).eq(depositsAfter2 + 1000e18, "depositsAfter2");
+
+        _setETHPrice(2000e8);
+        _poolWithdraw(deployer, address(kiss), 1000e18);
+        kresko.getAccountDepositSCDP(deployer, address(kiss)).eq(depositsAfter2, "withdrawAfter");
+
+        _poolDeposit(deployer, address(kiss), 1000e18);
+        kresko.getAccountDepositSCDP(deployer, address(kiss)).eq(depositsAfter2 + 1000e18, "depositsAfter3");
+
+        _setETHPrice(25000e8);
+        _liquidate(address(krETH), 0.1e18, address(kiss));
+
+        uint256 depositsAfter3 = kresko.getAccountDepositSCDP(deployer, address(kiss));
+        _setETHPrice(2000e8);
+        _poolWithdraw(deployer, address(kiss), 1000e18);
+        kresko.getAccountDepositSCDP(deployer, address(kiss)).eq(depositsAfter3 - 1000e18, "withdrawAfter2");
+
+        _poolDeposit(deployer, address(kiss), 1000e18);
+        kresko.getAccountDepositSCDP(deployer, address(kiss)).eq(depositsAfter3, "depositsAfter4");
+
+        _poolDeposit(user0, address(kiss), 500e18);
+        kresko.getAccountDepositSCDP(user0, address(kiss)).eq(500e18, "depositsAfter5");
+        kiss.balanceOf(user0).eq(500e18, "kiss balance should be 500");
+
+        _poolWithdraw(user0, address(kiss), 500e18);
+        kresko.getAccountDepositSCDP(user0, address(kiss)).eq(0, "depositsAfter6");
+        kiss.balanceOf(user0).eq(1000e18, "kiss balance should be 1000");
+
+        _poolDeposit(user0, address(kiss), 500e18);
+        kresko.getAccountDepositSCDP(user0, address(kiss)).eq(500e18, "depositsAfter7");
+
+        _setETHPrice(25000e8);
+        _liquidate(address(krETH), 0.05e18, address(kiss));
+
+        uint256 depositAfter4 = kresko.getAccountDepositSCDP(user0, address(kiss));
+        _poolDeposit(user0, address(kiss), 100e18);
+        kresko.getAccountDepositSCDP(user0, address(kiss)).eq(depositAfter4 + 100e18, "depositsAfter8");
+
+        _setETHPrice(2000e8);
+        _poolWithdraw(user0, address(kiss), depositAfter4 + 100e18);
+        kresko.getAccountDepositSCDP(user0, address(kiss)).eq(0, "depositsAfter9");
+    }
+
     function testSCDPWithdraw() public {
         _poolDeposit(user0, address(usdc), 1000e6);
         _poolWithdraw(user0, address(usdc), 1000e6);
@@ -138,29 +201,136 @@ contract SCDPTest is Tested, Deploy {
         (kiss.balanceOf(address(kresko)) - swapDeposits - kissBalBefore).eq(feesDistributed, "kiss feesDistributed");
     }
 
-    function testSCDPSwapFees() public pranked(user0) {
-        _poolDeposit(deployer, address(kiss), 10000e18);
+    function testSCDPSwapFees() public {
+        prank(deployer);
+        kiss.transfer(user0, 4000e18);
+        kiss.transfer(user1, 20000e18);
+
+        _poolDeposit(deployer, address(kiss), 5000e18);
         (, uint256 feesDistributed, ) = _previewSwap(address(kiss), address(krETH), 1000e18, 0);
+
         _swap(user0, address(kiss), 1000e18, address(krETH));
 
         uint256 fees = kresko.getAccountFeesSCDP(deployer, address(kiss));
-        fees.eq(feesDistributed, "feesDistributed");
+        fees.eq(feesDistributed, "feesDistributed-1");
+
+        _poolDeposit(deployer, address(kiss), 5000e18);
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(0, "feesDistributed");
+
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed, "feesDistributed2");
+
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed * 2, "feesDistributed3");
+
+        uint256 fees3 = feesDistributed * 3;
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(fees3, "feesDistributed4");
+
+        _poolWithdraw(deployer, address(kiss), 1000e18);
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(0, "feesDistributed5");
+
+        _poolDeposit(user1, address(kiss), 9000e18);
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+
+        uint256 halfFees = feesDistributed / 2;
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(halfFees, "feesDistributed6");
+        kresko.getAccountFeesSCDP(user1, address(kiss)).eq(halfFees, "feesDistributed7");
+
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed, "feesDistributed8");
+        kresko.getAccountFeesSCDP(user1, address(kiss)).eq(feesDistributed, "feesDistributed9");
     }
 
-    function testSCDPSwapFeesAfterLiquidation() public pranked(user0) {
-        _poolDeposit(deployer, address(kiss), 10000e18);
+    function testSCDPSwapFeesLiq() public {
+        prank(deployer);
+        kiss.transfer(user0, 5000e18);
+        kiss.transfer(user1, 20000e18);
+
+        _poolDeposit(deployer, address(kiss), 5000e18);
         (, uint256 feesDistributed, ) = _previewSwap(address(kiss), address(krETH), 1000e18, 0);
+
         _swap(user0, address(kiss), 1000e18, address(krETH));
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed, "feesDistributed-1");
+
+        _poolDeposit(deployer, address(kiss), 5000e18);
+        _setETHPrice(18000e8);
+        _liquidate(address(krETH), 0.1e18, address(kiss));
 
         uint256 fees = kresko.getAccountFeesSCDP(deployer, address(kiss));
-        fees.eq(feesDistributed, "feesDistributed");
+        fees.eq(0, "feesDistributed");
 
-        _printInfo("before change");
+        _setETHPrice(2000e8);
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed, "feesDistributed2");
+
+        _poolDeposit(deployer, address(kiss), 10000e18);
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed, "feesDistributed3");
+
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed * 2, "feesDistributed4");
+
+        uint256 fees3 = feesDistributed * 3;
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(fees3, "feesDistributed5");
+
         _setETHPrice(18000e8);
-        krETH.balanceOf(liquidator).eq(1000e18, "liquidator krETH balance");
-        _printInfo("before liquidation");
         _liquidate(address(krETH), 0.1e18, address(kiss));
-        _printInfo("after liquidation");
+
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(fees3, "feesDistributed5");
+
+        _setETHPrice(2000e8);
+        _poolWithdraw(deployer, address(kiss), 1000e18);
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(0, "feesDistributed5");
+
+        _poolDeposit(deployer, address(kiss), 20000e18 - kresko.getAccountDepositSCDP(deployer, address(kiss)));
+        _poolDeposit(user1, address(kiss), 20000e18);
+
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        uint256 halfFees = feesDistributed / 2;
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(halfFees, "feesDistributed6");
+        kresko.getAccountFeesSCDP(user1, address(kiss)).eq(halfFees, "feesDistributed7");
+
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed, "feesDistributed8");
+        kresko.getAccountFeesSCDP(user1, address(kiss)).eq(feesDistributed, "feesDistributed9");
+    }
+
+    function testSwapFeeGas() public {
+        vm.pauseGasMetering();
+        prank(deployer);
+        _poolDeposit(deployer, address(kiss), 50000e18);
+        _swapAndLiquidate(75, 1000e18, 0.01e18);
+
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).clg("fees");
+        uint256 checkpoint = gasleft();
+        vm.resumeGasMetering();
+        kresko.claimFeesSCDP(deployer, address(kiss), deployer);
+        vm.pauseGasMetering();
+        uint256 used = checkpoint - gasleft();
+        used.gt(900000, "gas-used-gt");
+        used.lt(1000000, "gas-used-lt");
+    }
+
+    function testSwapFeeGasNoSwaps() public {
+        vm.pauseGasMetering();
+        prank(deployer);
+        _poolDeposit(deployer, address(kiss), 50000e18);
+        (, uint256 feesDistributed, ) = _previewSwap(address(kiss), address(krETH), 1000e18, 0);
+        rsCall(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETHAddr, 1000e18, 0);
+        _liquidate(75, 1000e18, 0.01e18);
+
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed, "feesDistributed");
+        uint256 checkpoint = gasleft();
+        vm.resumeGasMetering();
+        kresko.claimFeesSCDP(deployer, address(kiss), deployer);
+        vm.pauseGasMetering();
+        uint256 used = checkpoint - gasleft();
+        used.gt(340000, "gas-used-gt");
+        used.lt(350000, "gas-used-lt");
     }
 
     function testSCDPGas() public withDeposits pranked(user0) {
@@ -221,6 +391,34 @@ contract SCDPTest is Tested, Deploy {
     /*                                   helpers                                  */
     /* -------------------------------------------------------------------------- */
 
+    function _liquidate(uint256 times, uint256 swapAmount, uint256 liquidateAmount) internal repranked(getAddr(0)) {
+        for (uint256 i; i < times; i++) {
+            _setETHPrice(uint256(90000e8));
+            rsStatic(kresko.getCollateralRatioSCDP.selector).clg("CR-before");
+            if (i > 40) {
+                liquidateAmount = liquidateAmount.percentMul(0.50e4);
+            }
+            _liquidate(krETHAddr, liquidateAmount.percentMul(1e4 - (100 * i)), address(kiss));
+            _setETHPrice(uint256(2000e8));
+        }
+    }
+
+    function _swapAndLiquidate(uint256 times, uint256 swapAmount, uint256 liquidateAmount) internal repranked(getAddr(0)) {
+        for (uint256 i; i < times; i++) {
+            _setETHPrice(uint256(2000e8));
+            (uint256 amountOut, , ) = _previewSwap(address(kiss), address(krETH), swapAmount, 0);
+            rsCall(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETHAddr, swapAmount, 0);
+            _setETHPrice(uint256(90000e8));
+            rsStatic(kresko.getCollateralRatioSCDP.selector).clg("CR-before");
+            if (i > 40) {
+                liquidateAmount = liquidateAmount.percentMul(0.50e4);
+            }
+            _liquidate(krETHAddr, liquidateAmount.percentMul(1e4 - (100 * i)), address(kiss));
+            _setETHPrice(uint256(2000e8));
+            rsCall(kresko.swapSCDP.selector, getAddr(0), krETHAddr, address(kiss), amountOut, 0);
+        }
+    }
+
     function _poolDeposit(address user, address asset, uint256 amount) internal repranked(user) {
         prank(admin);
         kresko.setFeeAssetSCDP(asset);
@@ -230,11 +428,11 @@ contract SCDPTest is Tested, Deploy {
         kresko.setFeeAssetSCDP(address(kiss));
     }
 
-    function _poolWithdraw(address user, address asset, uint256 amount) internal pranked(user) {
+    function _poolWithdraw(address user, address asset, uint256 amount) internal repranked(user) {
         rsCall(kresko.withdrawSCDP.selector, user, asset, amount, user);
     }
 
-    function _swap(address user, address assetIn, uint256 amount, address assetOut) internal pranked(user) {
+    function _swap(address user, address assetIn, uint256 amount, address assetOut) internal repranked(user) {
         rsCall(kresko.swapSCDP.selector, user, assetIn, assetOut, amount, 0);
     }
 
@@ -292,7 +490,7 @@ contract SCDPTest is Tested, Deploy {
         rsStatic(kresko.getCollateralRatioSCDP.selector).pct(prefix.and("SCDP CR %"));
     }
 
-    function _setETHPrice(uint256 price) internal pranked(admin) {
+    function _setETHPrice(uint256 price) internal repranked(admin) {
         rsInit("ETH:".and((price / 1e8).str().and(":8")));
         // MockOracle(kresko.get(address(krETH))).setPrice(price);
         MockOracle(kresko.getFeedForId(bytes32("ETH"), Enums.OracleType.Chainlink)).setPrice(price);

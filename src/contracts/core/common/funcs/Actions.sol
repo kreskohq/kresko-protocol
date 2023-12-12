@@ -6,6 +6,7 @@ import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
 import {Asset} from "common/Types.sol";
 import {Errors} from "common/Errors.sol";
 import {Strings} from "libs/Strings.sol";
+import {cs} from "common/State.sol";
 
 using Strings for bytes32;
 
@@ -38,7 +39,15 @@ function mintKrAsset(uint256 _mintAmount, address _toAddr, address _anchorAddr) 
 /// @return destroyed Normalized amount of burned assets.
 function burnSCDP(Asset storage _asset, uint256 _burnAmount, address _fromAddr) returns (uint256 destroyed) {
     destroyed = burnKrAsset(_burnAmount, _fromAddr, _asset.anchor);
-    sdi().totalDebt -= _asset.debtAmountToSDI(_burnAmount, false);
+    uint256 sdiBurned = _asset.debtAmountToSDI(destroyed, false);
+    if (sdiBurned > sdi().totalDebt) {
+        if ((sdiBurned - sdi().totalDebt) > 10 ** cs().oracleDecimals) {
+            revert Errors.SDI_DEBT_REPAY_OVERFLOW(sdiBurned, sdi().totalDebt);
+        }
+        sdi().totalDebt = 0;
+    } else {
+        sdi().totalDebt -= sdiBurned;
+    }
 }
 
 /// @notice Mint kresko assets from SCDP swap.

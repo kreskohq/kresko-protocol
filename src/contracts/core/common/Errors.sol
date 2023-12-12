@@ -178,6 +178,7 @@ library Errors {
     error ZERO_AMOUNT(ID);
     error ZERO_WITHDRAW(ID);
     error ZERO_MINT(ID);
+    error SDI_DEBT_REPAY_OVERFLOW(uint256 debt, uint256 repay);
     error ZERO_REPAY(ID, uint256 repayAmount, uint256 seizeAmount);
     error ZERO_BURN(ID);
     error ZERO_DEBT(ID);
