@@ -73,7 +73,6 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
         IERC20(_assetInAddr).safeTransferFrom(msg.sender, address(this), _amountIn);
 
         Asset storage assetIn = cs().onlySwapMintable(_assetInAddr);
-
         emit SEvent.Swap(
             msg.sender,
             _assetInAddr,
@@ -126,7 +125,6 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
 
         // Assets sent out are newly minted debt and/or SCDP owned collateral.
         amountOut = scdp().handleAssetsOut(_assetOutAddr, assetOut, valueIn, _receiver);
-
         // State modifications done, check MCR and slippage.
         _checkAndPayFees(_assetInAddr, _assetIn, amountOut, _amountOutMin, feeAmount, protocolFee);
     }
@@ -148,7 +146,6 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
     ) private returns (uint256 amountOut) {
         address assetOutAddr = scdp().feeAsset;
         Asset storage assetOut = cs().assets[assetOutAddr];
-
         // Check that assets can be swapped, get the fee percentages.
         Validations.ensureUnique(_assetInAddr, assetOutAddr);
         Validations.validateRoute(_assetInAddr, assetOutAddr);

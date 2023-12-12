@@ -52,7 +52,7 @@ library SAccounts {
 
     /**
      * @notice Get accounts total fees gained for this asset.
-     * @notice To get this value, it compares deposit time liquidity index with current.
+     * @notice To get this value it compares deposit time liquidity index with current.
      * @notice If the account has endured liquidation events, separate logic is used to combine fees according to historical balance.
      * @param _account The account to get the amount for
      * @param _assetAddr The asset address
@@ -84,13 +84,14 @@ library SAccounts {
 
             uint256 feesBeforeLastSeize;
             // Just loop through all events until we hit the same index as the account.
-            while (accountIndexes.lastLiqIndex < latestSeize.liqIndex) {
+            while (accountIndexes.lastLiqIndex < latestSeize.liqIndex && accountIndexes.lastFeeIndex < latestSeize.feeIndex) {
                 SCDPSeizeData memory previousSeize = self.seizeEvents[_assetAddr][latestSeize.prevLiqIndex];
-                // Get the historical balance according to liquidation index at the time
-                // Then we simply multiply by fee index difference to get the fees accrued.
-                feesBeforeLastSeize += principalDeposits.rayDiv(latestSeize.prevLiqIndex).rayMul(
-                    latestSeize.feeIndex - previousSeize.feeIndex
-                );
+                uint256 feePct = latestSeize.feeIndex - previousSeize.feeIndex;
+                if (feePct > 0) {
+                    // Get the historical balance according to liquidation index at the time
+                    // Then we simply multiply by fee index difference to get the fees accrued.
+                    feesBeforeLastSeize += principalDeposits.rayDiv(latestSeize.prevLiqIndex).rayMul(feePct);
+                }
                 // Iterate backwards in time.
                 latestSeize = previousSeize;
             }

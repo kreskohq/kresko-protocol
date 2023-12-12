@@ -30,7 +30,9 @@ library SDeposits {
         uint256 _amount
     ) internal {
         // Withdraw any fees first.
-        uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr, _account);
+        uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr, _account, false);
+        // Save account liquidation and fee indexes if they werent saved before.
+        if (fees == 0) updateAccountIndexes(self, _account, _assetAddr);
 
         unchecked {
             // Save global deposits using normalized amount.
@@ -39,9 +41,6 @@ library SDeposits {
 
             // Save account deposit amount, its scaled up by the liquidation index.
             self.depositsPrincipal[_account][_assetAddr] += self.mulByLiqIndex(_assetAddr, normalizedAmount);
-
-            // Save account liquidation and fee indexes if they werent saved before.
-            if (fees == 0) updateAccountIndexes(self, _account, _assetAddr);
 
             // Check if the deposit limit is exceeded.
             if (self.userDepositAmount(_assetAddr, _asset) > _asset.depositLimitSCDP) {
@@ -63,6 +62,7 @@ library SDeposits {
      * @param _assetAddr the deposit asset
      * @param _amount The amount of collateral to withdraw
      * @param _receiver The receiver of the withdrawn fees
+     * @param _skipClaim Emergency flag to skip claiming fees
      */
     function handleWithdrawSCDP(
         SCDPState storage self,
@@ -70,10 +70,13 @@ library SDeposits {
         address _account,
         address _assetAddr,
         uint256 _amount,
-        address _receiver
+        address _receiver,
+        bool _skipClaim
     ) internal {
-        // Withdraw any fees first.
-        uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr, _receiver);
+        // Handle fee claiming.
+        uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr, _receiver, _skipClaim);
+        // Save account liquidation and fee indexes if they werent updated on fee claim.
+        if (fees == 0) updateAccountIndexes(self, _account, _assetAddr);
 
         // Get accounts principal deposits.
         uint256 depositsPrincipal = self.accountDeposits(_account, _assetAddr, _asset);
@@ -93,9 +96,6 @@ library SDeposits {
 
             // Save account deposit amount, the amount withdrawn is scaled up by the liquidation index.
             self.depositsPrincipal[_account][_assetAddr] -= self.mulByLiqIndex(_assetAddr, normalizedAmount);
-
-            // Save account liquidation and fee indexes if they werent saved before.
-            if (fees == 0) updateAccountIndexes(self, _account, _assetAddr);
         }
     }
 
@@ -149,6 +149,8 @@ library SDeposits {
      * @param _asset The asset struct.
      * @param _account The account to withdraw fees for.
      * @param _assetAddr The asset address.
+     * @param _receiver Receiver of fees withdrawn, if 0 then the receiver is the account.
+     * @param _skip Emergency flag, skips claiming fees due and logs a receipt for off-chain processing
      * @return feeAmount Amount of fees withdrawn.
      * @dev This function is used by deposit and withdraw functions.
      */
@@ -157,10 +159,14 @@ library SDeposits {
         Asset storage _asset,
         address _account,
         address _assetAddr,
-        address _receiver
+        address _receiver,
+        bool _skip
     ) internal returns (uint256 feeAmount) {
+        if (_skip) {
+            _logFeeReceipt(self, _account, _assetAddr);
+            return 0;
+        }
         uint256 fees = self.accountFees(_account, _assetAddr, _asset);
-
         if (fees > 0) {
             IERC20(_assetAddr).transfer(_receiver, fees);
             (uint256 prevIndex, uint256 newIndex) = updateAccountIndexes(self, _account, _assetAddr);
@@ -168,6 +174,20 @@ library SDeposits {
         }
 
         return fees;
+    }
+
+    function _logFeeReceipt(SCDPState storage self, address _account, address _assetAddr) private {
+        emit SEvent.SCDPFeeReceipt(
+            _account,
+            _assetAddr,
+            self.depositsPrincipal[_account][_assetAddr],
+            self.assetIndexes[_assetAddr].currFeeIndex,
+            self.accountIndexes[_account][_assetAddr].lastFeeIndex,
+            self.assetIndexes[_assetAddr].currLiqIndex,
+            self.accountIndexes[_account][_assetAddr].lastLiqIndex,
+            block.number,
+            block.timestamp
+        );
     }
 
     /**
@@ -180,7 +200,7 @@ library SDeposits {
         SCDPState storage self,
         address _account,
         address _assetAddr
-    ) private returns (uint128 newIndex, uint128 prevIndex) {
+    ) private returns (uint128 prevIndex, uint128 newIndex) {
         prevIndex = self.accountIndexes[_account][_assetAddr].lastFeeIndex;
         newIndex = self.assetIndexes[_assetAddr].currFeeIndex;
         self.accountIndexes[_account][_assetAddr].lastFeeIndex = self.assetIndexes[_assetAddr].currFeeIndex;

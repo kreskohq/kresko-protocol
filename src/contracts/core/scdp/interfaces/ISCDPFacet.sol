@@ -21,6 +21,15 @@ interface ISCDPFacet {
     function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount, address _receiver) external;
 
     /**
+     * @notice Withdraw collateral without caring about fees.
+     * @param _account The account to withdraw from.
+     * @param _collateralAsset The collateral asset to withdraw.
+     * @param _amount The amount to withdraw.
+     * @param _receiver The receiver of assets, if 0 then the receiver is the account.
+     */
+    function emergencyWithdrawSCDP(address _account, address _collateralAsset, uint256 _amount, address _receiver) external;
+
+    /**
      * @notice Withdraws any pending fees for an account.
      * @param _account The account to withdraw fees for.
      * @param _collateralAsset The collateral asset to withdraw fees for.
