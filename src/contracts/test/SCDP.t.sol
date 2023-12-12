@@ -345,6 +345,7 @@ contract SCDPTest is Tested, Deploy {
         rsCall(kresko.emergencyWithdrawSCDP.selector, deployer, address(kiss), 1000e18, deployer);
 
         (kiss.balanceOf(deployer) - kissBalBefore).eq(1000e18, "received-withdraw");
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(0, "fees-after");
     }
 
     function testSCDPGas() public withDeposits pranked(user0) {
