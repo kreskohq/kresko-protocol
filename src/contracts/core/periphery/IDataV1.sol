@@ -52,14 +52,13 @@ interface IDataV1 {
     }
 
     struct DGlobal {
-        uint256 chainId;
         PType.Protocol protocol;
         DVault vault;
         DCollection[] collections;
+        uint256 chainId;
     }
 
     struct DVTokenBalance {
-        uint256 chainId;
         address addr;
         string name;
         string symbol;
@@ -70,15 +69,16 @@ interface IDataV1 {
         uint8 decimals;
         uint256 price;
         RawPrice priceRaw;
+        uint256 chainId;
     }
 
     struct DAccount {
-        uint256 chainId;
         PType.Account protocol;
         DCollection[] collections;
         DVTokenBalance vault;
         bool eligible;
         uint8 phase;
+        uint256 chainId;
     }
 
     function getGlobals(bytes memory rsPayload) external view returns (DGlobal memory);
