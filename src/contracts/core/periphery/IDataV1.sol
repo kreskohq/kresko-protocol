@@ -52,12 +52,14 @@ interface IDataV1 {
     }
 
     struct DGlobal {
+        uint256 chainId;
         PType.Protocol protocol;
         DVault vault;
         DCollection[] collections;
     }
 
     struct DVTokenBalance {
+        uint256 chainId;
         address addr;
         string name;
         string symbol;
@@ -71,6 +73,7 @@ interface IDataV1 {
     }
 
     struct DAccount {
+        uint256 chainId;
         PType.Account protocol;
         DCollection[] collections;
         DVTokenBalance vault;

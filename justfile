@@ -29,7 +29,7 @@ deploy-local:
 	-vvv
 
 
-deploy-arbitrum-sepolia:
+dry-arbitrum-sepolia:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "arbitrum-sepolia" "MNEMONIC_DEVNET" 0 false true) \
 	--with-gas-price 100000000 \
@@ -187,8 +187,8 @@ verify-proxy-contract:
 	--constructor-args "0x"
 
 verify-contract:
-	forge verify-contract 0x2c3CeB92EF9ce5876512c9caAC85550DF1E2d0b5 \
-	KreskoAsset \
+	forge verify-contract 0xf8702E88a03217B90f1A2a69ff80270D3C78367f \
+	DataV1 \
 	--chain arbitrum-sepolia \
 	--watch \
 	--constructor-args "0x"

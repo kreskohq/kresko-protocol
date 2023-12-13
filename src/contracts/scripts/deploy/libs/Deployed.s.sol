@@ -3,8 +3,8 @@
 pragma solidity ^0.8.0;
 
 import {VM, Help} from "kresko-lib/utils/Libs.s.sol";
-import {PLog} from "kresko-lib/utils/PLog.s.sol";
 import {Asset} from "common/Types.sol";
+import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 
 library Deployed {
     using Help for *;
@@ -17,6 +17,10 @@ library Deployed {
 
     function addr(string memory name) internal returns (address) {
         return addr(name, block.chainid);
+    }
+
+    function factory() internal returns (IDeploymentFactory) {
+        return IDeploymentFactory(addr("Factory"));
     }
 
     function addr(string memory name, uint256 chainId) internal returns (address) {

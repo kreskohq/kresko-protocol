@@ -46,7 +46,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
                 revert(add(32, data), mload(data))
             }
         }
-
+        result.chainId = block.chainid;
         result.protocol = abi.decode(data, (PType.Protocol));
         result.vault = getVault();
         result.collections = getCollectionData(address(1));
@@ -57,7 +57,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
             proxyCalldataView(address(DIAMOND), abi.encodeWithSelector(DIAMOND.getProtocolData.selector)),
             (PType.Protocol)
         );
-
+        result.chainId = block.chainid;
         result.vault = getVault();
         result.collections = getCollectionData(address(1));
     }
@@ -80,6 +80,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
             uint256 value = toWad(balance, decimals).wadMul(answer > 0 ? uint256(answer) : 0);
 
             result[i] = DVTokenBalance({
+                chainId: block.chainid,
                 addr: token.token,
                 name: tkn.name(),
                 symbol: PFunc._getSymbol(token.token),
@@ -125,6 +126,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
 
         result.collections = getCollectionData(_account);
         (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(_account);
+        result.chainId = block.chainid;
     }
 
     function getAccount(address _account, bytes memory redstoneData) external view returns (DAccount memory result) {
@@ -149,6 +151,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
 
         result.collections = getCollectionData(_account);
         (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(_account);
+        result.chainId = block.chainid;
     }
 
     function getBalances(address _account, address[] memory _tokens) external view returns (PType.Balance[] memory result) {
