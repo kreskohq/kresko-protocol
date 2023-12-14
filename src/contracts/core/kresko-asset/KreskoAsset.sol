@@ -38,7 +38,6 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         // _disableInitializers();
     }
 
-    /// @inheritdoc IKreskoAsset
     function initialize(
         string memory _name,
         string memory _symbol,

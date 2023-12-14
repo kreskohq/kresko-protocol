@@ -41,31 +41,6 @@ interface IKreskoAsset is IERC20Permit, IAccessControlEnumerable, IERC165 {
         address payable feeRecipient;
     }
 
-    /**
-     * @notice Initializes a KreskoAsset ERC20 token.
-     * @dev Intended to be operated by the Kresko smart contract.
-     * @param _name The name of the KreskoAsset.
-     * @param _symbol The symbol of the KreskoAsset.
-     * @param _decimals Decimals for the asset.
-     * @param _admin The adminstrator of this contract.
-     * @param _kresko The protocol, can perform mint and burn.
-     * @param _underlyingAddr The underlying token if available.
-     * @param _feeRecipient Fee recipient for synth wraps.
-     * @param _openFee Synth warp open fee.
-     * @param _closeFee Synth wrap close fee.
-     */
-    function initialize(
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
-        address _admin,
-        address _kresko,
-        address _underlyingAddr,
-        address _feeRecipient,
-        uint48 _openFee,
-        uint40 _closeFee
-    ) external;
-
     function kresko() external view returns (address);
 
     function rebaseInfo() external view returns (Rebase memory);

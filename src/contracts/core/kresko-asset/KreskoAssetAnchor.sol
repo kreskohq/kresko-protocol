@@ -33,7 +33,6 @@ contract KreskoAssetAnchor is ERC4626Upgradeable, IKreskoAssetAnchor, AccessCont
         // _disableInitializers();
     }
 
-    /// @inheritdoc IKreskoAssetAnchor
     function initialize(IKreskoAsset _asset, string memory _name, string memory _symbol, address _admin) external initializer {
         // ERC4626
         __ERC4626Upgradeable_init(_asset, _name, _symbol);
