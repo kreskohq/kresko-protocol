@@ -257,9 +257,9 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
         }
 
         _amount = _adjustDecimals(_amount, wrapping.underlyingDecimals, decimals);
-        _mint(_to, _amount);
 
         IKreskoAssetAnchor(anchor).wrap(_amount);
+        _mint(_to, _amount);
 
         emit Wrap(address(this), underlying, _to, _amount);
     }
@@ -275,8 +275,8 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
 
         uint256 adjustedAmount = _adjustDecimals(_amount, wrapping.underlyingDecimals, decimals);
 
-        _burn(msg.sender, adjustedAmount);
         IKreskoAssetAnchor(anchor).unwrap(adjustedAmount);
+        _burn(msg.sender, adjustedAmount);
 
         bool allowNative = _receiveNative && wrapping.nativeUnderlyingEnabled;
 
@@ -314,8 +314,8 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
             wrapping.feeRecipient.safeTransferETH(fee);
         }
 
-        _mint(msg.sender, amount);
         IKreskoAssetAnchor(anchor).wrap(amount);
+        _mint(msg.sender, amount);
 
         emit Wrap(address(this), address(0), msg.sender, amount);
     }
