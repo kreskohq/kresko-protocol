@@ -8,7 +8,7 @@ library CONST {
     bytes32 constant KISS_SALT = bytes32("KISS");
     bytes32 constant VAULT_SALT = bytes32("vKISS");
     bytes32 constant GM_SALT = bytes32("GatingManager");
-    bytes32 constant MC_SALT = bytes32("KrMulticall");
+    bytes32 constant MC_SALT = bytes32("Multicall");
     bytes32 constant D1_SALT = bytes32("DataV1");
 
     string constant KRASSET_NAME_PREFIX = "Kresko: ";

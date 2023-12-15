@@ -24,14 +24,14 @@ import {ISwapRouter, IKrMulticall} from "periphery/IKrMulticall.sol";
 contract KrMulticall is IKrMulticall, Ownable {
     address public kresko;
     address public kiss;
-    ISwapRouter public uniswapRouter;
-    IWETH9 public wrappedNative;
+    ISwapRouter public v3Router;
+    IWETH9 public wNative;
 
-    constructor(address _kresko, address _kiss, address _uniswapRouter, address _wrappedNative) Ownable(msg.sender) {
+    constructor(address _kresko, address _kiss, address _v3Router, address _wNative) Ownable(msg.sender) {
         kresko = _kresko;
         kiss = _kiss;
-        uniswapRouter = ISwapRouter(_uniswapRouter);
-        wrappedNative = IWETH9(_wrappedNative);
+        v3Router = ISwapRouter(_v3Router);
+        wNative = IWETH9(_wNative);
     }
 
     function rescue(address _token, uint256 _amount, address _receiver) external onlyOwner {
@@ -102,21 +102,17 @@ contract KrMulticall is IKrMulticall, Ownable {
     }
 
     function _handleTokensIn(Operation memory _op) internal returns (uint256 amountIn) {
-        uint256 nativeAmount = msg.value;
         if (_op.data.tokensInMode == TokensInMode.Native) {
-            if (nativeAmount == 0) {
+            if (msg.value == 0) {
                 revert ZERO_NATIVE_IN(_op.action);
             }
 
-            if (address(wrappedNative) != _op.data.tokenIn) {
-                revert INVALID_NATIVE_TOKEN_IN(_op.action, _op.data.tokenIn, wrappedNative.symbol());
+            if (address(wNative) != _op.data.tokenIn) {
+                revert INVALID_NATIVE_TOKEN_IN(_op.action, _op.data.tokenIn, wNative.symbol());
             }
 
-            wrappedNative.deposit{value: nativeAmount}();
-            return nativeAmount;
-        }
-        if (nativeAmount != 0) {
-            revert VALUE_NOT_ZERO(_op.action, nativeAmount);
+            wNative.deposit{value: msg.value}();
+            return msg.value;
         }
 
         IERC20 token = IERC20(_op.data.tokenIn);
@@ -143,7 +139,7 @@ contract KrMulticall is IKrMulticall, Ownable {
 
     function _handleTokensOut(Operation memory _op, uint256 balance) internal {
         if (_op.data.tokensOutMode == TokensOutMode.ReturnToSenderNative) {
-            wrappedNative.withdraw(balance);
+            wNative.withdraw(balance);
             payable(msg.sender).transfer(balance);
             return;
         }
@@ -193,7 +189,8 @@ contract KrMulticall is IKrMulticall, Ownable {
         Operation memory _op,
         bytes calldata rsPayload
     ) internal returns (bool success, bytes memory returndata) {
-        address receiver = _op.data.tokensOutMode == TokensOutMode.ReturnToSender ? msg.sender : address(this);
+        bool isReturn = _op.data.tokensOutMode == TokensOutMode.ReturnToSender;
+        address receiver = isReturn ? msg.sender : address(this);
         if (_op.action == Action.MinterDeposit) {
             _approve(_op.data.tokenIn, _op.data.amountIn, address(kresko));
             return
@@ -278,24 +275,32 @@ contract KrMulticall is IKrMulticall, Ownable {
                 );
         } else if (_op.action == Action.SynthWrap) {
             _approve(_op.data.tokenIn, _op.data.amountIn, _op.data.tokenOut);
-            IKreskoAsset(_op.data.tokenOut).wrap(receiver, _op.data.amountIn);
-            return (true, "");
+            return _op.data.tokenOut.call(abi.encodeCall(IKreskoAsset.wrap, (receiver, _op.data.amountIn)));
+        } else if (_op.action == Action.SynthwrapNative) {
+            if (!IKreskoAsset(_op.data.tokenOut).wrappingInfo().nativeUnderlyingEnabled) {
+                revert NATIVE_SYNTH_WRAP_NOT_ALLOWED(_op.action, _op.data.tokenOut, IKreskoAsset(_op.data.tokenOut).symbol());
+            }
+
+            return address(_op.data.tokenOut).call{value: _op.data.amountIn}("");
         } else if (_op.action == Action.SynthUnwrap) {
             _approve(_op.data.tokenIn, _op.data.amountIn, _op.data.tokenIn);
-            IKreskoAsset(_op.data.tokenIn).unwrap(receiver, _op.data.amountIn, false);
-            return (true, "");
+            return _op.data.tokenIn.call(abi.encodeCall(IKreskoAsset.unwrap, (receiver, _op.data.amountIn, false)));
+        } else if (_op.action == Action.SynthUnwrapNative) {
+            _approve(_op.data.tokenIn, _op.data.amountIn, _op.data.tokenIn);
+            return _op.data.tokenIn.call(abi.encodeCall(IKreskoAsset.unwrap, (receiver, _op.data.amountIn, false)));
         } else if (_op.action == Action.VaultDeposit) {
             _approve(_op.data.tokenIn, _op.data.amountIn, kiss);
-            IVaultExtender(kiss).vaultDeposit(_op.data.tokenIn, _op.data.amountIn, receiver);
-            return (true, "");
+            return kiss.call(abi.encodeCall(IVaultExtender.vaultDeposit, (_op.data.tokenIn, _op.data.amountIn, receiver)));
         } else if (_op.action == Action.VaultRedeem) {
             _approve(kiss, _op.data.amountIn, kiss);
-            IVaultExtender(kiss).vaultRedeem(_op.data.tokenOut, _op.data.amountIn, receiver, address(this));
-            return (true, "");
+            return
+                kiss.call(
+                    abi.encodeCall(IVaultExtender.vaultRedeem, (_op.data.tokenOut, _op.data.amountIn, receiver, address(this)))
+                );
         } else if (_op.action == Action.AMMExactInput) {
-            IERC20(_op.data.tokenIn).transfer(address(uniswapRouter), _op.data.amountIn);
+            IERC20(_op.data.tokenIn).transfer(address(v3Router), _op.data.amountIn);
             if (
-                uniswapRouter.exactInput(
+                v3Router.exactInput(
                     ISwapRouter.ExactInputParams({
                         path: _op.data.path,
                         recipient: receiver,

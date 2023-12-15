@@ -81,7 +81,9 @@ interface IKrMulticall {
         SynthWrap,
         VaultDeposit,
         VaultRedeem,
-        AMMExactInput
+        AMMExactInput,
+        SynthwrapNative,
+        SynthUnwrapNative
     }
 
     /**
@@ -120,6 +122,7 @@ interface IKrMulticall {
     error INVALID_NATIVE_TOKEN_IN(Action action, address token, string symbol);
     error ZERO_OR_INVALID_AMOUNT_IN(Action action, address token, string symbol, uint256 balance, uint256 amountOut);
     error INVALID_ACTION(Action action);
+    error NATIVE_SYNTH_WRAP_NOT_ALLOWED(Action action, address token, string symbol);
 
     error TOKENS_IN_MODE_WAS_NONE_BUT_ADDRESS_NOT_ZERO(Action action, address token);
     error TOKENS_OUT_MODE_WAS_NONE_BUT_ADDRESS_NOT_ZERO(Action action, address token);
