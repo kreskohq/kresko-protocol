@@ -12,8 +12,6 @@ interface IAssetConfigurationFacet {
      * @param _config Configuration struct to save for the asset.
      * @param _feeds Feed addresses, if both are address(0) they are ignored.
      * @return Asset Result of addAsset.
-     * @custom:signature addAsset(address,(bytes32,address,,uint16,uint16,uint16,uint16,uint16,uint256,uint256,uint256,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool),address[2])
-     * @custom:selector 0x73320167
      */
     function addAsset(address _assetAddr, Asset memory _config, address[2] memory _feeds) external returns (Asset memory);
 
@@ -23,8 +21,6 @@ interface IAssetConfigurationFacet {
      * @dev Use validateAssetConfig / static call this for validation.
      * @param _assetAddr The asset address.
      * @param _config Configuration struct to apply for the asset.
-     * @custom:signature updateAsset(address,(bytes32,address,,uint16,uint16,uint16,uint16,uint16,uint256,uint256,uint256,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool))
-     * @custom:selector 0xe2f08b19
      */
     function updateAsset(address _assetAddr, Asset memory _config) external returns (Asset memory);
 
@@ -47,8 +43,6 @@ interface IAssetConfigurationFacet {
      * @param _assetAddr The asset address.
      * @param _config Configuration for the asset.
      * @return bool True for convenience.
-     * @custom:signature validateAssetConfig(address,(bytes32,address,uint8[2],uint16,uint16,uint16,uint16,uint16,uint256,uint256,uint256,uint128,uint16,uint16,uint16,uint16,uint8,bool,bool,bool,bool,bool,bool))
-     * @custom:selector 0xcadd46b6
      */
     function validateAssetConfig(address _assetAddr, Asset memory _config) external view returns (bool);
 
@@ -56,8 +50,6 @@ interface IAssetConfigurationFacet {
      * @notice Update oracle order for an asset.
      * @param _assetAddr The asset address.
      * @param _newOracleOrder List of 2 OracleTypes. 0 is primary and 1 is the reference.
-     * @custom:signature setAssetOracleOrder(address,uint8[2])
-     * @custom:selector 0x67029b02
      */
     function setAssetOracleOrder(address _assetAddr, Enums.OracleType[2] memory _newOracleOrder) external;
 }

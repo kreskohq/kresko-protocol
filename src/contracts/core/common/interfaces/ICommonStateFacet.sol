@@ -29,8 +29,6 @@ interface ICommonStateFacet {
      * @param _ticker Ticker in bytes32, eg. bytes32("ETH").
      * @param _oracleType The oracle type.
      * @return feedAddr Feed address matching the oracle type given.
-     * @custom:signature getFeedForId(bytes32,address)
-     * @custom:selector 0xed1d3e94
      */
 
     function getFeedForId(bytes32 _ticker, Enums.OracleType _oracleType) external view returns (address feedAddr);

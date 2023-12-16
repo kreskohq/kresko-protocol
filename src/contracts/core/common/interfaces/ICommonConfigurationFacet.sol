@@ -43,8 +43,6 @@ interface ICommonConfigurationFacet {
      * @notice Set feeds for a ticker.
      * @param _ticker Ticker in bytes32 eg. bytes32("ETH")
      * @param _feedConfig List oracle configuration containing oracle identifiers and feed addresses.
-     * @custom:signature setFeedsForTicker(bytes32,(uint8[2],address[2]))
-     * @custom:selector 0xbe079e8e
      */
     function setFeedsForTicker(bytes32 _ticker, FeedConfiguration memory _feedConfig) external;
 
