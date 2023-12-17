@@ -27,6 +27,17 @@ interface IVaultExtender {
      * @return assetsIn Amount of assets for `_shares`
      * @return assetFee Amount of `_assetAddr` vault took as fee
      */
+
+    /**
+     * @notice Vault mint, an external state-modifying function.
+     * @param _assetAddr The asset addr address.
+     * @param _shares The shares (uint256).
+     * @param _receiver The receiver address.
+     * @return assetsIn An uint256 value.
+     * @return assetFee An uint256 value.
+     * @custom:signature vaultMint(address,uint256,address)
+     * @custom:selector 0x0c8daea9
+     */
     function vaultMint(
         address _assetAddr,
         uint256 _shares,
@@ -55,16 +66,15 @@ interface IVaultExtender {
      * @param _shares amount of extender tokens to burn
      * @param _receiver Address to receive assets withdrawn
      * @param _owner Owner of extender tokens
-     * @return sharesIn amount of shares/extender tokens minted
+     * @return assetsOut amount of assets out
      * @return assetFee amount of `_assetAddr` vault took as fee
-     * @dev Does not return a value
      */
     function vaultRedeem(
         address _assetAddr,
         uint256 _shares,
         address _receiver,
         address _owner
-    ) external returns (uint256 sharesIn, uint256 assetFee);
+    ) external returns (uint256 assetsOut, uint256 assetFee);
 
     /**
      * @notice Max redeem for underlying extender token.

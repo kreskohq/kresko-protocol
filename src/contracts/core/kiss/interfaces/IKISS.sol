@@ -7,9 +7,9 @@ import {IVaultExtender} from "vault/interfaces/IVaultExtender.sol";
 import {IERC20Permit} from "kresko-lib/token/IERC20Permit.sol";
 
 interface IKISS is IERC20Permit, IVaultExtender, IKreskoAssetIssuer, IERC165 {
-    /* -------------------------------------------------------------------------- */
-    /*                                   Events                                   */
-    /* -------------------------------------------------------------------------- */
+    function vKISS() external view returns (address);
+
+    function kresko() external view returns (address);
 
     /**
      * @notice This function adds KISS to circulation
