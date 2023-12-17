@@ -171,7 +171,7 @@
       "        rsInit(rsPrices);",
       "",
       "        kresko = IKresko(Deployed.addr(\"Kresko\"));",
-      "        kr = kr.fromKISS(address(kiss), rsPayload);",
+      "        kr = kr.fromKISS(Deployed.addr(\"KISS\"), rsPayload);",
       "",
       "        multicall = IKrMulticall(Deployed.addr(\"Multicall\"));",
       "        diamond = IExtendedDiamondCutFacet(address(kresko));",
