@@ -14,6 +14,7 @@ import {ProxyConnector} from "vendor/redstone/ProxyConnector.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {WadRay} from "libs/WadRay.sol";
+import {IPushPriceDataFacet} from "periphery/interfaces/IPushPriceDataFacet.sol";
 
 // solhint-disable avoid-low-level-calls, var-name-mixedcase
 
@@ -22,6 +23,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
 
     address public immutable VAULT;
     IDataFacet public immutable DIAMOND;
+    IPushPriceDataFacet public immutable DIAMONDPUSH;
     address public immutable KISS;
 
     uint256 public constant QUEST_FOR_KRESK_LAST_TOKEN_ID = 7;
@@ -29,9 +31,10 @@ contract DataV1 is ProxyConnector, IDataV1 {
     address public immutable KRESKIAN_COLLECTION;
     address public immutable QUEST_FOR_KRESK_COLLECTION;
 
-    constructor(IDataFacet _diamond, address _vault, address _KISS, address _kreskian, address _questForKresk) {
+    constructor(address _diamond, address _vault, address _KISS, address _kreskian, address _questForKresk) {
         VAULT = _vault;
-        DIAMOND = _diamond;
+        DIAMOND = IDataFacet(_diamond);
+        DIAMONDPUSH = IPushPriceDataFacet(address(_diamond));
         KISS = _KISS;
         KRESKIAN_COLLECTION = _kreskian;
         QUEST_FOR_KRESK_COLLECTION = _questForKresk;
@@ -48,6 +51,13 @@ contract DataV1 is ProxyConnector, IDataV1 {
         }
         result.chainId = block.chainid;
         result.protocol = abi.decode(data, (PType.Protocol));
+        result.vault = getVault();
+        result.collections = getCollectionData(address(1));
+    }
+
+    function getGlobalsPushPriced() external view returns (DGlobal memory result) {
+        result.chainId = block.chainid;
+        result.protocol = DIAMONDPUSH.getProtocolDataPushPriced();
         result.vault = getVault();
         result.collections = getCollectionData(address(1));
     }
@@ -154,8 +164,24 @@ contract DataV1 is ProxyConnector, IDataV1 {
         result.chainId = block.chainid;
     }
 
+    function getAccountPushPriced(address _account) external view returns (DAccount memory result) {
+        result.protocol = DIAMONDPUSH.getAccountDataPushPriced(_account);
+
+        result.vault.addr = VAULT;
+        result.vault.name = IERC20(VAULT).name();
+        result.vault.amount = IERC20(VAULT).balanceOf(_account);
+        result.vault.price = IVault(VAULT).exchangeRate();
+        result.vault.oracleDecimals = 18;
+        result.vault.symbol = IERC20(VAULT).symbol();
+        result.vault.decimals = IERC20(VAULT).decimals();
+
+        result.collections = getCollectionData(_account);
+        (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(_account);
+        result.chainId = block.chainid;
+    }
+
     function getBalances(address _account, address[] memory _tokens) external view returns (PType.Balance[] memory result) {
-        result = DIAMOND.getBalances(_account, _tokens);
+        result = DIAMOND.getTokenBalances(_account, _tokens);
     }
 
     function getCollectionData(address _account) public view returns (DCollection[] memory result) {

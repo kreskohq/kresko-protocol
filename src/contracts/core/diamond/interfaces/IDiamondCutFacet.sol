@@ -14,7 +14,7 @@ interface IDiamondCutFacet {
     function diamondCut(FacetCut[] calldata _diamondCut, address _initializer, bytes calldata _calldata) external;
 }
 
-interface IExtendedDiamondCutFacet {
+interface IExtendedDiamondCutFacet is IDiamondCutFacet {
     /**
      * @notice Use an initializer contract without cutting.
      * @param _initializer Address of contract or facet to execute _calldata

@@ -60,7 +60,10 @@ abstract contract _DeprecatedTestBase is
         cmd[0] = "./utils/getBytesAndSelectors.sh";
         cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
 
-        (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (bytes[], bytes4[][]));
+        (, bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(
+            vmFFI.ffi(cmd),
+            (string[], bytes[], bytes4[][])
+        );
         (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(selectors, _cfg);
         kresko_ = IKresko(address(new DiamondBomb().create(_cfg.admin, creationCodes, selectors, initializers, calldatas)));
         rsInit(address(kresko_));

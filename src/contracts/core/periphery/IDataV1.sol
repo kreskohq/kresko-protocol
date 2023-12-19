@@ -83,6 +83,8 @@ interface IDataV1 {
 
     function getGlobals(bytes memory rsPayload) external view returns (DGlobal memory);
 
+    function getGlobalsPushPriced() external view returns (DGlobal memory);
+
     function getGlobalsRs() external view returns (DGlobal memory);
 
     function getExternalTokens(
@@ -91,6 +93,8 @@ interface IDataV1 {
     ) external view returns (DVTokenBalance[] memory);
 
     function getAccount(address _account, bytes memory rsPayload) external view returns (DAccount memory);
+
+    function getAccountPushPriced(address _account) external view returns (DAccount memory);
 
     function getAccountRs(address _account) external view returns (DAccount memory);
 

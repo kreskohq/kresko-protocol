@@ -15,7 +15,7 @@ import {DSCore} from "diamond/DSCore.sol";
  * @author Kresko
  * @notice Reference implementation of diamondCut. Extended to allow executing initializers without cuts.
  */
-contract DiamondCutFacet is IDiamondCutFacet, IExtendedDiamondCutFacet, DSModifiers, Modifiers {
+contract DiamondCutFacet is IExtendedDiamondCutFacet, DSModifiers, Modifiers {
     /// @inheritdoc IDiamondCutFacet
     function diamondCut(
         FacetCut[] calldata _diamondCut,

@@ -274,6 +274,14 @@ library LibDeploy {
         state().currentJson = VM.serializeAddress(state().currentKey, key, val);
     }
 
+    function setJsonBool(string memory key, bool val) internal {
+        state().currentJson = VM.serializeBool(state().currentKey, key, val);
+    }
+
+    function setJsonNumber(string memory key, uint256 val) internal {
+        state().currentJson = VM.serializeUint(state().currentKey, key, val);
+    }
+
     function setJsonBytes(string memory key, bytes memory val) internal {
         state().currentJson = VM.serializeBytes(state().currentKey, key, val);
     }

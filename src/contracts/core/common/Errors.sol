@@ -113,6 +113,7 @@ library Errors {
     error ZERO_OR_STALE_VAULT_PRICE(ID, address, uint256);
     error ZERO_OR_STALE_PRICE(string ticker, uint8[2] oracles);
     error ZERO_OR_NEGATIVE_PUSH_PRICE(ID asset, string ticker, int256 price, uint8 oracleType, address feed);
+    error UNSUPPORTED_ORACLE(string ticker, uint8 oracle);
     error NO_PUSH_ORACLE_SET(string ticker);
     error NOT_SUPPORTED_YET();
     error WRAP_NOT_SUPPORTED();

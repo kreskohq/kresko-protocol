@@ -31,7 +31,10 @@ contract DataFacet is IDataFacet {
         (result, ) = PFunc.getSData();
     }
 
-    function getBalances(address _account, address[] memory _tokens) external view returns (PType.Balance[] memory result) {
+    function getTokenBalances(
+        address _account,
+        address[] memory _tokens
+    ) external view returns (PType.Balance[] memory result) {
         result = new PType.Balance[](_tokens.length);
 
         for (uint256 i; i < _tokens.length; i++) {

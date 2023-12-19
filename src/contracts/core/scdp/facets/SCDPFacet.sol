@@ -33,9 +33,14 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Record the collateral deposit.
-        scdp().handleDepositSCDP(cs().onlyFeeAccumulatingCollateral(_collateralAsset), _account, _collateralAsset, _amount);
 
-        emit SEvent.SCDPDeposit(_account, _collateralAsset, _amount, block.timestamp);
+        emit SEvent.SCDPDeposit(
+            _account,
+            _collateralAsset,
+            _amount,
+            scdp().handleDepositSCDP(cs().onlyFeeAccumulatingCollateral(_collateralAsset), _account, _collateralAsset, _amount),
+            block.timestamp
+        );
     }
 
     /// @inheritdoc ISCDPFacet
@@ -49,7 +54,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         _receiver = _receiver == address(0) ? _account : _receiver;
 
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
-        s.handleWithdrawSCDP(
+        uint256 feeIndex = s.handleWithdrawSCDP(
             cs().onlyActiveSharedCollateral(_collateralAsset),
             _account,
             _collateralAsset,
@@ -65,7 +70,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         IERC20(_collateralAsset).safeTransfer(_receiver, _amount);
 
         // Emit event.
-        emit SEvent.SCDPWithdraw(_account, _receiver, _collateralAsset, msg.sender, _amount, block.timestamp);
+        emit SEvent.SCDPWithdraw(_account, _receiver, _collateralAsset, msg.sender, _amount, feeIndex, block.timestamp);
     }
 
     /// @inheritdoc ISCDPFacet
@@ -79,7 +84,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         _receiver = _receiver == address(0) ? _account : _receiver;
 
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
-        s.handleWithdrawSCDP(
+        uint256 feeIndex = s.handleWithdrawSCDP(
             cs().onlyActiveSharedCollateral(_collateralAsset),
             _account,
             _collateralAsset,
@@ -95,7 +100,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         IERC20(_collateralAsset).safeTransfer(_receiver, _amount);
 
         // Emit event.
-        emit SEvent.SCDPWithdraw(_account, _receiver, _collateralAsset, msg.sender, _amount, block.timestamp);
+        emit SEvent.SCDPWithdraw(_account, _receiver, _collateralAsset, msg.sender, _amount, feeIndex, block.timestamp);
     }
 
     /// @inheritdoc ISCDPFacet
@@ -221,7 +226,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         );
 
         s.assetData[_repayAssetAddr].debt -= burnSCDP(repayAsset, _repayAmount, msg.sender);
-        s.handleSeizeSCDP(seizeAsset, _seizeAssetAddr, seizedAmount);
+        (uint128 prevLiqIndex, uint128 nextLiqIndex) = s.handleSeizeSCDP(seizeAsset, _seizeAssetAddr, seizedAmount);
 
         IERC20(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
 
@@ -232,6 +237,8 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
             _repayAmount,
             _seizeAssetAddr,
             seizedAmount,
+            prevLiqIndex,
+            nextLiqIndex,
             block.timestamp
         );
     }

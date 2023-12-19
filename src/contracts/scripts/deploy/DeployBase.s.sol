@@ -72,7 +72,8 @@ abstract contract DeployBase {
         cmd[0] = "./utils/getBytesAndSelectors.sh";
         cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
 
-        (bytes[] memory facets, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (bytes[], bytes4[][]));
+        (, bytes[] memory facets, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (string[], bytes[], bytes4[][]));
+
         (uint256[] memory initIds, bytes[] memory initDatas) = getInitializers(json, selectors);
 
         if (facets.length != selectors.length) {
@@ -141,7 +142,10 @@ abstract contract DeployBase {
         cmd[0] = "./utils/getBytesAndSelectors.sh";
         cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
 
-        (bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (bytes[], bytes4[][]));
+        (, bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(
+            vmFFI.ffi(cmd),
+            (string[], bytes[], bytes4[][])
+        );
         (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(json, selectors);
         kresko = IKresko(address(new DiamondBomb().create(_deployer, creationCodes, selectors, initializers, calldatas)));
         return kresko;

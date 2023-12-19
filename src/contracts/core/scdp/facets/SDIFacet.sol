@@ -97,7 +97,7 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
             revert Errors.ZERO_REPAY(Errors.id(_assetAddr), _coverAmount, seizedAmount);
         }
 
-        scdp().handleSeizeSCDP(seizeAsset, _seizeAssetAddr, seizedAmount);
+        (uint128 prevLiqIndex, uint128 nextLiqIndex) = scdp().handleSeizeSCDP(seizeAsset, _seizeAssetAddr, seizedAmount);
         IERC20(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
         emit SEvent.SCDPCoverOccured(
             // solhint-disable-next-line avoid-tx-origin
@@ -106,6 +106,8 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
             _coverAmount,
             _seizeAssetAddr,
             seizedAmount,
+            prevLiqIndex,
+            nextLiqIndex,
             block.timestamp
         );
     }

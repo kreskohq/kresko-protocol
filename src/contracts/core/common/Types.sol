@@ -13,7 +13,6 @@ using Assets for Asset global;
 /// @notice Oracle configuration mapped to `Asset.ticker`.
 struct Oracle {
     address feed;
-    function(address) external view returns (uint256) priceGetter;
 }
 
 /**

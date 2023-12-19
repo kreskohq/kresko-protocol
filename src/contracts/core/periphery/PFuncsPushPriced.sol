@@ -3,24 +3,28 @@ pragma solidity ^0.8.19;
 
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {cs, gm} from "common/State.sol";
-import {scdp, sdi} from "scdp/SState.sol";
+import {scdp, SCDPState, sdi, SDIState} from "scdp/SState.sol";
 import {PType} from "periphery/PTypes.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
 import {Asset, RawPrice} from "common/Types.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {pushPrice, SDIPrice} from "common/funcs/Prices.sol";
+import {pushPrice} from "common/funcs/Prices.sol";
 import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
 import {WadRay} from "libs/WadRay.sol";
-import {ms} from "minter/MState.sol";
+import {MinterState, ms} from "minter/MState.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
-import {toWad, wadUSD} from "common/funcs/Math.sol";
+import {PHelpers} from "periphery/PHelpers.sol";
+import {fromWad, toWad, wadUSD} from "common/funcs/Math.sol";
+import {Percents} from "common/Constants.sol";
 
 // solhint-disable code-complexity
 
-library PFunc {
+library PFuncPushPriced {
     using PercentageMath for *;
+    using PHelpers for Asset;
+    using PHelpers for MinterState;
     using WadRay for uint256;
     using Arrays for address[];
 
@@ -87,13 +91,14 @@ library PFunc {
         result.timestamp = uint32(block.timestamp);
         result.blockNr = uint32(block.number);
         result.gate = getGate();
+        result.tvl = getTVL();
     }
 
     function getTVL() internal view returns (uint256 result) {
         address[] memory assets = getAllAssets();
         for (uint256 i; i < assets.length; i++) {
             Asset storage asset = cs().assets[assets[i]];
-            result += toWad(IERC20(assets[i]).balanceOf(address(this)), asset.decimals).wadMul(asset.price());
+            result += toWad(IERC20(assets[i]).balanceOf(address(this)), asset.decimals).wadMul(asset.getNormalizedPushPrice());
         }
     }
 
@@ -167,7 +172,7 @@ library PFunc {
             totals.valCollAdj += data.valCollAdj;
             totals.valDebtOg += data.valDebt;
             totals.valDebtOgAdj += data.valDebtAdj;
-            totals.sdiPrice = SDIPrice();
+            totals.sdiPrice = SDIPricePushPriced();
             results[i] = PType.SDeposit({
                 addr: assetAddr,
                 liqIndex: scdp().assetIndexes[assetAddr].currLiqIndex,
@@ -184,7 +189,7 @@ library PFunc {
             });
         }
 
-        totals.valDebt = sdi().effectiveDebtValue();
+        totals.valDebt = effectiveDebtValuePushPriced(sdi());
         if (totals.valColl == 0) {
             totals.cr = 0;
             totals.crOg = 0;
@@ -274,7 +279,7 @@ library PFunc {
         Asset storage asset = cs().assets[_assetAddr];
         result.addr = _account;
         result.amount = token.balanceOf(_account);
-        result.val = asset.exists() ? asset.collateralAmountToValue(result.amount, true) : 0;
+        result.val = asset.exists() ? asset.collateralAmountToValuePushPriced(result.amount, true) : 0;
         result.token = _assetAddr;
         result.name = token.name();
         result.decimals = token.decimals();
@@ -320,14 +325,14 @@ library PFunc {
         result.amountCollFees = feeIndex > 0 ? result.amountColl.wadToRay().rayMul(feeIndex).rayToWad() : 0;
         {
             (uint256 debtValue, uint256 debtValueAdjusted, uint256 krAssetPrice) = isSwapMintable
-                ? debtAmountToValues(asset, result.amountDebt)
+                ? asset.debtAmountToValuesPushPriced(result.amountDebt)
                 : (0, 0, 0);
 
             result.valDebt = debtValue;
             result.valDebtAdj = debtValueAdjusted;
 
             (uint256 depositValue, uint256 depositValueAdjusted, uint256 collateralPrice) = isSCDPAsset
-                ? collateralAmountToValues(asset, result.amountColl)
+                ? asset.collateralAmountToValuesPushPriced(result.amountColl)
                 : (0, 0, 0);
 
             result.valColl = depositValue;
@@ -347,11 +352,11 @@ library PFunc {
         // uint256 debtAmount = isMinterMintable ? asset.toRebasingAmount(scdp().assetData[_assetAddr].debt) : 0;
 
         (uint256 debtValue, uint256 debtValueAdjusted, uint256 krAssetPrice) = isMinterMintable
-            ? debtAmountToValues(config, debtAmount)
+            ? config.debtAmountToValuesPushPriced(debtAmount)
             : (0, 0, 0);
 
         (uint256 depositValue, uint256 depositValueAdjusted, uint256 collateralPrice) = isMinterCollateral
-            ? collateralAmountToValues(config, depositAmount)
+            ? config.collateralAmountToValuesPushPriced(depositAmount)
             : (0, 0, 0);
 
         return
@@ -373,8 +378,8 @@ library PFunc {
     }
 
     function getMAccount(address _account) internal view returns (PType.MAccount memory result) {
-        result.totals.valColl = ms().accountTotalCollateralValue(_account);
-        result.totals.valDebt = ms().accountTotalDebtValue(_account);
+        result.totals.valColl = ms().accountTotalCollateralValuePushPriced(_account);
+        result.totals.valDebt = ms().accountTotalDebtValuePushPriced(_account);
         if (result.totals.valColl == 0) {
             result.totals.cr = 0;
         } else if (result.totals.valDebt == 0) {
@@ -470,8 +475,8 @@ library PFunc {
 
         result.amount = scdp().accountDeposits(_account, _assetAddr, asset);
         result.amountFees = scdp().accountFees(_account, _assetAddr, asset);
-        (result.val, result.price) = asset.collateralAmountToValueWithPrice(result.amount, true);
-        result.valFees = asset.collateralAmountToValue(result.amountFees, true);
+        (result.val, result.price) = asset.collateralAmountToValueWithPushPrice(result.amount, true);
+        result.valFees = asset.collateralAmountToValuePushPriced(result.amountFees, true);
 
         result.symbol = _getSymbol(_assetAddr);
         result.addr = _assetAddr;
@@ -492,5 +497,82 @@ library PFunc {
 
     function _getSymbol(address _assetAddr) internal view returns (string memory) {
         return _assetAddr == 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8 ? "USDC.e" : IERC20(_assetAddr).symbol();
+    }
+
+    /// @notice Returns the total effective debt value of the SCDP.
+    /// @notice Calculation is done in wad precision but returned as oracle precision.
+    function effectiveDebtValuePushPriced(SDIState storage self) internal view returns (uint256 result) {
+        uint256 sdiPrice = SDIPricePushPriced();
+        uint256 coverValue = totalCoverValuePushPriced();
+        uint256 coverAmount = coverValue != 0 ? coverValue.wadDiv(sdiPrice) : 0;
+        uint256 totalDebt = self.totalDebt;
+
+        if (coverAmount >= totalDebt) return 0;
+
+        if (coverValue == 0) {
+            result = totalDebt;
+        } else {
+            result = (totalDebt - coverAmount);
+        }
+
+        return fromWad(result.wadMul(sdiPrice), cs().oracleDecimals);
+    }
+
+    /// @notice Get the price of SDI in USD (WAD precision, so 18 decimals).
+    function SDIPricePushPriced() internal view returns (uint256) {
+        uint256 totalValue = totalDebtValueAtRatioSCDPPushPriced(Percents.HUNDRED, false);
+        if (totalValue == 0) {
+            return 1e18;
+        }
+        return toWad(totalValue, cs().oracleDecimals).wadDiv(sdi().totalDebt);
+    }
+
+    /**
+     * @notice Returns the value of the krAsset held in the pool at a ratio.
+     * @param _ratio Percentage ratio to apply for the value in 1e4 percentage precision (uint32).
+     * @param _ignorekFactor Whether to ignore kFactor
+     * @return totalValue Total value in USD
+     */
+    function totalDebtValueAtRatioSCDPPushPriced(
+        uint32 _ratio,
+        bool _ignorekFactor
+    ) internal view returns (uint256 totalValue) {
+        address[] memory assets = scdp().krAssets;
+        for (uint256 i; i < assets.length; ) {
+            Asset storage asset = cs().assets[assets[i]];
+            uint256 debtAmount = asset.toRebasingAmount(scdp().assetData[assets[i]].debt);
+            unchecked {
+                if (debtAmount != 0) {
+                    totalValue += asset.debtAmountToValuePushPriced(debtAmount, _ignorekFactor);
+                }
+                i++;
+            }
+        }
+
+        // Multiply if needed
+        if (_ratio != Percents.HUNDRED) {
+            totalValue = totalValue.percentMul(_ratio);
+        }
+    }
+
+    function totalCoverValuePushPriced() internal view returns (uint256 result) {
+        address[] memory assets = sdi().coverAssets;
+        for (uint256 i; i < assets.length; ) {
+            unchecked {
+                result += coverAssetValuePushPriced(assets[i]);
+                i++;
+            }
+        }
+    }
+
+    /// @notice Get total deposit value of `asset` in USD, wad precision.
+    function coverAssetValuePushPriced(address _assetAddr) internal view returns (uint256) {
+        uint256 bal = IERC20(_assetAddr).balanceOf(sdi().coverRecipient);
+        if (bal == 0) return 0;
+
+        Asset storage asset = cs().assets[_assetAddr];
+        if (!asset.isCoverAsset) return 0;
+
+        return wadUSD(bal, asset.decimals, asset.getNormalizedPushPrice(), cs().oracleDecimals);
     }
 }

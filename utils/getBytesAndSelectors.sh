@@ -10,6 +10,9 @@ selectors="[$(for filename in $@; do
     jq -r '.methodIdentifiers | join(",") | "[" + . + "]"' ./$forge_out/$(basename $filename)/$(basename $filename .sol).json
 done | tr '\n' ',' | sed 's/,$//')]"
 
-cast abi-encode "f(bytes[],bytes4[][])" $bytecodes $selectors
+filenames="[$(for filename in $@; do
+    echo "\"$(basename $filename .sol)\""
+done | tr '\n' ',' | sed 's/,$//')]"
+cast abi-encode "f(string[],bytes[],bytes4[][])" $filenames $bytecodes $selectors
 
 exit 0

@@ -49,6 +49,7 @@ library PType {
         bool isSequencerUp;
         uint32 timestamp;
         uint256 blockNr;
+        uint256 tvl;
     }
 
     struct Account {

@@ -58,8 +58,21 @@ function oraclePrice(Enums.OracleType _oracleId, bytes32 _ticker) view returns (
     if (_oracleId == Enums.OracleType.Empty) return 0;
     if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker);
 
-    Oracle storage oracle = cs().oracles[_ticker][_oracleId];
-    return oracle.priceGetter(oracle.feed);
+    address feed = cs().oracles[_ticker][_oracleId].feed;
+    if (_oracleId == Enums.OracleType.Vault) {
+        return vaultPrice(feed);
+    }
+
+    if (_oracleId == Enums.OracleType.Chainlink) {
+        return aggregatorV3Price(feed, cs().staleTime);
+    }
+
+    if (_oracleId == Enums.OracleType.API3) {
+        return API3Price(feed, cs().staleTime);
+    }
+
+    // Revert if no answer is found
+    revert Errors.UNSUPPORTED_ORACLE(_ticker.toString(), uint8(_oracleId));
 }
 
 /**

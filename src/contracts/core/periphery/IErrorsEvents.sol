@@ -8,13 +8,20 @@ interface IErrorsEvents {
         address addr;
     }
 
-    event SCDPDeposit(address indexed depositor, address indexed collateralAsset, uint256 amount, uint256 timestamp);
+    event SCDPDeposit(
+        address indexed depositor,
+        address indexed collateralAsset,
+        uint256 amount,
+        uint256 feeIndex,
+        uint256 timestamp
+    );
     event SCDPWithdraw(
         address indexed account,
         address indexed receiver,
         address indexed collateralAsset,
         address withdrawer,
         uint256 amount,
+        uint256 feeIndex,
         uint256 timestamp
     );
     event SCDPFeeClaim(
@@ -41,6 +48,8 @@ interface IErrorsEvents {
         uint256 repayAmount,
         address indexed seizeCollateral,
         uint256 seizeAmount,
+        uint256 prevLiqIndex,
+        uint256 newLiqIndex,
         uint256 timestamp
     );
     event SCDPCoverOccured(
@@ -49,6 +58,8 @@ interface IErrorsEvents {
         uint256 coverAmount,
         address indexed seizeCollateral,
         uint256 seizeAmount,
+        uint256 prevLiqIndex,
+        uint256 newLiqIndex,
         uint256 timestamp
     );
 

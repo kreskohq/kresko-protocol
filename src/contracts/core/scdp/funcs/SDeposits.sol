@@ -28,11 +28,13 @@ library SDeposits {
         address _account,
         address _assetAddr,
         uint256 _amount
-    ) internal {
+    ) internal returns (uint256 feeIndex) {
         // Withdraw any fees first.
         uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr, _account, false);
         // Save account liquidation and fee indexes if they werent saved before.
-        if (fees == 0) updateAccountIndexes(self, _account, _assetAddr);
+        if (fees == 0) {
+            (, feeIndex) = updateAccountIndexes(self, _account, _assetAddr);
+        }
 
         unchecked {
             // Save global deposits using normalized amount.
@@ -72,11 +74,13 @@ library SDeposits {
         uint256 _amount,
         address _receiver,
         bool _skipClaim
-    ) internal {
+    ) internal returns (uint256 feeIndex) {
         // Handle fee claiming.
         uint256 fees = handleFeeClaim(self, _asset, _account, _assetAddr, _receiver, _skipClaim);
         // Save account liquidation and fee indexes if they werent updated on fee claim.
-        if (fees == 0) updateAccountIndexes(self, _account, _assetAddr);
+        if (fees == 0) {
+            (, feeIndex) = updateAccountIndexes(self, _account, _assetAddr);
+        }
 
         // Get accounts principal deposits.
         uint256 depositsPrincipal = self.accountDeposits(_account, _assetAddr, _asset);
@@ -107,7 +111,12 @@ library SDeposits {
      * @param _assetAddr The seized asset address.
      * @param _seizeAmount The seize amount (uint256).
      */
-    function handleSeizeSCDP(SCDPState storage self, Asset storage _sAsset, address _assetAddr, uint256 _seizeAmount) internal {
+    function handleSeizeSCDP(
+        SCDPState storage self,
+        Asset storage _sAsset,
+        address _assetAddr,
+        uint256 _seizeAmount
+    ) internal returns (uint128 prevLiqIndex, uint128 newLiqIndex) {
         uint128 swapDeposits = self.swapDepositAmount(_assetAddr, _sAsset);
 
         if (swapDeposits >= _seizeAmount) {
@@ -124,14 +133,16 @@ library SDeposits {
             self.assetData[_assetAddr].totalDeposits -= uint128(_sAsset.toNonRebasingAmount(_seizeAmount));
 
             // We need this later for seize data as well.
-            uint256 prevLiqIndex = self.assetIndexes[_assetAddr].currLiqIndex;
+            prevLiqIndex = self.assetIndexes[_assetAddr].currLiqIndex;
+            newLiqIndex = uint128(
+                prevLiqIndex +
+                    (_seizeAmount - swapDeposits).wadToRay().rayMul(prevLiqIndex).rayDiv(
+                        _sAsset.toRebasingAmount(self.assetData[_assetAddr].totalDeposits.wadToRay())
+                    )
+            );
 
             // Increase liquidation index, note this uses rebased amounts instead of normalized.
-            self.assetIndexes[_assetAddr].currLiqIndex += uint128(
-                (_seizeAmount - swapDeposits).wadToRay().rayMul(prevLiqIndex).rayDiv(
-                    _sAsset.toRebasingAmount(self.assetData[_assetAddr].totalDeposits.wadToRay())
-                )
-            );
+            self.assetIndexes[_assetAddr].currLiqIndex = newLiqIndex;
 
             // Save the seize data.
             self.seizeEvents[_assetAddr][self.assetIndexes[_assetAddr].currLiqIndex] = SCDPSeizeData({
@@ -139,6 +150,8 @@ library SDeposits {
                 feeIndex: self.assetIndexes[_assetAddr].currFeeIndex,
                 liqIndex: self.assetIndexes[_assetAddr].currLiqIndex
             });
+
+            return (prevLiqIndex, self.assetIndexes[_assetAddr].currLiqIndex);
         }
     }
 

@@ -181,14 +181,14 @@ flats:
 
 
 verify-proxy-contract:
-	forge verify-contract 0xc71607C39c2Ae2F4C9Cb004A11D542d82872c94A \
+	forge verify-contract 0x \
 	src/contracts/core/factory/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy \
 	--chain arbitrum-sepolia \
 	--constructor-args "0x"
 
 verify-contract:
-	forge verify-contract 0x59E79a807EC2d5B6Eeb66A79792016F4808b486B \
-	KrMulticall \
+	forge verify-contract 0x \
+	DataV1 \
 	--chain arbitrum-sepolia \
 	--watch \
 	--constructor-args "0x"
