@@ -87,6 +87,7 @@ library PFunc {
         result.timestamp = uint32(block.timestamp);
         result.blockNr = uint32(block.number);
         result.gate = getGate();
+        result.tvl = getTVL();
     }
 
     function getTVL() internal view returns (uint256 result) {

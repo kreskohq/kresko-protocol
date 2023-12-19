@@ -17,18 +17,8 @@ contract DataFacet is IDataFacet {
     }
 
     /// @inheritdoc IDataFacet
-    function getDataMinter() external view returns (PType.Minter memory) {
-        return PFunc.getMinter();
-    }
-
-    /// @inheritdoc IDataFacet
     function getDataSCDP() external view returns (PType.SCDP memory) {
         return PFunc.getSCDP();
-    }
-
-    /// @inheritdoc IDataFacet
-    function getTotalsSCDP() external view returns (PType.STotals memory result) {
-        (result, ) = PFunc.getSData();
     }
 
     function getTokenBalances(
