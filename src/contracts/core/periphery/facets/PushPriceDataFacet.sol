@@ -17,21 +17,6 @@ contract PushPriceDataFacet is IPushPriceDataFacet {
     }
 
     /// @inheritdoc IPushPriceDataFacet
-    function getDataMinterPushPriced() external view returns (PType.Minter memory) {
-        return PFuncPushPriced.getMinter();
-    }
-
-    /// @inheritdoc IPushPriceDataFacet
-    function getDataSCDPPushPriced() external view returns (PType.SCDP memory) {
-        return PFuncPushPriced.getSCDP();
-    }
-
-    /// @inheritdoc IPushPriceDataFacet
-    function getTotalsSCDPPushPriced() external view returns (PType.STotals memory result) {
-        (result, ) = PFuncPushPriced.getSData();
-    }
-
-    /// @inheritdoc IPushPriceDataFacet
     function getAccountsMinterPushPriced(address[] memory _accounts) external view returns (PType.MAccount[] memory result) {
         result = new PType.MAccount[](_accounts.length);
 
@@ -63,11 +48,6 @@ contract PushPriceDataFacet is IPushPriceDataFacet {
                 i++;
             }
         }
-    }
-
-    /// @inheritdoc IPushPriceDataFacet
-    function getAssetDataSCDPPushPriced(address _assetAddr) external view returns (PType.AssetData memory results) {
-        return PFuncPushPriced.getSAssetData(_assetAddr);
     }
 
     /// @inheritdoc IPushPriceDataFacet

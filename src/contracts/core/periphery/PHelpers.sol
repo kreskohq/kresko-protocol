@@ -107,7 +107,7 @@ library PHelpers {
     function getNormalizedPushPrice(Asset storage self) internal view returns (uint256 price) {
         RawPrice memory rawPrice = pushPrice(self.oracles, self.ticker);
         price = uint256(rawPrice.answer);
-        if (rawPrice.oracle == Enums.OracleType.Vault || rawPrice.oracle == Enums.OracleType.API3) {
+        if (rawPrice.oracle == Enums.OracleType.API3) {
             price = price / 1e10;
         }
     }
