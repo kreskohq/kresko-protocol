@@ -7,7 +7,7 @@ import {ISCDPFacet} from "scdp/interfaces/ISCDPFacet.sol";
 import {ISDIFacet} from "scdp/interfaces/ISDIFacet.sol";
 import {ISCDPSwapFacet} from "scdp/interfaces/ISCDPSwapFacet.sol";
 import {IMinterBurnFacet} from "minter/interfaces/IMinterBurnFacet.sol";
-import {IMinterConfigurationFacet} from "minter/interfaces/IMinterConfigurationFacet.sol";
+import {IMinterConfigFacet} from "minter/interfaces/IMinterConfigFacet.sol";
 import {IMinterMintFacet} from "minter/interfaces/IMinterMintFacet.sol";
 import {IMinterDepositWithdrawFacet} from "minter/interfaces/IMinterDepositWithdrawFacet.sol";
 import {IMinterStateFacet} from "minter/interfaces/IMinterStateFacet.sol";
@@ -15,10 +15,10 @@ import {IMinterLiquidationFacet} from "minter/interfaces/IMinterLiquidationFacet
 import {IMinterAccountStateFacet} from "minter/interfaces/IMinterAccountStateFacet.sol";
 import {IAuthorizationFacet} from "common/interfaces/IAuthorizationFacet.sol";
 import {ISafetyCouncilFacet} from "common/interfaces/ISafetyCouncilFacet.sol";
-import {ICommonConfigurationFacet} from "common/interfaces/ICommonConfigurationFacet.sol";
+import {ICommonConfigFacet} from "common/interfaces/ICommonConfigFacet.sol";
 import {ICommonStateFacet} from "common/interfaces/ICommonStateFacet.sol";
 import {IAssetStateFacet} from "common/interfaces/IAssetStateFacet.sol";
-import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFacet.sol";
+import {IAssetConfigFacet} from "common/interfaces/IAssetConfigFacet.sol";
 import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
 import {IDiamondStateFacet} from "diamond/interfaces/IDiamondStateFacet.sol";
@@ -31,9 +31,9 @@ interface IKresko is
     IDiamondLoupeFacet,
     IDiamondStateFacet,
     IAuthorizationFacet,
-    ICommonConfigurationFacet,
+    ICommonConfigFacet,
     ICommonStateFacet,
-    IAssetConfigurationFacet,
+    IAssetConfigFacet,
     IAssetStateFacet,
     ISCDPSwapFacet,
     ISCDPFacet,
@@ -42,7 +42,7 @@ interface IKresko is
     ISDIFacet,
     IMinterBurnFacet,
     ISafetyCouncilFacet,
-    IMinterConfigurationFacet,
+    IMinterConfigFacet,
     IMinterMintFacet,
     IMinterStateFacet,
     IMinterDepositWithdrawFacet,

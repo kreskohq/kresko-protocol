@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import {Asset} from "common/Types.sol";
 import {Enums} from "common/Constants.sol";
 
-interface IAssetConfigurationFacet {
+interface IAssetConfigFacet {
     /**
      * @notice Adds a new asset to the common state.
      * @notice Performs validations according to the `_config` provided.

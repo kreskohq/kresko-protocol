@@ -32,7 +32,7 @@ const deploy: DeployFunction = async function (hre) {
   if (commonInit.council === zeroAddress) throw new Error('Council address not set')
   await addFacets({
     names: commonFacets,
-    initializerName: 'CommonConfigurationFacet',
+    initializerName: 'CommonConfigFacet',
     initializerFunction: 'initializeCommon',
     initializerArgs: commonInit,
   })
@@ -40,7 +40,7 @@ const deploy: DeployFunction = async function (hre) {
 
   await addFacets({
     names: minterFacets,
-    initializerName: 'MinterConfigurationFacet',
+    initializerName: 'MinterConfigFacet',
     initializerFunction: 'initializeMinter',
     initializerArgs: (await getMinterInitializer(hre)).args,
   })

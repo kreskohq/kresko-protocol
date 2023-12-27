@@ -14,18 +14,18 @@ export const signatureFilters = ['init', 'initializer']
 export const diamondFacets = ['DiamondCutFacet', 'DiamondLoupeFacet', 'DiamondStateFacet', 'ERC165Facet'] as const
 
 export const commonFacets = [
-  'CommonConfigurationFacet',
+  'CommonConfigFacet',
   'AuthorizationFacet',
   'CommonStateFacet',
   'AssetStateFacet',
-  'AssetConfigurationFacet',
+  'AssetConfigFacet',
   'SafetyCouncilFacet',
 ] as const
 export const peripheryFacets = ['DataFacet'] as const
 export const minterFacets = [
   'MinterAccountStateFacet',
   'MinterBurnFacet',
-  'MinterConfigurationFacet',
+  'MinterConfigFacet',
   'MinterDepositWithdrawFacet',
   'MinterLiquidationFacet',
   'MinterMintFacet',
@@ -44,7 +44,7 @@ export const getDeploymentUsers = async (hre: HardhatRuntimeEnvironment) => {
 
 export const getMinterInitializer = async (hre: HardhatRuntimeEnvironment): Promise<MinterInitializer> => {
   return {
-    name: 'MinterConfigurationFacet',
+    name: 'MinterConfigFacet',
     args: testnetConfigs[hre.network.name].minterInitArgs,
   }
 }
@@ -57,7 +57,7 @@ export const getCommonInitializer = async (
   const config = testnetConfigs[hre.network.name].commonInitAgs
 
   return {
-    name: 'CommonConfigurationFacet',
+    name: 'CommonConfigFacet',
     args: {
       ...config,
       admin,

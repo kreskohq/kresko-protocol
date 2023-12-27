@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {CommonStateFacet} from "common/facets/CommonStateFacet.sol";
-import {ICommonConfigurationFacet} from "common/interfaces/ICommonConfigurationFacet.sol";
+import {ICommonConfigFacet} from "common/interfaces/ICommonConfigFacet.sol";
 import {IAuthorizationFacet} from "common/interfaces/IAuthorizationFacet.sol";
 
 import {Strings} from "libs/Strings.sol";
@@ -19,7 +19,7 @@ import {Auth} from "common/Auth.sol";
 import {Validations} from "common/Validations.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
 
-contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSModifiers {
+contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
     using Strings for bytes32;
 
     function initializeCommon(CommonInitArgs calldata args) external initializer(2) {
@@ -45,7 +45,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         Auth._grantRole(Role.ADMIN, args.admin);
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setFeeRecipient(address _newFeeRecipient) public override onlyRole(Role.ADMIN) {
         Validations.validateFeeRecipient(_newFeeRecipient);
         emit MEvent.FeeRecipientUpdated(cs().feeRecipient, _newFeeRecipient);
@@ -56,19 +56,19 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         gm().manager = IGatingManager(_newManager);
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setDefaultOraclePrecision(uint8 _decimals) public onlyRole(Role.ADMIN) {
         Validations.validateOraclePrecision(_decimals);
         cs().oracleDecimals = _decimals;
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setMaxPriceDeviationPct(uint16 _oracleDeviationPct) public onlyRole(Role.ADMIN) {
         Validations.validatePriceDeviationPct(_oracleDeviationPct);
         cs().maxPriceDeviationPct = _oracleDeviationPct;
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setFeedsForTicker(bytes32 _ticker, FeedConfiguration calldata _feedConfig) external onlyRole(Role.ADMIN) {
         Enums.OracleType[2] memory oracles = _feedConfig.oracleIds;
         address[2] memory feeds = _feedConfig.feeds;
@@ -86,7 +86,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         }
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setChainlinkFeeds(bytes32[] calldata _tickers, address[] calldata _feeds) public onlyRole(Role.ADMIN) {
         if (_tickers.length != _feeds.length) revert Errors.ARRAY_LENGTH_MISMATCH("", _tickers.length, _feeds.length);
 
@@ -95,7 +95,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         }
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setApi3Feeds(bytes32[] calldata _tickers, address[] calldata _feeds) public onlyRole(Role.ADMIN) {
         if (_tickers.length != _feeds.length) revert Errors.ARRAY_LENGTH_MISMATCH("", _tickers.length, _feeds.length);
 
@@ -104,7 +104,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         }
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setChainLinkFeed(bytes32 _ticker, address _feedAddr) public onlyRole(Role.ADMIN) {
         if (_feedAddr == address(0)) revert Errors.FEED_ZERO_ADDRESS(_ticker.toString());
 
@@ -114,7 +114,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         }
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setApi3Feed(bytes32 _ticker, address _feedAddr) public onlyRole(Role.ADMIN) {
         if (_feedAddr == address(0)) revert Errors.FEED_ZERO_ADDRESS(_ticker.toString());
 
@@ -125,7 +125,7 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         }
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setVaultFeed(bytes32 _ticker, address _vaultAddr) public onlyRole(Role.ADMIN) {
         if (_vaultAddr == address(0)) revert Errors.FEED_ZERO_ADDRESS(_ticker.toString());
 
@@ -136,17 +136,17 @@ contract CommonConfigurationFacet is ICommonConfigurationFacet, Modifiers, DSMod
         }
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setSequencerUptimeFeed(address _sequencerUptimeFeed) public override onlyRole(Role.ADMIN) {
         cs().sequencerUptimeFeed = _sequencerUptimeFeed;
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setSequencerGracePeriod(uint32 _sequencerGracePeriodTime) public onlyRole(Role.ADMIN) {
         cs().sequencerGracePeriodTime = _sequencerGracePeriodTime;
     }
 
-    /// @inheritdoc ICommonConfigurationFacet
+    /// @inheritdoc ICommonConfigFacet
     function setStaleTime(uint32 _staleTime) public onlyRole(Role.ADMIN) {
         cs().staleTime = _staleTime;
     }

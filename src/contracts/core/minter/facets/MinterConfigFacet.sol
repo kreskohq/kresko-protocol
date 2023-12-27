@@ -10,18 +10,18 @@ import {Validations} from "common/Validations.sol";
 
 import {DSModifiers} from "diamond/DSModifiers.sol";
 
-import {IMinterConfigurationFacet} from "minter/interfaces/IMinterConfigurationFacet.sol";
+import {IMinterConfigFacet} from "minter/interfaces/IMinterConfigFacet.sol";
 import {MEvent} from "minter/MEvent.sol";
 import {ms} from "minter/MState.sol";
 import {MinterInitArgs} from "minter/MTypes.sol";
 
 /**
  * @author Kresko
- * @title MinterConfigurationFacet
+ * @title MinterConfigFacet
  * @notice Functionality for `Role.ADMIN` level actions.
  * @notice Can be only initialized by the deployer/owner.
  */
-contract MinterConfigurationFacet is DSModifiers, Modifiers, IMinterConfigurationFacet {
+contract MinterConfigFacet is DSModifiers, Modifiers, IMinterConfigFacet {
     /* -------------------------------------------------------------------------- */
     /*                                 Initialize                                 */
     /* -------------------------------------------------------------------------- */
@@ -32,21 +32,21 @@ contract MinterConfigurationFacet is DSModifiers, Modifiers, IMinterConfiguratio
         setMinDebtValueMinter(args.minDebtValue);
     }
 
-    /// @inheritdoc IMinterConfigurationFacet
+    /// @inheritdoc IMinterConfigFacet
     function setMinDebtValueMinter(uint256 _newMinDebtValue) public override onlyRole(Role.ADMIN) {
         Validations.validateMinDebtValue(_newMinDebtValue);
         emit MEvent.MinimumDebtValueUpdated(ms().minDebtValue, _newMinDebtValue);
         ms().minDebtValue = _newMinDebtValue;
     }
 
-    /// @inheritdoc IMinterConfigurationFacet
+    /// @inheritdoc IMinterConfigFacet
     function setMinCollateralRatioMinter(uint32 _newMinCollateralRatio) public override onlyRole(Role.ADMIN) {
         Validations.validateMinCollateralRatio(_newMinCollateralRatio, ms().liquidationThreshold);
         emit MEvent.MinCollateralRatioUpdated(ms().minCollateralRatio, _newMinCollateralRatio);
         ms().minCollateralRatio = _newMinCollateralRatio;
     }
 
-    /// @inheritdoc IMinterConfigurationFacet
+    /// @inheritdoc IMinterConfigFacet
     function setLiquidationThresholdMinter(uint32 _newLT) public override onlyRole(Role.ADMIN) {
         Validations.validateLiquidationThreshold(_newLT, ms().minCollateralRatio);
 
@@ -59,14 +59,14 @@ contract MinterConfigurationFacet is DSModifiers, Modifiers, IMinterConfiguratio
         ms().maxLiquidationRatio = newMLR;
     }
 
-    /// @inheritdoc IMinterConfigurationFacet
+    /// @inheritdoc IMinterConfigFacet
     function setMaxLiquidationRatioMinter(uint32 _newMaxLiquidationRatio) public onlyRole(Role.ADMIN) {
         Validations.validateMaxLiquidationRatio(_newMaxLiquidationRatio, ms().liquidationThreshold);
         emit MEvent.MaxLiquidationRatioUpdated(ms().maxLiquidationRatio, _newMaxLiquidationRatio);
         ms().maxLiquidationRatio = _newMaxLiquidationRatio;
     }
 
-    /// @inheritdoc IMinterConfigurationFacet
+    /// @inheritdoc IMinterConfigFacet
     function setCollateralLiquidationIncentiveMinter(
         address _collateralAsset,
         uint16 _newLiqIncentive

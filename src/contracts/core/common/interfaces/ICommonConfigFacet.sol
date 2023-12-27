@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 import {FeedConfiguration} from "common/Types.sol";
 
-interface ICommonConfigurationFacet {
+interface ICommonConfigFacet {
     /**
      * @notice Updates the fee recipient.
      * @param _newFeeRecipient The new fee recipient.

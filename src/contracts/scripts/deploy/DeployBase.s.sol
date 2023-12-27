@@ -20,8 +20,8 @@ import {IGatingManager} from "periphery/IGatingManager.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 
-import {MinterConfigurationFacet} from "minter/facets/MinterConfigurationFacet.sol";
-import {CommonConfigurationFacet} from "common/facets/CommonConfigurationFacet.sol";
+import {MinterConfigFacet} from "minter/facets/MinterConfigFacet.sol";
+import {CommonConfigFacet} from "common/facets/CommonConfigFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {CONST} from "scripts/deploy/libs/CONST.s.sol";
 
@@ -108,8 +108,8 @@ abstract contract DeployBase {
         initializers = new uint256[](INITIALIZER_COUNT);
         datas = new bytes[](INITIALIZER_COUNT);
         bytes4[3] memory initSelectors = [
-            CommonConfigurationFacet.initializeCommon.selector,
-            MinterConfigurationFacet.initializeMinter.selector,
+            CommonConfigFacet.initializeCommon.selector,
+            MinterConfigFacet.initializeMinter.selector,
             SCDPConfigFacet.initializeSCDP.selector
         ];
         bytes[3] memory initDatas = [

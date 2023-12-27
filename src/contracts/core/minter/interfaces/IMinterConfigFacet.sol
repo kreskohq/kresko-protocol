@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {MinterInitArgs} from "minter/MTypes.sol";
 
-interface IMinterConfigurationFacet {
+interface IMinterConfigFacet {
     function initializeMinter(MinterInitArgs calldata args) external;
 
     /**

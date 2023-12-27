@@ -106,7 +106,7 @@ export type CollateralConfig = {
   liqIncentive: BigNumberish;
 };
 export type MinterInitializer = {
-  name: 'MinterConfigurationFacet';
+  name: 'MinterConfigFacet';
   args: MinterInitArgsStruct;
 };
 export type SCDPInitializer = {
@@ -114,7 +114,7 @@ export type SCDPInitializer = {
   args: SCDPInitArgsStruct;
 };
 export type CommonInitializer = {
-  name: 'CommonConfigurationFacet';
+  name: 'CommonConfigFacet';
   args: CommonInitArgsStruct;
 };
 

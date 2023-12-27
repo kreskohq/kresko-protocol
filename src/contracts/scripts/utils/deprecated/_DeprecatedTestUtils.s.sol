@@ -14,7 +14,7 @@ import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {_DeprecatedTestBase} from "./_DeprecatedTestBase.s.sol";
-import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFacet.sol";
+import {IAssetConfigFacet} from "common/interfaces/IAssetConfigFacet.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {LibSafe, GnosisSafeL2Mock} from "kresko-lib/mocks/MockSafe.sol";
 import {Deployment, DeploymentFactory} from "factory/DeploymentFactory.sol";
@@ -194,11 +194,7 @@ abstract contract _DeprecatedConfigUtils is _DeprecatedTestBase {
             kissInfo_.config.maxDebtSCDP = type(uint256).max;
         }
 
-        kissInfo_.config = IAssetConfigurationFacet(_kreskoAddr).addAsset(
-            _kissAddr,
-            kissInfo_.config,
-            [_vaultAddr, address(0)]
-        );
+        kissInfo_.config = IAssetConfigFacet(_kreskoAddr).addAsset(_kissAddr, kissInfo_.config, [_vaultAddr, address(0)]);
         kissInfo_.addr = _kissAddr;
         kissInfo_.vaultAddr = _vaultAddr;
         kissInfo_.kiss = KISS(_kissAddr);

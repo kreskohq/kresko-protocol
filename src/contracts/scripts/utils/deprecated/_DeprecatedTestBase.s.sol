@@ -19,14 +19,14 @@ import {MinterBurnFacet} from "minter/facets/MinterBurnFacet.sol";
 import {MinterDepositWithdrawFacet} from "minter/facets/MinterDepositWithdrawFacet.sol";
 import {MinterAccountStateFacet} from "minter/facets/MinterAccountStateFacet.sol";
 import {AuthorizationFacet} from "common/facets/AuthorizationFacet.sol";
-import {CommonConfigurationFacet} from "common/facets/CommonConfigurationFacet.sol";
-import {AssetConfigurationFacet} from "common/facets/AssetConfigurationFacet.sol";
+import {CommonConfigFacet} from "common/facets/CommonConfigFacet.sol";
+import {AssetConfigFacet} from "common/facets/AssetConfigFacet.sol";
 import {CommonStateFacet} from "common/facets/CommonStateFacet.sol";
 import {SafetyCouncilFacet} from "common/facets/SafetyCouncilFacet.sol";
 import {AssetStateFacet} from "common/facets/AssetStateFacet.sol";
 import {MinterStateFacet} from "minter/facets/MinterStateFacet.sol";
 import {MinterLiquidationFacet} from "minter/facets/MinterLiquidationFacet.sol";
-import {MinterConfigurationFacet} from "minter/facets/MinterConfigurationFacet.sol";
+import {MinterConfigFacet} from "minter/facets/MinterConfigFacet.sol";
 
 import {SCDPStateFacet} from "scdp/facets/SCDPStateFacet.sol";
 import {SCDPFacet} from "scdp/facets/SCDPFacet.sol";
@@ -101,8 +101,8 @@ abstract contract _DeprecatedTestBase is
         initializers = new uint256[](INITIALIZER_COUNT);
         datas = new bytes[](INITIALIZER_COUNT);
         bytes4[3] memory initSelectors = [
-            CommonConfigurationFacet.initializeCommon.selector,
-            MinterConfigurationFacet.initializeMinter.selector,
+            CommonConfigFacet.initializeCommon.selector,
+            MinterConfigFacet.initializeMinter.selector,
             SCDPConfigFacet.initializeSCDP.selector
         ];
         bytes[3] memory initDatas = [

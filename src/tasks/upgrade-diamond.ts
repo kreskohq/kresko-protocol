@@ -8,7 +8,7 @@ const logger = getLogger(TASK_UPGRADE_DIAMOND)
 
 task(TASK_UPGRADE_DIAMOND, 'Upgrade diamond').setAction(async function (args, hre) {
   logger.log('Upgrading diamond..')
-  const [initializer] = await hre.deploy('CommonConfigurationFacet')
+  const [initializer] = await hre.deploy('CommonConfigFacet')
 
   await updateFacets({
     multisig: true,

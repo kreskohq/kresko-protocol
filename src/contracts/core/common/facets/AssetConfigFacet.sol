@@ -1,8 +1,8 @@
 // solhint-disable avoid-low-level-calls
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
-import {CommonConfigurationFacet} from "common/facets/CommonConfigurationFacet.sol";
-import {IAssetConfigurationFacet} from "common/interfaces/IAssetConfigurationFacet.sol";
+import {CommonConfigFacet} from "common/facets/CommonConfigFacet.sol";
+import {IAssetConfigFacet} from "common/interfaces/IAssetConfigFacet.sol";
 import {DSModifiers} from "diamond/DSModifiers.sol";
 import {Modifiers} from "common/Modifiers.sol";
 
@@ -22,14 +22,14 @@ import {Validations} from "common/Validations.sol";
 import {SCDPSeizeData} from "scdp/STypes.sol";
 
 // solhint-disable code-complexity
-contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModifiers {
+contract AssetConfigFacet is IAssetConfigFacet, Modifiers, DSModifiers {
     using Strings for bytes32;
     using Arrays for address[];
     using Arrays for address[2];
     using Validations for Asset;
     using Validations for address;
 
-    /// @inheritdoc IAssetConfigurationFacet
+    /// @inheritdoc IAssetConfigFacet
     function addAsset(
         address _assetAddr,
         Asset memory _config,
@@ -88,7 +88,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         if (!_feeds.empty()) {
             (bool success, ) = address(this).delegatecall(
                 abi.encodeWithSelector(
-                    CommonConfigurationFacet.setFeedsForTicker.selector,
+                    CommonConfigFacet.setFeedsForTicker.selector,
                     _config.ticker,
                     FeedConfiguration(_config.oracles, _feeds)
                 )
@@ -101,7 +101,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         return _config;
     }
 
-    /// @inheritdoc IAssetConfigurationFacet
+    /// @inheritdoc IAssetConfigFacet
     function updateAsset(address _assetAddr, Asset memory _config) external onlyRole(Role.ADMIN) returns (Asset memory) {
         (string memory symbol, string memory tickerStr, Asset storage asset) = _assetAddr.validateUpdateAssetArgs(_config);
 
@@ -197,7 +197,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         return asset;
     }
 
-    /// @inheritdoc IAssetConfigurationFacet
+    /// @inheritdoc IAssetConfigFacet
     function setAssetCFactor(address _assetAddr, uint16 _newFactor) public onlyRole(Role.ADMIN) {
         Asset storage asset = cs().onlyExistingAsset(_assetAddr);
         Validations.validateCFactor(_assetAddr, _newFactor);
@@ -206,7 +206,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         asset.factor = _newFactor;
     }
 
-    /// @inheritdoc IAssetConfigurationFacet
+    /// @inheritdoc IAssetConfigFacet
     function setAssetKFactor(address _assetAddr, uint16 _newFactor) public onlyRole(Role.ADMIN) {
         Asset storage asset = cs().onlyExistingAsset(_assetAddr);
         Validations.validateKFactor(_assetAddr, _newFactor);
@@ -215,7 +215,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         asset.kFactor = _newFactor;
     }
 
-    /// @inheritdoc IAssetConfigurationFacet
+    /// @inheritdoc IAssetConfigFacet
     function setAssetOracleOrder(address _assetAddr, Enums.OracleType[2] memory _newOracleOrder) external onlyRole(Role.ADMIN) {
         Asset storage asset = cs().assets[_assetAddr];
         if (!asset.exists()) revert Errors.ASSET_DOES_NOT_EXIST(Errors.id(_assetAddr));
@@ -223,7 +223,7 @@ contract AssetConfigurationFacet is IAssetConfigurationFacet, Modifiers, DSModif
         Validations.validatePushPrice(_assetAddr);
     }
 
-    /// @inheritdoc IAssetConfigurationFacet
+    /// @inheritdoc IAssetConfigFacet
     function validateAssetConfig(address _assetAddr, Asset memory _config) external view returns (bool) {
         return Validations.validateAsset(_assetAddr, _config);
     }
