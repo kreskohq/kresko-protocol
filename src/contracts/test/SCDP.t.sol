@@ -42,12 +42,7 @@ contract SCDPTest is Tested, Deploy {
     address krETHAddr;
     address kissAddr;
 
-    string usdcPrice = "USDC:1:8";
     string ethPrice = "ETH:2000:8";
-    string jpyPrice = "JPY:1:8";
-    string kissPrice = "KISS:1:8";
-    string tslaPrice = "TSLA:1:8";
-    string initialPrices = "USDC:1:8,ETH:2000:8,JPY:1:8,KISS:1:8,TSLA:1:8";
 
     function setUp() public mnemonic("MNEMONIC_DEVNET") users(getAddr(11), getAddr(22), getAddr(33)) {
         JSON.Config memory json = Deploy.deployTest("MNEMONIC_DEVNET", "test-clean", 0);

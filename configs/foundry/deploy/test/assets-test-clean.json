@@ -17,7 +17,10 @@
       "05_config": {
         "00_ticker": "ETH",
         "02_anchor": "0x0000000000000000000000000000000000000000",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 0,
         "06_openFee": 0,
@@ -56,7 +59,10 @@
       "05_config": {
         "00_ticker": "BTC",
         "02_anchor": "0x0000000000000000000000000000000000000000",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 0,
         "06_openFee": 0,
@@ -95,7 +101,10 @@
       "05_config": {
         "00_ticker": "USDC",
         "02_anchor": "0x0000000000000000000000000000000000000000",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 0,
         "06_openFee": 0,
@@ -117,11 +126,14 @@
         "22_isCoverAsset": false
       },
       "06_vaultConfig": {
-        "00_feed": ["USDC", "chainlink"],
+        "00_feed": [
+          "USDC",
+          "chainlink"
+        ],
         "01_staleTime": 86401,
         "02_depositFee": 2,
         "03_withdrawFee": 3,
-        "04_maxDeposits": 340282366920938463463374607431768211356,
+        "04_maxDeposits": 340282366920938463463374607431768211455,
         "05_enabled": true
       }
     },
@@ -134,7 +146,10 @@
       "05_config": {
         "00_ticker": "USDC",
         "02_anchor": "0x0000000000000000000000000000000000000000",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 0,
         "06_openFee": 0,
@@ -156,11 +171,14 @@
         "22_isCoverAsset": false
       },
       "06_vaultConfig": {
-        "00_feed": ["USDC", "chainlink"],
+        "00_feed": [
+          "USDC",
+          "chainlink"
+        ],
         "01_staleTime": 86401,
         "02_depositFee": 2,
         "03_withdrawFee": 3,
-        "04_maxDeposits": 340282366920938463463374607431768211356,
+        "04_maxDeposits": 340282366920938463463374607431768211455,
         "05_enabled": true
       }
     },
@@ -173,7 +191,10 @@
       "05_config": {
         "00_ticker": "USDT",
         "02_anchor": "0x0000000000000000000000000000000000000000",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 0,
         "06_openFee": 0,
@@ -195,11 +216,14 @@
         "22_isCoverAsset": false
       },
       "06_vaultConfig": {
-        "00_feed": ["USDT", "chainlink"],
+        "00_feed": [
+          "USDT",
+          "chainlink"
+        ],
         "01_staleTime": 86401,
         "02_depositFee": 2,
         "03_withdrawFee": 3,
-        "04_maxDeposits": 340282366920938463463374607431768211356,
+        "04_maxDeposits": 340282366920938463463374607431768211455,
         "05_enabled": true
       }
     },
@@ -212,7 +236,10 @@
       "05_config": {
         "00_ticker": "DAI",
         "02_anchor": "0x0000000000000000000000000000000000000000",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 0,
         "06_openFee": 0,
@@ -234,11 +261,14 @@
         "22_isCoverAsset": false
       },
       "06_vaultConfig": {
-        "00_feed": ["DAI", "chainlink"],
+        "00_feed": [
+          "DAI",
+          "chainlink"
+        ],
         "01_staleTime": 86401,
         "02_depositFee": 2,
         "03_withdrawFee": 3,
-        "04_maxDeposits": 340282366920938463463374607431768211356,
+        "04_maxDeposits": 340282366920938463463374607431768211455,
         "05_enabled": true
       }
     }
@@ -253,14 +283,17 @@
       "05_config": {
         "00_ticker": "ETH",
         "02_anchor": "0x63879cEc8B7D323Ca7d035Afae686b2Bf0960120",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 1.05e4,
         "06_openFee": 0,
         "07_closeFee": 50,
         "08_liqIncetive": 1.075e4,
-        "09_maxDebtMinter": 340282366920938463463374607431768211356,
-        "10_maxDebtSCDP": 340282366920938463463374607431768211356,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
         "11_depositLimitSCDP": 0,
         "12_swapInFeeSCDP": 15,
         "13_swapOutFeeSCDP": 10,
@@ -284,14 +317,17 @@
       "05_config": {
         "00_ticker": "BTC",
         "02_anchor": "0xc1F3662801d2765BdAe6f84003C949b7c31741f6",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 1.05e4,
         "06_openFee": 0,
         "07_closeFee": 50,
         "08_liqIncetive": 1.075e4,
-        "09_maxDebtMinter": 340282366920938463463374607431768211356,
-        "10_maxDebtSCDP": 340282366920938463463374607431768211356,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
         "11_depositLimitSCDP": 0,
         "12_swapInFeeSCDP": 15,
         "13_swapOutFeeSCDP": 10,
@@ -315,14 +351,17 @@
       "05_config": {
         "00_ticker": "EUR",
         "02_anchor": "0x091A3DdA5fA99d57A407D8a95303edb6520c9412",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 1.01e4,
         "06_openFee": 0,
         "07_closeFee": 50,
         "08_liqIncetive": 1.075e4,
-        "09_maxDebtMinter": 340282366920938463463374607431768211356,
-        "10_maxDebtSCDP": 340282366920938463463374607431768211356,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
         "11_depositLimitSCDP": 0,
         "12_swapInFeeSCDP": 25,
         "13_swapOutFeeSCDP": 20,
@@ -346,14 +385,17 @@
       "05_config": {
         "00_ticker": "JPY",
         "02_anchor": "0x0972068A7B7CF476CC5c306ee4e45297841289db",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 1.01e4,
         "06_openFee": 0,
         "07_closeFee": 50,
         "08_liqIncetive": 1.075e4,
-        "09_maxDebtMinter": 340282366920938463463374607431768211356,
-        "10_maxDebtSCDP": 340282366920938463463374607431768211356,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
         "11_depositLimitSCDP": 0,
         "12_swapInFeeSCDP": 25,
         "13_swapOutFeeSCDP": 20,
@@ -377,14 +419,17 @@
       "05_config": {
         "00_ticker": "TSLA",
         "02_anchor": "0x0000000000000000000000000000000000000000",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 1.01e4,
         "06_openFee": 0,
         "07_closeFee": 50,
         "08_liqIncetive": 1.075e4,
-        "09_maxDebtMinter": 340282366920938463463374607431768211356,
-        "10_maxDebtSCDP": 340282366920938463463374607431768211356,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
         "11_depositLimitSCDP": 0,
         "12_swapInFeeSCDP": 25,
         "13_swapOutFeeSCDP": 20,
@@ -408,14 +453,17 @@
       "05_config": {
         "00_ticker": "XAU",
         "02_anchor": "0x9636e49bffA8280836b9d2C42788aeE27bf1130a",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 1.025e4,
         "06_openFee": 0,
         "07_closeFee": 50,
         "08_liqIncetive": 1.075e4,
-        "09_maxDebtMinter": 340282366920938463463374607431768211356,
-        "10_maxDebtSCDP": 340282366920938463463374607431768211356,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
         "11_depositLimitSCDP": 0,
         "12_swapInFeeSCDP": 25,
         "13_swapOutFeeSCDP": 20,
@@ -439,14 +487,17 @@
       "05_config": {
         "00_ticker": "WTI",
         "02_anchor": "0x14702D07d543B55f099E617AfE7609c8a49674a4",
-        "03_oracles": [1, 2],
+        "03_oracles": [
+          1,
+          2
+        ],
         "04_factor": 1e4,
         "05_kFactor": 1.025e4,
         "06_openFee": 0,
         "07_closeFee": 50,
         "08_liqIncetive": 1.075e4,
-        "09_maxDebtMinter": 340282366920938463463374607431768211356,
-        "10_maxDebtSCDP": 340282366920938463463374607431768211356,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
         "11_depositLimitSCDP": 0,
         "12_swapInFeeSCDP": 25,
         "13_swapOutFeeSCDP": 20,
@@ -468,15 +519,18 @@
     "02_config": {
       "00_ticker": "KISS",
       "02_anchor": "0x0000000000000000000000000000000000000000",
-      "03_oracles": [4, 0],
+      "03_oracles": [
+        4,
+        0
+      ],
       "04_factor": 1e4,
       "05_kFactor": 1e4,
       "06_openFee": 0,
       "07_closeFee": 0,
       "08_liqIncetive": 1.05e4,
       "09_maxDebtMinter": 0,
-      "10_maxDebtSCDP": 340282366920938463463374607431768211356,
-      "11_depositLimitSCDP": 340282366920938463463374607431768211356,
+      "10_maxDebtSCDP": 340282366920938463463374607431768211455,
+      "11_depositLimitSCDP": 340282366920938463463374607431768211455,
       "12_swapInFeeSCDP": 10,
       "13_swapOutFeeSCDP": 10,
       "14_protocolFeeShareSCDP": 0.3e4,
@@ -598,5 +652,5 @@
       "02_enabled": false
     }
   ],
-  "08_redstoneMockString": "ETH:1911:8,BTC:35159:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,XAU:1977:8,WTI:77.5:8,USDT:1:8,JPY:0.0067:8"
+  "08_redstoneMockString": "ETH:1911:8,BTC:35159:8,EUR:1.07:8,TSLA:243.94:8,DAI:0.9998:8,USDC:1:8,XAU:1977:8,WTI:77.5:8,USDT:1:8,JPY:0.0067:8"
 }

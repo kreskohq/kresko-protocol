@@ -2,10 +2,14 @@
   "$schema": "https://biomejs.dev/schemas/1.2.2/schema.json",
   "organizeImports": {
     "enabled": true,
-    "ignore": ["hardhat.config.ts"]
+    "ignore": [
+      "hardhat.config.ts"
+    ]
   },
   "files": {
     "ignore": [
+      "biome.json",
+      "configs/foundry/deploy",
       "node_modules",
       "artifacts",
       "build",
