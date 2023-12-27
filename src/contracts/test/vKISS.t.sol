@@ -10,6 +10,7 @@ import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 
 import {VaultAsset} from "vault/VTypes.sol";
 import {Vault} from "vault/Vault.sol";
+import {console2} from "forge-std/console2.sol";
 
 // solhint-disable private-vars-leading-underscore
 // solhint-disable contract-name-camelcase
@@ -82,6 +83,69 @@ contract vKISSTest is Test {
         _deposit(user1, usdc, 1e18);
         assertEq(usdc.balanceOf(address(vkiss)), 1e18);
         assertEq(vkiss.balanceOf(user1), 1e18);
+    }
+
+    function testFuzzExchangeRateDepositRedeem(uint256 depositAmount, uint256 newUsdcPrice) public {
+        depositAmount = bound(depositAmount, 0.001 ether, 100_000_000 ether);
+        newUsdcPrice = bound(newUsdcPrice, 0.0005e8, 10000e8);
+
+        _deposit(user1, usdc, depositAmount);
+        assertEq(usdc.balanceOf(address(vkiss)), depositAmount, "dep-amount-0");
+        assertEq(vkiss.balanceOf(user1), depositAmount, "vkiss-bal-0");
+        assertEq(vkiss.exchangeRate(), vkiss.TARGET_PRICE(), "t-price-0");
+
+        usdcOracle.setPrice(newUsdcPrice);
+
+        _redeem(user1, usdc, vkiss.balanceOf(user1));
+        assertApproxEqAbs(usdc.balanceOf(user1), depositAmount, 1000, "usdc-bal-1");
+        assertEq(vkiss.exchangeRate(), vkiss.TARGET_PRICE(), "t-price-1");
+
+        usdcOracle.setPrice(1e8);
+        assertEq(vkiss.exchangeRate(), vkiss.TARGET_PRICE(), "t-price-2");
+        _deposit(user1, usdc, depositAmount);
+        assertApproxEqAbs(usdc.balanceOf(address(vkiss)), depositAmount, 1000, "dep-amount-2");
+        assertEq(vkiss.balanceOf(user1), depositAmount, "vkiss bal-2");
+    }
+
+    function testFuzzExchangeRateDepositWithdraw(uint256 depositAmount, uint256 newUsdcPrice) public {
+        depositAmount = bound(depositAmount, 0.001 ether, 100_000_000 ether);
+        newUsdcPrice = bound(newUsdcPrice, 0.0005e8, 10000e8);
+
+        _deposit(user1, usdc, depositAmount);
+        assertEq(usdc.balanceOf(address(vkiss)), depositAmount, "dep-amount-0");
+        assertEq(vkiss.balanceOf(user1), depositAmount, "vkiss-bal-0");
+        assertEq(vkiss.exchangeRate(), vkiss.TARGET_PRICE(), "t-price-0");
+
+        usdcOracle.setPrice(newUsdcPrice);
+
+        _withdraw(user1, usdc, usdc.balanceOf(address(vkiss)));
+        assertApproxEqAbs(usdc.balanceOf(user1), depositAmount, 1000, "usdc-bal-1");
+        assertEq(vkiss.exchangeRate(), vkiss.TARGET_PRICE(), "t-price-1");
+
+        usdcOracle.setPrice(1e8);
+        assertEq(vkiss.exchangeRate(), vkiss.TARGET_PRICE(), "t-price-2");
+        _deposit(user1, usdc, depositAmount);
+        assertApproxEqAbs(usdc.balanceOf(address(vkiss)), depositAmount, 1000, "dep-amount-2");
+        assertEq(vkiss.balanceOf(user1), depositAmount, "vkiss bal-2");
+    }
+
+    function testDepositsSingleTokenPricing() public {
+        usdcOracle.setPrice(1.01e8);
+        _deposit(user1, usdc, 500e18);
+        _deposit(user2, usdc, 100e18);
+        assertEq(usdc.balanceOf(address(vkiss)), 600e18);
+        assertEq(vkiss.balanceOf(user1), 505.0e18);
+        assertEq(vkiss.balanceOf(user2), 101.0e18);
+
+        usdcOracle.setPrice(0.5e8);
+
+        console2.log(vkiss.exchangeRate());
+
+        _redeem(user1, usdc, 505e18);
+        _redeem(user2, usdc, 101e18);
+
+        assertEq(usdc.balanceOf(user1), 500e18);
+        assertEq(usdc.balanceOf(user2), 100e18);
     }
 
     function testDepositsMultiToken() public {

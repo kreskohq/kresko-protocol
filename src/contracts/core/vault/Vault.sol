@@ -39,6 +39,7 @@ contract Vault is IVault, ERC20 {
     VaultConfiguration internal _config;
     mapping(address => VaultAsset) internal _assets;
     address[] public assetList;
+    uint256 public constant TARGET_PRICE = 1e18;
 
     constructor(
         string memory _name,
@@ -142,8 +143,14 @@ contract Vault is IVault, ERC20 {
 
         if (assetsOut + assetFee > balance) {
             VaultAsset storage asset = _assets[assetAddr];
-            sharesIn = asset.usdWad(_config, balance).mulDivDown(totalSupply(), totalAssets());
+
+            (uint256 tSupply, uint256 tAssets) = _getTSupplyTAssets();
+            sharesIn = asset.usdWad(_config, balance).mulDivUp(tSupply, tAssets);
             (assetsOut, assetFee) = previewRedeem(assetAddr, sharesIn);
+
+            if (assetsOut > balance) {
+                assetsOut = balance;
+            }
             token.safeTransfer(receiver, assetsOut);
         } else {
             token.safeTransfer(receiver, assetsOut);
@@ -227,7 +234,7 @@ contract Vault is IVault, ERC20 {
     function exchangeRate() public view virtual returns (uint256) {
         uint256 tAssets = totalAssets();
         uint256 tSupply = totalSupply();
-        if (tSupply == 0 || tAssets == 0) return 1e18;
+        if (tSupply == 0 || tAssets == 0) return TARGET_PRICE;
         return (tAssets * 1e18) / tSupply;
     }
 
@@ -236,12 +243,12 @@ contract Vault is IVault, ERC20 {
         address assetAddr,
         uint256 assetsIn
     ) public view virtual returns (uint256 sharesOut, uint256 assetFee) {
-        uint256 tSupply = totalSupply();
-        uint256 tAssets = totalAssets();
-        if (tSupply == 0) tSupply = 1e18;
-        if (tAssets == 0) tAssets = 1e18;
+        (uint256 tSupply, uint256 tAssets) = _getTSupplyTAssets();
+
         VaultAsset storage asset = _assets[assetAddr];
+
         (assetsIn, assetFee) = asset.handleDepositFee(assetsIn);
+
         sharesOut = asset.usdWad(_config, assetsIn).mulDivDown(tSupply, tAssets);
     }
 
@@ -250,11 +257,7 @@ contract Vault is IVault, ERC20 {
         address assetAddr,
         uint256 sharesOut
     ) public view virtual returns (uint256 assetsIn, uint256 assetFee) {
-        uint256 tSupply = totalSupply();
-        uint256 tAssets = totalAssets();
-
-        if (tSupply == 0) tSupply = 1e18;
-        if (tAssets == 0) tAssets = 1e18;
+        (uint256 tSupply, uint256 tAssets) = _getTSupplyTAssets();
 
         VaultAsset storage asset = _assets[assetAddr];
 
@@ -266,13 +269,10 @@ contract Vault is IVault, ERC20 {
         address assetAddr,
         uint256 sharesIn
     ) public view virtual returns (uint256 assetsOut, uint256 assetFee) {
-        uint256 tSupply = totalSupply();
-        uint256 tAssets = totalAssets();
-
-        if (tSupply == 0) tSupply = 1e18;
-        if (tAssets == 0) tAssets = 1e18;
+        (uint256 tSupply, uint256 tAssets) = _getTSupplyTAssets();
 
         VaultAsset storage asset = _assets[assetAddr];
+
         (assetsOut, assetFee) = asset.handleRedeemFee(asset.getAmount(_config, sharesIn.mulDivDown(tAssets, tSupply)));
     }
 
@@ -281,11 +281,7 @@ contract Vault is IVault, ERC20 {
         address assetAddr,
         uint256 assetsOut
     ) public view virtual returns (uint256 sharesIn, uint256 assetFee) {
-        uint256 tSupply = totalSupply();
-        uint256 tAssets = totalAssets();
-
-        if (tSupply == 0) tSupply = 1e18;
-        if (tAssets == 0) tAssets = 1e18;
+        (uint256 tSupply, uint256 tAssets) = _getTSupplyTAssets();
 
         VaultAsset storage asset = _assets[assetAddr];
 
@@ -302,7 +298,8 @@ contract Vault is IVault, ERC20 {
         uint256 balance = IERC20(assetAddr).balanceOf(address(this));
 
         if (assetsOut + fee > balance) {
-            return _assets[assetAddr].usdWad(_config, balance).mulDivDown(totalSupply(), totalAssets());
+            (uint256 tSupply, uint256 tAssets) = _getTSupplyTAssets();
+            return _assets[assetAddr].usdWad(_config, balance).mulDivDown(tSupply, tAssets);
         } else {
             return _balances[owner];
         }
@@ -326,6 +323,16 @@ contract Vault is IVault, ERC20 {
             (max, ) = previewDeposit(assetAddr, depositLimit);
         } else {
             (max, ) = previewDeposit(assetAddr, balance);
+        }
+    }
+
+    function _getTSupplyTAssets() private view returns (uint256 tSupply, uint256 tAssets) {
+        tSupply = totalSupply();
+        tAssets = totalAssets();
+
+        if (tSupply == 0 || tAssets == 0) {
+            tSupply = TARGET_PRICE;
+            tAssets = TARGET_PRICE;
         }
     }
 
