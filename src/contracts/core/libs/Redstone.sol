@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 import {BitmapLib, SignatureLib, RedstoneError, RedstoneDefaultsLib} from "./RedstoneInternals.sol";
+import {console2} from "forge-std/console2.sol";
 
 // solhint-disable no-empty-blocks
 // solhint-disable avoid-low-level-calls
@@ -99,6 +100,7 @@ library Redstone {
      * @param receivedTimestampMilliseconds Timestamp extracted from calldata
      */
     function validateTimestamp(uint256 receivedTimestampMilliseconds) internal view {
+        console2.log("value: %s", receivedTimestampMilliseconds);
         // For testing this function is disabled
         // Uncomment this line to enable timestamp validation in prod
         // RedstoneDefaultsLib.validateTimestamp(receivedTimestampMilliseconds);

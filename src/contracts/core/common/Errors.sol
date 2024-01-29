@@ -99,6 +99,7 @@ library Errors {
     error INVALID_OPERATOR(ID, address who, address valid);
     error INVALID_SUPPLY_LIMIT(ID, uint256 invalid, uint256 valid);
     error NEGATIVE_PRICE(address asset, int256 price);
+    error INVALID_PYTH_PRICE(bytes32 id, uint256 price);
     error STALE_PRICE(string ticker, uint256 price, uint256 timeFromUpdate, uint256 threshold);
     error STALE_PUSH_PRICE(
         ID asset,

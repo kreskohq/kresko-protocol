@@ -30,13 +30,15 @@ library Enums {
      * Chainlink = 2,
      * API3 = 3,
      * Vault = 4
+     * Pyth = 5
      */
     enum OracleType {
         Empty,
         Redstone,
         Chainlink,
         API3,
-        Vault
+        Vault,
+        Pyth
     }
 
     /**

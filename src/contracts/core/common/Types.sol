@@ -13,6 +13,8 @@ using Assets for Asset global;
 /// @notice Oracle configuration mapped to `Asset.ticker`.
 struct Oracle {
     address feed;
+    bytes32 pythId;
+    uint32 staleTime;
 }
 
 /**

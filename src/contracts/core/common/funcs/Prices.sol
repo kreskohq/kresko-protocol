@@ -17,6 +17,7 @@ import {isSequencerUp} from "common/funcs/Utils.sol";
 import {RawPrice, Oracle} from "common/Types.sol";
 import {Percents, Enums} from "common/Constants.sol";
 import {fromWad, toWad} from "common/funcs/Math.sol";
+import {IPyth} from "vendor/pyth/IPyth.sol";
 
 using WadRay for uint256;
 using PercentageMath for uint256;
@@ -58,17 +59,20 @@ function oraclePrice(Enums.OracleType _oracleId, bytes32 _ticker) view returns (
     if (_oracleId == Enums.OracleType.Empty) return 0;
     if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker);
 
-    address feed = cs().oracles[_ticker][_oracleId].feed;
+    Oracle memory oracle = cs().oracles[_ticker][_oracleId];
+
+    if (_oracleId == Enums.OracleType.Pyth) return getPythPrice(IPyth(oracle.feed), oracle.pythId, oracle.staleTime);
+
     if (_oracleId == Enums.OracleType.Vault) {
-        return vaultPrice(feed);
+        return vaultPrice(oracle.feed);
     }
 
     if (_oracleId == Enums.OracleType.Chainlink) {
-        return aggregatorV3Price(feed, cs().staleTime);
+        return aggregatorV3Price(oracle.feed, oracle.staleTime);
     }
 
     if (_oracleId == Enums.OracleType.API3) {
-        return API3Price(feed, cs().staleTime);
+        return API3Price(oracle.feed, oracle.staleTime);
     }
 
     // Revert if no answer is found
@@ -98,6 +102,28 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
 
     // Revert if price deviates more than `_oracleDeviationPct`
     revert Errors.PRICE_UNSTABLE(_primaryPrice, _referencePrice, _oracleDeviationPct);
+}
+
+function getPythPrice(IPyth pyth, bytes32 id, uint256 staleTime) view returns (uint256 price) {
+    IPyth.Price memory result = pyth.getPriceNoOlderThan(id, staleTime);
+    price = normalizePythPriceTo8Decimals(result);
+
+    if (price == 0 || price > type(uint48).max) {
+        revert Errors.INVALID_PYTH_PRICE(id, price);
+    }
+}
+
+function normalizePythPriceTo8Decimals(IPyth.Price memory price) pure returns (uint256) {
+    uint256 result = uint64(price.price);
+    uint256 exp = uint32(-price.exp);
+    if (exp > 8) {
+        result = result / 10 ** (exp - 8);
+    }
+    if (exp < 8) {
+        result = result * 10 ** (8 - exp);
+    }
+
+    return result;
 }
 
 /**

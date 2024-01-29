@@ -107,8 +107,7 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
     /// @inheritdoc ICommonConfigFacet
     function setChainLinkFeed(bytes32 _ticker, address _feedAddr) public onlyRole(Role.ADMIN) {
         if (_feedAddr == address(0)) revert Errors.FEED_ZERO_ADDRESS(_ticker.toString());
-
-        cs().oracles[_ticker][Enums.OracleType.Chainlink] = Oracle(_feedAddr);
+        cs().oracles[_ticker][Enums.OracleType.Chainlink].feed = _feedAddr;
         if (CommonStateFacet(address(this)).getChainlinkPrice(_feedAddr) == 0) {
             revert Errors.INVALID_CL_PRICE(_ticker.toString(), _feedAddr);
         }
@@ -117,8 +116,7 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
     /// @inheritdoc ICommonConfigFacet
     function setApi3Feed(bytes32 _ticker, address _feedAddr) public onlyRole(Role.ADMIN) {
         if (_feedAddr == address(0)) revert Errors.FEED_ZERO_ADDRESS(_ticker.toString());
-
-        cs().oracles[_ticker][Enums.OracleType.API3] = Oracle(_feedAddr);
+        cs().oracles[_ticker][Enums.OracleType.API3].feed = _feedAddr;
 
         if (CommonStateFacet(address(this)).getAPI3Price(_feedAddr) == 0) {
             revert Errors.INVALID_API3_PRICE(_ticker.toString(), _feedAddr);
@@ -128,8 +126,7 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
     /// @inheritdoc ICommonConfigFacet
     function setVaultFeed(bytes32 _ticker, address _vaultAddr) public onlyRole(Role.ADMIN) {
         if (_vaultAddr == address(0)) revert Errors.FEED_ZERO_ADDRESS(_ticker.toString());
-
-        cs().oracles[_ticker][Enums.OracleType.Vault] = Oracle(_vaultAddr);
+        cs().oracles[_ticker][Enums.OracleType.Vault].feed = _vaultAddr;
         if (CommonStateFacet(address(this)).getVaultPrice(_vaultAddr) == 0) {
             // reverts internally above if price is 0
             revert Errors.INVALID_VAULT_PRICE(_ticker.toString(), _vaultAddr);
