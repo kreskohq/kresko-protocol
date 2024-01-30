@@ -68,6 +68,7 @@ struct Config {
 struct Params {
     string configId;
     address deploymentFactory;
+    address pythEndpoint;
     CommonInitArgs common;
     SCDPInitArgs scdp;
     MinterInitArgs minter;
@@ -123,6 +124,11 @@ struct TickerConfig {
     address chainlink;
     address api3;
     address vault;
+    bytes32 pythId;
+    uint256 staleTimePyth;
+    uint256 staleTimeAPI3;
+    uint256 staleTimeChainlink;
+    uint256 staleTimeRedstone;
     bool useAdapter;
 }
 

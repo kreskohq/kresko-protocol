@@ -61,7 +61,7 @@ function oraclePrice(Enums.OracleType _oracleId, bytes32 _ticker) view returns (
 
     Oracle memory oracle = cs().oracles[_ticker][_oracleId];
 
-    if (_oracleId == Enums.OracleType.Pyth) return getPythPrice(IPyth(oracle.feed), oracle.pythId, oracle.staleTime);
+    if (_oracleId == Enums.OracleType.Pyth) return getPythPrice(oracle.pythId, oracle.staleTime);
 
     if (_oracleId == Enums.OracleType.Vault) {
         return vaultPrice(oracle.feed);
@@ -104,18 +104,18 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
     revert Errors.PRICE_UNSTABLE(_primaryPrice, _referencePrice, _oracleDeviationPct);
 }
 
-function getPythPrice(IPyth pyth, bytes32 id, uint256 staleTime) view returns (uint256 price) {
-    IPyth.Price memory result = pyth.getPriceNoOlderThan(id, staleTime);
-    price = normalizePythPriceTo8Decimals(result);
+function getPythPrice(bytes32 _id, uint256 _staleTime) view returns (uint256 price_) {
+    IPyth.Price memory result = IPyth(cs().pythEp).getPriceNoOlderThan(_id, _staleTime);
+    price_ = normalizePythPriceTo8Decimals(result);
 
-    if (price == 0 || price > type(uint48).max) {
-        revert Errors.INVALID_PYTH_PRICE(id, price);
+    if (price_ == 0 || price_ > type(uint48).max) {
+        revert Errors.INVALID_PYTH_PRICE(_id, price_);
     }
 }
 
-function normalizePythPriceTo8Decimals(IPyth.Price memory price) pure returns (uint256) {
-    uint256 result = uint64(price.price);
-    uint256 exp = uint32(-price.exp);
+function normalizePythPriceTo8Decimals(IPyth.Price memory _price) pure returns (uint256) {
+    uint256 result = uint64(_price.price);
+    uint256 exp = uint32(-_price.exp);
     if (exp > 8) {
         result = result / 10 ** (exp - 8);
     }
@@ -158,7 +158,7 @@ function aggregatorV3Price(address _feedAddr, uint256 _staleTime) view returns (
     }
     // IMPORTANT: Returning zero when answer is stale, to activate fallback oracle.
     if (block.timestamp - updatedAt > _staleTime) {
-        return 0;
+        revert Errors.STALE_ORACLE(uint8(Enums.OracleType.Chainlink), _feedAddr, block.timestamp - updatedAt, _staleTime);
     }
     return uint256(answer);
 }
@@ -176,7 +176,7 @@ function API3Price(address _feedAddr, uint256 _staleTime) view returns (uint256)
     }
     // IMPORTANT: Returning zero when answer is stale, to activate fallback oracle.
     if (block.timestamp - updatedAt > _staleTime) {
-        return 0;
+        revert Errors.STALE_ORACLE(uint8(Enums.OracleType.API3), _feedAddr, block.timestamp - updatedAt, _staleTime);
     }
     return fromWad(uint256(answer), cs().oracleDecimals); // API3 returns 18 decimals always.
 }

@@ -16,9 +16,9 @@ import {Ownable} from "@oz/access/Ownable.sol";
 import "scripts/deploy/libs/JSON.s.sol" as JSON;
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
-import {Role} from "common/Constants.sol";
+import {Enums, Role} from "common/Constants.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import {Asset} from "common/Types.sol";
+import {Asset, FeedConfiguration} from "common/Types.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
 
@@ -182,12 +182,22 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     }
 
     function _addKISS(JSON.Config memory json) private {
-        address[2] memory kissFeeds = [address(vault), address(0)];
         json
             .assets
             .kiss
             .symbol
-            .cache(kresko.addAsset(address(kiss), json.assets.kiss.config.toAsset(json.assets.kiss.symbol), kissFeeds))
+            .cache(
+                kresko.addAsset(
+                    address(kiss),
+                    json.assets.kiss.config.toAsset(json.assets.kiss.symbol),
+                    FeedConfiguration(
+                        [Enums.OracleType.Vault, Enums.OracleType.Empty],
+                        [address(vault), address(0)],
+                        [uint256(0), 0],
+                        bytes32(0)
+                    )
+                )
+            )
             .logAsset(address(kresko), address(kiss));
         kresko.setFeeAssetSCDP(address(kiss));
     }
@@ -203,14 +213,14 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         for (uint256 i; i < json.assets.extAssets.length; i++) {
             JSON.ExtAsset memory eAsset = json.assets.extAssets[i];
             Asset memory assetConfig = eAsset.config.toAsset(eAsset.symbol);
-            address[2] memory feeds = [address(0), address(0)];
+            FeedConfiguration memory feedConfig;
             if (!tickerExists[assetConfig.ticker]) {
-                feeds = json.getFeeds(eAsset.config.ticker, eAsset.config.oracles);
+                feedConfig = json.getFeeds(eAsset.config.ticker, eAsset.config.oracles);
                 tickerExists[assetConfig.ticker] = true;
             }
 
             tickerExists[assetConfig.ticker] = true;
-            eAsset.symbol.cache(kresko.addAsset(eAsset.addr, assetConfig, feeds)).logAsset(diamond, eAsset.addr);
+            eAsset.symbol.cache(kresko.addAsset(eAsset.addr, assetConfig, feedConfig)).logAsset(diamond, eAsset.addr);
         }
     }
 
@@ -219,14 +229,14 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
             JSON.KrAssetConfig memory krAsset = json.assets.kreskoAssets[i];
 
             Asset memory assetConfig = krAsset.config.toAsset(krAsset.symbol);
-            address[2] memory feeds = [address(0), address(0)];
+            FeedConfiguration memory feedConfig;
             if (!tickerExists[assetConfig.ticker]) {
-                feeds = json.getFeeds(krAsset.config.ticker, krAsset.config.oracles);
+                feedConfig = json.getFeeds(krAsset.config.ticker, krAsset.config.oracles);
                 tickerExists[assetConfig.ticker] = true;
             }
 
             address assetAddr = krAsset.symbol.cached();
-            krAsset.symbol.cache(kresko.addAsset(assetAddr, assetConfig, feeds)).logAsset(diamond, assetAddr);
+            krAsset.symbol.cache(kresko.addAsset(assetAddr, assetConfig, feedConfig)).logAsset(diamond, assetAddr);
         }
     }
 

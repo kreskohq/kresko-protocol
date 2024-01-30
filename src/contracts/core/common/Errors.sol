@@ -37,6 +37,7 @@ library Errors {
     error SCDP_ASSET_ECONOMY(ID, uint256 seizeReductionPct, ID, uint256 repayIncreasePct);
     error MINTER_ASSET_ECONOMY(ID, uint256 seizeReductionPct, ID, uint256 repayIncreasePct);
     error INVALID_TICKER(ID, string ticker);
+    error PYTH_EP_ZERO();
     error ASSET_NOT_ENABLED(ID);
     error ASSET_SET_FEEDS_FAILED(ID);
     error ASSET_CANNOT_BE_USED_TO_COVER(ID);
@@ -113,6 +114,7 @@ library Errors {
     error PRICE_UNSTABLE(uint256 primaryPrice, uint256 referencePrice, uint256 deviationPct);
     error ZERO_OR_STALE_VAULT_PRICE(ID, address, uint256);
     error ZERO_OR_STALE_PRICE(string ticker, uint8[2] oracles);
+    error STALE_ORACLE(uint8 oracleType, address feed, uint256 time, uint256 staleTime);
     error ZERO_OR_NEGATIVE_PUSH_PRICE(ID asset, string ticker, int256 price, uint8 oracleType, address feed);
     error UNSUPPORTED_ORACLE(string ticker, uint8 oracle);
     error NO_PUSH_ORACLE_SET(string ticker);
@@ -131,6 +133,7 @@ library Errors {
     error MISSING_PHASE_2_NFT();
     error MISSING_PHASE_1_NFT();
     error CANNOT_RE_ENTER();
+    error PYTH_ID_ZERO(string ticker);
     error ARRAY_LENGTH_MISMATCH(string ticker, uint256 arr1, uint256 arr2);
     error COLLATERAL_VALUE_GREATER_THAN_REQUIRED(uint256 collateralValue, uint256 minCollateralValue, uint32 ratio);
     error COLLATERAL_VALUE_GREATER_THAN_COVER_THRESHOLD(uint256 collateralValue, uint256 minCollateralValue, uint48 ratio);

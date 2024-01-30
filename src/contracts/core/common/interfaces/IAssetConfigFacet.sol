@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {Asset} from "common/Types.sol";
+import {Asset, FeedConfiguration} from "common/Types.sol";
 import {Enums} from "common/Constants.sol";
 
 interface IAssetConfigFacet {
@@ -10,10 +10,14 @@ interface IAssetConfigFacet {
      * @dev Use validateAssetConfig / static call this for validation.
      * @param _assetAddr Asset address.
      * @param _config Configuration struct to save for the asset.
-     * @param _feeds Feed addresses, if both are address(0) they are ignored.
+     * @param _feedConfig Configuration struct for the asset's oracles
      * @return Asset Result of addAsset.
      */
-    function addAsset(address _assetAddr, Asset memory _config, address[2] memory _feeds) external returns (Asset memory);
+    function addAsset(
+        address _assetAddr,
+        Asset memory _config,
+        FeedConfiguration memory _feedConfig
+    ) external returns (Asset memory);
 
     /**
      * @notice Update asset config.

@@ -41,7 +41,7 @@ library PType {
         Minter minter;
         PAsset[] assets;
         uint32 sequencerGracePeriodTime;
-        uint32 staleTime;
+        address pythEp;
         uint32 maxPriceDeviationPct;
         uint8 oracleDecimals;
         uint32 sequencerStartedAt;

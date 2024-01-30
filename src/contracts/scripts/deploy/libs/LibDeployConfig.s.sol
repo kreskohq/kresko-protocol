@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 import {mvm} from "kresko-lib/utils/MinVm.s.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
-import {Asset} from "common/Types.sol";
+import {Asset, FeedConfiguration} from "common/Types.sol";
 import {Enums} from "common/Constants.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
@@ -67,47 +67,60 @@ library LibDeployConfig {
         JSON.Config memory json,
         string memory _assetTicker,
         Enums.OracleType[] memory _assetOracles
-    ) internal pure returns (address[2] memory result) {
+    ) internal pure returns (FeedConfiguration memory) {
         JSON.TickerConfig memory ticker = json.getTicker(_assetTicker);
-        address feed1 = ticker.getFeed(_assetOracles[0]);
-        address feed2 = ticker.getFeed(_assetOracles[1]);
-        return [feed1, feed2];
+        (uint256 staleTime1, address feed1) = ticker.getFeed(_assetOracles[0]);
+        (uint256 staleTime2, address feed2) = ticker.getFeed(_assetOracles[1]);
+        return
+            FeedConfiguration({
+                oracleIds: [_assetOracles[0], _assetOracles[1]],
+                feeds: [feed1, feed2],
+                pythId: ticker.pythId,
+                staleTimes: [staleTime1, staleTime2]
+            });
     }
 
     function getFeed(JSON.Config memory json, string[] memory config) internal pure returns (IAggregatorV3) {
-        return IAggregatorV3(json.getTicker(config[0]).getFeed(config[1]));
+        (, address feed) = json.getTicker(config[0]).getFeed(config[1]);
+        return IAggregatorV3(feed);
     }
 
-    function getFeed(JSON.TickerConfig memory ticker, string memory oracle) internal pure returns (address) {
+    function getFeed(JSON.TickerConfig memory ticker, string memory oracle) internal pure returns (uint256, address) {
         if (oracle.equals("chainlink")) {
-            return ticker.chainlink;
+            return (ticker.staleTimeChainlink, ticker.chainlink);
         }
         if (oracle.equals("api3")) {
-            return ticker.api3;
+            return (ticker.staleTimeAPI3, ticker.api3);
         }
         if (oracle.equals("vault")) {
-            return ticker.vault;
+            return (0, ticker.vault);
         }
         if (oracle.equals("redstone")) {
-            return address(0);
+            return (ticker.staleTimeRedstone, address(0));
         }
-        return address(0);
+        if (oracle.equals("pyth")) {
+            return (ticker.staleTimePyth, address(0));
+        }
+        return (0, address(0));
     }
 
-    function getFeed(JSON.TickerConfig memory ticker, Enums.OracleType oracle) internal pure returns (address) {
+    function getFeed(JSON.TickerConfig memory ticker, Enums.OracleType oracle) internal pure returns (uint256, address) {
         if (oracle == Enums.OracleType.Chainlink) {
-            return ticker.chainlink;
+            return (ticker.staleTimeChainlink, ticker.chainlink);
         }
         if (oracle == Enums.OracleType.API3) {
-            return ticker.api3;
+            return (ticker.staleTimeAPI3, ticker.api3);
         }
         if (oracle == Enums.OracleType.Vault) {
-            return ticker.vault;
+            return (0, ticker.vault);
         }
         if (oracle == Enums.OracleType.Redstone) {
-            return address(0);
+            return (ticker.staleTimeRedstone, address(0));
         }
-        return address(0);
+        if (oracle == Enums.OracleType.Pyth) {
+            return (ticker.staleTimePyth, address(0));
+        }
+        return (0, address(0));
     }
 
     function toAsset(JSON.AssetJSON memory assetJson, string memory symbol) internal view returns (Asset memory result) {

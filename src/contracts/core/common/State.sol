@@ -24,6 +24,8 @@ struct CommonState {
     /* -------------------------------------------------------------------------- */
     /*                             Oracle & Sequencer                             */
     /* -------------------------------------------------------------------------- */
+    /// @notice Pyth endpoint
+    address pythEp;
     /// @notice L2 sequencer feed address
     address sequencerUptimeFeed;
     /// @notice grace period of sequencer in seconds

@@ -49,7 +49,7 @@ contract PeripheryTest is Tested, Deploy {
         PType.Protocol memory protocol = dataV1.getGlobalsPushPriced().protocol;
         protocol.maxPriceDeviationPct.eq(cfg.params.common.maxPriceDeviationPct, "maxPriceDeviationPct");
         protocol.oracleDecimals.eq(cfg.params.common.oracleDecimals, "oracleDecimals");
-        protocol.staleTime.eq(cfg.params.common.staleTime, "staleTime");
+        protocol.pythEp.eq(cfg.params.common.pythEp, "pythEp");
         protocol.isSequencerUp.eq(true, "isSequencerUp");
         protocol.safetyStateSet.eq(false, "safetyStateSet");
         protocol.sequencerGracePeriodTime.eq(cfg.params.common.sequencerGracePeriodTime, "sequencerGracePeriodTime");
@@ -162,7 +162,7 @@ contract PeripheryTest is Tested, Deploy {
         PType.Protocol memory protocol = dataV1.getGlobals(rsPayload).protocol;
         protocol.maxPriceDeviationPct.eq(cfg.params.common.maxPriceDeviationPct, "maxPriceDeviationPct");
         protocol.oracleDecimals.eq(cfg.params.common.oracleDecimals, "oracleDecimals");
-        protocol.staleTime.eq(cfg.params.common.staleTime, "staleTime");
+        protocol.pythEp.eq(cfg.params.common.pythEp, "pythEp");
         protocol.isSequencerUp.eq(true, "isSequencerUp");
         protocol.safetyStateSet.eq(false, "safetyStateSet");
         protocol.sequencerGracePeriodTime.eq(cfg.params.common.sequencerGracePeriodTime, "sequencerGracePeriodTime");

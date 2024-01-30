@@ -82,7 +82,7 @@ library PFuncPushPriced {
         result.scdp = getSCDP();
         result.maxPriceDeviationPct = cs().maxPriceDeviationPct;
         result.oracleDecimals = cs().oracleDecimals;
-        result.staleTime = cs().staleTime;
+        result.pythEp = cs().pythEp;
         result.safetyStateSet = cs().safetyStateSet;
         result.sequencerGracePeriodTime = cs().sequencerGracePeriodTime;
         result.isSequencerUp = isSequencerUp(cs().sequencerUptimeFeed, cs().sequencerGracePeriodTime);

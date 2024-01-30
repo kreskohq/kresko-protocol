@@ -14,7 +14,7 @@ using Assets for Asset global;
 struct Oracle {
     address feed;
     bytes32 pythId;
-    uint32 staleTime;
+    uint256 staleTime;
 }
 
 /**
@@ -25,6 +25,8 @@ struct Oracle {
 struct FeedConfiguration {
     Enums.OracleType[2] oracleIds;
     address[2] feeds;
+    uint256[2] staleTimes;
+    bytes32 pythId;
 }
 
 /**
@@ -156,7 +158,7 @@ struct CommonInitArgs {
     uint16 maxPriceDeviationPct;
     uint8 oracleDecimals;
     uint32 sequencerGracePeriodTime;
-    uint32 staleTime;
     address sequencerUptimeFeed;
     address gatingManager;
+    address pythEp;
 }
