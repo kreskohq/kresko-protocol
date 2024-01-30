@@ -136,6 +136,9 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
         if (_pythId == bytes32(0)) revert Errors.PYTH_ID_ZERO(_ticker.toString());
         cs().oracles[_ticker][Enums.OracleType.Pyth].pythId = _pythId;
         cs().oracles[_ticker][Enums.OracleType.Pyth].staleTime = _staleTime;
+        if (CommonStateFacet(address(this)).getPythPrice(_ticker) == 0) {
+            revert Errors.INVALID_PYTH_PRICE(_pythId, 0);
+        }
     }
 
     /// @inheritdoc ICommonConfigFacet
@@ -143,7 +146,7 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
         if (_feedAddr == address(0)) revert Errors.FEED_ZERO_ADDRESS(_ticker.toString());
         cs().oracles[_ticker][Enums.OracleType.Chainlink].feed = _feedAddr;
         cs().oracles[_ticker][Enums.OracleType.Chainlink].staleTime = _staleTime;
-        if (CommonStateFacet(address(this)).getChainlinkPrice(_feedAddr) == 0) {
+        if (CommonStateFacet(address(this)).getChainlinkPrice(_ticker) == 0) {
             revert Errors.INVALID_CL_PRICE(_ticker.toString(), _feedAddr);
         }
     }
@@ -154,7 +157,7 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
         cs().oracles[_ticker][Enums.OracleType.API3].feed = _feedAddr;
         cs().oracles[_ticker][Enums.OracleType.API3].staleTime = _staleTime;
 
-        if (CommonStateFacet(address(this)).getAPI3Price(_feedAddr) == 0) {
+        if (CommonStateFacet(address(this)).getAPI3Price(_ticker) == 0) {
             revert Errors.INVALID_API3_PRICE(_ticker.toString(), _feedAddr);
         }
     }
@@ -163,7 +166,7 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
     function setVaultFeed(bytes32 _ticker, address _vaultAddr) public onlyRole(Role.ADMIN) {
         if (_vaultAddr == address(0)) revert Errors.FEED_ZERO_ADDRESS(_ticker.toString());
         cs().oracles[_ticker][Enums.OracleType.Vault].feed = _vaultAddr;
-        if (CommonStateFacet(address(this)).getVaultPrice(_vaultAddr) == 0) {
+        if (CommonStateFacet(address(this)).getVaultPrice(_ticker) == 0) {
             // reverts internally above if price is 0
             revert Errors.INVALID_VAULT_PRICE(_ticker.toString(), _vaultAddr);
         }

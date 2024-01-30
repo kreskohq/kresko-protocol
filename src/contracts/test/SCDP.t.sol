@@ -503,7 +503,7 @@ contract SCDPTest is Tested, Deploy {
     function _setETHPrice(uint256 price) internal repranked(admin) {
         rsInit("ETH:".and((price / 1e8).str().and(":8")));
         // MockOracle(kresko.get(address(krETH))).setPrice(price);
-        MockOracle(kresko.getFeedForId(bytes32("ETH"), Enums.OracleType.Chainlink)).setPrice(price);
+        MockOracle(kresko.getOracleOfTicker(bytes32("ETH"), Enums.OracleType.Chainlink).feed).setPrice(price);
     }
 
     function _previewSwap(

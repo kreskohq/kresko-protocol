@@ -57,11 +57,11 @@ function safePrice(bytes32 _ticker, Enums.OracleType[2] memory _oracles, uint256
  */
 function oraclePrice(Enums.OracleType _oracleId, bytes32 _ticker) view returns (uint256) {
     if (_oracleId == Enums.OracleType.Empty) return 0;
-    if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker);
-
     Oracle memory oracle = cs().oracles[_ticker][_oracleId];
 
-    if (_oracleId == Enums.OracleType.Pyth) return getPythPrice(oracle.pythId, oracle.staleTime);
+    if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker, oracle.staleTime);
+
+    if (_oracleId == Enums.OracleType.Pyth) return pythPrice(oracle.pythId, oracle.staleTime);
 
     if (_oracleId == Enums.OracleType.Vault) {
         return vaultPrice(oracle.feed);
@@ -104,7 +104,7 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
     revert Errors.PRICE_UNSTABLE(_primaryPrice, _referencePrice, _oracleDeviationPct);
 }
 
-function getPythPrice(bytes32 _id, uint256 _staleTime) view returns (uint256 price_) {
+function pythPrice(bytes32 _id, uint256 _staleTime) view returns (uint256 price_) {
     IPyth.Price memory result = IPyth(cs().pythEp).getPriceNoOlderThan(_id, _staleTime);
     price_ = normalizePythPriceTo8Decimals(result);
 
