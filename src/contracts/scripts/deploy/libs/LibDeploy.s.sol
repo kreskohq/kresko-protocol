@@ -19,7 +19,8 @@ import {GatingManager} from "periphery/GatingManager.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {CONST} from "scripts/deploy/libs/CONST.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
-import {MockPyth} from "mocks/MockPyth.sol";
+import {getMockPythCtor, MockPyth} from "mocks/MockPyth.sol";
+import {getPythData, Result} from "vendor/pyth/PythScript.sol";
 
 library LibDeploy {
     using Conversions for bytes[];
@@ -47,9 +48,27 @@ library LibDeploy {
         return GatingManager(implementation.d3("", CONST.GM_SALT).implementation);
     }
 
-    function createMockPythEP(JSON.Config memory json, address _owner) internal saveOutput("MockPythEP") returns (MockPyth) {
-        bytes[] memory updateData = new bytes[](0);
-        bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(updateData));
+    function createMockPythEP(
+        JSON.Config memory json,
+        address _owner,
+        bool _realPrices
+    ) internal saveOutput("MockPythEP") returns (MockPyth) {
+        bytes32[] memory ids = new bytes32[](json.assets.tickers.length);
+        int64[] memory prices = new int64[](json.assets.tickers.length);
+
+        for (uint256 i; i < json.assets.tickers.length; i++) {
+            ids[i] = json.assets.tickers[i].pythId;
+            prices[i] = int64(uint64(json.assets.tickers[i].mockPrice));
+        }
+
+        if (_realPrices) {
+            Result memory res = getPythData(ids);
+            for (uint256 i; i < res.ids.length; i++) {
+                prices[i] = res.prices[i].price;
+            }
+        }
+
+        bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(getMockPythCtor(ids, prices)));
         return MockPyth(implementation.d3("", CONST.PYTH_MOCK_SALT).implementation);
     }
 

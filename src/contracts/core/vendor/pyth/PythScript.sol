@@ -3,7 +3,6 @@ pragma solidity ^0.8.19;
 
 import {VM} from "kresko-lib/utils/LibVM.s.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
-import {console2} from "forge-std/console2.sol";
 
 struct Result {
     bytes32[] ids;
@@ -19,7 +18,5 @@ function getPythData(bytes32[] memory _ids) returns (Result memory result) {
     }
 
     (bytes32[] memory ids, IPyth.Price[] memory prices) = abi.decode(VM.ffi(args), (bytes32[], IPyth.Price[]));
-    console2.log("ids", _ids.length);
-    console2.log("prices", prices.length);
     return Result(ids, prices);
 }

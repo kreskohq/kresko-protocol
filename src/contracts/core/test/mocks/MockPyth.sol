@@ -47,6 +47,14 @@ contract MockPyth is IPyth {
     }
 }
 
+function getMockPythCtor(bytes32[] memory _ids, int64[] memory _prices) view returns (bytes[] memory) {
+    bytes[] memory _updateData = new bytes[](_ids.length);
+    for (uint256 i = 0; i < _ids.length; i++) {
+        _updateData[i] = abi.encode(_ids[i], IPyth.Price(_prices[i], uint64(_prices[i]) / 1000, -8, block.timestamp));
+    }
+    return _updateData;
+}
+
 function createMockPyth(bytes32[] memory _ids, int64[] memory _prices) returns (MockPyth) {
     bytes[] memory _updateData = new bytes[](_ids.length);
     for (uint256 i = 0; i < _ids.length; i++) {
