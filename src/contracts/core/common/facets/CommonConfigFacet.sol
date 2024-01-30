@@ -74,7 +74,7 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
     }
 
     /// @inheritdoc ICommonConfigFacet
-    function setFeedsForTicker(bytes32 _ticker, FeedConfiguration calldata _feedConfig) external onlyRole(Role.ADMIN) {
+    function setFeedsForTicker(bytes32 _ticker, FeedConfiguration memory _feedConfig) external onlyRole(Role.ADMIN) {
         Enums.OracleType[2] memory oracles = _feedConfig.oracleIds;
         address[2] memory feeds = _feedConfig.feeds;
         if (oracles.length != feeds.length) {
@@ -136,9 +136,6 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
         if (_pythId == bytes32(0)) revert Errors.PYTH_ID_ZERO(_ticker.toString());
         cs().oracles[_ticker][Enums.OracleType.Pyth].pythId = _pythId;
         cs().oracles[_ticker][Enums.OracleType.Pyth].staleTime = _staleTime;
-        if (CommonStateFacet(address(this)).getPythPrice(_ticker) == 0) {
-            revert Errors.INVALID_PYTH_PRICE(_pythId, 0);
-        }
     }
 
     /// @inheritdoc ICommonConfigFacet

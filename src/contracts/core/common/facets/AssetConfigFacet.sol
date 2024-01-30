@@ -37,7 +37,6 @@ contract AssetConfigFacet is IAssetConfigFacet, Modifiers, DSModifiers {
     ) external onlyRole(Role.ADMIN) returns (Asset memory) {
         (string memory symbol, string memory tickerStr, uint8 decimals) = _assetAddr.validateAddAssetArgs(_config);
         _config.decimals = decimals;
-        _config.oracles = _feedConfig.oracleIds;
 
         if (Validations.validateMinterCollateral(_assetAddr, _config)) {
             ms().collaterals.push(_assetAddr);

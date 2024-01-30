@@ -35,67 +35,6 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     mapping(bytes32 => bool) routeExists;
     SwapRouteSetter[] routeCache;
 
-    function deploy(
-        string memory network,
-        string memory mnemonicEnv,
-        uint32 deployer,
-        bool saveOutput,
-        bool disableLog
-    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory) {
-        return deploy(network, network, mnemonicEnv, deployer, saveOutput, disableLog);
-    }
-
-    function deploy(
-        string memory network,
-        string memory configId,
-        string memory mnemonicEnv,
-        uint32 deployer,
-        bool saveOutput,
-        bool disableLog
-    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
-        if (disableLog) LibDeploy.disableLog();
-        else Log.clg(network.and(":").and(configId), "Deploying");
-        if (saveOutput) LibDeploy.initOutputJSON(configId);
-
-        json = exec(JSON.getConfig(network, configId), getAddr(deployer), disableLog);
-
-        if (saveOutput) LibDeploy.writeOutputJSON();
-    }
-
-    function deployTest(uint32 deployer) public returns (JSON.Config memory) {
-        return deploy("test", "test-base", "MNEMONIC_DEVNET", deployer, false, true);
-    }
-
-    function deployTest(string memory mnemonic, string memory configId, uint32 deployer) public returns (JSON.Config memory) {
-        return deploy("test", configId, mnemonic, deployer, false, true);
-    }
-
-    function deployFrom(
-        string memory dir,
-        string memory configId,
-        string memory mnemonicEnv,
-        uint32 deployer,
-        bool saveOutput,
-        bool disableLog
-    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
-        if (disableLog) LibDeploy.disableLog();
-        else Log.clg(dir.and(configId), "Deploying from");
-        if (saveOutput) LibDeploy.initOutputJSON(configId);
-
-        json = exec(JSON.getConfigFrom(dir, configId), getAddr(deployer), disableLog);
-
-        if (saveOutput) LibDeploy.writeOutputJSON();
-    }
-
-    function deployFromTest(
-        string memory mnemonic,
-        string memory dir,
-        string memory configId,
-        uint32 deployer
-    ) public returns (JSON.Config memory) {
-        return deployFrom(dir, configId, mnemonic, deployer, false, true);
-    }
-
     function exec(
         JSON.Config memory json,
         address deployer,
@@ -458,5 +397,66 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
 
     function _transfer(address from, address to, address token, uint256 amount) internal rebroadcasted(from) {
         MockERC20(token).transfer(to, amount);
+    }
+
+    function deploy(
+        string memory network,
+        string memory mnemonicEnv,
+        uint32 deployer,
+        bool saveOutput,
+        bool disableLog
+    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory) {
+        return deploy(network, network, mnemonicEnv, deployer, saveOutput, disableLog);
+    }
+
+    function deploy(
+        string memory network,
+        string memory configId,
+        string memory mnemonicEnv,
+        uint32 deployer,
+        bool saveOutput,
+        bool disableLog
+    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
+        if (disableLog) LibDeploy.disableLog();
+        else Log.clg(network.and(":").and(configId), "Deploying");
+        if (saveOutput) LibDeploy.initOutputJSON(configId);
+
+        json = exec(JSON.getConfig(network, configId), getAddr(deployer), disableLog);
+
+        if (saveOutput) LibDeploy.writeOutputJSON();
+    }
+
+    function deployTest(uint32 deployer) public returns (JSON.Config memory) {
+        return deploy("test", "test-base", "MNEMONIC_DEVNET", deployer, false, true);
+    }
+
+    function deployTest(string memory mnemonic, string memory configId, uint32 deployer) public returns (JSON.Config memory) {
+        return deploy("test", configId, mnemonic, deployer, false, true);
+    }
+
+    function deployFrom(
+        string memory dir,
+        string memory configId,
+        string memory mnemonicEnv,
+        uint32 deployer,
+        bool saveOutput,
+        bool disableLog
+    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
+        if (disableLog) LibDeploy.disableLog();
+        else Log.clg(dir.and(configId), "Deploying from");
+        if (saveOutput) LibDeploy.initOutputJSON(configId);
+
+        json = exec(JSON.getConfigFrom(dir, configId), getAddr(deployer), disableLog);
+
+        if (saveOutput) LibDeploy.writeOutputJSON();
+    }
+
+    function deployFromTest(
+        string memory mnemonic,
+        string memory dir,
+        string memory configId,
+        uint32 deployer
+    ) public returns (JSON.Config memory) {
+        return deployFrom(dir, configId, mnemonic, deployer, false, true);
     }
 }

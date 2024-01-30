@@ -68,7 +68,6 @@ struct Config {
 struct Params {
     string configId;
     address deploymentFactory;
-    address pythEndpoint;
     CommonInitArgs common;
     SCDPInitArgs scdp;
     MinterInitArgs minter;
