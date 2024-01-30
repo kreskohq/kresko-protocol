@@ -35,7 +35,7 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
         setMaxPriceDeviationPct(args.maxPriceDeviationPct);
         setSequencerGracePeriod(args.sequencerGracePeriodTime);
         setGatingManager(args.gatingManager);
-        cs().pythEp = args.pythEp;
+        setPythEndpoint(args.pythEp);
         ds().supportedInterfaces[type(IAuthorizationFacet).interfaceId] = true;
         // Revoke admin role from deployer
         Auth._revokeRole(Role.ADMIN, msg.sender);
