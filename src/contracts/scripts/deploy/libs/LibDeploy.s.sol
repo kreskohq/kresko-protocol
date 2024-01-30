@@ -19,6 +19,7 @@ import {GatingManager} from "periphery/GatingManager.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {CONST} from "scripts/deploy/libs/CONST.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
+import {MockPyth} from "mocks/MockPyth.sol";
 
 library LibDeploy {
     using Conversions for bytes[];
@@ -44,6 +45,12 @@ library LibDeploy {
             abi.encode(_owner, json.params.periphery.okNFT, json.params.periphery.qfkNFT, 0)
         );
         return GatingManager(implementation.d3("", CONST.GM_SALT).implementation);
+    }
+
+    function createMockPythEP(JSON.Config memory json, address _owner) internal saveOutput("MockPythEP") returns (MockPyth) {
+        bytes[] memory updateData = new bytes[](0);
+        bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(updateData));
+        return MockPyth(implementation.d3("", CONST.PYTH_MOCK_SALT).implementation);
     }
 
     function createKISS(

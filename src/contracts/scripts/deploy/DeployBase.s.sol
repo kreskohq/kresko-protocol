@@ -24,6 +24,7 @@ import {MinterConfigFacet} from "minter/facets/MinterConfigFacet.sol";
 import {CommonConfigFacet} from "common/facets/CommonConfigFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {CONST} from "scripts/deploy/libs/CONST.s.sol";
+import {IPyth} from "vendor/pyth/IPyth.sol";
 
 abstract contract DeployBase {
     using LibDeploy for bytes;
@@ -40,6 +41,7 @@ abstract contract DeployBase {
     IDeploymentFactory factory;
     IKrMulticall multicall;
     IGatingManager gatingManager;
+    IPyth pythEp;
     IDataV1 dataV1;
     IWETH9 weth;
 

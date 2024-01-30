@@ -18,6 +18,7 @@ library LibDeployMocks {
     using Help for *;
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
+    using LibDeploy for JSON.Config;
     using LibDeployConfig for *;
     bytes32 internal constant MOCKS_SLOT = keccak256("Mocks");
 
@@ -83,6 +84,11 @@ library LibDeployMocks {
         if (json.users.nfts.useMocks) {
             (json.params.periphery.okNFT, json.params.periphery.qfkNFT) = createNFTMocks();
         }
+
+        address mockPythEP = deployMockPythEP(json, deployer);
+        if (json.params.common.pythEp == address(0)) {
+            json.params.common.pythEp = mockPythEP;
+        }
         return json;
     }
 
@@ -117,6 +123,10 @@ library LibDeployMocks {
         LibDeploy.saveJSONKey();
 
         return (deployment.implementation, deployment2.implementation);
+    }
+
+    function deployMockPythEP(JSON.Config memory json, address _deployer) internal returns (address) {
+        return address(json.createMockPythEP(_deployer));
     }
 
     function deployMockOracle(string memory ticker, uint256 price, uint8 decimals) internal returns (MockOracle) {

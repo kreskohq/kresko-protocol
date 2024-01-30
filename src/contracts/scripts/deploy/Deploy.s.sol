@@ -21,6 +21,7 @@ import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {Asset, FeedConfiguration} from "common/Types.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
+import {IPyth} from "vendor/pyth/IPyth.sol";
 
 contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     using LibDeployConfig for *;
@@ -109,6 +110,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
         // Create configured mocks, updates the received config with addresses.
         json = json.createMocks(deployer);
+        pythEp = IPyth(json.params.common.pythEp);
         weth = json.assets.wNative.token;
         // Set tokens to cache as we know them at this point.
         json.cacheExtTokens();
