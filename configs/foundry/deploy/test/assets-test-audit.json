@@ -18,7 +18,7 @@
         "00_ticker": "ETH",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -60,7 +60,7 @@
         "00_ticker": "BTC",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -102,7 +102,7 @@
         "00_ticker": "USDC",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -147,7 +147,7 @@
         "00_ticker": "USDC",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -192,7 +192,7 @@
         "00_ticker": "USDT",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -237,7 +237,7 @@
         "00_ticker": "DAI",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -284,7 +284,7 @@
         "00_ticker": "ETH",
         "02_anchor": "0x63879cEc8B7D323Ca7d035Afae686b2Bf0960120",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -318,7 +318,7 @@
         "00_ticker": "BTC",
         "02_anchor": "0xc1F3662801d2765BdAe6f84003C949b7c31741f6",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -352,7 +352,7 @@
         "00_ticker": "EUR",
         "02_anchor": "0x091A3DdA5fA99d57A407D8a95303edb6520c9412",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -386,7 +386,7 @@
         "00_ticker": "JPY",
         "02_anchor": "0x0972068A7B7CF476CC5c306ee4e45297841289db",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -420,41 +420,7 @@
         "00_ticker": "XAU",
         "02_anchor": "0x9636e49bffA8280836b9d2C42788aeE27bf1130a",
         "03_oracles": [
-          1,
-          2
-        ],
-        "04_factor": 1e4,
-        "05_kFactor": 1.025e4,
-        "06_openFee": 0,
-        "07_closeFee": 50,
-        "08_liqIncetive": 1.075e4,
-        "09_maxDebtMinter": 340282366920938463463374607431768211455,
-        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
-        "11_depositLimitSCDP": 0,
-        "12_swapInFeeSCDP": 25,
-        "13_swapOutFeeSCDP": 20,
-        "14_protocolFeeShareSCDP": 0.25e4,
-        "15_liqIncentiveSCDP": 1.035e4,
-        "16_decimals": 0,
-        "17_isMinterCollateral": true,
-        "18_isMinterMintable": true,
-        "19_isSharedCollateral": false,
-        "20_isSwapMintable": true,
-        "21_isSharedOrSwappedCollateral": true,
-        "22_isCoverAsset": false
-      }
-    },
-    {
-      "00_name": "WTI",
-      "01_symbol": "krWTI",
-      "02_underlying": "",
-      "03_wrapFee": 0,
-      "04_unwrapFee": 0,
-      "05_config": {
-        "00_ticker": "WTI",
-        "02_anchor": "0x14702D07d543B55f099E617AfE7609c8a49674a4",
-        "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -518,7 +484,26 @@
       "03_chainlink": "0x0000000000000000000000000000000000000000",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x83801723D09c87EBa932F544B3cBecb43C591ceB",
-      "06_useAdapter": false
+      "06_pythId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "07_staleTimePyth": 0,
+      "08_staleTimeAPI3": 0,
+      "09_staleTimeChainlink": 0,
+      "10_staleTimeRedstone": 0,
+      "11_useAdapter": false
+    },
+    {
+      "00_ticker": "TSLA",
+      "01_mockPrice": 243.94e8,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0x0000000000000000000000000000000000000000",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0x7dac7cafc583cc4e1ce5c6772c444b8cd7addeecd5bedb341dfa037c770ae71e",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "ETH",
@@ -527,7 +512,12 @@
       "03_chainlink": "0x046975952960eD266d4427ad677EBb204cA0b519",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0xca80ba6dc32e08d06f1aa886011eed1d77c77be9eb761cc10d72b7d0a2fd57a6",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "BTC",
@@ -536,7 +526,12 @@
       "03_chainlink": "0x8BAdd8BF6DBADca69485D2520d55bfc92838905A",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "EUR",
@@ -545,7 +540,12 @@
       "03_chainlink": "0x8f19cDA40A6841C87C42572946007bFa81ad6A6a",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "05_useAdapter": false
+      "06_pythId": "0xc1b12769f6633798d45adfd62bfc70114839232e2949b01fb3d3f927d2606154",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "DAI",
@@ -554,7 +554,12 @@
       "03_chainlink": "0x19Bb1c22fDf5Af0020C25896cA0fACF66fC90998",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0x87a67534df591d2dd5ec577ab3c75668a8e3d35e92e27bf29d9e2e52df8de412",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "USDC",
@@ -563,7 +568,12 @@
       "03_chainlink": "0xDEe62623B8d442D0a1b394629465f0a454BC66fc",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "XAU",
@@ -572,7 +582,12 @@
       "03_chainlink": "0x4110B120bb069Ecbc935410b292f9d5983bfA403",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0x765d2ba906dbc32ca17cc11f5310a89e9ee1f6420508c63861f2f8ba4ee34bb2",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "WTI",
@@ -581,7 +596,12 @@
       "03_chainlink": "0xe87A403fA0d3e1F330F5eC24b3fB140cC05d461b",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "USDT",
@@ -590,7 +610,12 @@
       "03_chainlink": "0xC60A2fC41328BDCd69D0D286eCfa334629cE2AE0",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0x1fc18861232290221461220bd4e2acd1dcdfbc89c84092c93c18bdc7756c1588",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "JPY",
@@ -599,7 +624,12 @@
       "03_chainlink": "0x675992F22951ea43EDD675FB9789A8AC26f81D53",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0x20a938f54b68f1f2ef18ea0328f6dd0747f8ea11486d22b021e83a900be89776",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     }
   ],
   "07_customTradeRoutes": [
@@ -609,5 +639,5 @@
       "02_enabled": false
     }
   ],
-  "08_redstoneMockString": "ETH:1911:8,BTC:35159:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,XAU:1977:8,WTI:77.5:8,USDT:1:8,JPY:0.0067:8"
+  "08_redstoneMockString": "ETH:1911:8,BTC:35159:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,XAU:1977:8,USDT:1:8,JPY:0.0067:8"
 }

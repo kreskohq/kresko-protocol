@@ -23,7 +23,7 @@ contract MulticallTest is Deploy {
     uint256 constant ETH_PRICE = 2000;
 
     string internal rs_price_eth = "ETH:2000:8,";
-    string internal rs_prices_rest = "BTC:35159:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,XAU:1977:8,WTI:77.5:8,USDT:1:8,JPY:0.0067:8";
+    string internal rs_prices_rest = "BTC:35159:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,XAU:1977:8,USDT:1:8,JPY:0.0067:8";
 
     KreskoAsset krETH;
     KreskoAsset krJPY;

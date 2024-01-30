@@ -18,7 +18,7 @@
         "00_ticker": "ETH",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -60,7 +60,7 @@
         "00_ticker": "BTC",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -102,7 +102,7 @@
         "00_ticker": "USDC",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -147,7 +147,7 @@
         "00_ticker": "USDC",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -192,7 +192,7 @@
         "00_ticker": "DAI",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -236,7 +236,7 @@
         "00_ticker": "ETH",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -270,7 +270,7 @@
         "00_ticker": "BTC",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -304,7 +304,7 @@
         "00_ticker": "ARB",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 0.95e4,
@@ -338,7 +338,7 @@
         "00_ticker": "SPY",
         "02_anchor": "0x0000000000000000000000000000000000000000",
         "03_oracles": [
-          1,
+          5,
           2
         ],
         "04_factor": 1e4,
@@ -402,7 +402,12 @@
       "03_chainlink": "0x0000000000000000000000000000000000000000",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "07_staleTimePyth": 0,
+      "08_staleTimeAPI3": 0,
+      "09_staleTimeChainlink": 0,
+      "10_staleTimeRedstone": 0,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "ETH",
@@ -411,7 +416,12 @@
       "03_chainlink": "0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0xca80ba6dc32e08d06f1aa886011eed1d77c77be9eb761cc10d72b7d0a2fd57a6",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "BTC",
@@ -420,7 +430,12 @@
       "03_chainlink": "0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "ARB",
@@ -429,7 +444,12 @@
       "03_chainlink": "0xD1092a65338d049DB68D7Be6bD89d17a0929945e",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "05_useAdapter": false
+      "06_pythId": "0x37f40d2898159e8f2e52b93cb78f47cc3829a31e525ab975c49cc5c5d9176378",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "DAI",
@@ -438,7 +458,12 @@
       "03_chainlink": "0xb113F5A928BCfF189C998ab20d753a47F9dE5A61",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0x87a67534df591d2dd5ec577ab3c75668a8e3d35e92e27bf29d9e2e52df8de412",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "USDC",
@@ -447,7 +472,12 @@
       "03_chainlink": "0x0153002d20B96532C639313c2d54c3dA09109309",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     },
     {
       "00_ticker": "SPY",
@@ -456,7 +486,12 @@
       "03_chainlink": "0x4fB44FC4FA132d1a846Bd4143CcdC5a9f1870b06",
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_useAdapter": false
+      "06_pythId": "0xcd69843b4eb5c5207dafbe82e2b08fb64107a56d2fa026cf260c6d5b8ae67a40",
+      "07_staleTimePyth": 180,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false
     }
   ],
   "07_customTradeRoutes": [
