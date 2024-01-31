@@ -233,8 +233,31 @@ function get(Users memory users, uint256 i) returns (address) {
     return acc.addr;
 }
 
+function getMockPrices(Config memory cfg) pure returns (bytes32[] memory ids, int64[] memory prices) {
+    uint256 count;
+
+    for (uint256 i; i < cfg.assets.tickers.length; i++) {
+        if (cfg.assets.tickers[i].pythId != bytes32(0)) {
+            count++;
+        }
+    }
+
+    ids = new bytes32[](count);
+    prices = new int64[](count);
+
+    count = 0;
+    for (uint256 i; i < cfg.assets.tickers.length; i++) {
+        if (cfg.assets.tickers[i].pythId != bytes32(0)) {
+            ids[count] = cfg.assets.tickers[i].pythId;
+            prices[count] = int64(uint64(cfg.assets.tickers[i].mockPrice));
+            count++;
+        }
+    }
+}
+
 uint256 constant ALL_USERS = 9999;
 using {get} for Users global;
+using {getMockPrices} for Config global;
 
 using {LibDeployConfig.metadata} for KrAssetConfig global;
 using {LibDeployConfig.toAsset} for AssetJSON global;

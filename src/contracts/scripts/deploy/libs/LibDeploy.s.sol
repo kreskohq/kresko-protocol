@@ -20,7 +20,7 @@ import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {CONST} from "scripts/deploy/libs/CONST.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {getMockPythCtor, MockPyth} from "mocks/MockPyth.sol";
-import {getPythData, Result} from "vendor/pyth/PythScript.sol";
+import {getPythViewData, Result} from "vendor/pyth/PythScript.sol";
 
 library LibDeploy {
     using Conversions for bytes[];
@@ -53,16 +53,10 @@ library LibDeploy {
         address _owner,
         bool _realPrices
     ) internal saveOutput("MockPythEP") returns (MockPyth) {
-        bytes32[] memory ids = new bytes32[](json.assets.tickers.length);
-        int64[] memory prices = new int64[](json.assets.tickers.length);
-
-        for (uint256 i; i < json.assets.tickers.length; i++) {
-            ids[i] = json.assets.tickers[i].pythId;
-            prices[i] = int64(uint64(json.assets.tickers[i].mockPrice));
-        }
+        (bytes32[] memory ids, int64[] memory prices) = json.getMockPrices();
 
         if (_realPrices) {
-            Result memory res = getPythData(ids);
+            Result memory res = getPythViewData(ids);
             for (uint256 i; i < res.ids.length; i++) {
                 prices[i] = res.prices[i].price;
             }

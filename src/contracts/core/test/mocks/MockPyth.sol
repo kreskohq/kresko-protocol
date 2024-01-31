@@ -19,6 +19,10 @@ contract MockPyth is IPyth {
         revert("Pyth: price too old");
     }
 
+    function getPriceUnsafe(bytes32 _id) external view override returns (Price memory) {
+        return prices[_id];
+    }
+
     function getUpdateFee(bytes[] memory _updateData) external pure override returns (uint256) {
         return _updateData.length;
     }

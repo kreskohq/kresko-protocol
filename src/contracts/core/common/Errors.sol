@@ -118,6 +118,7 @@ library Errors {
     error ZERO_OR_NEGATIVE_PUSH_PRICE(ID asset, string ticker, int256 price, uint8 oracleType, address feed);
     error UNSUPPORTED_ORACLE(string ticker, uint8 oracle);
     error NO_PUSH_ORACLE_SET(string ticker);
+    error NO_VIEW_PRICE_AVAILABLE(string ticker);
     error NOT_SUPPORTED_YET();
     error WRAP_NOT_SUPPORTED();
     error BURN_AMOUNT_OVERFLOW(ID, uint256 burnAmount, uint256 debtAmount);

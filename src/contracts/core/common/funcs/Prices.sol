@@ -18,6 +18,7 @@ import {RawPrice, Oracle} from "common/Types.sol";
 import {Percents, Enums} from "common/Constants.sol";
 import {fromWad, toWad} from "common/funcs/Math.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
+import {Result} from "vendor/pyth/PythScript.sol";
 
 using WadRay for uint256;
 using PercentageMath for uint256;
@@ -57,22 +58,22 @@ function safePrice(bytes32 _ticker, Enums.OracleType[2] memory _oracles, uint256
  */
 function oraclePrice(Enums.OracleType _oracleId, bytes32 _ticker) view returns (uint256) {
     if (_oracleId == Enums.OracleType.Empty) return 0;
-    Oracle memory oracle = cs().oracles[_ticker][_oracleId];
+    Oracle memory config = cs().oracles[_ticker][_oracleId];
 
-    if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker, oracle.staleTime);
+    if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker, config.staleTime);
 
-    if (_oracleId == Enums.OracleType.Pyth) return pythPrice(oracle.pythId, oracle.staleTime);
+    if (_oracleId == Enums.OracleType.Pyth) return pythPrice(config.pythId, config.staleTime);
 
     if (_oracleId == Enums.OracleType.Vault) {
-        return vaultPrice(oracle.feed);
+        return vaultPrice(config.feed);
     }
 
     if (_oracleId == Enums.OracleType.Chainlink) {
-        return aggregatorV3Price(oracle.feed, oracle.staleTime);
+        return aggregatorV3Price(config.feed, config.staleTime);
     }
 
     if (_oracleId == Enums.OracleType.API3) {
-        return API3Price(oracle.feed, oracle.staleTime);
+        return API3Price(config.feed, config.staleTime);
     }
 
     // Revert if no answer is found
@@ -105,8 +106,7 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
 }
 
 function pythPrice(bytes32 _id, uint256 _staleTime) view returns (uint256 price_) {
-    IPyth.Price memory result = IPyth(cs().pythEp).getPriceNoOlderThan(_id, _staleTime);
-    price_ = normalizePythPriceTo8Decimals(result);
+    price_ = normalizePythPriceTo8Decimals(IPyth(cs().pythEp).getPriceNoOlderThan(_id, _staleTime));
 
     if (price_ == 0 || price_ > type(uint48).max) {
         revert Errors.INVALID_PYTH_PRICE(_id, price_);
@@ -187,24 +187,24 @@ function API3Price(address _feedAddr, uint256 _staleTime) view returns (uint256)
 
 /**
  * @notice Gets raw answer info from AggregatorV3 type feed.
- * @param _feedAddr The feed address.
+ * @param _config Configuration for the oracle.
  * @return RawPrice Unparsed answer with metadata.
  */
-function aggregatorV3RawPrice(address _feedAddr) view returns (RawPrice memory) {
-    (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_feedAddr).latestRoundData();
-    bool isStale = block.timestamp - updatedAt > cs().staleTime;
-    return RawPrice(answer, updatedAt, isStale, answer == 0, Enums.OracleType.Chainlink, _feedAddr);
+function aggregatorV3RawPrice(Oracle memory _config) view returns (RawPrice memory) {
+    (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_config.feed).latestRoundData();
+    bool isStale = block.timestamp - updatedAt > _config.staleTime;
+    return RawPrice(answer, updatedAt, _config.staleTime, isStale, answer == 0, Enums.OracleType.Chainlink, _config.feed);
 }
 
 /**
  * @notice Gets raw answer info from IAPI3 type feed.
- * @param _feedAddr The feed address.
+ * @param _config Configuration for the oracle.
  * @return RawPrice Unparsed answer with metadata.
  */
-function API3RawPrice(address _feedAddr) view returns (RawPrice memory) {
-    (int256 answer, uint256 updatedAt) = IAPI3(_feedAddr).read();
-    bool isStale = block.timestamp - updatedAt > cs().staleTime;
-    return RawPrice(answer, updatedAt, isStale, answer == 0, Enums.OracleType.API3, _feedAddr);
+function API3RawPrice(Oracle memory _config) view returns (RawPrice memory) {
+    (int256 answer, uint256 updatedAt) = IAPI3(_config.feed).read();
+    bool isStale = block.timestamp - updatedAt > _config.staleTime;
+    return RawPrice(answer, updatedAt, _config.staleTime, isStale, answer == 0, Enums.OracleType.API3, _config.feed);
 }
 
 /**
@@ -218,14 +218,44 @@ function pushPrice(Enums.OracleType[2] memory _oracles, bytes32 _ticker) view re
         Enums.OracleType oracleType = _oracles[i];
         Oracle storage oracle = cs().oracles[_ticker][_oracles[i]];
 
-        if (oracleType == Enums.OracleType.Chainlink) return aggregatorV3RawPrice(oracle.feed);
-        if (oracleType == Enums.OracleType.API3) return API3RawPrice(oracle.feed);
+        if (oracleType == Enums.OracleType.Chainlink) return aggregatorV3RawPrice(oracle);
+        if (oracleType == Enums.OracleType.API3) return API3RawPrice(oracle);
         if (oracleType == Enums.OracleType.Vault) {
             int256 answer = int256(vaultPrice(oracle.feed));
-            return RawPrice(answer, block.timestamp, false, answer == 0, Enums.OracleType.Vault, oracle.feed);
+            return RawPrice(answer, block.timestamp, 0, false, answer == 0, Enums.OracleType.Vault, oracle.feed);
         }
     }
 
     // Revert if no answer is found
     revert Errors.NO_PUSH_ORACLE_SET(_ticker.toString());
+}
+
+function viewPrice(bytes32 _ticker, Result memory result) view returns (RawPrice memory) {
+    Oracle memory config;
+
+    if (_ticker == bytes32("KISS")) {
+        config = cs().oracles[_ticker][Enums.OracleType.Vault];
+        int256 answer = int256(vaultPrice(config.feed));
+        return RawPrice(answer, block.timestamp, 0, false, answer == 0, Enums.OracleType.Vault, config.feed);
+    }
+
+    config = cs().oracles[_ticker][Enums.OracleType.Pyth];
+
+    for (uint256 i; i < result.ids.length; i++) {
+        if (result.ids[i] == config.pythId) {
+            IPyth.Price memory _price = result.prices[i];
+            return
+                RawPrice(
+                    int256(normalizePythPriceTo8Decimals(_price)),
+                    _price.timestamp,
+                    config.staleTime,
+                    block.timestamp - _price.timestamp > config.staleTime,
+                    _price.price == 0,
+                    Enums.OracleType.Pyth,
+                    address(0)
+                );
+        }
+    }
+
+    revert Errors.NO_VIEW_PRICE_AVAILABLE(_ticker.toString());
 }

@@ -22,6 +22,7 @@ import {Asset, FeedConfiguration} from "common/Types.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
+import {console2} from "forge-std/console2.sol";
 
 contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     using LibDeployConfig for *;
@@ -54,6 +55,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         // Set tokens to cache as we know them at this point.
         json.cacheExtTokens();
 
+        console2.log("mocks created");
         if (json.params.common.gatingManager == address(0)) {
             json.params.common.gatingManager = super.deployGatingManager(json, deployer);
         } else {
@@ -62,13 +64,14 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
 
         // Create base contracts
         address diamond = super.deployDiamond(json, deployer);
-        super.rsInit(diamond, json.assets.rsPrices);
+        console2.log("mocks created");
 
         vault = json.createVault(deployer);
         kiss = json.createKISS(diamond, address(vault));
 
         json = json.createKrAssets(diamond);
 
+        console2.log("adding assets");
         /* ---------------------------- Externals --------------------------- */
         _addExtAssets(json, diamond);
         /* ------------------------------ KISS ------------------------------ */
@@ -90,7 +93,9 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         delete routeCache;
 
         /* ---------------------------- Periphery --------------------------- */
+        console2.log("creating multicall");
         multicall = json.createMulticall(diamond, address(kiss));
+        console2.log("creating datav1");
         dataV1 = json.createDataV1(diamond, address(vault), address(kiss));
 
         /* ------------------------------ Users ----------------------------- */
@@ -297,7 +302,8 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
 
         if (pos.mintAmount == 0) return;
-        rsCall(kresko.mintKreskoAsset.selector, user, pos.mintSymbol.cached(), pos.mintAmount, user);
+        kresko.mintKreskoAsset(user, pos.mintSymbol.cached(), pos.mintAmount, user);
+        // rsCall(kresko.mintKreskoAsset.selector, user, pos.mintSymbol.cached(), pos.mintAmount, user);
     }
 
     function setupKISSBalance(

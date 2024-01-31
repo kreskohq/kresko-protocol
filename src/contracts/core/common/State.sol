@@ -30,8 +30,6 @@ struct CommonState {
     address sequencerUptimeFeed;
     /// @notice grace period of sequencer in seconds
     uint32 sequencerGracePeriodTime;
-    /// @notice Time in seconds for a feed to be considered stale
-    uint32 staleTime;
     /// @notice The max deviation percentage between primary and secondary price.
     uint16 maxPriceDeviationPct;
     /// @notice Offchain oracle decimals

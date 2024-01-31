@@ -130,6 +130,7 @@ struct MaxLiqInfo {
 struct RawPrice {
     int256 answer;
     uint256 timestamp;
+    uint256 staleTime;
     bool isStale;
     bool isZero;
     Enums.OracleType oracle;

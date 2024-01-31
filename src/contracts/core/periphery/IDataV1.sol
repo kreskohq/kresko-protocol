@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 import {PType} from "periphery/PTypes.sol";
 import {RawPrice} from "common/Types.sol";
 import {VaultAsset} from "vault/VTypes.sol";
+import {Result} from "vendor/pyth/PythScript.sol";
 
 interface IDataV1 {
     struct ExternalTokenArgs {
@@ -81,22 +82,14 @@ interface IDataV1 {
         uint256 chainId;
     }
 
-    function getGlobals(bytes memory rsPayload) external view returns (DGlobal memory);
-
-    function getGlobalsPushPriced() external view returns (DGlobal memory);
-
-    function getGlobalsRs() external view returns (DGlobal memory);
+    function getGlobals(Result memory res) external view returns (DGlobal memory);
 
     function getExternalTokens(
         ExternalTokenArgs[] memory tokens,
         address _account
     ) external view returns (DVTokenBalance[] memory);
 
-    function getAccount(address _account, bytes memory rsPayload) external view returns (DAccount memory);
-
-    function getAccountPushPriced(address _account) external view returns (DAccount memory);
-
-    function getAccountRs(address _account) external view returns (DAccount memory);
+    function getAccount(Result memory res, address _account) external view returns (DAccount memory);
 
     function getVault() external view returns (DVault memory);
 
