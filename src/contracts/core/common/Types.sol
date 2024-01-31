@@ -15,6 +15,7 @@ struct Oracle {
     address feed;
     bytes32 pythId;
     uint256 staleTime;
+    bool invertPyth;
 }
 
 /**
@@ -27,6 +28,7 @@ struct FeedConfiguration {
     address[2] feeds;
     uint256[2] staleTimes;
     bytes32 pythId;
+    bool invertPyth;
 }
 
 /**

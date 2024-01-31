@@ -489,7 +489,8 @@
       "08_staleTimeAPI3": 0,
       "09_staleTimeChainlink": 0,
       "10_staleTimeRedstone": 0,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "TSLA",
@@ -503,7 +504,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "ETH",
@@ -517,7 +519,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "BTC",
@@ -531,7 +534,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "EUR",
@@ -545,7 +549,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "DAI",
@@ -559,7 +564,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "USDC",
@@ -573,7 +579,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "XAU",
@@ -587,7 +594,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "WTI",
@@ -601,7 +609,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "USDT",
@@ -615,7 +624,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "JPY",
@@ -629,7 +639,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     }
   ],
   "07_customTradeRoutes": [

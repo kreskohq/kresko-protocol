@@ -26,8 +26,9 @@ contract MinterBurnHelperFacet is IMinterBurnHelperFacet, DSModifiers, Modifiers
     /// @inheritdoc IMinterBurnHelperFacet
     function closeDebtPosition(
         address _account,
-        address _krAsset
-    ) public nonReentrant onlyRoleIf(_account != msg.sender, Role.MANAGER) {
+        address _krAsset,
+        bytes[] calldata _updateData
+    ) public payable nonReentrant onlyRoleIf(_account != msg.sender, Role.MANAGER) usePyth(_updateData) {
         Asset storage asset = cs().onlyMinterMintable(_krAsset, Enums.Action.Repay);
 
         MinterState storage s = ms();
@@ -48,10 +49,13 @@ contract MinterBurnHelperFacet is IMinterBurnHelperFacet, DSModifiers, Modifiers
     }
 
     /// @inheritdoc IMinterBurnHelperFacet
-    function closeAllDebtPositions(address _account) external onlyRoleIf(_account != msg.sender, Role.MANAGER) {
+    function closeAllDebtPositions(
+        address _account,
+        bytes[] calldata _updateData
+    ) external payable onlyRoleIf(_account != msg.sender, Role.MANAGER) usePyth(_updateData) {
         address[] memory mintedKreskoAssets = ms().accountDebtAssets(_account);
         for (uint256 i; i < mintedKreskoAssets.length; ) {
-            closeDebtPosition(_account, mintedKreskoAssets[i]);
+            closeDebtPosition(_account, mintedKreskoAssets[i], _updateData);
             unchecked {
                 i++;
             }

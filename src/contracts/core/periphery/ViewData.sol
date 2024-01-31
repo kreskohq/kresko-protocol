@@ -3,29 +3,28 @@ pragma solidity ^0.8.19;
 
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {cs, gm} from "common/State.sol";
-import {scdp, SCDPState, sdi, SDIState} from "scdp/SState.sol";
-import {PType} from "periphery/PTypes.sol";
+import {scdp, sdi, SDIState} from "scdp/SState.sol";
+import {View} from "periphery/ViewTypes.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
 import {Asset, RawPrice} from "common/Types.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {pushPrice, viewPrice} from "common/funcs/Prices.sol";
-import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
+import {viewPrice} from "common/funcs/Prices.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {MinterState, ms} from "minter/MState.sol";
 import {Arrays} from "libs/Arrays.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
-import {PHelpers} from "periphery/PHelpers.sol";
+import {ViewHelpers} from "periphery/ViewHelpers.sol";
 import {fromWad, toWad, wadUSD} from "common/funcs/Math.sol";
 import {Percents} from "common/Constants.sol";
-import {Result} from "vendor/pyth/PythScript.sol";
+import {PythView} from "vendor/pyth/PythScript.sol";
 
 // solhint-disable code-complexity
 
-library ViewDataFuncs {
+library ViewFuncs {
     using PercentageMath for *;
-    using PHelpers for Asset;
-    using PHelpers for MinterState;
+    using ViewHelpers for Asset;
+    using ViewHelpers for MinterState;
     using WadRay for uint256;
     using Arrays for address[];
 
@@ -77,10 +76,10 @@ library ViewDataFuncs {
         }
     }
 
-    function getProtocol(Result memory res) internal view returns (PType.Protocol memory result) {
-        result.assets = getPAssets(res);
-        result.minter = getMinter();
-        result.scdp = getSCDP(res);
+    function viewProtocol(PythView calldata prices) internal view returns (View.Protocol memory result) {
+        result.assets = viewAssets(prices);
+        result.minter = viewMinter();
+        result.scdp = viewSCDP(prices);
         result.maxPriceDeviationPct = cs().maxPriceDeviationPct;
         result.oracleDecimals = cs().oracleDecimals;
         result.pythEp = cs().pythEp;
@@ -91,19 +90,19 @@ library ViewDataFuncs {
         result.sequencerStartedAt = uint32(startedAt);
         result.timestamp = uint32(block.timestamp);
         result.blockNr = uint32(block.number);
-        result.gate = getGate();
-        result.tvl = getTVL(res);
+        result.gate = viewGate();
+        result.tvl = viewTVL(prices);
     }
 
-    function getTVL(Result memory res) internal view returns (uint256 result) {
+    function viewTVL(PythView calldata prices) internal view returns (uint256 result) {
         address[] memory assets = getAllAssets();
         for (uint256 i; i < assets.length; i++) {
             Asset storage asset = cs().assets[assets[i]];
-            result += toWad(IERC20(assets[i]).balanceOf(address(this)), asset.decimals).wadMul(asset.getViewPrice(res));
+            result += toWad(IERC20(assets[i]).balanceOf(address(this)), asset.decimals).wadMul(asset.getViewPrice(prices));
         }
     }
 
-    function getGate() internal view returns (PType.Gate memory result) {
+    function viewGate() internal view returns (View.Gate memory result) {
         if (address(gm().manager) == address(0)) {
             return result;
         }
@@ -112,43 +111,43 @@ library ViewDataFuncs {
         result.phase = gm().manager.phase();
     }
 
-    function getMinter() internal view returns (PType.Minter memory result) {
+    function viewMinter() internal view returns (View.Minter memory result) {
         result.LT = ms().liquidationThreshold;
         result.MCR = ms().minCollateralRatio;
         result.MLR = ms().maxLiquidationRatio;
         result.minDebtValue = ms().minDebtValue;
     }
 
-    function getAccount(Result memory res, address _account) internal view returns (PType.Account memory result) {
+    function viewAccount(PythView calldata prices, address _account) internal view returns (View.Account memory result) {
         result.addr = _account;
-        result.bals = getBalances(res, _account);
-        result.minter = getMAccount(res, _account);
-        result.scdp = getSAccount(res, _account, getSDepositAssets());
+        result.bals = viewBalances(prices, _account);
+        result.minter = viewMAccount(prices, _account);
+        result.scdp = viewSAccount(prices, _account, viewSDepositAssets());
     }
 
-    function getSCDP(Result memory res) internal view returns (PType.SCDP memory result) {
+    function viewSCDP(PythView calldata prices) internal view returns (View.SCDP memory result) {
         result.LT = scdp().liquidationThreshold;
         result.MCR = scdp().minCollateralRatio;
         result.MLR = scdp().maxLiquidationRatio;
         result.coverIncentive = uint32(sdi().coverIncentive);
         result.coverThreshold = uint32(sdi().coverThreshold);
 
-        (result.totals, result.deposits) = getSData(res);
-        result.debts = getSDebts(res);
+        (result.totals, result.deposits) = viewSData(prices);
+        result.debts = viewSDebts(prices);
     }
 
-    function getSDebts(Result memory res) internal view returns (PType.PAssetEntry[] memory results) {
+    function viewSDebts(PythView calldata prices) internal view returns (View.Position[] memory results) {
         address[] memory krAssets = scdp().krAssets;
-        results = new PType.PAssetEntry[](krAssets.length);
+        results = new View.Position[](krAssets.length);
 
         for (uint256 i; i < krAssets.length; i++) {
             address addr = krAssets[i];
 
-            PType.AssetData memory data = getSAssetData(res, addr);
+            View.AssetData memory data = viewSAssetData(prices, addr);
 
-            results[i] = PType.PAssetEntry({
+            results[i] = View.Position({
                 addr: addr,
-                symbol: _getSymbol(addr),
+                symbol: _symbol(addr),
                 amount: data.amountDebt,
                 amountAdj: data.amountDebt,
                 val: data.valDebt,
@@ -160,25 +159,27 @@ library ViewDataFuncs {
         }
     }
 
-    function getSData(Result memory res) internal view returns (PType.STotals memory totals, PType.SDeposit[] memory results) {
+    function viewSData(
+        PythView calldata prices
+    ) internal view returns (View.STotals memory totals, View.SDeposit[] memory results) {
         address[] memory collaterals = scdp().collaterals;
-        results = new PType.SDeposit[](collaterals.length);
+        results = new View.SDeposit[](collaterals.length);
 
         for (uint256 i; i < collaterals.length; i++) {
             address assetAddr = collaterals[i];
 
-            PType.AssetData memory data = getSAssetData(res, assetAddr);
+            View.AssetData memory data = viewSAssetData(prices, assetAddr);
             totals.valFees += data.valCollFees;
             totals.valColl += data.valColl;
             totals.valCollAdj += data.valCollAdj;
             totals.valDebtOg += data.valDebt;
             totals.valDebtOgAdj += data.valDebtAdj;
-            totals.sdiPrice = SDIPriceView(res);
-            results[i] = PType.SDeposit({
+            totals.sdiPrice = viewSDIPrice(prices);
+            results[i] = View.SDeposit({
                 addr: assetAddr,
                 liqIndex: scdp().assetIndexes[assetAddr].currLiqIndex,
                 feeIndex: scdp().assetIndexes[assetAddr].currFeeIndex,
-                symbol: _getSymbol(assetAddr),
+                symbol: _symbol(assetAddr),
                 config: data.config,
                 price: data.price,
                 amount: data.amountColl,
@@ -190,7 +191,7 @@ library ViewDataFuncs {
             });
         }
 
-        totals.valDebt = effectiveDebtValueView(sdi(), res);
+        totals.valDebt = viewEffectiveDebtValue(sdi(), prices);
         if (totals.valColl == 0) {
             totals.cr = 0;
             totals.crOg = 0;
@@ -206,26 +207,26 @@ library ViewDataFuncs {
         }
     }
 
-    function getBalances(Result memory res, address _account) internal view returns (PType.Balance[] memory result) {
+    function viewBalances(PythView calldata prices, address _account) internal view returns (View.Balance[] memory result) {
         address[] memory allAssets = getAllAssets();
-        result = new PType.Balance[](allAssets.length);
+        result = new View.Balance[](allAssets.length);
         for (uint256 i; i < allAssets.length; i++) {
-            result[i] = getBalance(res, _account, allAssets[i]);
+            result[i] = viewBalance(prices, _account, allAssets[i]);
         }
     }
 
-    function getAsset(Result memory res, address addr) internal view returns (PType.PAsset memory) {
+    function viewAsset(PythView calldata prices, address addr) internal view returns (View.AssetView memory) {
         Asset storage asset = cs().assets[addr];
         IERC20 token = IERC20(addr);
-        RawPrice memory price = viewPrice(asset.ticker, res);
-        string memory symbol = _getSymbol(address(token));
+        RawPrice memory price = viewPrice(asset.ticker, prices);
+        string memory symbol = _symbol(address(token));
 
         IKreskoAsset.Wrapping memory synthwrap;
         if (asset.kFactor > 0 && bytes32(bytes(symbol)) != bytes32("KISS")) {
             synthwrap = IKreskoAsset(addr).wrappingInfo();
         }
         return
-            PType.PAsset({
+            View.AssetView({
                 addr: addr,
                 symbol: symbol,
                 synthwrap: synthwrap,
@@ -238,7 +239,7 @@ library ViewDataFuncs {
             });
     }
 
-    function getPAssets(Result memory res) internal view returns (PType.PAsset[] memory result) {
+    function viewAssets(PythView calldata prices) internal view returns (View.AssetView[] memory result) {
         address[] memory mCollaterals = ms().collaterals;
         address[] memory mkrAssets = ms().krAssets;
         address[] memory sAssets = scdp().collaterals;
@@ -268,30 +269,30 @@ library ViewDataFuncs {
             }
         }
 
-        result = new PType.PAsset[](uniques);
+        result = new View.AssetView[](uniques);
 
         for (uint256 i; i < uniques; i++) {
-            result[i] = getAsset(res, all[i]);
+            result[i] = viewAsset(prices, all[i]);
         }
     }
 
-    function getBalance(
-        Result memory res,
+    function viewBalance(
+        PythView calldata prices,
         address _account,
         address _assetAddr
-    ) internal view returns (PType.Balance memory result) {
+    ) internal view returns (View.Balance memory result) {
         IERC20 token = IERC20(_assetAddr);
         Asset storage asset = cs().assets[_assetAddr];
         result.addr = _account;
         result.amount = token.balanceOf(_account);
-        result.val = asset.exists() ? asset.collateralAmountToValueView(asset.getViewPrice(res), result.amount, true) : 0;
+        result.val = asset.exists() ? asset.viewCollateralAmountToValue(asset.getViewPrice(prices), result.amount, true) : 0;
         result.token = _assetAddr;
         result.name = token.name();
         result.decimals = token.decimals();
-        result.symbol = _getSymbol(address(token));
+        result.symbol = _symbol(address(token));
     }
 
-    function getSDepositAssets() internal view returns (address[] memory result) {
+    function viewSDepositAssets() internal view returns (address[] memory result) {
         address[] memory depositAssets = scdp().collaterals;
         address[] memory assets = new address[](depositAssets.length);
 
@@ -315,12 +316,12 @@ library ViewDataFuncs {
         }
     }
 
-    function getSAssetData(Result memory res, address _assetAddr) internal view returns (PType.AssetData memory result) {
+    function viewSAssetData(PythView calldata prices, address _assetAddr) internal view returns (View.AssetData memory result) {
         Asset storage asset = cs().assets[_assetAddr];
         result.addr = _assetAddr;
         result.config = asset;
-        result.price = asset.getViewPrice(res);
-        result.symbol = _getSymbol(_assetAddr);
+        result.price = asset.getViewPrice(prices);
+        result.symbol = _symbol(_assetAddr);
 
         bool isSwapMintable = asset.isSwapMintable;
         bool isSCDPAsset = asset.isSharedOrSwappedCollateral;
@@ -331,11 +332,11 @@ library ViewDataFuncs {
         result.amountCollFees = feeIndex > 0 ? result.amountColl.wadToRay().rayMul(feeIndex).rayToWad() : 0;
         {
             (result.valDebt, result.valDebtAdj) = isSwapMintable
-                ? asset.debtAmountToValuesView(result.price, result.amountDebt)
+                ? asset.viewDebtAmountToValues(result.price, result.amountDebt)
                 : (0, 0);
 
             (result.valColl, result.valCollAdj) = isSCDPAsset
-                ? asset.collateralAmountToValuesView(result.price, result.amountColl)
+                ? asset.viewCollateralAmountToValues(result.price, result.amountColl)
                 : (0, 0);
 
             result.valCollFees = feeIndex > 0 ? result.valColl.wadToRay().rayMul(feeIndex).rayToWad() : 0;
@@ -343,16 +344,16 @@ library ViewDataFuncs {
         result.amountSwapDeposit = isSwapMintable ? scdp().swapDepositAmount(_assetAddr, asset) : 0;
     }
 
-    function getMAssetData(
-        Result memory res,
+    function viewMAssetData(
+        PythView calldata prices,
         address _account,
         address _assetAddr
-    ) internal view returns (PType.AssetData memory result) {
+    ) internal view returns (View.AssetData memory result) {
         Asset storage asset = cs().assets[_assetAddr];
         result.addr = _assetAddr;
         result.config = asset;
-        result.symbol = _getSymbol(_assetAddr);
-        result.price = asset.getViewPrice(res);
+        result.symbol = _symbol(_assetAddr);
+        result.price = asset.getViewPrice(prices);
 
         bool isMinterCollateral = asset.isMinterCollateral;
         bool isMinterMintable = asset.isMinterMintable;
@@ -361,17 +362,17 @@ library ViewDataFuncs {
         result.amountDebt = isMinterMintable ? ms().accountDebtAmount(_account, _assetAddr, asset) : 0;
 
         (result.valDebt, result.valDebtAdj) = isMinterMintable
-            ? asset.debtAmountToValuesView(result.price, result.amountDebt)
+            ? asset.viewDebtAmountToValues(result.price, result.amountDebt)
             : (0, 0);
 
         (result.valColl, result.valCollAdj) = isMinterCollateral
-            ? asset.collateralAmountToValuesView(result.price, result.amountColl)
+            ? asset.viewCollateralAmountToValues(result.price, result.amountColl)
             : (0, 0);
     }
 
-    function getMAccount(Result memory res, address _account) internal view returns (PType.MAccount memory result) {
-        result.totals.valColl = ms().accountTotalCollateralValueView(res, _account);
-        result.totals.valDebt = ms().accountTotalDebtValueView(res, _account);
+    function viewMAccount(PythView calldata prices, address _account) internal view returns (View.MAccount memory result) {
+        result.totals.valColl = ms().viewAccountTotalCollateralValue(prices, _account);
+        result.totals.valDebt = ms().viewAccountTotalDebtValue(prices, _account);
         if (result.totals.valColl == 0) {
             result.totals.cr = 0;
         } else if (result.totals.valDebt == 0) {
@@ -379,21 +380,21 @@ library ViewDataFuncs {
         } else {
             result.totals.cr = result.totals.valColl.percentDiv(result.totals.valDebt);
         }
-        result.deposits = getMDeposits(res, _account);
-        result.debts = getMDebts(res, _account);
+        result.deposits = viewMDeposits(prices, _account);
+        result.debts = viewMDebts(prices, _account);
     }
 
-    function getMDeposits(Result memory res, address _account) internal view returns (PType.PAssetEntry[] memory result) {
-        address[] memory collaterals = ms().collaterals;
-        result = new PType.PAssetEntry[](collaterals.length);
+    function viewMDeposits(PythView calldata prices, address _account) internal view returns (View.Position[] memory result) {
+        address[] memory colls = ms().collaterals;
+        result = new View.Position[](colls.length);
 
-        for (uint256 i; i < collaterals.length; i++) {
-            address addr = collaterals[i];
-            PType.AssetData memory data = getMAssetData(res, _account, addr);
+        for (uint256 i; i < colls.length; i++) {
+            address addr = colls[i];
+            View.AssetData memory data = viewMAssetData(prices, _account, addr);
             Arrays.FindResult memory findResult = ms().depositedCollateralAssets[_account].find(addr);
-            result[i] = PType.PAssetEntry({
+            result[i] = View.Position({
                 addr: addr,
-                symbol: _getSymbol(addr),
+                symbol: _symbol(addr),
                 amount: data.amountColl,
                 amountAdj: 0,
                 val: data.valColl,
@@ -405,17 +406,17 @@ library ViewDataFuncs {
         }
     }
 
-    function getMDebts(Result memory res, address _account) internal view returns (PType.PAssetEntry[] memory result) {
+    function viewMDebts(PythView calldata prices, address _account) internal view returns (View.Position[] memory result) {
         address[] memory krAssets = ms().krAssets;
-        result = new PType.PAssetEntry[](krAssets.length);
+        result = new View.Position[](krAssets.length);
 
         for (uint256 i; i < krAssets.length; i++) {
             address addr = krAssets[i];
-            PType.AssetData memory data = getMAssetData(res, _account, addr);
+            View.AssetData memory data = viewMAssetData(prices, _account, addr);
             Arrays.FindResult memory findResult = ms().mintedKreskoAssets[_account].find(addr);
-            result[i] = PType.PAssetEntry({
+            result[i] = View.Position({
                 addr: addr,
-                symbol: _getSymbol(addr),
+                symbol: _symbol(addr),
                 amount: data.amountDebt,
                 amountAdj: 0,
                 val: data.valDebt,
@@ -427,26 +428,26 @@ library ViewDataFuncs {
         }
     }
 
-    function getSAccount(
-        Result memory res,
+    function viewSAccount(
+        PythView calldata prices,
         address _account,
         address[] memory _assets
-    ) internal view returns (PType.SAccount memory result) {
+    ) internal view returns (View.SAccount memory result) {
         result.addr = _account;
-        (result.totals.valColl, result.totals.valFees, result.deposits) = getSAccountTotals(res, _account, _assets);
+        (result.totals.valColl, result.totals.valFees, result.deposits) = viewSAccountTotals(prices, _account, _assets);
     }
 
-    function getSAccountTotals(
-        Result memory res,
+    function viewSAccountTotals(
+        PythView calldata prices,
         address _account,
         address[] memory _assets
-    ) internal view returns (uint256 totalVal, uint256 totalValFees, PType.SDepositUser[] memory datas) {
+    ) internal view returns (uint256 totalVal, uint256 totalValFees, View.SDepositUser[] memory datas) {
         address[] memory assets = scdp().collaterals;
-        datas = new PType.SDepositUser[](_assets.length);
+        datas = new View.SDepositUser[](_assets.length);
 
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
-            PType.SDepositUser memory assetData = getSAccountDeposit(res, _account, asset);
+            View.SDepositUser memory assetData = viewSAccountDeposit(prices, _account, asset);
 
             totalVal += assetData.val;
             totalValFees += assetData.valFees;
@@ -466,21 +467,21 @@ library ViewDataFuncs {
         }
     }
 
-    function getSAccountDeposit(
-        Result memory res,
+    function viewSAccountDeposit(
+        PythView calldata prices,
         address _account,
         address _assetAddr
-    ) internal view returns (PType.SDepositUser memory result) {
+    ) internal view returns (View.SDepositUser memory result) {
         Asset storage asset = cs().assets[_assetAddr];
-        result.price = asset.getViewPrice(res);
+        result.price = asset.getViewPrice(prices);
         result.config = asset;
 
         result.amount = scdp().accountDeposits(_account, _assetAddr, asset);
         result.amountFees = scdp().accountFees(_account, _assetAddr, asset);
-        result.val = asset.collateralAmountToValueView(result.price, result.amount, true);
-        result.valFees = asset.collateralAmountToValueView(result.price, result.amountFees, true);
+        result.val = asset.viewCollateralAmountToValue(result.price, result.amount, true);
+        result.valFees = asset.viewCollateralAmountToValue(result.price, result.amountFees, true);
 
-        result.symbol = _getSymbol(_assetAddr);
+        result.symbol = _symbol(_assetAddr);
         result.addr = _assetAddr;
         result.liqIndexAccount = scdp().accountIndexes[_account][_assetAddr].lastLiqIndex;
         result.feeIndexAccount = scdp().accountIndexes[_account][_assetAddr].lastFeeIndex;
@@ -489,7 +490,7 @@ library ViewDataFuncs {
         result.feeIndexCurrent = scdp().assetIndexes[_assetAddr].currFeeIndex;
     }
 
-    function getPhaseEligibility(address _account) internal view returns (uint8 phase, bool isEligible) {
+    function viewPhaseEligibility(address _account) internal view returns (uint8 phase, bool isEligible) {
         if (address(gm().manager) == address(0)) {
             return (0, true);
         }
@@ -497,15 +498,15 @@ library ViewDataFuncs {
         isEligible = gm().manager.isEligible(_account);
     }
 
-    function _getSymbol(address _assetAddr) internal view returns (string memory) {
+    function _symbol(address _assetAddr) internal view returns (string memory) {
         return _assetAddr == 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8 ? "USDC.e" : IERC20(_assetAddr).symbol();
     }
 
     /// @notice Returns the total effective debt value of the SCDP.
     /// @notice Calculation is done in wad precision but returned as oracle precision.
-    function effectiveDebtValueView(SDIState storage self, Result memory res) internal view returns (uint256 result) {
-        uint256 sdiPrice = SDIPriceView(res);
-        uint256 coverValue = totalCoverValueView(res);
+    function viewEffectiveDebtValue(SDIState storage self, PythView calldata prices) internal view returns (uint256 result) {
+        uint256 sdiPrice = viewSDIPrice(prices);
+        uint256 coverValue = viewTotalCoverValue(prices);
         uint256 coverAmount = coverValue != 0 ? coverValue.wadDiv(sdiPrice) : 0;
         uint256 totalDebt = self.totalDebt;
 
@@ -521,8 +522,8 @@ library ViewDataFuncs {
     }
 
     /// @notice Get the price of SDI in USD (WAD precision, so 18 decimals).
-    function SDIPriceView(Result memory res) internal view returns (uint256) {
-        uint256 totalValue = totalDebtValueAtRatioSCDPView(res, Percents.HUNDRED, false);
+    function viewSDIPrice(PythView calldata prices) internal view returns (uint256) {
+        uint256 totalValue = viewTotalDebtValueAtRatioSCDP(prices, Percents.HUNDRED, false);
         if (totalValue == 0) {
             return 1e18;
         }
@@ -535,8 +536,8 @@ library ViewDataFuncs {
      * @param _ignorekFactor Whether to ignore kFactor
      * @return totalValue Total value in USD
      */
-    function totalDebtValueAtRatioSCDPView(
-        Result memory res,
+    function viewTotalDebtValueAtRatioSCDP(
+        PythView calldata prices,
         uint32 _ratio,
         bool _ignorekFactor
     ) internal view returns (uint256 totalValue) {
@@ -546,7 +547,7 @@ library ViewDataFuncs {
             uint256 debtAmount = asset.toRebasingAmount(scdp().assetData[assets[i]].debt);
             unchecked {
                 if (debtAmount != 0) {
-                    totalValue += asset.debtAmountToValueView(debtAmount, asset.getViewPrice(res), _ignorekFactor);
+                    totalValue += asset.viewDebtAmountToValue(debtAmount, asset.getViewPrice(prices), _ignorekFactor);
                 }
                 i++;
             }
@@ -558,24 +559,24 @@ library ViewDataFuncs {
         }
     }
 
-    function totalCoverValueView(Result memory res) internal view returns (uint256 result) {
+    function viewTotalCoverValue(PythView calldata prices) internal view returns (uint256 result) {
         address[] memory assets = sdi().coverAssets;
         for (uint256 i; i < assets.length; ) {
             unchecked {
-                result += coverAssetValueView(res, assets[i]);
+                result += viewCoverAssetValue(prices, assets[i]);
                 i++;
             }
         }
     }
 
     /// @notice Get total deposit value of `asset` in USD, wad precision.
-    function coverAssetValueView(Result memory res, address _assetAddr) internal view returns (uint256) {
+    function viewCoverAssetValue(PythView calldata prices, address _assetAddr) internal view returns (uint256) {
         uint256 bal = IERC20(_assetAddr).balanceOf(sdi().coverRecipient);
         if (bal == 0) return 0;
 
         Asset storage asset = cs().assets[_assetAddr];
         if (!asset.isCoverAsset) return 0;
 
-        return wadUSD(bal, asset.decimals, asset.getViewPrice(res), cs().oracleDecimals);
+        return wadUSD(bal, asset.decimals, asset.getViewPrice(prices), cs().oracleDecimals);
     }
 }

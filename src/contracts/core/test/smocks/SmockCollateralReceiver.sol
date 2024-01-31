@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {ProxyConnector} from "vendor/redstone/ProxyConnector.sol";
 
 import {IMinterDepositWithdrawFacet} from "minter/interfaces/IMinterDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "minter/interfaces/ICollateralReceiver.sol";
+import {UncheckedWithdrawArgs} from "common/Args.sol";
 
-contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
+// solhint-disable state-visibility
+
+contract SmockCollateralReceiver is ICollateralReceiver {
     IMinterDepositWithdrawFacet public kresko;
     function(address, address, uint256, bytes memory) internal callbackLogic;
 
@@ -45,29 +47,23 @@ contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
     function execute(
         address _collateralAsset,
         uint256 _amount,
-        function(address, address, uint256, bytes memory) internal logic
+        function(address, address, uint256, bytes memory) internal logic,
+        bytes[] memory updateData
     ) internal {
         bytes memory data = abi.encode(_amount, 0, address(0));
-        execute(_collateralAsset, _amount, data, logic);
+        execute(_collateralAsset, _amount, data, logic, updateData);
     }
 
     function execute(
         address _collateralAsset,
         uint256 _amount,
         bytes memory data,
-        function(address, address, uint256, bytes memory) internal logic
+        function(address, address, uint256, bytes memory) internal logic,
+        bytes[] memory updateData
     ) internal {
         callbackLogic = logic;
         withdrawalAmountRequested = _amount;
-        bytes memory encodedFunction = abi.encodeWithSelector(
-            kresko.withdrawCollateralUnchecked.selector,
-            msg.sender,
-            _collateralAsset,
-            _amount,
-            0,
-            data
-        );
-        proxyCalldata(address(kresko), encodedFunction, false);
+        kresko.withdrawCollateralUnchecked(UncheckedWithdrawArgs(msg.sender, _collateralAsset, _amount, 0, data), updateData);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -75,27 +71,32 @@ contract SmockCollateralReceiver is ICollateralReceiver, ProxyConnector {
     /* -------------------------------------------------------------------------- */
 
     // should send correct values to the callback
-    function test(address _collateralAsset, uint256 _amount) external {
-        execute(_collateralAsset, _amount, logicBase);
+    function test(address _collateralAsset, uint256 _amount, bytes[] memory updateData) external {
+        execute(_collateralAsset, _amount, logicBase, updateData);
     }
 
-    function testWithdrawalAmount(address _collateralAsset, uint256 _amount) external {
-        execute(_collateralAsset, _amount, logicTestWithdrawalAmount);
-    }
-
-    // should be able to redeposit
-    function testRedeposit(address _collateralAsset, uint256 _amount) external {
-        execute(_collateralAsset, _amount, logicRedeposit);
+    function testWithdrawalAmount(address _collateralAsset, uint256 _amount, bytes[] memory updateData) external {
+        execute(_collateralAsset, _amount, logicTestWithdrawalAmount, updateData);
     }
 
     // should be able to redeposit
-    function testInsufficientRedeposit(address _collateralAsset, uint256 _amount) external {
-        execute(_collateralAsset, _amount, logicInsufficientRedeposit);
+    function testRedeposit(address _collateralAsset, uint256 _amount, bytes[] memory updateData) external {
+        execute(_collateralAsset, _amount, logicRedeposit, updateData);
     }
 
-    function testDepositAlternate(address _collateralWithdraw, uint _amount, address _collateralDeposit) external {
+    // should be able to redeposit
+    function testInsufficientRedeposit(address _collateralAsset, uint256 _amount, bytes[] memory updateData) external {
+        execute(_collateralAsset, _amount, logicInsufficientRedeposit, updateData);
+    }
+
+    function testDepositAlternate(
+        address _collateralWithdraw,
+        uint256 _amount,
+        address _collateralDeposit,
+        bytes[] memory updateData
+    ) external {
         bytes memory data = abi.encode(_amount, 0, _collateralDeposit);
-        execute(_collateralWithdraw, _amount, data, logicDepositAlternate);
+        execute(_collateralWithdraw, _amount, data, logicDepositAlternate, updateData);
     }
 
     /* -------------------------------------------------------------------------- */

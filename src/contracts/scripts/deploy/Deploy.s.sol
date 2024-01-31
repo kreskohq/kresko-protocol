@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 
 import {DeployBase} from "scripts/deploy/DeployBase.s.sol";
 import {Scripted} from "kresko-lib/utils/Scripted.s.sol";
-import {RsScript} from "kresko-lib/utils/ffi/RsScript.s.sol";
 import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {LibDeployMocks} from "scripts/deploy/libs/LibDeployMocks.s.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
@@ -22,9 +21,10 @@ import {Asset, FeedConfiguration} from "common/Types.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
-import {console2} from "forge-std/console2.sol";
+import {getPythData} from "vendor/pyth/PythScript.sol";
+import {MintArgs} from "common/Args.sol";
 
-contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
+contract Deploy is Scripted, DeployBase {
     using LibDeployConfig for *;
     using LibDeployMocks for *;
     using LibDeploy for *;
@@ -35,6 +35,8 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     mapping(bytes32 => bool) tickerExists;
     mapping(bytes32 => bool) routeExists;
     SwapRouteSetter[] routeCache;
+    bytes[] updateData;
+    uint256 updateFee;
 
     function exec(
         JSON.Config memory json,
@@ -55,7 +57,6 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         // Set tokens to cache as we know them at this point.
         json.cacheExtTokens();
 
-        console2.log("mocks created");
         if (json.params.common.gatingManager == address(0)) {
             json.params.common.gatingManager = super.deployGatingManager(json, deployer);
         } else {
@@ -64,14 +65,12 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
 
         // Create base contracts
         address diamond = super.deployDiamond(json, deployer);
-        console2.log("mocks created");
 
         vault = json.createVault(deployer);
         kiss = json.createKISS(diamond, address(vault));
 
         json = json.createKrAssets(diamond);
 
-        console2.log("adding assets");
         /* ---------------------------- Externals --------------------------- */
         _addExtAssets(json, diamond);
         /* ------------------------------ KISS ------------------------------ */
@@ -93,9 +92,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         delete routeCache;
 
         /* ---------------------------- Periphery --------------------------- */
-        console2.log("creating multicall");
-        multicall = json.createMulticall(diamond, address(kiss));
-        console2.log("creating datav1");
+        multicall = json.createMulticall(diamond, address(kiss), address(pythEp));
         dataV1 = json.createDataV1(diamond, address(vault), address(kiss));
 
         /* ------------------------------ Users ----------------------------- */
@@ -140,7 +137,8 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
                         [Enums.OracleType.Vault, Enums.OracleType.Empty],
                         [address(vault), address(0)],
                         [uint256(0), 0],
-                        bytes32(0)
+                        bytes32(0),
+                        false
                     )
                 )
             )
@@ -191,6 +189,8 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     /* ---------------------------------------------------------------------- */
 
     function setupUsers(JSON.Config memory json, address deployer, bool disableLog) private reclearCallers {
+        updateData = getPythData(json);
+        updateFee = pythEp.getUpdateFee(updateData);
         setupBalances(json.users, json.assets);
         setupSCDP(json.users, json.assets);
         setupMinter(json.users, json.assets);
@@ -302,7 +302,13 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
 
         if (pos.mintAmount == 0) return;
-        kresko.mintKreskoAsset(user, pos.mintSymbol.cached(), pos.mintAmount, user);
+        if (user.balance < 0.005 ether) {
+            vm.deal(getAddr(0), 0.01 ether);
+            broadcastWith(0);
+            payable(user).transfer(0.005 ether);
+            broadcastWith(user);
+        }
+        kresko.mintKreskoAsset{value: updateFee}(MintArgs(user, pos.mintSymbol.cached(), pos.mintAmount, user), updateData);
         // rsCall(kresko.mintKreskoAsset.selector, user, pos.mintSymbol.cached(), pos.mintAmount, user);
     }
 

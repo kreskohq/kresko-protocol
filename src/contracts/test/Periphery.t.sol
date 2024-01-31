@@ -5,14 +5,14 @@ pragma solidity ^0.8.0;
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {Tested} from "kresko-lib/utils/Tested.t.sol";
-import {PType} from "periphery/PTypes.sol";
+import {View} from "periphery/ViewTypes.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {getConfig} from "scripts/deploy/libs/JSON.s.sol";
-import {getMockPythViewData, getPythViewData, Result} from "vendor/pyth/PythScript.sol";
+import {getMockPythViewPrices, getPythViewData, PythView} from "vendor/pyth/PythScript.sol";
 
 contract PeripheryTest is Tested, Deploy {
     using ShortAssert for *;
@@ -47,7 +47,7 @@ contract PeripheryTest is Tested, Deploy {
 
     function testProtocolDatas() public {
         JSON.Config memory cfg = getConfig("test", "test-base");
-        PType.Protocol memory protocol = dataV1.getGlobals(getMockPythViewData(cfg)).protocol;
+        View.Protocol memory protocol = dataV1.getGlobals(getMockPythViewPrices(cfg)).protocol;
         protocol.maxPriceDeviationPct.eq(cfg.params.common.maxPriceDeviationPct, "maxPriceDeviationPct");
         protocol.oracleDecimals.eq(cfg.params.common.oracleDecimals, "oracleDecimals");
         protocol.pythEp.notEq(address(0), "pythEp");
@@ -158,8 +158,8 @@ contract PeripheryTest is Tested, Deploy {
     }
 
     function testUserDatas() public {
-        Result memory res = getMockPythViewData(getConfig("test", "test-base"));
-        PType.Account memory acc = dataV1.getAccount(res, user0).protocol;
+        PythView memory prices = getMockPythViewPrices(getConfig("test", "test-base"));
+        View.Account memory acc = dataV1.getAccount(prices, user0).protocol;
         acc.addr.eq(user0, "acc.addr");
 
         acc.bals[0].symbol.eq("WETH", "acc.bals[0].symbol");
@@ -212,7 +212,7 @@ contract PeripheryTest is Tested, Deploy {
         acc.scdp.deposits[0].valFees.eq(0, "acc.scdp.deposits[0].valFees");
 
         /* ------------------------------ user2 ----------------------------- */
-        PType.Account memory acc2 = dataV1.getAccount(res, user2).protocol;
+        View.Account memory acc2 = dataV1.getAccount(prices, user2).protocol;
         acc2.addr.eq(user2, "acc2.addr");
 
         acc2.minter.deposits.length.eq(ASSET_COUNT, "acc2.minter.deposits.length");

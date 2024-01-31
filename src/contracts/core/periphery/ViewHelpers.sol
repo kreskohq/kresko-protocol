@@ -1,20 +1,19 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
-import {Asset, RawPrice} from "common/Types.sol";
+import {Asset} from "common/Types.sol";
 import {toWad} from "common/funcs/Math.sol";
-import {pushPrice, viewPrice} from "common/funcs/Prices.sol";
-import {Enums} from "common/Constants.sol";
+import {viewPrice} from "common/funcs/Prices.sol";
 import {MinterState} from "minter/MState.sol";
 import {cs} from "common/State.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
-import {Result} from "vendor/pyth/PythScript.sol";
+import {PythView} from "vendor/pyth/PythScript.sol";
 
 using PercentageMath for uint256;
 using WadRay for uint256;
 
-library PHelpers {
+library ViewHelpers {
     /* -------------------------------------------------------------------------- */
     /*                                 Push Price                                 */
     /* -------------------------------------------------------------------------- */
@@ -25,7 +24,7 @@ library PHelpers {
      * @param _ignoreKFactor Boolean indicating if the asset's k-factor should be ignored.
      * @return value Value for the provided amount of the Kresko asset.
      */
-    function debtAmountToValueView(
+    function viewDebtAmountToValue(
         Asset storage self,
         uint256 _price,
         uint256 _amount,
@@ -40,7 +39,7 @@ library PHelpers {
     }
 
     /// @notice Helper function to get unadjusted, adjusted and price values for collateral assets
-    function collateralAmountToValuesView(
+    function viewCollateralAmountToValues(
         Asset storage self,
         uint256 _price,
         uint256 _amount
@@ -49,7 +48,7 @@ library PHelpers {
         valueAdjusted = value.percentMul(self.factor);
     }
 
-    function collateralAmountToValueView(
+    function viewCollateralAmountToValue(
         Asset storage self,
         uint256 _price,
         uint256 _amount,
@@ -64,7 +63,7 @@ library PHelpers {
     }
 
     /// @notice Helper function to get unadjusted, adjusted and price values for debt assets
-    function debtAmountToValuesView(
+    function viewDebtAmountToValues(
         Asset storage self,
         uint256 _price,
         uint256 _amount
@@ -73,16 +72,8 @@ library PHelpers {
         valueAdjusted = value.percentMul(self.kFactor);
     }
 
-    function getNormalizedPushPrice(Asset storage self) internal view returns (uint256 price) {
-        RawPrice memory rawPrice = pushPrice(self.oracles, self.ticker);
-        price = uint256(rawPrice.answer);
-        if (rawPrice.oracle == Enums.OracleType.API3) {
-            price = price / 1e10;
-        }
-    }
-
-    function getViewPrice(Asset storage self, Result memory res) internal view returns (uint256 price) {
-        return uint256(viewPrice(self.ticker, res).answer);
+    function getViewPrice(Asset storage self, PythView calldata prices) internal view returns (uint256 price) {
+        return uint256(viewPrice(self.ticker, prices).answer);
     }
 
     /**
@@ -90,9 +81,9 @@ library PHelpers {
      * @param _account Account to calculate the KreskoAsset value for.
      * @return value Total kresko asset debt value of `_account`.
      */
-    function accountTotalDebtValueView(
+    function viewAccountTotalDebtValue(
         MinterState storage self,
-        Result memory res,
+        PythView calldata prices,
         address _account
     ) internal view returns (uint256 value) {
         address[] memory assets = self.mintedKreskoAssets[_account];
@@ -101,7 +92,7 @@ library PHelpers {
             uint256 debtAmount = self.accountDebtAmount(_account, assets[i], asset);
             unchecked {
                 if (debtAmount != 0) {
-                    value += debtAmountToValueView(asset, getViewPrice(asset, res), debtAmount, false);
+                    value += viewDebtAmountToValue(asset, getViewPrice(asset, prices), debtAmount, false);
                 }
                 i++;
             }
@@ -114,9 +105,9 @@ library PHelpers {
      * @param _account Account to calculate the collateral value for.
      * @return totalCollateralValue Collateral value of a particular account.
      */
-    function accountTotalCollateralValueView(
+    function viewAccountTotalCollateralValue(
         MinterState storage self,
-        Result memory res,
+        PythView calldata prices,
         address _account
     ) internal view returns (uint256 totalCollateralValue) {
         address[] memory assets = self.depositedCollateralAssets[_account];
@@ -125,9 +116,9 @@ library PHelpers {
             uint256 collateralAmount = self.accountCollateralAmount(_account, assets[i], asset);
             unchecked {
                 if (collateralAmount != 0) {
-                    totalCollateralValue += collateralAmountToValueView(
+                    totalCollateralValue += viewCollateralAmountToValue(
                         asset,
-                        getViewPrice(asset, res),
+                        getViewPrice(asset, prices),
                         collateralAmount,
                         false // Take the collateral factor into consideration.
                     );

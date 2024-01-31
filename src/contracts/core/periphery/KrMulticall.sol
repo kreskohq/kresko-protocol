@@ -11,6 +11,8 @@ import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {Ownable} from "@oz/access/Ownable.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {ISwapRouter, IKrMulticall} from "periphery/IKrMulticall.sol";
+import {IPyth} from "vendor/pyth/IPyth.sol";
+import {BurnArgs, MintArgs, SCDPWithdrawArgs, SwapArgs, WithdrawArgs} from "common/Args.sol";
 
 // solhint-disable avoid-low-level-calls, code-complexity
 
@@ -24,14 +26,16 @@ import {ISwapRouter, IKrMulticall} from "periphery/IKrMulticall.sol";
 contract KrMulticall is IKrMulticall, Ownable {
     address public kresko;
     address public kiss;
+    IPyth public pythEp;
     ISwapRouter public v3Router;
     IWETH9 public wNative;
 
-    constructor(address _kresko, address _kiss, address _v3Router, address _wNative) Ownable(msg.sender) {
+    constructor(address _kresko, address _kiss, address _v3Router, address _wNative, address _pythEp) Ownable(msg.sender) {
         kresko = _kresko;
         kiss = _kiss;
         v3Router = ISwapRouter(_v3Router);
         wNative = IWETH9(_wNative);
+        pythEp = IPyth(_pythEp);
     }
 
     function rescue(address _token, uint256 _amount, address _receiver) external onlyOwner {
@@ -39,7 +43,14 @@ contract KrMulticall is IKrMulticall, Ownable {
         IERC20(_token).transfer(_receiver, _amount);
     }
 
-    function execute(Operation[] calldata ops, bytes calldata rsPayload) external payable returns (Result[] memory results) {
+    function execute(
+        Operation[] calldata ops,
+        bytes[] calldata _updateData
+    ) external payable returns (Result[] memory results) {
+        uint256 _updateFee = pythEp.getUpdateFee(_updateData);
+        if (msg.value < _updateFee) {
+            revert INSUFFICIENT_UPDATE_FEE(msg.value, _updateFee);
+        }
         unchecked {
             results = new Result[](ops.length);
             for (uint256 i; i < ops.length; i++) {
@@ -70,7 +81,7 @@ contract KrMulticall is IKrMulticall, Ownable {
                     }
                 }
 
-                (bool success, bytes memory returndata) = _handleOp(op, rsPayload);
+                (bool success, bytes memory returndata) = _handleOp(op, _updateData, _updateFee);
                 if (!success) _handleRevert(returndata);
 
                 if (
@@ -187,7 +198,8 @@ contract KrMulticall is IKrMulticall, Ownable {
 
     function _handleOp(
         Operation memory _op,
-        bytes calldata rsPayload
+        bytes[] calldata _updateData,
+        uint256 _updateFee
     ) internal returns (bool success, bytes memory returndata) {
         bool isReturn = _op.data.tokensOutMode == TokensOutMode.ReturnToSender;
         address receiver = isReturn ? msg.sender : address(this);
@@ -195,84 +207,66 @@ contract KrMulticall is IKrMulticall, Ownable {
             _approve(_op.data.tokenIn, _op.data.amountIn, address(kresko));
             return
                 kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(
-                            IMinterDepositWithdrawFacet.depositCollateral,
-                            (msg.sender, _op.data.tokenIn, _op.data.amountIn)
-                        ),
-                        rsPayload
+                    abi.encodeCall(
+                        IMinterDepositWithdrawFacet.depositCollateral,
+                        (msg.sender, _op.data.tokenIn, _op.data.amountIn)
                     )
                 );
         } else if (_op.action == Action.MinterWithdraw) {
             return
-                kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(
-                            IMinterDepositWithdrawFacet.withdrawCollateral,
-                            (msg.sender, _op.data.tokenOut, _op.data.amountOut, _op.data.index, receiver)
-                        ),
-                        rsPayload
+                kresko.call{value: _updateFee}(
+                    abi.encodeCall(
+                        IMinterDepositWithdrawFacet.withdrawCollateral,
+                        (WithdrawArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, _op.data.index, receiver), _updateData)
                     )
                 );
         } else if (_op.action == Action.MinterRepay) {
             return
-                kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(
-                            IMinterBurnFacet.burnKreskoAsset,
-                            (msg.sender, _op.data.tokenIn, _op.data.amountIn, _op.data.index, receiver)
-                        ),
-                        rsPayload
+                kresko.call{value: _updateFee}(
+                    abi.encodeCall(
+                        IMinterBurnFacet.burnKreskoAsset,
+                        (BurnArgs(msg.sender, _op.data.tokenIn, _op.data.amountIn, _op.data.index, receiver), _updateData)
                     )
                 );
         } else if (_op.action == Action.MinterBorrow) {
             return
-                kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(
-                            IMinterMintFacet.mintKreskoAsset,
-                            (msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver)
-                        ),
-                        rsPayload
+                kresko.call{value: _updateFee}(
+                    abi.encodeCall(
+                        IMinterMintFacet.mintKreskoAsset,
+                        (MintArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver), _updateData)
                     )
                 );
         } else if (_op.action == Action.SCDPDeposit) {
             _approve(_op.data.tokenIn, _op.data.amountIn, address(kresko));
-            return
-                kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(ISCDPFacet.depositSCDP, (msg.sender, _op.data.tokenIn, _op.data.amountIn)),
-                        rsPayload
-                    )
-                );
+            return kresko.call(abi.encodeCall(ISCDPFacet.depositSCDP, (msg.sender, _op.data.tokenIn, _op.data.amountIn)));
         } else if (_op.action == Action.SCDPTrade) {
             _approve(_op.data.tokenIn, _op.data.amountIn, address(kresko));
             return
-                kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(
-                            ISCDPSwapFacet.swapSCDP,
-                            (receiver, _op.data.tokenIn, _op.data.tokenOut, _op.data.amountIn, _op.data.amountOutMin)
-                        ),
-                        rsPayload
+                kresko.call{value: _updateFee}(
+                    abi.encodeCall(
+                        ISCDPSwapFacet.swapSCDP,
+                        (
+                            SwapArgs(
+                                receiver,
+                                _op.data.tokenIn,
+                                _op.data.tokenOut,
+                                _op.data.amountIn,
+                                _op.data.amountOutMin,
+                                _updateData
+                            )
+                        )
                     )
                 );
         } else if (_op.action == Action.SCDPWithdraw) {
             return
-                kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(ISCDPFacet.withdrawSCDP, (msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver)),
-                        rsPayload
+                kresko.call{value: _updateFee}(
+                    abi.encodeCall(
+                        ISCDPFacet.withdrawSCDP,
+                        (SCDPWithdrawArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver), _updateData)
                     )
                 );
         } else if (_op.action == Action.SCDPClaim) {
-            return
-                kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(ISCDPFacet.claimFeesSCDP, (msg.sender, _op.data.tokenOut, receiver)),
-                        rsPayload
-                    )
-                );
+            return kresko.call(abi.encodeCall(ISCDPFacet.claimFeesSCDP, (msg.sender, _op.data.tokenOut, receiver)));
         } else if (_op.action == Action.SynthWrap) {
             _approve(_op.data.tokenIn, _op.data.amountIn, _op.data.tokenOut);
             return _op.data.tokenOut.call(abi.encodeCall(IKreskoAsset.wrap, (receiver, _op.data.amountIn)));

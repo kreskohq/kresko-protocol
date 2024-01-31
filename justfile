@@ -36,7 +36,6 @@ dry-arbitrum-sepolia:
 	--evm-version "paris" \
 	--skip-simulation \
 	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
-	--fork-block-number 2680581 \
 	--ffi \
 	-vvv
 
@@ -45,7 +44,6 @@ dry-arbitrum-fork:
 	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "arbitrum-fork" "MNEMONIC_DEVNET" 0 true false) \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--with-gas-price 100000000 \
-	--fork-block-number 159492977 \
 	--skip-simulation \
 	--evm-version "paris" \
 	--ffi \

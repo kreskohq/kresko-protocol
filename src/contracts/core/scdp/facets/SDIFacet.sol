@@ -75,7 +75,11 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
     /*                                Functionality                               */
     /* -------------------------------------------------------------------------- */
 
-    function coverSCDP(address _assetAddr, uint256 _coverAmount) external returns (uint256 value) {
+    function coverSCDP(
+        address _assetAddr,
+        uint256 _coverAmount,
+        bytes[] calldata _updateData
+    ) external payable returns (uint256 value) {
         value = cs().onlyCoverAsset(_assetAddr).assetUSD(_coverAmount);
         sdi().cover(_assetAddr, _coverAmount, value);
     }
@@ -83,8 +87,9 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
     function coverWithIncentiveSCDP(
         address _assetAddr,
         uint256 _coverAmount,
-        address _seizeAssetAddr
-    ) external returns (uint256 value, uint256 seizedAmount) {
+        address _seizeAssetAddr,
+        bytes[] calldata _updateData
+    ) external payable returns (uint256 value, uint256 seizedAmount) {
         Asset storage asset = cs().onlyCoverAsset(_assetAddr);
         Asset storage seizeAsset = cs().onlyFeeAccumulatingCollateral(_seizeAssetAddr);
 

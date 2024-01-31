@@ -18,7 +18,7 @@ import {RawPrice, Oracle} from "common/Types.sol";
 import {Percents, Enums} from "common/Constants.sol";
 import {fromWad, toWad} from "common/funcs/Math.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
-import {Result} from "vendor/pyth/PythScript.sol";
+import {PythView} from "vendor/pyth/PythScript.sol";
 
 using WadRay for uint256;
 using PercentageMath for uint256;
@@ -62,7 +62,7 @@ function oraclePrice(Enums.OracleType _oracleId, bytes32 _ticker) view returns (
 
     if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker, config.staleTime);
 
-    if (_oracleId == Enums.OracleType.Pyth) return pythPrice(config.pythId, config.staleTime);
+    if (_oracleId == Enums.OracleType.Pyth) return pythPrice(config.pythId, config.invertPyth, config.staleTime);
 
     if (_oracleId == Enums.OracleType.Vault) {
         return vaultPrice(config.feed);
@@ -105,25 +105,36 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
     revert Errors.PRICE_UNSTABLE(_primaryPrice, _referencePrice, _oracleDeviationPct);
 }
 
-function pythPrice(bytes32 _id, uint256 _staleTime) view returns (uint256 price_) {
-    price_ = normalizePythPriceTo8Decimals(IPyth(cs().pythEp).getPriceNoOlderThan(_id, _staleTime));
+function pythPrice(bytes32 _id, bool _invert, uint256 _staleTime) view returns (uint256 price_) {
+    IPyth.Price memory result = IPyth(cs().pythEp).getPriceNoOlderThan(_id, _staleTime);
+    if (!_invert) {
+        price_ = normalizePythPrice(result, cs().oracleDecimals);
+    } else {
+        price_ = invertNormalizePythPrice(result, cs().oracleDecimals);
+    }
 
     if (price_ == 0 || price_ > type(uint48).max) {
         revert Errors.INVALID_PYTH_PRICE(_id, price_);
     }
 }
 
-function normalizePythPriceTo8Decimals(IPyth.Price memory _price) pure returns (uint256) {
+function normalizePythPrice(IPyth.Price memory _price, uint8 oracleDec) pure returns (uint256) {
     uint256 result = uint64(_price.price);
     uint256 exp = uint32(-_price.exp);
-    if (exp > 8) {
-        result = result / 10 ** (exp - 8);
+    if (exp > oracleDec) {
+        result = result / 10 ** (exp - oracleDec);
     }
-    if (exp < 8) {
-        result = result * 10 ** (8 - exp);
+    if (exp < oracleDec) {
+        result = result * 10 ** (oracleDec - exp);
     }
 
     return result;
+}
+
+function invertNormalizePythPrice(IPyth.Price memory _price, uint8 oracleDec) pure returns (uint256) {
+    _price.price = int64(uint64(1 * (10 ** uint32(-_price.exp)).wadDiv(uint64(_price.price))));
+    _price.exp = -18;
+    return normalizePythPrice(_price, oracleDec);
 }
 
 /**
@@ -230,7 +241,7 @@ function pushPrice(Enums.OracleType[2] memory _oracles, bytes32 _ticker) view re
     revert Errors.NO_PUSH_ORACLE_SET(_ticker.toString());
 }
 
-function viewPrice(bytes32 _ticker, Result memory result) view returns (RawPrice memory) {
+function viewPrice(bytes32 _ticker, PythView memory views) view returns (RawPrice memory) {
     Oracle memory config;
 
     if (_ticker == bytes32("KISS")) {
@@ -241,12 +252,16 @@ function viewPrice(bytes32 _ticker, Result memory result) view returns (RawPrice
 
     config = cs().oracles[_ticker][Enums.OracleType.Pyth];
 
-    for (uint256 i; i < result.ids.length; i++) {
-        if (result.ids[i] == config.pythId) {
-            IPyth.Price memory _price = result.prices[i];
+    for (uint256 i; i < views.ids.length; i++) {
+        if (views.ids[i] == config.pythId) {
+            IPyth.Price memory _price = views.prices[i];
             return
                 RawPrice(
-                    int256(normalizePythPriceTo8Decimals(_price)),
+                    int256(
+                        !config.invertPyth
+                            ? normalizePythPrice(_price, cs().oracleDecimals)
+                            : invertNormalizePythPrice(_price, cs().oracleDecimals)
+                    ),
                     _price.timestamp,
                     config.staleTime,
                     block.timestamp - _price.timestamp > config.staleTime,

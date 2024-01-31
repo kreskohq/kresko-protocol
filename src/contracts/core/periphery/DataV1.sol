@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {IDataV1} from "./IDataV1.sol";
-import {PFunc} from "periphery/PFuncs.sol";
+import {IDataV1} from "./interfaces/IDataV1.sol";
+import {ViewFuncs} from "periphery/ViewData.sol";
+import {View} from "periphery/ViewTypes.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {Enums} from "common/Constants.sol";
 import {RawPrice} from "common/Types.sol";
-import {PType} from "periphery/PTypes.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {IViewDataFacet} from "periphery/interfaces/IViewDataFacet.sol";
-import {Result} from "vendor/pyth/PythScript.sol";
+import {PythView} from "vendor/pyth/PythScript.sol";
 
 // solhint-disable avoid-low-level-calls, var-name-mixedcase
 
@@ -37,9 +37,9 @@ contract DataV1 is IDataV1 {
         QUEST_FOR_KRESK_COLLECTION = _questForKresk;
     }
 
-    function getGlobals(Result memory res) external view returns (DGlobal memory result) {
+    function getGlobals(PythView calldata _prices) external view returns (DGlobal memory result) {
         result.chainId = block.chainid;
-        result.protocol = DIAMOND.getProtocolDataView(res);
+        result.protocol = DIAMOND.viewProtocolData(_prices);
         result.vault = getVault();
         result.collections = getCollectionData(address(1));
     }
@@ -65,7 +65,7 @@ contract DataV1 is IDataV1 {
                 chainId: block.chainid,
                 addr: token.token,
                 name: tkn.name(),
-                symbol: PFunc._getSymbol(token.token),
+                symbol: ViewFuncs._symbol(token.token),
                 decimals: decimals,
                 amount: balance,
                 val: value,
@@ -93,8 +93,8 @@ contract DataV1 is IDataV1 {
         decimals = IAggregatorV3(_feed).decimals();
     }
 
-    function getAccount(Result memory res, address _account) external view returns (DAccount memory result) {
-        result.protocol = DIAMOND.getAccountDataView(res, _account);
+    function getAccount(PythView calldata _prices, address _account) external view returns (DAccount memory result) {
+        result.protocol = DIAMOND.viewAccountData(_prices, _account);
 
         result.vault.addr = VAULT;
         result.vault.name = IERC20(VAULT).name();
@@ -105,16 +105,16 @@ contract DataV1 is IDataV1 {
         result.vault.decimals = IERC20(VAULT).decimals();
 
         result.collections = getCollectionData(_account);
-        (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(_account);
+        (result.phase, result.eligible) = DIAMOND.viewAccountGatingPhase(_account);
         result.chainId = block.chainid;
     }
 
     function getBalances(
-        Result memory res,
+        PythView calldata _prices,
         address _account,
         address[] memory _tokens
-    ) external view returns (PType.Balance[] memory result) {
-        result = DIAMOND.getTokenBalancesView(res, _account, _tokens);
+    ) external view returns (View.Balance[] memory result) {
+        result = DIAMOND.viewTokenBalances(_prices, _account, _tokens);
     }
 
     function getCollectionData(address _account) public view returns (DCollection[] memory result) {
@@ -172,7 +172,7 @@ contract DataV1 is IDataV1 {
             result[i] = DVAsset({
                 addr: address(asset.token),
                 name: asset.token.name(),
-                symbol: PFunc._getSymbol(address(asset.token)),
+                symbol: ViewFuncs._symbol(address(asset.token)),
                 tSupply: asset.token.totalSupply(),
                 vSupply: asset.token.balanceOf(VAULT),
                 price: answer > 0 ? uint256(answer) : 0,

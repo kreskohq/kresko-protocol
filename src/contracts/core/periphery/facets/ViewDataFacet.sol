@@ -1,44 +1,48 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
 
-import {PType} from "periphery/PTypes.sol";
+import {View} from "periphery/ViewTypes.sol";
 import {IViewDataFacet} from "periphery/interfaces/IViewDataFacet.sol";
-import {ViewDataFuncs} from "periphery/ViewData.sol";
-import {Result} from "vendor/pyth/PythScript.sol";
+import {ViewFuncs} from "periphery/ViewData.sol";
+import {PythView} from "vendor/pyth/PythScript.sol";
 
 contract ViewDataFacet is IViewDataFacet {
     /// @inheritdoc IViewDataFacet
-    function getProtocolDataView(Result memory res) external view returns (PType.Protocol memory) {
-        return ViewDataFuncs.getProtocol(res);
+    function viewProtocolData(PythView calldata _prices) external view returns (View.Protocol memory) {
+        return ViewFuncs.viewProtocol(_prices);
     }
 
     /// @inheritdoc IViewDataFacet
-    function getAccountDataView(Result memory res, address _account) external view returns (PType.Account memory) {
-        return ViewDataFuncs.getAccount(res, _account);
+    function viewAccountData(PythView calldata _prices, address _account) external view returns (View.Account memory) {
+        return ViewFuncs.viewAccount(_prices, _account);
+    }
+
+    function viewSCDPDepositAssets() external view returns (address[] memory result) {
+        return ViewFuncs.viewSDepositAssets();
     }
 
     /// @inheritdoc IViewDataFacet
-    function getTokenBalancesView(
-        Result memory res,
+    function viewTokenBalances(
+        PythView calldata _prices,
         address _account,
         address[] memory _tokens
-    ) external view returns (PType.Balance[] memory result) {
-        result = new PType.Balance[](_tokens.length);
+    ) external view returns (View.Balance[] memory result) {
+        result = new View.Balance[](_tokens.length);
 
         for (uint256 i; i < _tokens.length; i++) {
-            result[i] = ViewDataFuncs.getBalance(res, _account, _tokens[i]);
+            result[i] = ViewFuncs.viewBalance(_prices, _account, _tokens[i]);
         }
     }
 
     /// @inheritdoc IViewDataFacet
-    function getAccountsMinterView(
-        Result memory res,
+    function viewMinterAccounts(
+        PythView calldata _prices,
         address[] memory _accounts
-    ) external view returns (PType.MAccount[] memory result) {
-        result = new PType.MAccount[](_accounts.length);
+    ) external view returns (View.MAccount[] memory result) {
+        result = new View.MAccount[](_accounts.length);
 
         for (uint256 i; i < _accounts.length; ) {
-            result[i] = ViewDataFuncs.getMAccount(res, _accounts[i]);
+            result[i] = ViewFuncs.viewMAccount(_prices, _accounts[i]);
             unchecked {
                 i++;
             }
@@ -46,20 +50,20 @@ contract ViewDataFacet is IViewDataFacet {
     }
 
     /// @inheritdoc IViewDataFacet
-    function getAccountSCDPView(Result memory res, address _account) external view returns (PType.SAccount memory) {
-        return ViewDataFuncs.getSAccount(res, _account, ViewDataFuncs.getSDepositAssets());
+    function viewSCDPAccount(PythView calldata _prices, address _account) external view returns (View.SAccount memory) {
+        return ViewFuncs.viewSAccount(_prices, _account, ViewFuncs.viewSDepositAssets());
     }
 
     /// @inheritdoc IViewDataFacet
-    function getAccountsSCDPView(
-        Result memory res,
+    function viewSCDPAccounts(
+        PythView calldata _prices,
         address[] memory _accounts,
         address[] memory _assets
-    ) external view returns (PType.SAccount[] memory result) {
-        result = new PType.SAccount[](_accounts.length);
+    ) external view returns (View.SAccount[] memory result) {
+        result = new View.SAccount[](_accounts.length);
 
         for (uint256 i; i < _accounts.length; ) {
-            result[i] = ViewDataFuncs.getSAccount(res, _accounts[i], _assets);
+            result[i] = ViewFuncs.viewSAccount(_prices, _accounts[i], _assets);
             unchecked {
                 i++;
             }
@@ -67,22 +71,22 @@ contract ViewDataFacet is IViewDataFacet {
     }
 
     /// @inheritdoc IViewDataFacet
-    function getAssetDatasSCDPView(
-        Result memory res,
+    function viewSCDPAssets(
+        PythView calldata _prices,
         address[] memory _assets
-    ) external view returns (PType.AssetData[] memory results) {
+    ) external view returns (View.AssetData[] memory results) {
         // address[] memory collateralAssets = scdp().collaterals;
-        results = new PType.AssetData[](_assets.length);
+        results = new View.AssetData[](_assets.length);
 
         for (uint256 i; i < _assets.length; ) {
-            results[i] = ViewDataFuncs.getSAssetData(res, _assets[i]);
+            results[i] = ViewFuncs.viewSAssetData(_prices, _assets[i]);
             unchecked {
                 i++;
             }
         }
     }
 
-    function getAccountGatingPhase(address _account) external view returns (uint8 phase, bool eligibleForCurrentPhase) {
-        return ViewDataFuncs.getPhaseEligibility(_account);
+    function viewAccountGatingPhase(address _account) external view returns (uint8 phase, bool eligibleForCurrentPhase) {
+        return ViewFuncs.viewPhaseEligibility(_account);
     }
 }

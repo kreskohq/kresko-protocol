@@ -19,8 +19,8 @@ import {GatingManager} from "periphery/GatingManager.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {CONST} from "scripts/deploy/libs/CONST.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
-import {getMockPythCtor, MockPyth} from "mocks/MockPyth.sol";
-import {getPythViewData, Result} from "vendor/pyth/PythScript.sol";
+import {MockPyth} from "mocks/MockPyth.sol";
+import {getPythViewData, getMockPythPayload, PythView} from "vendor/pyth/PythScript.sol";
 
 library LibDeploy {
     using Conversions for bytes[];
@@ -48,21 +48,17 @@ library LibDeploy {
         return GatingManager(implementation.d3("", CONST.GM_SALT).implementation);
     }
 
-    function createMockPythEP(
-        JSON.Config memory json,
-        address _owner,
-        bool _realPrices
-    ) internal saveOutput("MockPythEP") returns (MockPyth) {
+    function createMockPythEP(JSON.Config memory json, bool _realPrices) internal saveOutput("MockPythEP") returns (MockPyth) {
         (bytes32[] memory ids, int64[] memory prices) = json.getMockPrices();
 
         if (_realPrices) {
-            Result memory res = getPythViewData(ids);
-            for (uint256 i; i < res.ids.length; i++) {
-                prices[i] = res.prices[i].price;
+            PythView memory data = getPythViewData(ids);
+            for (uint256 i; i < data.ids.length; i++) {
+                prices[i] = data.prices[i].price;
             }
         }
 
-        bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(getMockPythCtor(ids, prices)));
+        bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(getMockPythPayload(ids, prices)));
         return MockPyth(implementation.d3("", CONST.PYTH_MOCK_SALT).implementation);
     }
 
@@ -105,10 +101,11 @@ library LibDeploy {
     function createMulticall(
         JSON.Config memory json,
         address _kresko,
-        address _kiss
+        address _kiss,
+        address _pythEp
     ) internal saveOutput("Multicall") returns (KrMulticall) {
         bytes memory implementation = type(KrMulticall).creationCode.ctor(
-            abi.encode(_kresko, _kiss, json.params.periphery.v3Router, json.assets.wNative.token)
+            abi.encode(_kresko, _kiss, json.params.periphery.v3Router, json.assets.wNative.token, _pythEp)
         );
         address multicall = implementation.d3("", CONST.MC_SALT).implementation;
         IKresko(_kresko).grantRole(Role.MANAGER, multicall);
@@ -119,9 +116,10 @@ library LibDeploy {
         JSON.Config memory json,
         address _kresko,
         address _vault,
-        address _kiss
+        address _kiss,
+        address _pythEp
     ) internal returns (DataV1, KrMulticall) {
-        return (createDataV1(json, _kresko, _vault, _kiss), createMulticall(json, _kresko, _kiss));
+        return (createDataV1(json, _kresko, _vault, _kiss), createMulticall(json, _kresko, _kiss, _pythEp));
     }
 
     function createKrAssets(JSON.Config memory json, address kresko) internal returns (JSON.Config memory) {

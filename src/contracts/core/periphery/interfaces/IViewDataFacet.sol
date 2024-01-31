@@ -1,36 +1,35 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {PType} from "periphery/PTypes.sol";
-import {Result} from "vendor/pyth/PythScript.sol";
+import {View} from "periphery/ViewTypes.sol";
+import {PythView} from "vendor/pyth/PythScript.sol";
 
 interface IViewDataFacet {
-    function getProtocolDataView(Result memory res) external view returns (PType.Protocol memory);
+    function viewProtocolData(PythView calldata prices) external view returns (View.Protocol memory);
 
-    function getAccountDataView(Result memory res, address _account) external view returns (PType.Account memory);
+    function viewAccountData(PythView calldata prices, address account) external view returns (View.Account memory);
 
-    function getAccountsMinterView(
-        Result memory res,
-        address[] memory _accounts
-    ) external view returns (PType.MAccount[] memory);
+    function viewMinterAccounts(
+        PythView calldata prices,
+        address[] memory accounts
+    ) external view returns (View.MAccount[] memory);
 
-    function getAccountSCDPView(Result memory res, address _account) external view returns (PType.SAccount memory);
+    function viewSCDPAccount(PythView calldata prices, address account) external view returns (View.SAccount memory);
 
-    function getTokenBalancesView(
-        Result memory res,
-        address _account,
-        address[] memory _tokens
-    ) external view returns (PType.Balance[] memory result);
+    function viewSCDPDepositAssets() external view returns (address[] memory);
 
-    function getAccountGatingPhase(address _account) external view returns (uint8 phase, bool eligibleForCurrentPhase);
+    function viewTokenBalances(
+        PythView calldata prices,
+        address account,
+        address[] memory tokens
+    ) external view returns (View.Balance[] memory result);
 
-    function getAccountsSCDPView(
-        Result memory res,
-        address[] memory _accounts,
-        address[] memory _assets
-    ) external view returns (PType.SAccount[] memory);
+    function viewAccountGatingPhase(address account) external view returns (uint8 phase, bool eligibleForCurrentPhase);
 
-    function getAssetDatasSCDPView(
-        Result memory res,
-        address[] memory _assets
-    ) external view returns (PType.AssetData[] memory);
+    function viewSCDPAccounts(
+        PythView calldata prices,
+        address[] memory accounts,
+        address[] memory assets
+    ) external view returns (View.SAccount[] memory);
+
+    function viewSCDPAssets(PythView calldata prices, address[] memory assets) external view returns (View.AssetData[] memory);
 }

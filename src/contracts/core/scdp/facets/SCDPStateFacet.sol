@@ -8,7 +8,6 @@ import {Percents} from "common/Constants.sol";
 import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 import {scdp, sdi} from "scdp/SState.sol";
-import {PFunc} from "periphery/PFuncs.sol";
 import {SCDPAssetIndexes} from "scdp/STypes.sol";
 
 /**
@@ -53,11 +52,6 @@ contract SCDPStateFacet is ISCDPStateFacet {
     /* -------------------------------------------------------------------------- */
     /*                                 Collaterals                                */
     /* -------------------------------------------------------------------------- */
-
-    /// @inheritdoc ISCDPStateFacet
-    function getDepositAssetsSCDP() external view returns (address[] memory result) {
-        return PFunc.getSDepositAssets();
-    }
 
     function getCollateralsSCDP() external view returns (address[] memory result) {
         return scdp().collaterals;

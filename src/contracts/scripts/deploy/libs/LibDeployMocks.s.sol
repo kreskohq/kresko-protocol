@@ -85,9 +85,8 @@ library LibDeployMocks {
             (json.params.periphery.okNFT, json.params.periphery.qfkNFT) = createNFTMocks();
         }
 
-        address mockPythEP = deployMockPythEP(json, deployer, json.params.common.pythEp != address(0));
         if (json.params.common.pythEp == address(0)) {
-            json.params.common.pythEp = mockPythEP;
+            json.params.common.pythEp = deployMockPythEP(json, json.params.common.pythEp != address(0));
         }
         return json;
     }
@@ -125,8 +124,8 @@ library LibDeployMocks {
         return (deployment.implementation, deployment2.implementation);
     }
 
-    function deployMockPythEP(JSON.Config memory json, address _deployer, bool _realPrices) internal returns (address) {
-        return address(json.createMockPythEP(_deployer, _realPrices));
+    function deployMockPythEP(JSON.Config memory json, bool _realPrices) internal returns (address) {
+        return address(json.createMockPythEP(_realPrices));
     }
 
     function deployMockOracle(string memory ticker, uint256 price, uint8 decimals) internal returns (MockOracle) {

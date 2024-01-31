@@ -76,7 +76,8 @@ library LibDeployConfig {
                 oracleIds: [_assetOracles[0], _assetOracles[1]],
                 feeds: [feed1, feed2],
                 pythId: ticker.pythId,
-                staleTimes: [staleTime1, staleTime2]
+                staleTimes: [staleTime1, staleTime2],
+                invertPyth: ticker.invertPyth
             });
     }
 

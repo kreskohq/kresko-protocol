@@ -15,7 +15,7 @@ import {vmFFI} from "kresko-lib/utils/Base.s.sol";
 import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IKrMulticall} from "periphery/IKrMulticall.sol";
-import {IDataV1} from "../../core/periphery/IDataV1.sol";
+import {IDataV1} from "periphery/interfaces/IDataV1.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";

@@ -6,13 +6,9 @@ import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {Log, Help} from "kresko-lib/utils/Libs.s.sol";
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
-import {IKrMulticall} from "periphery/IKrMulticall.sol";
 import {Tested} from "kresko-lib/utils/Tested.t.sol";
-import {Kresko} from "kresko-lib/utils/Kresko.s.sol";
 import {IAccess} from "kresko-lib/vendor/IAccess.sol";
 import {Role} from "common/Constants.sol";
-import {Vault} from "vault/Vault.sol";
-import {IErrorsEvents} from "periphery/IErrorsEvents.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {IDiamondCutFacet, IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {FacetCut, Initializer} from "diamond/DSTypes.sol";
@@ -36,8 +32,6 @@ contract TestSnip is Tested, Deploy {
     using Deployed for *;
     using ShortAssert for *;
 
-    Kresko kr;
-
     address payable krETH;
     address admin;
 
@@ -46,7 +40,6 @@ contract TestSnip is Tested, Deploy {
     function setUp() public {
         admin = Deploy.deployTest("MNEMONIC_DEVNET", "test-clean", 0).params.common.admin;
         krETH = payable(("krETH").addr());
-        kr = kr.fromKISSFFI(address(kiss), rsPrices);
         krETHAsset = KreskoAsset(krETH);
     }
 

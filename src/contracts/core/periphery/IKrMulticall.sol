@@ -15,7 +15,7 @@ interface ISwapRouter {
 interface IKrMulticall {
     function rescue(address _token, uint256 _amount, address _receiver) external;
 
-    function execute(Operation[] calldata ops, bytes calldata rsPayload) external payable returns (Result[] memory);
+    function execute(Operation[] calldata ops, bytes[] calldata _updateData) external payable returns (Result[] memory);
 
     /**
      * @notice An operation to execute.
@@ -126,4 +126,6 @@ interface IKrMulticall {
 
     error TOKENS_IN_MODE_WAS_NONE_BUT_ADDRESS_NOT_ZERO(Action action, address token);
     error TOKENS_OUT_MODE_WAS_NONE_BUT_ADDRESS_NOT_ZERO(Action action, address token);
+
+    error INSUFFICIENT_UPDATE_FEE(uint256 updateFee, uint256 amountIn);
 }

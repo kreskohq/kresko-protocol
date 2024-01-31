@@ -16,6 +16,7 @@ import {MEvent} from "minter/MEvent.sol";
 import {ms, MinterState} from "minter/MState.sol";
 import {handleMinterFee} from "minter/funcs/MFees.sol";
 import {Arrays} from "libs/Arrays.sol";
+import {MintArgs} from "common/Args.sol";
 
 /**
  * @author Kresko
@@ -28,48 +29,53 @@ contract MinterMintFacet is IMinterMintFacet, Modifiers {
 
     /// @inheritdoc IMinterMintFacet
     function mintKreskoAsset(
-        address _account,
-        address _krAsset,
-        uint256 _mintAmount,
-        address _receiver
-    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) nonReentrant gate(_account) {
-        if (_mintAmount == 0) revert Errors.ZERO_MINT(Errors.id(_krAsset));
-        Asset storage asset = cs().onlyMinterMintable(_krAsset, Enums.Action.Borrow);
+        MintArgs memory _args,
+        bytes[] calldata _updateData
+    )
+        external
+        payable
+        onlyRoleIf(_args.account != msg.sender, Role.MANAGER)
+        nonReentrant
+        usePyth(_updateData)
+        gate(_args.account)
+    {
+        if (_args.amount == 0) revert Errors.ZERO_MINT(Errors.id(_args.krAsset));
+        Asset storage asset = cs().onlyMinterMintable(_args.krAsset, Enums.Action.Borrow);
 
         MinterState storage s = ms();
 
-        if (!asset.isMarketOpen()) revert Errors.MARKET_CLOSED(Errors.id(_krAsset), asset.ticker.toString());
+        if (!asset.isMarketOpen()) revert Errors.MARKET_CLOSED(Errors.id(_args.krAsset), asset.ticker.toString());
 
-        uint256 newSupply = IKreskoAsset(_krAsset).totalSupply() + _mintAmount;
+        uint256 newSupply = IKreskoAsset(_args.krAsset).totalSupply() + _args.amount;
         if (newSupply > asset.maxDebtMinter) {
-            revert Errors.EXCEEDS_ASSET_MINTING_LIMIT(Errors.id(_krAsset), newSupply, asset.maxDebtMinter);
+            revert Errors.EXCEEDS_ASSET_MINTING_LIMIT(Errors.id(_args.krAsset), newSupply, asset.maxDebtMinter);
         }
 
         // If there is a fee for opening a position, handle it
         if (asset.openFee > 0) {
-            handleMinterFee(asset, _account, _mintAmount, Enums.MinterFee.Open);
+            handleMinterFee(asset, _args.account, _args.amount, Enums.MinterFee.Open);
         }
-        uint256 existingDebt = s.accountDebtAmount(_account, _krAsset, asset);
+        uint256 existingDebt = s.accountDebtAmount(_args.account, _args.krAsset, asset);
 
         // The synthetic asset debt position must be greater than the minimum debt position value
-        asset.ensureMinDebtValue(_krAsset, existingDebt + _mintAmount);
+        asset.ensureMinDebtValue(_args.krAsset, existingDebt + _args.amount);
 
         // If this is the first time the account mints this asset, add to its minted assets
         if (existingDebt == 0) {
-            s.mintedKreskoAssets[_account].pushUnique(_krAsset);
+            s.mintedKreskoAssets[_args.account].pushUnique(_args.krAsset);
         }
 
-        _receiver = _receiver == address(0) ? _account : _receiver;
+        _args.receiver = _args.receiver == address(0) ? _args.account : _args.receiver;
 
         // Record the mint.
         unchecked {
-            s.kreskoAssetDebt[_account][_krAsset] += mintKrAsset(_mintAmount, _receiver, asset.anchor);
+            s.kreskoAssetDebt[_args.account][_args.krAsset] += mintKrAsset(_args.amount, _args.receiver, asset.anchor);
         }
 
         // Check if the account has sufficient collateral to back the new debt
-        s.checkAccountCollateral(_account);
+        s.checkAccountCollateral(_args.account);
 
         // Emit logs
-        emit MEvent.KreskoAssetMinted(_account, _krAsset, _mintAmount, _receiver);
+        emit MEvent.KreskoAssetMinted(_args.account, _args.krAsset, _args.amount, _args.receiver);
     }
 }

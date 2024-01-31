@@ -33,14 +33,19 @@ interface ISDIFacet {
     function getSDIPrice() external view returns (uint256);
 
     /// @notice Cover debt by providing collateral without getting anything in return.
-    function coverSCDP(address _assetAddr, uint256 _coverAmount) external returns (uint256 value);
+    function coverSCDP(
+        address _assetAddr,
+        uint256 _coverAmount,
+        bytes[] calldata _updateData
+    ) external payable returns (uint256 value);
 
     /// @notice Cover debt by providing collateral, receiving small incentive in return.
     function coverWithIncentiveSCDP(
         address _assetAddr,
         uint256 _coverAmount,
-        address _seizeAssetAddr
-    ) external returns (uint256 value, uint256 seizedAmount);
+        address _seizeAssetAddr,
+        bytes[] calldata _updateData
+    ) external payable returns (uint256 value, uint256 seizedAmount);
 
     /// @notice Enable a cover asset to be used.
     function enableCoverAssetSDI(address _assetAddr) external;

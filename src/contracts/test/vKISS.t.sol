@@ -139,8 +139,6 @@ contract vKISSTest is Test {
 
         usdcOracle.setPrice(0.5e8);
 
-        console2.log(vkiss.exchangeRate());
-
         _redeem(user1, usdc, 505e18);
         _redeem(user2, usdc, 101e18);
 
@@ -628,16 +626,6 @@ contract vKISSTest is Test {
         vkiss.mint(address(usdc), depositAmount, user1);
         vm.stopPrank();
     }
-
-    // function testRandom() public {
-    //   vm.startPrank(user0);
-    //   usdc.mint(user1, 100 ether);
-    //   usdt.mint(user2, 100e6);
-    //   vm.stopPrank();
-    //   deposit(user1, usdc, 100 ether);
-    //   deposit(user2, usdt, 100e6);
-    //   usdcOracle.setPrice(1.05e8);
-    // }
 
     /* -------------------------------------------------------------------------- */
     /*                                   Helpers                                  */

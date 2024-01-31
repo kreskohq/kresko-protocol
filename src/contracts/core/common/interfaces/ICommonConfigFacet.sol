@@ -3,6 +3,12 @@ pragma solidity ^0.8.0;
 import {FeedConfiguration} from "common/Types.sol";
 
 interface ICommonConfigFacet {
+    struct PythConfig {
+        bytes32[] pythIds;
+        uint256[] staleTimes;
+        bool[] invertPyth;
+    }
+
     /**
      * @notice Updates the fee recipient.
      * @param _newFeeRecipient The new fee recipient.
@@ -56,7 +62,7 @@ interface ICommonConfigFacet {
      * @param _tickers Bytes32 list of tickers
      * @param _feeds List of feed addresses.
      */
-    function setApi3Feeds(bytes32[] calldata _tickers, address[] calldata _feeds, uint256[] memory _staleTimes) external;
+    function setAPI3Feeds(bytes32[] calldata _tickers, address[] calldata _feeds, uint256[] memory _staleTimes) external;
 
     /**
      * @notice Set a vault feed for ticker.
@@ -72,11 +78,11 @@ interface ICommonConfigFacet {
      * @notice Set a pyth feeds for tickers.
      * @dev Has modifiers: onlyRole.
      * @param _tickers Bytes32 list of tickers
-     * @param _pythIds List of pyth ids.
+     * @param pythConfig Pyth configuration
      */
-    function setPythFeeds(bytes32[] calldata _tickers, bytes32[] calldata _pythIds, uint256[] memory _staleTimes) external;
+    function setPythFeeds(bytes32[] calldata _tickers, PythConfig calldata pythConfig) external;
 
-    function setPythFeed(bytes32 _ticker, bytes32 _pythId, uint256 _staleTime) external;
+    function setPythFeed(bytes32 _ticker, bytes32 _pythId, bool _invert, uint256 _staleTime) external;
 
     /**
      * @notice Set ChainLink feed address for ticker.
@@ -94,7 +100,7 @@ interface ICommonConfigFacet {
      * @custom:signature setApi3Feed(bytes32,address)
      * @custom:selector 0x7e9f9837
      */
-    function setApi3Feed(bytes32 _ticker, address _feedAddr, uint256 _staleTime) external;
+    function setAPI3Feed(bytes32 _ticker, address _feedAddr, uint256 _staleTime) external;
 
     /**
      * @notice Sets gating manager

@@ -129,6 +129,7 @@ struct TickerConfig {
     uint256 staleTimeChainlink;
     uint256 staleTimeRedstone;
     bool useAdapter;
+    bool invertPyth;
 }
 
 struct Balance {
