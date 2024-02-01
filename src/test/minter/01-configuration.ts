@@ -165,6 +165,8 @@ describe('Minter - Configuration', function () {
       expect(newValues2.closeFee).to.equal(update2.openFee)
       expect(newValues2.swapInFeeSCDP).to.equal(update2.swapInFeeSCDP)
       expect(newValues2.maxDebtMinter).to.equal(update2.maxDebtMinter)
+
+      await f.KrAsset.setPrice(10)
     })
   })
 })

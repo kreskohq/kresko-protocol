@@ -2,7 +2,7 @@ import optimized from '@utils/test/helpers/optimizations'
 import { fromBig, toBig } from '@utils/values'
 import { depositCollateral, depositMockCollateral } from './collaterals'
 import { mintKrAsset } from './krassets'
-export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collateral: any, log = false) => {
+export const getLiqAmount = async (user: SignerWithAddress, krAsset: TestKrAsset, collateral: any, log = false) => {
   const [maxLiquidatableValue, krAssetPrice] = await Promise.all([
     hre.Diamond.getMaxLiqValue(user.address, krAsset.address, collateral.address),
     krAsset.getPrice(),
@@ -26,23 +26,24 @@ export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collat
       valueUnder: fromBig(accountMinimumCollateralValue.sub(accountCollateralValue), 8),
       kreskoAssetDebt,
       maxValue: maxLiquidatableValue,
-      maxAmount: maxLiquidatableValue.repayValue.wadDiv(krAssetPrice),
+      maxAmount: maxLiquidatableValue.repayValue.wadDiv(krAssetPrice.pyth),
     })
   }
 
-  return maxLiquidatableValue.repayValue.wadDiv(krAssetPrice)
+  return maxLiquidatableValue.repayValue.wadDiv(krAssetPrice.pyth)
 }
 
 export const liquidate = async (
   user: SignerWithAddress,
   krAsset: TestKrAsset,
-  collateral: any,
+  collateral: TestExtAsset | TestKrAsset,
   allowSeizeUnderflow = false,
 ) => {
-  const [depositsBefore, debtBefore, liqAmount] = await Promise.all([
+  const [depositsBefore, debtBefore, liqAmount, updateData] = await Promise.all([
     hre.Diamond.getAccountCollateralAmount(user.address, collateral.address),
     hre.Diamond.getAccountDebtAmount(user.address, krAsset.address),
     getLiqAmount(user, krAsset, collateral),
+    hre.updateData(),
   ])
 
   if (liqAmount.eq(0)) {
@@ -88,7 +89,7 @@ export const liquidate = async (
     seizeAssetAddr: collateral.address,
     repayAssetIndex: optimized.getAccountMintIndex(user.address, krAsset.address),
     seizeAssetIndex: optimized.getAccountDepositIndex(user.address, collateral.address),
-    prices: await hre.updateData(),
+    prices: updateData,
   })
 
   const [depositsAfter, debtAfter, decimals] = await Promise.all([

@@ -616,6 +616,7 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     amount: initialDeposits,
     asset: DefaultCollateral,
   })
+
   await depositCollateral({
     user: hre.users.liquidator,
     amount: toBig(100000000),

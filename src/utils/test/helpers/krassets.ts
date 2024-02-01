@@ -133,13 +133,16 @@ export const leverageKrAsset = async (
   collateralToUse: TestAsset<any, 'mock'>,
   amount: BigNumber,
 ) => {
-  const [krAssetValueBig, mcrBig, collateralValue, collateralToUseInfo, krAssetInfo] = await Promise.all([
-    hre.Diamond.getValue(krAsset.address, amount),
-    optimized.getMinCollateralRatioMinter(),
-    hre.Diamond.getValue(collateralToUse.address, toBig(1)),
-    hre.Diamond.getAsset(collateralToUse.address),
-    hre.Diamond.getAsset(krAsset.address),
-  ])
+  const [krAssetValueBig, mcrBig, collateralValue, collateralToUseInfo, krAssetInfo, updateData, prices] =
+    await Promise.all([
+      hre.Diamond.getValue(krAsset.address, amount),
+      optimized.getMinCollateralRatioMinter(),
+      hre.Diamond.getValue(collateralToUse.address, toBig(1)),
+      hre.Diamond.getAsset(collateralToUse.address),
+      hre.Diamond.getAsset(krAsset.address),
+      hre.updateData(),
+      collateralToUse.getPrice(),
+    ])
 
   await krAsset.contract.setVariable('_allowances', {
     [user.address]: {
@@ -150,7 +153,7 @@ export const leverageKrAsset = async (
   const collateralValueRequired = krAssetValueBig.percentMul(mcrBig)
 
   const price = collateralValue.num(8)
-  const collateralAmount = collateralValueRequired.wadDiv((await collateralToUse.getPrice()).pyth)
+  const collateralAmount = collateralValueRequired.wadDiv(prices.pyth)
 
   await collateralToUse.setBalance(user, collateralAmount, hre.Diamond.address)
 
@@ -178,13 +181,11 @@ export const leverageKrAsset = async (
   await Promise.all(addPromises)
   const UserKresko = hre.Diamond.connect(user)
   await UserKresko.depositCollateral(user.address, collateralToUse.address, collateralAmount)
-  await Promise.all([
-    UserKresko.mintKreskoAsset(
-      { account: user.address, krAsset: krAsset.address, amount, receiver: user.address },
-      await hre.updateData(),
-    ),
-    UserKresko.depositCollateral(user.address, krAsset.address, amount),
-  ])
+  await UserKresko.mintKreskoAsset(
+    { account: user.address, krAsset: krAsset.address, amount, receiver: user.address },
+    updateData,
+  )
+  await UserKresko.depositCollateral(user.address, krAsset.address, amount)
 
   // Deposit krAsset and withdraw other collateral to bare minimum of within healthy range
 
@@ -206,11 +207,11 @@ export const leverageKrAsset = async (
         collateralIndex: optimized.getAccountDepositIndex(user.address, collateralToUse.address),
         receiver: user.address,
       },
-      await hre.updateData(),
+      updateData,
     )
 
     // "burn" collateral not needed
-    collateralToUse.setBalance(user, toBig(0))
+    await collateralToUse.setBalance(user, toBig(0))
     // await collateralToUse.contract.connect(user).transfer(hre.ethers.constants.AddressZero, amountToWithdraw);
   }
 }

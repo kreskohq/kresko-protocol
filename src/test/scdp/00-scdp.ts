@@ -21,7 +21,7 @@ const initialDepositValue = depositAmount.ebn(8)
 const depositAmount18Dec = depositAmount.ebn()
 const depositAmount8Dec = depositAmount.ebn(8)
 
-describe.only('SCDP', async function () {
+describe('SCDP', async function () {
   let f: SCDPFixture
   this.slow(5000)
 

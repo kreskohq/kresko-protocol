@@ -33,8 +33,7 @@ export const updatePrices = async (hre: any, fakeOracle: FakeContract<MockOracle
   fakeOracle.latestRoundData.returns([1, priceBn, now, now, 1])
 
   const mockPyth = await hre.getContractOrFork('MockPyth')
-  const updateData = await getUpdateData(hre)
-  await mockPyth.updatePriceFeeds(updateData)
+  await mockPyth.updatePriceFeeds(await getUpdateData(hre))
 }
 
 export const getUpdateData = async (hre: any) => {
