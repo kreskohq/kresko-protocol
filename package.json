@@ -47,7 +47,7 @@
     "@ethersproject/abstract-provider": "^5",
     "@ethersproject/abstract-signer": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
-    "@kreskolabs/viem-redstone-connector": "^0.5.2",
+    "@kreskolabs/viem-redstone-connector": "^0.5.3",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
     "@nomicfoundation/hardhat-foundry": "1.0.3",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
