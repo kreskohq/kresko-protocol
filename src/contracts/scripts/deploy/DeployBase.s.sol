@@ -68,12 +68,7 @@ abstract contract DeployBase {
     }
 
     function deployFacets(JSON.Config memory json) private returns (FacetCut[] memory cuts, Initializer[] memory inits) {
-        string[] memory cmd = new string[](2);
-        cmd[0] = "./utils/getBytesAndSelectors.sh";
-        cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
-
-        (, bytes[] memory facets, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (string[], bytes[], bytes4[][]));
-
+        (bytes[] memory facets, bytes4[][] memory selectors) = getFacetsAndSelectors();
         (uint256[] memory initIds, bytes[] memory initDatas) = getInitializers(json, selectors);
 
         if (facets.length != selectors.length) {
@@ -138,16 +133,29 @@ abstract contract DeployBase {
     }
 
     function deployDiamondOneTx(JSON.Config memory json, address _deployer) internal returns (IKresko) {
+        (bytes[] memory facets, bytes4[][] memory selectors) = getFacetsAndSelectors();
+        (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(json, selectors);
+        return (kresko = IKresko(address(new DiamondBomb().create(_deployer, facets, selectors, initializers, calldatas))));
+    }
+
+    function getFacetsAndSelectors() private returns (bytes[] memory, bytes4[][] memory) {
         string[] memory cmd = new string[](2);
         cmd[0] = "./utils/getBytesAndSelectors.sh";
         cmd[1] = "./src/contracts/core/**/facets/*Facet.sol";
 
-        (, bytes[] memory creationCodes, bytes4[][] memory selectors) = abi.decode(
-            vmFFI.ffi(cmd),
-            (string[], bytes[], bytes4[][])
-        );
-        (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(json, selectors);
-        kresko = IKresko(address(new DiamondBomb().create(_deployer, creationCodes, selectors, initializers, calldatas)));
-        return kresko;
+        (string[] memory files, bytes4[][] memory selectors) = abi.decode(vmFFI.ffi(cmd), (string[], bytes4[][]));
+        bytes[] memory facets = new bytes[](selectors.length);
+
+        for (uint256 i; i < files.length; ) {
+            (, bytes memory getCodeResult) = address(vmFFI).call(
+                abi.encodeWithSignature("getCode(string)", string.concat(files[i], ".sol:", files[i]))
+            );
+            facets[i] = abi.decode(getCodeResult, (bytes));
+            unchecked {
+                i++;
+            }
+        }
+
+        return (facets, selectors);
     }
 }
