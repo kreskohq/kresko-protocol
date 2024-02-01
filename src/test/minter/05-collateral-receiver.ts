@@ -79,7 +79,7 @@ describe('CollateralReceiver - UncheckedCollateralWithdraw', () => {
         expect(deposits.gt(0)).to.be.true
 
         // set second collateral price to half of the first and balance to twice that
-        f.Collateral2.setPrice(10)
+        await f.Collateral2.setPrice(10)
         await f.Collateral2.setBalance(user, f.depositAmount)
         await f.Collateral2.contract.setVariable('_allowances', {
           [user.address]: {

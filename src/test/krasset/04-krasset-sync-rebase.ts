@@ -1,4 +1,3 @@
-import { getMockPythPayload } from '@utils/redstone'
 import { addLiquidity } from '@utils/test/helpers/amm'
 import { depositMockCollateral } from '@utils/test/helpers/collaterals'
 import { mintKrAsset } from '@utils/test/helpers/krassets'
@@ -6,7 +5,6 @@ import { defaultMintAmount, testCollateralConfig } from '@utils/test/mocks'
 import { Role } from '@utils/test/roles'
 import { toBig } from '@utils/values'
 import { expect } from 'chai'
-import hre from 'hardhat'
 
 describe.skip('Test KreskoAsset with Rebase and sync', () => {
   let KreskoAsset: TestKrAsset
@@ -21,28 +19,22 @@ describe.skip('Test KreskoAsset with Rebase and sync', () => {
     // [hre.UniV2Router] = await hre.deploy("UniswapV2Router02", {
     //     args: [hre.UniV2Factory.address, (await hre.deploy("WETH"))[0].address],
     // });
-    const payload = await getMockPythPayload(await hre.getContractOrFork('MockPyth'))
+
     await depositMockCollateral({
       user: hre.users.userNine,
       asset: this.collaterals.find(c => c.config.args.ticker === testCollateralConfig.ticker)!,
       amount: toBig(100000),
     })
-    await mintKrAsset(
-      {
-        user: hre.users.userNine,
-        asset: KreskoAsset,
-        amount: toBig(64),
-      },
-      payload,
-    )
-    await mintKrAsset(
-      {
-        user: hre.users.userNine,
-        asset: KISS,
-        amount: toBig(1000),
-      },
-      payload,
-    )
+    await mintKrAsset({
+      user: hre.users.userNine,
+      asset: KreskoAsset,
+      amount: toBig(64),
+    })
+    await mintKrAsset({
+      user: hre.users.userNine,
+      asset: KISS,
+      amount: toBig(1000),
+    })
     this.pool = await addLiquidity({
       user: hre.users.userNine,
       router: hre.UniV2Router,

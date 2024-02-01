@@ -50,15 +50,16 @@ declare global {
     balanceOf: T extends KreskoAsset
       ? ReturnType<typeof getBalanceKrAssetFunc>
       : ReturnType<typeof getBalanceCollateralFunc>;
-    setPrice: (price: number) => void;
+    setPrice: (price: number) => Promise<void>;
     setOracleOrder: (order: [OracleType, OracleType]) => Promise<any>;
-    getPrice: () => Promise<BigNumber>;
+    getPrice: () => Promise<{push: BigNumber, pyth: BigNumber}>;
     update: (update: TestAssetUpdate) => Promise<TestAsset<C, T>>;
   };
 
   export type TestTokenSymbols =
     | 'krSYMBOL'
     | 'USDC'
+    | 'MockKISS'
     | 'TSLA'
     | 'Collateral'
     | 'Coll8Dec'

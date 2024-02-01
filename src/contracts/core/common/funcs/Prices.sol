@@ -241,7 +241,7 @@ function pushPrice(Enums.OracleType[2] memory _oracles, bytes32 _ticker) view re
     revert Errors.NO_PUSH_ORACLE_SET(_ticker.toString());
 }
 
-function viewPrice(bytes32 _ticker, PythView memory views) view returns (RawPrice memory) {
+function viewPrice(bytes32 _ticker, PythView calldata views) view returns (RawPrice memory) {
     Oracle memory config;
 
     if (_ticker == bytes32("KISS")) {
@@ -255,20 +255,20 @@ function viewPrice(bytes32 _ticker, PythView memory views) view returns (RawPric
     for (uint256 i; i < views.ids.length; i++) {
         if (views.ids[i] == config.pythId) {
             IPyth.Price memory _price = views.prices[i];
-            return
-                RawPrice(
-                    int256(
-                        !config.invertPyth
-                            ? normalizePythPrice(_price, cs().oracleDecimals)
-                            : invertNormalizePythPrice(_price, cs().oracleDecimals)
-                    ),
-                    _price.timestamp,
-                    config.staleTime,
-                    block.timestamp - _price.timestamp > config.staleTime,
-                    _price.price == 0,
-                    Enums.OracleType.Pyth,
-                    address(0)
-                );
+            RawPrice memory result = RawPrice(
+                int256(
+                    !config.invertPyth
+                        ? normalizePythPrice(_price, cs().oracleDecimals)
+                        : invertNormalizePythPrice(_price, cs().oracleDecimals)
+                ),
+                _price.timestamp,
+                config.staleTime,
+                false,
+                _price.price == 0,
+                Enums.OracleType.Pyth,
+                address(0)
+            );
+            return result;
         }
     }
 

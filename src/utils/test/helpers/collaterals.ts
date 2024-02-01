@@ -5,7 +5,7 @@ import { toBig } from '@utils/values'
 import { type InputArgs, testCollateralConfig } from '../mocks'
 import { getAssetConfig, updateTestAsset } from './general'
 import optimized from './optimizations'
-import { getFakeOracle, setPrice } from './oracle'
+import { createOracles, getPythPrice, updatePrices } from './oracle'
 import { getBalanceCollateralFunc, setBalanceCollateralFunc } from './smock'
 
 envCheck()
@@ -13,7 +13,7 @@ envCheck()
 export const addMockExtAsset = async (args = testCollateralConfig): Promise<TestExtAsset> => {
   const { name, price, symbol, decimals } = args
   const [fakeFeed, contract]: [FakeContract<MockOracle>, MockContract<MockERC20>] = await Promise.all([
-    getFakeOracle(price),
+    createOracles(hre, args.pyth.id, price),
     (await smock.mock<MockERC20__factory>('MockERC20')).deploy(name ?? symbol, symbol, decimals ?? 18, 0), //shh
   ])
 
@@ -35,20 +35,21 @@ export const addMockExtAsset = async (args = testCollateralConfig): Promise<Test
     priceFeed: fakeFeed,
     config,
     errorId: [symbol, contract.address],
-    setPrice: price => setPrice(fakeFeed, price),
+    setPrice: price => updatePrices(hre, fakeFeed, price, config.feedConfig.pythId.toString()),
     setBalance: setBalanceCollateralFunc(contract),
     setOracleOrder: order => hre.Diamond.setAssetOracleOrder(contract.address, order),
     balanceOf: getBalanceCollateralFunc(contract),
-    getPrice: async () => (await fakeFeed.latestRoundData())[1],
+    getPrice: async () => ({
+      push: (await fakeFeed.latestRoundData())[1],
+      pyth: getPythPrice(config.feedConfig.pythId.toString()),
+    }),
     update: update => updateTestAsset(asset, update),
   }
   const found = hre.extAssets.findIndex(c => c.address === asset.address)
   if (found === -1) {
     hre.extAssets.push(asset)
-    hre.allAssets.push(asset)
   } else {
     hre.extAssets = hre.extAssets.map(c => (c.address === asset.address ? asset : c))
-    hre.allAssets = hre.allAssets.map(c => (c.address === asset.address ? asset : c))
   }
   return asset
 }

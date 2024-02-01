@@ -8,7 +8,7 @@ import type {
   PrepareProxyFunction,
 } from '@/types/functions';
 import { hardhatUsers } from '@config/hardhat';
-import { proxyUtils } from '@config/hardhat/extensions/utils';
+import { proxyUtils } from '@config/hardhat/utils';
 import { Fragment, type JsonFragment } from '@ethersproject/abi';
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import 'ethers';
@@ -16,6 +16,7 @@ import type { ABI, Deployment } from 'hardhat-deploy/dist/types';
 import 'hardhat/types/config';
 import 'mocha';
 import type { KISS, MockERC20 } from './typechain';
+import type { PythViewStruct } from './typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
 
 /* -------------------------------------------------------------------------- */
 /*                               Hardhat Config                               */
@@ -54,7 +55,9 @@ declare module 'hardhat/types/runtime' {
     KISS: TestAsset<KISS, any>;
     krAssets: TestAsset<KreskoAsset, 'mock'>[];
     extAssets: TestAsset<MockERC20, 'mock'>[];
-    allAssets: TestAsset<MockERC20 | KreskoAsset, any>[];
+    updateData: () => Promise<string[]>;
+    viewData: () => PythViewStruct;
+
     users: HardhatUsers<SignerWithAddress>;
     addr: HardhatUsers<string>;
     /* ---------------------------------- Misc ---------------------------------- */

@@ -1,6 +1,5 @@
 import type { AllTokenSymbols } from '@config/hardhat/deploy';
 import type { AssetConfigExtended } from '@config/hardhat/deploy/arbitrumSepolia';
-import type { AllTickers } from '@utils/redstone';
 import type { BigNumber, Overrides } from 'ethers';
 import type { Address } from 'hardhat-deploy/types';
 import type * as Contracts from './typechain';
@@ -11,6 +10,7 @@ import type {
   MinterInitArgsStruct,
   SCDPInitArgsStruct,
 } from './typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import type { AllTickers } from '@utils/test/helpers/oracle';
 
 export type ContractTypes = GetContractTypes<typeof Contracts>;
 export type ContractNames = keyof ContractTypes;

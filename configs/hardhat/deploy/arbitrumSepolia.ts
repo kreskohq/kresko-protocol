@@ -139,10 +139,9 @@ export const assets = {
     name: 'Kresko Integrated Stable System',
     symbol: 'KISS',
     decimals: 18,
-    oracleIds: [OracleType.Chainlink, OracleType.Empty] as const,
+    oracleIds: [OracleType.Vault, OracleType.Empty] as const,
     getPrice: async () => toBig('1', 8),
     getMarketOpen: async () => true,
-    feed: oracles.KISS.chainlink,
     pyth: {
       id: null,
       invert: false,

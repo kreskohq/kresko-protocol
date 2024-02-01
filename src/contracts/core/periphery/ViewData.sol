@@ -473,6 +473,7 @@ library ViewFuncs {
         address _assetAddr
     ) internal view returns (View.SDepositUser memory result) {
         Asset storage asset = cs().assets[_assetAddr];
+
         result.price = asset.getViewPrice(prices);
         result.config = asset;
 

@@ -5,6 +5,7 @@ import {View} from "periphery/ViewTypes.sol";
 import {IViewDataFacet} from "periphery/interfaces/IViewDataFacet.sol";
 import {ViewFuncs} from "periphery/ViewData.sol";
 import {PythView} from "vendor/pyth/PythScript.sol";
+import {console} from "forge-std/console.sol";
 
 contract ViewDataFacet is IViewDataFacet {
     /// @inheritdoc IViewDataFacet
@@ -64,6 +65,7 @@ contract ViewDataFacet is IViewDataFacet {
 
         for (uint256 i; i < _accounts.length; ) {
             result[i] = ViewFuncs.viewSAccount(_prices, _accounts[i], _assets);
+
             unchecked {
                 i++;
             }

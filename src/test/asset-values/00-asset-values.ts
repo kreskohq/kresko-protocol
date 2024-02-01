@@ -62,7 +62,7 @@ describe('Asset Amounts & Values', function () {
           collateralIndex: withdrawIndex,
           receiver: f.user.address,
         },
-        f.updateData,
+        await hre.updateData(),
       )
       const balance = await f.CollateralAsset.balanceOf(f.user.address)
       expect(balance).to.equal(toBig(f.startingBalance))
@@ -82,7 +82,7 @@ describe('Asset Amounts & Values', function () {
           collateralIndex: withdrawIndex,
           receiver: f.user.address,
         },
-        f.updateData,
+        await hre.updateData(),
       )
       const balance = await f.CollateralAsset8Dec.balanceOf(f.user.address)
       expect(balance).to.equal(toBig(f.startingBalance, 8))
@@ -102,7 +102,7 @@ describe('Asset Amounts & Values', function () {
           collateralIndex,
           receiver: f.user.address,
         },
-        f.updateData,
+        await hre.updateData(),
       )
       const balance = await f.CollateralAsset21Dec.balanceOf(f.user.address)
       expect(balance).to.equal(toBig(f.startingBalance, 21))
@@ -120,7 +120,7 @@ describe('Asset Amounts & Values', function () {
 
       await User.mintKreskoAsset(
         { account: f.user.address, krAsset: f.KreskoAsset.address, amount: mintAmount, receiver: f.user.address },
-        f.updateData,
+        await hre.updateData(),
       )
       const expectedDepositValue = toBig(49.5, f.oracleDecimals) // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
@@ -146,7 +146,7 @@ describe('Asset Amounts & Values', function () {
 
       await User.mintKreskoAsset(
         { account: f.user.address, krAsset: f.KreskoAsset.address, amount: mintAmount, receiver: f.user.address },
-        f.updateData,
+        await hre.updateData(),
       )
       const expectedDepositValue = toBig(49.5, f.oracleDecimals) // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
@@ -172,7 +172,7 @@ describe('Asset Amounts & Values', function () {
 
       await User.mintKreskoAsset(
         { account: f.user.address, krAsset: f.KreskoAsset.address, amount: mintAmount, receiver: f.user.address },
-        f.updateData,
+        await hre.updateData(),
       )
       const expectedDepositValue = toBig(49.5, f.oracleDecimals) // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 

@@ -6,7 +6,7 @@ import { type InputArgsSimple, defaultCloseFee, defaultSupplyLimit, testKrAssetC
 import { Role } from '../roles'
 import { getAssetConfig, updateTestAsset } from './general'
 import optimized from './optimizations'
-import { getFakeOracle, setPrice } from './oracle'
+import { createOracles, getPythPrice, updatePrices } from './oracle'
 import { getBalanceKrAssetFunc, setBalanceKrAssetFunc } from './smock'
 
 export const getDebtIndexAdjustedBalance = async (user: SignerWithAddress, asset: TestAsset<KreskoAsset, any>) => {
@@ -22,7 +22,7 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
   const { name, symbol, price, marketOpen } = args
   const [krAsset, fakeFeed, anchorFactory] = await Promise.all([
     await (await smock.mock<KreskoAsset__factory>('KreskoAsset')).deploy(),
-    getFakeOracle(price, marketOpen),
+    createOracles(hre, args.pyth.id, price, marketOpen),
     smock.mock<KreskoAssetAnchor__factory>('KreskoAssetAnchor'),
   ])
 
@@ -77,11 +77,14 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
     pythId: config.feedConfig.pythId,
     anchor: akrAsset,
     errorId: [symbol, krAsset.address],
-    setPrice: price => setPrice(fakeFeed, price),
+    setPrice: price => updatePrices(hre, fakeFeed, price, config.feedConfig.pythId.toString()),
     setBalance: setBalanceKrAssetFunc(krAsset, akrAsset),
     balanceOf: getBalanceKrAssetFunc(krAsset),
     setOracleOrder: order => hre.Diamond.setAssetOracleOrder(krAsset.address, order),
-    getPrice: async () => (await fakeFeed.latestRoundData())[1],
+    getPrice: async () => ({
+      push: (await fakeFeed.latestRoundData())[1],
+      pyth: getPythPrice(config.feedConfig.pythId.toString()),
+    }),
     update: update => updateTestAsset(asset, update),
   }
 
@@ -94,7 +97,7 @@ export const addMockKreskoAsset = async (args = testKrAssetConfig): Promise<Test
   return asset
 }
 
-export const mintKrAsset = async (args: InputArgsSimple, updateData: string[]) => {
+export const mintKrAsset = async (args: InputArgsSimple) => {
   const convert = typeof args.amount === 'string' || typeof args.amount === 'number'
   const { user, asset, amount } = args
   return hre.Diamond.connect(user).mintKreskoAsset(
@@ -104,11 +107,11 @@ export const mintKrAsset = async (args: InputArgsSimple, updateData: string[]) =
       amount: convert ? toBig(+amount) : amount,
       receiver: user.address,
     },
-    updateData,
+    await hre.updateData(),
   )
 }
 
-export const burnKrAsset = async (args: InputArgsSimple, updateData: string[]) => {
+export const burnKrAsset = async (args: InputArgsSimple) => {
   const convert = typeof args.amount === 'string' || typeof args.amount === 'number'
   const { user, asset, amount } = args
 
@@ -120,7 +123,7 @@ export const burnKrAsset = async (args: InputArgsSimple, updateData: string[]) =
       mintIndex: optimized.getAccountMintIndex(user.address, asset.address),
       repayee: user.address,
     },
-    updateData,
+    await hre.updateData(),
   )
 }
 
@@ -129,7 +132,6 @@ export const leverageKrAsset = async (
   krAsset: TestAsset<KreskoAsset, 'mock'>,
   collateralToUse: TestAsset<any, 'mock'>,
   amount: BigNumber,
-  updateData: string[],
 ) => {
   const [krAssetValueBig, mcrBig, collateralValue, collateralToUseInfo, krAssetInfo] = await Promise.all([
     hre.Diamond.getValue(krAsset.address, amount),
@@ -148,7 +150,7 @@ export const leverageKrAsset = async (
   const collateralValueRequired = krAssetValueBig.percentMul(mcrBig)
 
   const price = collateralValue.num(8)
-  const collateralAmount = collateralValueRequired.wadDiv(await collateralToUse.getPrice())
+  const collateralAmount = collateralValueRequired.wadDiv((await collateralToUse.getPrice()).pyth)
 
   await collateralToUse.setBalance(user, collateralAmount, hre.Diamond.address)
 
@@ -179,7 +181,7 @@ export const leverageKrAsset = async (
   await Promise.all([
     UserKresko.mintKreskoAsset(
       { account: user.address, krAsset: krAsset.address, amount, receiver: user.address },
-      updateData,
+      await hre.updateData(),
     ),
     UserKresko.depositCollateral(user.address, krAsset.address, amount),
   ])
@@ -204,7 +206,7 @@ export const leverageKrAsset = async (
         collateralIndex: optimized.getAccountDepositIndex(user.address, collateralToUse.address),
         receiver: user.address,
       },
-      updateData,
+      await hre.updateData(),
     )
 
     // "burn" collateral not needed

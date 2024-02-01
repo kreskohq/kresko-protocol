@@ -6,7 +6,7 @@ import type { AssetStruct } from '@/types/typechain/hardhat-diamond-abi/HardhatD
 import { addMockExtAsset } from '@utils/test/helpers/collaterals'
 import { getAssetConfig } from '@utils/test/helpers/general'
 import { addMockKreskoAsset } from '@utils/test/helpers/krassets'
-import { getFakeOracle } from '@utils/test/helpers/oracle'
+import { createOracles } from '@utils/test/helpers/oracle'
 import { testCollateralConfig, testKrAssetConfig, testMinterParams } from '@utils/test/mocks'
 import { fromBig, toBig } from '@utils/values'
 
@@ -116,7 +116,7 @@ describe('Minter - Configuration', function () {
         openFee: 0.03e4,
         anchor: f.KrAsset.anchor.address,
       }
-      const FakeFeed = await getFakeOracle(20)
+      const FakeFeed = await createOracles(hre, f.KrAsset.pythId.toString(), 20)
       const newConfig = await getAssetConfig(f.KrAsset.contract, {
         ...testKrAssetConfig,
         feed: FakeFeed.address,

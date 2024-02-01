@@ -4,9 +4,9 @@ import type {
   AssetStruct,
   FeedConfigurationStruct,
 } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
-import { defaults } from '@utils/redstone'
 import { formatBytesString } from '@utils/values'
 import { zeroAddress } from 'viem'
+import { toBytes } from './oracle'
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -18,7 +18,7 @@ export const updateTestAsset = async <T extends MockERC20 | KreskoAsset>(
   const { deployer } = await hre.ethers.getNamedSigners()
   const { newPrice, ...assetStruct } = args
   if (newPrice) {
-    asset.setPrice(newPrice)
+    await asset.setPrice(newPrice)
     asset.config.args.price = newPrice
   }
   const newAssetConfig = { ...asset.config.assetStruct, ...assetStruct }
@@ -32,10 +32,6 @@ export const getAssetConfig = async (
 ): Promise<AssetConfig> => {
   if (!config.krAssetConfig && !config.collateralConfig && !config.scdpDepositConfig && !config.scdpKrAssetConfig)
     throw new Error('No config provided')
-  const configuredDataPoint = defaults.find(i => i.id === config.ticker)
-  if (!configuredDataPoint)
-    throw new Error(`No configured price for asset: ${config.symbol} | ticker: ${config.ticker}`)
-
   const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()])
 
   const assetStruct: AssetStruct = {
@@ -93,9 +89,7 @@ export const getAssetConfig = async (
 
   const feedConfig: FeedConfigurationStruct = {
     oracleIds: assetStruct.oracles,
-    pythId: String(config.pyth.id).startsWith('0x')
-      ? (config.pyth.id as any)
-      : formatBytesString(config.pyth.id ?? config.ticker, 32),
+    pythId: toBytes(config.pyth.id),
     invertPyth: config.pyth.invert,
     staleTimes: config.staleTimes ?? [10000, 86401],
     feeds: assetStruct.oracles[0] === OracleType.Pyth ? [zeroAddress, config.feed] : [config.feed, zeroAddress],

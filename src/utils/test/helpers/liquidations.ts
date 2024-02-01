@@ -1,6 +1,5 @@
 import optimized from '@utils/test/helpers/optimizations'
 import { fromBig, toBig } from '@utils/values'
-import hre from 'hardhat'
 import { depositCollateral, depositMockCollateral } from './collaterals'
 import { mintKrAsset } from './krassets'
 export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collateral: any, log = false) => {
@@ -38,7 +37,6 @@ export const liquidate = async (
   user: SignerWithAddress,
   krAsset: TestKrAsset,
   collateral: any,
-  updateData: string[],
   allowSeizeUnderflow = false,
 ) => {
   const [depositsBefore, debtBefore, liqAmount] = await Promise.all([
@@ -54,9 +52,9 @@ export const liquidate = async (
       tx: new Error('Not liquidatable'),
     }
   }
-  const [minDebt, krAssetPrice] = await Promise.all([optimized.getMinDebtValue(), krAsset.getPrice()])
+  const [minDebt, { pyth: pythPrice }] = await Promise.all([optimized.getMinDebtValue(), krAsset.getPrice()])
 
-  const minDebtAmount = minDebt.wadDiv(krAssetPrice)
+  const minDebtAmount = minDebt.wadDiv(pythPrice)
   const liquidationAmount = liqAmount.lt(minDebtAmount) ? minDebtAmount : liqAmount
   const liquidatorBal = await krAsset.balanceOf(hre.users.liquidator)
   if (liquidatorBal.lt(liquidationAmount)) {
@@ -76,14 +74,11 @@ export const liquidate = async (
         amount: toBig(100_000),
       })
     }
-    await mintKrAsset(
-      {
-        user: hre.users.liquidator,
-        asset: krAsset,
-        amount: liquidationAmount,
-      },
-      updateData,
-    )
+    await mintKrAsset({
+      user: hre.users.liquidator,
+      asset: krAsset,
+      amount: liquidationAmount,
+    })
   }
 
   const tx = await hre.Diamond.connect(hre.users.liquidator).liquidate({
@@ -93,7 +88,7 @@ export const liquidate = async (
     seizeAssetAddr: collateral.address,
     repayAssetIndex: optimized.getAccountMintIndex(user.address, krAsset.address),
     seizeAssetIndex: optimized.getAccountDepositIndex(user.address, collateral.address),
-    prices: updateData,
+    prices: await hre.updateData(),
   })
 
   const [depositsAfter, debtAfter, decimals] = await Promise.all([

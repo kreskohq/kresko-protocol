@@ -1,6 +1,5 @@
 import { getLogger } from '@utils/logging'
 import { Contract } from 'ethers'
-import hre from 'hardhat'
 import { mergeABIs } from 'hardhat-deploy/dist/src/utils'
 import { FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types'
 

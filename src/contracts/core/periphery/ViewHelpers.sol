@@ -72,8 +72,8 @@ library ViewHelpers {
         valueAdjusted = value.percentMul(self.kFactor);
     }
 
-    function getViewPrice(Asset storage self, PythView calldata prices) internal view returns (uint256 price) {
-        return uint256(viewPrice(self.ticker, prices).answer);
+    function getViewPrice(Asset storage self, PythView calldata prices) internal view returns (uint256 price_) {
+        price_ = uint256(viewPrice(self.ticker, prices).answer);
     }
 
     /**

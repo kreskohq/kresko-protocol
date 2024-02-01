@@ -3,8 +3,8 @@ import type { ContractTypes } from '@/types'
 import { DeterministicProxy } from '@/types/functions'
 import { signatureFilters } from '@config/hardhat/deploy'
 import { Fragment } from '@ethersproject/abi'
-import { WrapperBuilder } from '@redstone-finance/evm-connector'
 import { getAddresses, getUsers } from '@utils/hardhat'
+import { getUpdateData, getViewData } from '@utils/test/helpers/oracle'
 import { extendEnvironment } from 'hardhat/config'
 import { commonUtils, proxyUtils } from './utils'
 
@@ -19,10 +19,13 @@ extendEnvironment(function (hre) {
   /* -------------------------------------------------------------------------- */
   /*                                   VALUES                                   */
   /* -------------------------------------------------------------------------- */
+
   hre.facets = []
   hre.extAssets = []
   hre.krAssets = []
-  hre.allAssets = []
+  hre.updateData = () => getUpdateData(hre)
+  hre.viewData = () => getViewData(hre)
+
   hre.getDeploymentOrFork = async deploymentName => {
     const isFork = !hre.network.live && hre.companionNetworks.live
     const deployment = !isFork
