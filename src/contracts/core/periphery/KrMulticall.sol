@@ -47,17 +47,22 @@ contract KrMulticall is IKrMulticall, Ownable {
         Operation[] calldata ops,
         bytes[] calldata _updateData
     ) external payable returns (Result[] memory results) {
-        uint256 _updateFee = pythEp.getUpdateFee(_updateData);
-        if (msg.value < _updateFee) {
-            revert INSUFFICIENT_UPDATE_FEE(msg.value, _updateFee);
+        uint256 value = msg.value;
+        bool didUpdate;
+        if (msg.value > 0 && _updateData.length > 0) {
+            uint256 updateFee = pythEp.getUpdateFee(_updateData);
+            pythEp.updatePriceFeeds{value: updateFee}(_updateData);
+            value -= updateFee;
+            didUpdate = true;
         }
+
         unchecked {
             results = new Result[](ops.length);
             for (uint256 i; i < ops.length; i++) {
                 Operation memory op = ops[i];
 
                 if (op.data.tokensInMode != TokensInMode.None) {
-                    op.data.amountIn = uint96(_handleTokensIn(op));
+                    op.data.amountIn = uint96(_handleTokensIn(op, value));
                     results[i].tokenIn = op.data.tokenIn;
                     results[i].amountIn = op.data.amountIn;
                 } else {
@@ -81,7 +86,7 @@ contract KrMulticall is IKrMulticall, Ownable {
                     }
                 }
 
-                (bool success, bytes memory returndata) = _handleOp(op, _updateData, _updateFee);
+                (bool success, bytes memory returndata) = _handleOp(op, _updateData, didUpdate);
                 if (!success) _handleRevert(returndata);
 
                 if (
@@ -112,9 +117,9 @@ contract KrMulticall is IKrMulticall, Ownable {
         }
     }
 
-    function _handleTokensIn(Operation memory _op) internal returns (uint256 amountIn) {
+    function _handleTokensIn(Operation memory _op, uint256 _value) internal returns (uint256 amountIn) {
         if (_op.data.tokensInMode == TokensInMode.Native) {
-            if (msg.value == 0) {
+            if (_value == 0) {
                 revert ZERO_NATIVE_IN(_op.action);
             }
 
@@ -122,8 +127,8 @@ contract KrMulticall is IKrMulticall, Ownable {
                 revert INVALID_NATIVE_TOKEN_IN(_op.action, _op.data.tokenIn, wNative.symbol());
             }
 
-            wNative.deposit{value: msg.value}();
-            return msg.value;
+            wNative.deposit{value: _value}();
+            return _value;
         }
 
         IERC20 token = IERC20(_op.data.tokenIn);
@@ -199,7 +204,7 @@ contract KrMulticall is IKrMulticall, Ownable {
     function _handleOp(
         Operation memory _op,
         bytes[] calldata _updateData,
-        uint256 _updateFee
+        bool _didUpdate
     ) internal returns (bool success, bytes memory returndata) {
         bool isReturn = _op.data.tokensOutMode == TokensOutMode.ReturnToSender;
         address receiver = isReturn ? msg.sender : address(this);
@@ -214,26 +219,35 @@ contract KrMulticall is IKrMulticall, Ownable {
                 );
         } else if (_op.action == Action.MinterWithdraw) {
             return
-                kresko.call{value: _updateFee}(
+                kresko.call(
                     abi.encodeCall(
                         IMinterDepositWithdrawFacet.withdrawCollateral,
-                        (WithdrawArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, _op.data.index, receiver), _updateData)
+                        (
+                            WithdrawArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, _op.data.index, receiver),
+                            !_didUpdate ? _updateData : new bytes[](0)
+                        )
                     )
                 );
         } else if (_op.action == Action.MinterRepay) {
             return
-                kresko.call{value: _updateFee}(
+                kresko.call(
                     abi.encodeCall(
                         IMinterBurnFacet.burnKreskoAsset,
-                        (BurnArgs(msg.sender, _op.data.tokenIn, _op.data.amountIn, _op.data.index, receiver), _updateData)
+                        (
+                            BurnArgs(msg.sender, _op.data.tokenIn, _op.data.amountIn, _op.data.index, receiver),
+                            !_didUpdate ? _updateData : new bytes[](0)
+                        )
                     )
                 );
         } else if (_op.action == Action.MinterBorrow) {
             return
-                kresko.call{value: _updateFee}(
+                kresko.call(
                     abi.encodeCall(
                         IMinterMintFacet.mintKreskoAsset,
-                        (MintArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver), _updateData)
+                        (
+                            MintArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver),
+                            !_didUpdate ? _updateData : new bytes[](0)
+                        )
                     )
                 );
         } else if (_op.action == Action.SCDPDeposit) {
@@ -242,7 +256,7 @@ contract KrMulticall is IKrMulticall, Ownable {
         } else if (_op.action == Action.SCDPTrade) {
             _approve(_op.data.tokenIn, _op.data.amountIn, address(kresko));
             return
-                kresko.call{value: _updateFee}(
+                kresko.call(
                     abi.encodeCall(
                         ISCDPSwapFacet.swapSCDP,
                         (
@@ -252,17 +266,20 @@ contract KrMulticall is IKrMulticall, Ownable {
                                 _op.data.tokenOut,
                                 _op.data.amountIn,
                                 _op.data.amountOutMin,
-                                _updateData
+                                !_didUpdate ? _updateData : new bytes[](0)
                             )
                         )
                     )
                 );
         } else if (_op.action == Action.SCDPWithdraw) {
             return
-                kresko.call{value: _updateFee}(
+                kresko.call(
                     abi.encodeCall(
                         ISCDPFacet.withdrawSCDP,
-                        (SCDPWithdrawArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver), _updateData)
+                        (
+                            SCDPWithdrawArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver),
+                            !_didUpdate ? _updateData : new bytes[](0)
+                        )
                     )
                 );
         } else if (_op.action == Action.SCDPClaim) {

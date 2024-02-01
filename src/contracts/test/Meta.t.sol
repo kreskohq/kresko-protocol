@@ -26,7 +26,7 @@ contract InitializerTest {
     }
 }
 
-contract TestSnip is Tested, Deploy {
+contract MetaTest is Tested, Deploy {
     using Log for *;
     using Help for *;
     using Deployed for *;

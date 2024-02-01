@@ -19,7 +19,7 @@ import {BurnArgs, MintArgs, WithdrawArgs} from "common/Args.sol";
 string constant CONFIG_ID = "test-clean";
 
 // solhint-disable
-contract MinterTest is Tested, Deploy {
+contract ICDPTest is Tested, Deploy {
     using ShortAssert for *;
     using Log for *;
     using Strings for uint256;
@@ -36,11 +36,12 @@ contract MinterTest is Tested, Deploy {
     Asset krJPYConfig;
     Asset krETHConfig;
 
-    // string internal usdcPrice = "USDC:1:8";
-    // string internal ethPrice = "ETH:2000:8";
-
     function setUp() public mnemonic("MNEMONIC_DEVNET") users(address(111), address(222), address(333)) {
         JSON.Config memory json = Deploy.deployTest("MNEMONIC_DEVNET", CONFIG_ID, 0);
+
+        // for price updates
+        vm.deal(address(kresko), 1 ether);
+
         admin = json.params.common.admin;
         usdc = MockERC20(("USDC").cached());
         krETH = IKreskoAsset(("krETH").cached());

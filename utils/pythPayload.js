@@ -16,7 +16,7 @@ const outputParams = parseAbiParameters([
   'struct Price { int64 price; uint64 conf; int32 exp; uint256 timestamp; }',
 ])
 
-export const getPrices = async (assets, isString) => {
+const getPrices = async (assets, isString) => {
   if (assets.length === 0) {
     error('You have to provide at least one feed')
   }
@@ -37,7 +37,7 @@ export const getPrices = async (assets, isString) => {
   ])
 }
 
-export const getPayloadHardhat = async assets => {
+const getPayloadHardhat = async assets => {
   if (assets.length === 0) {
     error('You have to provide at least one asset from hardhat config')
   }
@@ -66,4 +66,9 @@ if (!process.env.HH_TEST) {
     .catch(e => {
       error(e.message)
     })
+}
+
+module.exports = {
+  getPrices,
+  getPayloadHardhat,
 }

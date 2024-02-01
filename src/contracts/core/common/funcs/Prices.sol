@@ -107,13 +107,14 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
 
 function pythPrice(bytes32 _id, bool _invert, uint256 _staleTime) view returns (uint256 price_) {
     IPyth.Price memory result = IPyth(cs().pythEp).getPriceNoOlderThan(_id, _staleTime);
+
     if (!_invert) {
         price_ = normalizePythPrice(result, cs().oracleDecimals);
     } else {
         price_ = invertNormalizePythPrice(result, cs().oracleDecimals);
     }
 
-    if (price_ == 0 || price_ > type(uint48).max) {
+    if (price_ == 0 || price_ > type(uint56).max) {
         revert Errors.INVALID_PYTH_PRICE(_id, price_);
     }
 }

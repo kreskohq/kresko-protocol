@@ -18,7 +18,7 @@ import "scripts/deploy/libs/JSON.s.sol" as JSON;
 import {MintArgs, SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs} from "common/Args.sol";
 import {getPythData} from "vendor/pyth/PythScript.sol";
 
-contract AuditTest is Deploy {
+contract ComplexTest is Deploy {
     using ShortAssert for *;
     using Help for *;
     using Log for *;
@@ -46,6 +46,9 @@ contract AuditTest is Deploy {
 
     function setUp() public {
         Deploy.deployTest("MNEMONIC_DEVNET", "test-audit", 0);
+
+        // for price updates
+        vm.deal(address(kresko), 1 ether);
 
         usdc = MockERC20(Deployed.addr("USDC"));
         usdt = MockERC20(Deployed.addr("USDT"));
@@ -416,7 +419,7 @@ contract AuditTest is Deploy {
         uint256 feePerSwapTotal = 16e18;
         uint256 feesStart = kresko.getAccountFeesSCDP(getAddr(0), address(kiss));
         // Setup
-        FeeTestRebaseConfig memory test = _feeTestRebaseConfig(41285418, false);
+        FeeTestRebaseConfig memory test = _feeTestRebaseConfig(4128, false);
         prank(getAddr(0));
         _setETHPrice(test.ethPrice);
         krETH.rebase(test.rebaseMultiplier, test.positive, new address[](0));
@@ -663,5 +666,6 @@ contract AuditTest is Deploy {
             }
         }
         updateData = getPythData(cfg);
+        pythEp.updatePriceFeeds(updateData);
     }
 }

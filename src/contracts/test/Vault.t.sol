@@ -10,13 +10,12 @@ import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 
 import {VaultAsset} from "vault/VTypes.sol";
 import {Vault} from "vault/Vault.sol";
-import {console2} from "forge-std/console2.sol";
 
 // solhint-disable private-vars-leading-underscore
 // solhint-disable contract-name-camelcase
 // solhint-disable max-states-count
 
-contract vKISSTest is Test {
+contract VaultTest is Test {
     Vault public vkiss;
     MockERC20 public usdc;
     MockERC20 public dai;
@@ -75,8 +74,7 @@ contract vKISSTest is Test {
         );
         vm.stopPrank();
 
-        // approvals
-        _init();
+        _approvals();
     }
 
     function testDepositsSingleToken() public {
@@ -658,7 +656,7 @@ contract vKISSTest is Test {
         (kissIn, ) = vkiss.withdraw(address(asset), amount, user, user);
     }
 
-    function _init() internal {
+    function _approvals() internal {
         vm.startPrank(user0);
         usdc.approve(address(vkiss), type(uint256).max);
         dai.approve(address(vkiss), type(uint256).max);

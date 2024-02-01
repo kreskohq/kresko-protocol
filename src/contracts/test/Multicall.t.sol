@@ -39,6 +39,9 @@ contract MulticallTest is Deploy {
     function setUp() public {
         Deploy.deployTest(0);
 
+        // for price updates
+        vm.deal(address(kresko), 1 ether);
+
         usdc = MockERC20(Deployed.addr("USDC"));
         usdt = MockERC20(Deployed.addr("USDT"));
         krETHAddr = Deployed.addr("krETH");
@@ -108,7 +111,7 @@ contract MulticallTest is Deploy {
     function testNativeDeposit() public {
         address user = getAddr(100);
         uint256 amount = 5 ether;
-        vm.deal(user, amount * 2);
+        vm.deal(user, amount * 2 + updateFee);
         prank(user);
         IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](1);
 
@@ -127,7 +130,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute{value: 5 ether}(ops, updateData);
+        IKrMulticall.Result[] memory results = multicall.execute{value: 5 ether + updateFee}(ops, updateData);
         results[0].amountIn.eq(5 ether, "native-deposit-amount");
         results[0].tokenIn.eq(address(weth), "native-deposit-addr");
         uint256 depositsAfter = kresko.getAccountCollateralAmount(user, address(weth));
@@ -166,7 +169,7 @@ contract MulticallTest is Deploy {
     function testNativeDepositWithdraw() public {
         address user = getAddr(100);
         uint256 amount = 5 ether;
-        vm.deal(user, amount * 2);
+        vm.deal(user, amount * 2 + updateFee);
         prank(user);
         IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
 
@@ -191,7 +194,7 @@ contract MulticallTest is Deploy {
                 amountIn: 0,
                 tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: address(weth),
-                amountOut: 5 ether,
+                amountOut: uint96(amount),
                 tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSenderNative,
                 amountOutMin: 0,
                 path: "",
@@ -199,10 +202,10 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute{value: 5 ether}(ops, updateData);
-        results[0].amountIn.eq(5 ether, "native-deposit-amount");
+        IKrMulticall.Result[] memory results = multicall.execute{value: amount + updateFee}(ops, updateData);
+        results[0].amountIn.eq(amount, "native-deposit-amount");
         results[0].tokenIn.eq(address(weth), "native-deposit-addr");
-        results[1].amountOut.eq(5 ether, "native-deposit-amount");
+        results[1].amountOut.eq(amount, "native-deposit-amount");
         results[1].tokenOut.eq(address(weth), "native-deposit-addr");
         uint256 depositsAfter = kresko.getAccountCollateralAmount(user, address(weth));
         address(multicall).balance.eq(0 ether, "native-contract-balance-after");

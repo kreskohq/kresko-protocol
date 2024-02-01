@@ -47,6 +47,9 @@ contract SCDPTest is Tested, Deploy {
     function setUp() public mnemonic("MNEMONIC_DEVNET") users(getAddr(11), getAddr(22), getAddr(33)) {
         JSON.Config memory json = Deploy.deployTest("MNEMONIC_DEVNET", "test-clean", 0);
 
+        // for price updates
+        vm.deal(address(kresko), 1 ether);
+
         deployer = getAddr(0);
         admin = json.params.common.admin;
         feeRecipient = json.params.common.treasury;
@@ -351,18 +354,18 @@ contract SCDPTest is Tested, Deploy {
         uint256 gasDeposit = gasleft();
         (success, ) = address(kresko).call(depositData);
         (gasDeposit - gasleft()).clg("gasPoolDeposit");
-        require(success, "!success");
+        require(success, "!success pool deposit");
 
         bytes memory withdrawData = abi.encodeWithSelector(
             kresko.withdrawSCDP.selector,
-            WithdrawArgs(user0, address(kiss), amount, 0, user0),
+            SCDPWithdrawArgs(user0, address(kiss), amount, user0),
             updateData
         );
         uint256 gasWithdraw = gasleft();
         (success, ) = address(kresko).call(withdrawData);
         (gasWithdraw - gasleft()).clg("gasPoolWithdraw");
 
-        require(success, "!success");
+        require(success, "!success pool withdraw");
 
         (success, ) = address(kresko).call(depositData);
 
@@ -374,7 +377,7 @@ contract SCDPTest is Tested, Deploy {
         (success, ) = address(kresko).call(swapData);
         (gasSwap - gasleft()).clg("gasPoolSwap");
 
-        require(success, "!success");
+        require(success, "!success pool swap 1");
 
         bytes memory swapData2 = abi.encodeWithSelector(
             kresko.swapSCDP.selector,
@@ -385,7 +388,7 @@ contract SCDPTest is Tested, Deploy {
         (success, ) = address(kresko).call(swapData2);
         (gasSwap2 - gasleft()).clg("gasPoolSwap2");
 
-        require(success, "!success");
+        require(success, "!success pool swap 2");
 
         bytes memory swapData3 = abi.encodeWithSelector(
             kresko.swapSCDP.selector,
@@ -403,7 +406,6 @@ contract SCDPTest is Tested, Deploy {
     function _liquidate(uint256 times, uint256, uint256 liquidateAmount) internal repranked(getAddr(0)) {
         for (uint256 i; i < times; i++) {
             _setETHPrice(uint256(90000e8));
-            kresko.getCollateralRatioSCDP().clg("CR-before");
             if (i > 40) {
                 liquidateAmount = liquidateAmount.percentMul(0.50e4);
             }
@@ -418,7 +420,6 @@ contract SCDPTest is Tested, Deploy {
             (uint256 amountOut, , ) = kresko.previewSwapSCDP(address(kiss), address(krETH), swapAmount);
             kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, swapAmount, 0, updateData));
             _setETHPrice(uint256(90000e8));
-            kresko.getCollateralRatioSCDP().clg("CR-before");
             if (i > 40) {
                 liquidateAmount = liquidateAmount.percentMul(0.50e4);
             }
@@ -496,5 +497,6 @@ contract SCDPTest is Tested, Deploy {
             }
         }
         updateData = getPythData(cfg);
+        pythEp.updatePriceFeeds(updateData);
     }
 }

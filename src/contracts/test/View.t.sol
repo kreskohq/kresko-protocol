@@ -14,7 +14,7 @@ import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {getConfig} from "scripts/deploy/libs/JSON.s.sol";
 import {getMockPythViewPrices, PythView} from "vendor/pyth/PythScript.sol";
 
-contract PeripheryTest is Tested, Deploy {
+contract ViewTest is Tested, Deploy {
     using ShortAssert for *;
     using Help for *;
     using Log for *;
