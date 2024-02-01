@@ -10,7 +10,7 @@ import type { Facet } from 'hardhat-deploy/types'
 import { zeroAddress } from 'viem'
 import { addMockExtAsset, depositCollateral } from './helpers/collaterals'
 import { addMockKreskoAsset, leverageKrAsset, mintKrAsset } from './helpers/krassets'
-import { clear } from './helpers/oracle'
+
 import {
   HUNDRED_USD,
   ONE_USD,

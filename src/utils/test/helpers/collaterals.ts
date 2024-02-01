@@ -106,7 +106,7 @@ export const getMaxWithdrawal = async (user: string, collateral: any) => {
 
   const minCollateralRequired = await hre.Diamond.getAccountMinCollateralAtRatio(user, MCR)
   const maxWithdrawValue = collateralValue.sub(minCollateralRequired)
-  const maxWithdrawAmount = maxWithdrawValue.wadDiv(collateralPrice)
+  const maxWithdrawAmount = maxWithdrawValue.wadDiv(collateralPrice.pyth)
 
   return { maxWithdrawValue, maxWithdrawAmount }
 }
