@@ -22,7 +22,7 @@ export function formatBytesString(text: string, length: number): string {
 
   // Check we have room for null-termination
   if (bytes.length > 31) {
-    throw new Error('bytes32 string must be less than 32 bytes')
+    throw new Error(`bytes32 string must be less than 32 bytes: ${text}`)
   }
 
   // Zero-pad (implicitly null-terminates)

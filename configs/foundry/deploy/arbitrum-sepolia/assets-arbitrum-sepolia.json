@@ -507,6 +507,5 @@
       "01_assetB": "krARB",
       "02_enabled": false
     }
-  ],
-  "08_redstoneMockString": "ETH:2190.7577:8,BTC:41759:8,ARB:1.1464:8,DAI:0.9998:8,USDC:1:8,SPY:462.4:8"
+  ]
 }

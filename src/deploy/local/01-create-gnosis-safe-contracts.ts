@@ -1,4 +1,4 @@
-import { testnetConfigs } from '@config/hardhat/deploy/arbitrumGoerli'
+import { testnetConfigs } from '@config/hardhat/deploy/arbitrumSepolia'
 import { getLogger } from '@utils/logging'
 import type { DeployFunction } from 'hardhat-deploy/dist/types'
 

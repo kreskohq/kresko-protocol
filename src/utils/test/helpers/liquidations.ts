@@ -1,4 +1,3 @@
-import { wrapKresko } from '@utils/redstone'
 import optimized from '@utils/test/helpers/optimizations'
 import { fromBig, toBig } from '@utils/values'
 import hre from 'hardhat'
@@ -39,6 +38,7 @@ export const liquidate = async (
   user: SignerWithAddress,
   krAsset: TestKrAsset,
   collateral: any,
+  updateData: string[],
   allowSeizeUnderflow = false,
 ) => {
   const [depositsBefore, debtBefore, liqAmount] = await Promise.all([
@@ -76,20 +76,24 @@ export const liquidate = async (
         amount: toBig(100_000),
       })
     }
-    await mintKrAsset({
-      user: hre.users.liquidator,
-      asset: krAsset,
-      amount: liquidationAmount,
-    })
+    await mintKrAsset(
+      {
+        user: hre.users.liquidator,
+        asset: krAsset,
+        amount: liquidationAmount,
+      },
+      updateData,
+    )
   }
 
-  const tx = await wrapKresko(hre.Diamond, hre.users.liquidator).liquidate({
+  const tx = await hre.Diamond.connect(hre.users.liquidator).liquidate({
     account: user.address,
     repayAssetAddr: krAsset.address,
     repayAmount: liquidationAmount,
     seizeAssetAddr: collateral.address,
     repayAssetIndex: optimized.getAccountMintIndex(user.address, krAsset.address),
     seizeAssetIndex: optimized.getAccountDepositIndex(user.address, collateral.address),
+    prices: updateData,
   })
 
   const [depositsAfter, debtAfter, decimals] = await Promise.all([

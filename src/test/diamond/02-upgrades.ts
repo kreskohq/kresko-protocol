@@ -4,7 +4,6 @@ import { addFacet } from '@scripts/add-facet'
 import { removeFacet } from '@scripts/remove-facet'
 import { expect } from '@test/chai'
 import { diamondFixture } from '@utils/test/fixtures'
-import { wrapContractWithSigner } from '@utils/test/helpers/general'
 import { type FacetCut, FacetCutAction } from 'hardhat-deploy/dist/types'
 
 describe('Diamond', () => {
@@ -108,7 +107,7 @@ describe('Diamond', () => {
       expect(newOwner).to.equal(correctOwner)
 
       // Ensure there is no function to accept the ownership
-      await expect(wrapContractWithSigner(hre.Diamond, hre.users.notAdmin).acceptOwnership()).to.be.reverted
+      await expect(hre.Diamond.connect(hre.users.notAdmin).acceptOwnership()).to.be.reverted
     })
 
     it('can replace a function', async function () {
@@ -149,7 +148,7 @@ describe('Diamond', () => {
       await hre.Diamond.diamondCut([Cut], initData.to!, initData.data!)
 
       // Ensure function exists and revert is for invalid address instead of missing function
-      await expect(wrapContractWithSigner(hre.Diamond, hre.users.notAdmin).acceptOwnership()).to.be.reverted
+      await expect(hre.Diamond.connect(hre.users.notAdmin).acceptOwnership()).to.be.reverted
       // Ensure one function is contained in the new facet
       const functionsNewFacet = await hre.Diamond.facetFunctionSelectors(NewOwnershipFacet.address)
       expect(functionsNewFacet.length).to.equal(1)
@@ -161,7 +160,7 @@ describe('Diamond', () => {
       expect(functionsOldFacet.length).to.equal(allOwnershipFacetSignatures.length - 1)
 
       // Ensure correct owner can now accept the ownership
-      expect(wrapContractWithSigner(hre.Diamond, hre.users.userOne).acceptOwnership())
+      expect(hre.Diamond.connect(hre.users.userOne).acceptOwnership())
       const currentOwner = await hre.Diamond.owner()
       expect(currentOwner).to.equal(correctOwner)
     })

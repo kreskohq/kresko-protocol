@@ -613,6 +613,5 @@
       "01_assetB": "krXAU",
       "02_enabled": false
     }
-  ],
-  "08_redstoneMockString": "ETH:2183.7577:8,BTC:41000:8,EUR:1.0764:8,DAI:0.9998:8,USDC:1:8,XAU:2029:8,USDT:1:8,JPY:0.006797:8"
+  ]
 }

@@ -583,7 +583,8 @@
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
-      "11_useAdapter": false
+      "11_useAdapter": false,
+      "12_invertPyth": false
     },
     {
       "00_ticker": "DAI",
@@ -631,21 +632,6 @@
       "12_invertPyth": false
     },
     {
-      "00_ticker": "WTI",
-      "01_mockPrice": 77.5e8,
-      "02_priceDecimals": 8,
-      "03_chainlink": "0xe87A403fA0d3e1F330F5eC24b3fB140cC05d461b",
-      "04_api3": "0x0000000000000000000000000000000000000000",
-      "05_vault": "0x0000000000000000000000000000000000000000",
-      "06_pythId": "0x0000000000000000000000000000000000000000000000000000000000000000",
-      "07_staleTimePyth": 10080,
-      "08_staleTimeAPI3": 86401,
-      "09_staleTimeChainlink": 86401,
-      "10_staleTimeRedstone": 300,
-      "11_useAdapter": false,
-      "12_invertPyth": false
-    },
-    {
       "00_ticker": "USDT",
       "01_mockPrice": 1e8,
       "02_priceDecimals": 8,
@@ -682,6 +668,5 @@
       "01_assetB": "krXAU",
       "02_enabled": false
     }
-  ],
-  "08_redstoneMockString": "ETH:1911:8,BTC:35159:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,TSLA:243.94:8,XAU:1977:8,USDT:1:8,JPY:0.0067:8"
+  ]
 }

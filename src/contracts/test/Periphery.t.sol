@@ -12,7 +12,7 @@ import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {getConfig} from "scripts/deploy/libs/JSON.s.sol";
-import {getMockPythViewPrices, getPythViewData, PythView} from "vendor/pyth/PythScript.sol";
+import {getMockPythViewPrices, PythView} from "vendor/pyth/PythScript.sol";
 
 contract PeripheryTest is Tested, Deploy {
     using ShortAssert for *;

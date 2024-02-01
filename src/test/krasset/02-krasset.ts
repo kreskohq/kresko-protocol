@@ -1,6 +1,5 @@
 import { createKrAsset } from '@scripts/create-krasset'
 import { expect } from '@test/chai'
-import { wrapKresko } from '@utils/redstone'
 import { defaultMintAmount } from '@utils/test/mocks'
 import { Role } from '@utils/test/roles'
 import { toBig } from '@utils/values'
@@ -12,7 +11,7 @@ describe('KreskoAsset', () => {
   beforeEach(async function () {
     const result = await hre.deployments.fixture('diamond-init')
     if (result.Diamond) {
-      hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'))
+      hre.Diamond = await hre.getContractOrFork('Kresko')
     }
     KreskoAsset = (await createKrAsset('krSYMBOL', 'Kresko Asset: SYMBOL', 18, zeroAddress)).KreskoAsset
     // Grant minting rights for test deployer

@@ -1,9 +1,9 @@
-import { testnetConfigs } from '@config/hardhat/deploy/arbitrumGoerli'
+import { testnetConfigs } from '@config/hardhat/deploy/arbitrumSepolia'
 import { TASK_MINT_OPTIMAL } from '@tasks'
 import { getLogger } from '@utils/logging'
-import { wrapKresko } from '@utils/redstone'
 import { fromBig, toBig } from '@utils/values'
 import type { DeployFunction } from 'hardhat-deploy/dist/types'
+import { getPayloadHardhat } from 'utils/pythPayload'
 
 const logger = getLogger('mint-krassets')
 
@@ -18,12 +18,17 @@ const deploy: DeployFunction = async function (hre) {
   await DAI.mint(deployer.address, toBig(2_500_000_000))
   await DAI.approve(kresko.address, hre.ethers.constants.MaxUint256)
   await kresko.connect(deployer).depositCollateral(deployer.address, DAI.address, toBig(2_500_000_000))
+
+  const pythPayload = await getPayloadHardhat(testnetConfigs[hre.network.name].assets)
   const KISS = await hre.getContractOrFork('KISS')
-  await wrapKresko(kresko, deployer).mintKreskoAsset(
-    deployer.address,
-    KISS.address,
-    toBig(1_200_000_000),
-    deployer.address,
+  await kresko.connect(deployer).mintKreskoAsset(
+    {
+      account: deployer.address,
+      krAsset: KISS.address,
+      amount: toBig(1_200_000_000),
+      receiver: deployer.address,
+    },
+    pythPayload,
   )
 
   for (const krAsset of krAssets) {
@@ -39,6 +44,7 @@ const deploy: DeployFunction = async function (hre) {
     await hre.run(TASK_MINT_OPTIMAL, {
       kreskoAsset: krAsset.symbol,
       amount: krAsset.mintAmount,
+      pythPayload,
     })
   }
 }

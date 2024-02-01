@@ -12,6 +12,7 @@ import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import type * as Contracts from './typechain';
 import type { MockOracle } from './typechain';
 import type { AssetStruct } from './typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import { PromiseOrValue } from './typechain/common';
 
 declare global {
   const hre: HardhatRuntimeEnvironment;
@@ -30,6 +31,8 @@ declare global {
     address: string;
     isMinterMintable?: boolean;
     isMinterCollateral?: boolean;
+    initialPrice: number;
+    pythId: PromiseOrValue<BytesLike>;
     isMocked?: boolean;
     contract: T extends 'mock' ? MockContract<C> : C;
     config: AssetConfig;

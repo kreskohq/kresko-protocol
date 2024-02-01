@@ -1,5 +1,5 @@
 {
-  "00_configId": "test-base",
+  "00_configId": "test-clean",
   "01_mnemonicEnv": "MNEMONIC_DEVNET",
   "02_users": [
     {

@@ -1,6 +1,5 @@
 import { expect } from '@test/chai'
 import { diamondFixture } from '@utils/test/fixtures'
-import { wrapContractWithSigner } from '@utils/test/helpers/general'
 import { Role } from '@utils/test/roles'
 
 describe('Diamond', () => {
@@ -24,7 +23,7 @@ describe('Diamond', () => {
     it('sets the pending owner as new owner', async function () {
       const pendingOwner = hre.users.userOne
       await hre.Diamond.transferOwnership(pendingOwner.address)
-      await wrapContractWithSigner(hre.Diamond, pendingOwner).acceptOwnership()
+      await hre.Diamond.connect(pendingOwner).acceptOwnership()
       expect(await hre.Diamond.owner()).to.equal(pendingOwner.address)
     })
   })

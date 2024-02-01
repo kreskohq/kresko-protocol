@@ -44,6 +44,7 @@ describe('Diamond', () => {
       expect(await hre.Diamond.hasRole(Role.SAFETY_COUNCIL, hre.Multisig.address)).to.equal(true)
 
       expect(await hre.Diamond.getFeeRecipient()).to.equal(args.treasury)
+      expect(await hre.Diamond.getPythEndpoint()).to.equal(args.pythEp)
       expect(await hre.Diamond.getMinCollateralRatioMinter()).to.equal(minterArgs.minCollateralRatio)
       expect(await hre.Diamond.getLiquidationThresholdMinter()).to.equal(minterArgs.liquidationThreshold)
       expect(await hre.Diamond.getMinDebtValueMinter()).to.equal(minterArgs.minDebtValue)
@@ -61,7 +62,6 @@ describe('Diamond', () => {
       await expect(hre.Diamond.setMaxPriceDeviationPct(0.05e4)).to.not.be.reverted
       await expect(hre.Diamond.setSequencerGracePeriod(1000)).to.not.be.reverted
       await expect(hre.Diamond.setDefaultOraclePrecision(9)).to.not.be.reverted
-      await expect(hre.Diamond.setStaleTime(9)).to.not.be.reverted
       await expect(hre.Diamond.setMinDebtValueMinter(20e8)).to.not.be.reverted
 
       expect(await hre.Diamond.getMinDebtValueMinter()).to.equal(20e8)

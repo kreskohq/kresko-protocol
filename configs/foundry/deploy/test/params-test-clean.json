@@ -1,5 +1,5 @@
 {
-  "00_configId": "test-base",
+  "00_configId": "test-clean",
   "01_deploymentFactory": "0x0000000000000000000000000000000000000000",
   "02_common": {
     "00_admin": "0xFcbB93547B7C1936fEbfe56b4cEeD9Ab66dA1857",

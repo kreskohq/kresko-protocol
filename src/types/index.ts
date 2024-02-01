@@ -1,5 +1,5 @@
 import type { AllTokenSymbols } from '@config/hardhat/deploy';
-import type { AssetConfigExtended } from '@config/hardhat/deploy/arbitrumGoerli';
+import type { AssetConfigExtended } from '@config/hardhat/deploy/arbitrumSepolia';
 import type { AllTickers } from '@utils/redstone';
 import type { BigNumber, Overrides } from 'ethers';
 import type { Address } from 'hardhat-deploy/types';
@@ -31,6 +31,7 @@ export enum OracleType {
   Chainlink,
   API3,
   Vault,
+  Pyth
 }
 
 export enum Action {
@@ -73,6 +74,11 @@ export type AssetArgs = {
   symbol: AllTokenSymbols;
   name?: string;
   price?: number;
+  staleTimes?: [number, number];
+  pyth: {
+    id: string | null;
+    invert: boolean;
+  };
   marketOpen?: boolean;
   decimals?: number;
   feed?: string;

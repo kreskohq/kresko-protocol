@@ -1,24 +1,50 @@
-import type { Kresko } from '@/types/typechain'
-import { assets } from '@config/hardhat/deploy/arbitrumGoerli'
-import { WrapperBuilder } from '@redstone-finance/evm-connector'
+import type { MockPyth } from '@/types/typechain'
+import { PromiseOrValue } from '@/types/typechain/common'
+import { PythViewStruct } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
+import { assets } from '@config/hardhat/deploy/arbitrumSepolia'
+import { BytesLike } from 'ethers'
+import { formatBytesString } from './values'
 
-export const wrapKresko = (contract: Kresko, signer?: any) =>
-  WrapperBuilder.wrap(signer ? contract.connect(signer) : contract).usingSimpleNumericMock({
-    mockSignersCount: 1,
-    timestampMilliseconds: Date.now(),
-    dataPoints: defaultRedstoneDataPoints,
-  }) as Kresko
+export const getMockPythPayload = (
+  mockPyth: MockPyth,
+  values?: { id: PromiseOrValue<BytesLike> | string; value: number }[],
+) => {
+  if (!values?.length) {
+    values = defaults
+  }
 
-type DataPoints = {
-  dataFeedId: string
-  value: number
-}[]
-export const wrapPrices = (contract: Kresko, prices: DataPoints, signer?: any) =>
-  WrapperBuilder.wrap(signer ? contract.connect(signer) : contract).usingSimpleNumericMock({
-    mockSignersCount: 1,
-    timestampMilliseconds: Date.now(),
-    dataPoints: prices,
-  }) as Kresko
+  values = values.map(v => ({
+    id: String(v.id).startsWith('0x') ? v.id : formatBytesString(String(v.id), 32),
+    value: v.value < 1e6 ? v.value * 1e8 : v.value,
+  }))
+
+  return mockPyth.getMockPayload(
+    values.map(v => v.id),
+    values.map(v => v.value.ebn(0)),
+  )
+}
+
+export const getMockPythPriceView = (
+  values?: { id: PromiseOrValue<BytesLike> | string; value: number }[],
+): PythViewStruct => {
+  if (!values?.length) {
+    values = defaults
+  }
+  values = values.map(v => ({
+    id: String(v.id).startsWith('0x') ? v.id : formatBytesString(String(v.id), 32),
+    value: v.value < 1e6 ? v.value * 1e8 : v.value,
+  }))
+
+  return {
+    ids: values.map(v => v.id),
+    prices: values.map(v => ({
+      price: v.value.ebn(0),
+      conf: (0.0001e8).ebn(0),
+      exp: -8,
+      timestamp: Math.floor(Date.now() / 1000).ebn(0),
+    })),
+  }
+}
 
 export type TestAssetIds = TestTokenSymbols
 export const TickerMap = {
@@ -48,25 +74,26 @@ export const TickerMap = {
   KrAsset5: 'KrAsset5',
 }
 
-export const defaultRedstoneDataPoints: TestDataPackage[] = [
-  { dataFeedId: 'DAI', value: 0 },
-  { dataFeedId: 'USDC', value: 0 },
-  { dataFeedId: 'ETH', value: 0 },
-  { dataFeedId: 'BTC', value: 0 },
-  { dataFeedId: 'KISS', value: 0 },
-  { dataFeedId: 'TSLA', value: 0 },
-  { dataFeedId: 'Coll8Dec', value: 0 },
-  { dataFeedId: 'Coll18Dec', value: 0 },
-  { dataFeedId: 'Coll21Dec', value: 0 },
-  { dataFeedId: 'Collateral', value: 0 },
-  { dataFeedId: 'Collateral2', value: 0 },
-  { dataFeedId: 'Collateral3', value: 0 },
-  { dataFeedId: 'Collateral4', value: 0 },
-  { dataFeedId: 'KrAsset', value: 0 },
-  { dataFeedId: 'KrAsset2', value: 0 },
-  { dataFeedId: 'KrAsset3', value: 0 },
-  { dataFeedId: 'KrAsset4', value: 0 },
-  { dataFeedId: 'KrAsset5', value: 0 },
+export const defaults = [
+  { id: 'DAI', value: 1e8 },
+  { id: 'USDC', value: 1e8 },
+  { id: 'USDT', value: 1e8 },
+  { id: 'ETH', value: 2000e8 },
+  { id: 'BTC', value: 40000e8 },
+  { id: 'KISS', value: 1e8 },
+  { id: 'TSLA', value: 240e8 },
+  { id: 'Coll8Dec', value: 10e8 },
+  { id: 'Coll18Dec', value: 10e8 },
+  { id: 'Coll21Dec', value: 10e8 },
+  { id: 'Collateral', value: 10e8 },
+  { id: 'Collateral2', value: 10e8 },
+  { id: 'Collateral3', value: 10e8 },
+  { id: 'Collateral4', value: 10e8 },
+  { id: 'KrAsset', value: 10e8 },
+  { id: 'KrAsset2', value: 10e8 },
+  { id: 'KrAsset3', value: 10e8 },
+  { id: 'KrAsset4', value: 10e8 },
+  { id: 'KrAsset5', value: 10e8 },
 ]
-export type TestDataPackage = { dataFeedId: AllTickers; value: number }
+
 export type AllTickers = TestAssetIds | 'ETH' | typeof assets[keyof typeof assets]['ticker']

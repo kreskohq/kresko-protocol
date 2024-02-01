@@ -90,7 +90,6 @@ struct Assets {
     KISSConfig kiss;
     TickerConfig[] tickers;
     TradeRouteConfig[] customTradeRoutes;
-    string rsPrices;
 }
 
 struct KISSConfig {

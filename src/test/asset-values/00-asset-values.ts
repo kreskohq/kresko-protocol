@@ -1,6 +1,5 @@
 import type { Kresko } from '@/types/typechain'
 import { expect } from '@test/chai'
-import { wrapKresko } from '@utils/redstone'
 import { type AssetValuesFixture, assetValuesFixture } from '@utils/test/fixtures'
 import optimizations from '@utils/test/helpers/optimizations'
 import { toBig } from '@utils/values'
@@ -8,11 +7,13 @@ import { toBig } from '@utils/values'
 describe('Asset Amounts & Values', function () {
   let f: AssetValuesFixture
   let User: Kresko
+
   beforeEach(async function () {
     f = await assetValuesFixture()
     f.user = hre.users.userEight
-    User = wrapKresko(hre.Diamond, f.user)
+    User = hre.Diamond.connect(f.user)
   })
+
   describe('#Collateral Deposit Values', async () => {
     it('should return the correct deposit value with 18 decimals', async () => {
       const depositAmount = toBig(10)
@@ -54,11 +55,14 @@ describe('Asset Amounts & Values', function () {
       const deposits = await hre.Diamond.getAccountCollateralAmount(f.user.address, f.CollateralAsset.address)
       expect(deposits).to.equal(depositAmount)
       await User.withdrawCollateral(
-        f.user.address,
-        f.CollateralAsset.address,
-        depositAmount,
-        withdrawIndex,
-        f.user.address,
+        {
+          account: f.user.address,
+          asset: f.CollateralAsset.address,
+          amount: depositAmount,
+          collateralIndex: withdrawIndex,
+          receiver: f.user.address,
+        },
+        f.updateData,
       )
       const balance = await f.CollateralAsset.balanceOf(f.user.address)
       expect(balance).to.equal(toBig(f.startingBalance))
@@ -71,11 +75,14 @@ describe('Asset Amounts & Values', function () {
       const deposits = await hre.Diamond.getAccountCollateralAmount(f.user.address, f.CollateralAsset8Dec.address)
       expect(deposits).to.equal(depositAmount)
       await User.withdrawCollateral(
-        f.user.address,
-        f.CollateralAsset8Dec.address,
-        depositAmount,
-        withdrawIndex,
-        f.user.address,
+        {
+          account: f.user.address,
+          asset: f.CollateralAsset8Dec.address,
+          amount: depositAmount,
+          collateralIndex: withdrawIndex,
+          receiver: f.user.address,
+        },
+        f.updateData,
       )
       const balance = await f.CollateralAsset8Dec.balanceOf(f.user.address)
       expect(balance).to.equal(toBig(f.startingBalance, 8))
@@ -84,15 +91,18 @@ describe('Asset Amounts & Values', function () {
     it('should return the correct deposit value with over 18 decimals', async () => {
       const depositAmount = toBig(10, 21)
       await User.depositCollateral(f.user.address, f.CollateralAsset21Dec.address, depositAmount)
-      const withdrawIndex = await optimizations.getAccountDepositIndex(f.user.address, f.CollateralAsset21Dec.address)
+      const collateralIndex = await optimizations.getAccountDepositIndex(f.user.address, f.CollateralAsset21Dec.address)
       const deposits = await hre.Diamond.getAccountCollateralAmount(f.user.address, f.CollateralAsset21Dec.address)
       expect(deposits).to.equal(depositAmount)
       await User.withdrawCollateral(
-        f.user.address,
-        f.CollateralAsset21Dec.address,
-        depositAmount,
-        withdrawIndex,
-        f.user.address,
+        {
+          account: f.user.address,
+          asset: f.CollateralAsset21Dec.address,
+          amount: depositAmount,
+          collateralIndex,
+          receiver: f.user.address,
+        },
+        f.updateData,
       )
       const balance = await f.CollateralAsset21Dec.balanceOf(f.user.address)
       expect(balance).to.equal(toBig(f.startingBalance, 21))
@@ -108,7 +118,10 @@ describe('Asset Amounts & Values', function () {
 
       const expectedMintValue = toBig(20, f.oracleDecimals) // kFactor = 2, krAssetPrice = 10, mintAmount = 1, openFee = 0.1
 
-      await User.mintKreskoAsset(f.user.address, f.KreskoAsset.address, mintAmount, f.user.address)
+      await User.mintKreskoAsset(
+        { account: f.user.address, krAsset: f.KreskoAsset.address, amount: mintAmount, receiver: f.user.address },
+        f.updateData,
+      )
       const expectedDepositValue = toBig(49.5, f.oracleDecimals) // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
       const depositValue = await hre.Diamond.getAccountTotalCollateralValue(f.user.address)
@@ -131,7 +144,10 @@ describe('Asset Amounts & Values', function () {
       const mintAmount = toBig(1)
       const expectedMintValue = toBig(20, f.oracleDecimals) // kFactor = 2, krAssetPrice = 10, mintAmount = 1, openFee = 0.1
 
-      await User.mintKreskoAsset(f.user.address, f.KreskoAsset.address, mintAmount, f.user.address)
+      await User.mintKreskoAsset(
+        { account: f.user.address, krAsset: f.KreskoAsset.address, amount: mintAmount, receiver: f.user.address },
+        f.updateData,
+      )
       const expectedDepositValue = toBig(49.5, f.oracleDecimals) // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
       const depositValue = await hre.Diamond.getAccountTotalCollateralValue(f.user.address)
@@ -154,7 +170,10 @@ describe('Asset Amounts & Values', function () {
       const mintAmount = toBig(1)
       const expectedMintValue = toBig(20, f.oracleDecimals) // kFactor = 2, krAssetPrice = 10, mintAmount = 1, openFee = 0.1
 
-      await User.mintKreskoAsset(f.user.address, f.KreskoAsset.address, mintAmount, f.user.address)
+      await User.mintKreskoAsset(
+        { account: f.user.address, krAsset: f.KreskoAsset.address, amount: mintAmount, receiver: f.user.address },
+        f.updateData,
+      )
       const expectedDepositValue = toBig(49.5, f.oracleDecimals) // cfactor = 0.5, collateralPrice = 10, depositAmount = 10, openFee = 0.1
 
       const depositValue = await hre.Diamond.getAccountTotalCollateralValue(f.user.address)

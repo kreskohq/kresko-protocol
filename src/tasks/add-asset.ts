@@ -114,7 +114,7 @@ task(TASK_ADD_ASSET)
       asset.config.assetStruct = parsedConfig.assetStruct
       asset.config.feedConfig = parsedConfig.feedConfig
       asset.config.extendedInfo = parsedConfig.extendedInfo
-      const tx = await Kresko.addAsset(Asset.address, parsedConfig.assetStruct, parsedConfig.feedConfig.feeds)
+      const tx = await Kresko.addAsset(Asset.address, parsedConfig.assetStruct, parsedConfig.feedConfig)
       logger.success('Transaction hash: ', tx.hash)
       logger.success(`Succesfully added asset: ${config.symbol}`)
     }

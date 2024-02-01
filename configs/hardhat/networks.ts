@@ -59,14 +59,6 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
       etherscan: etherscan('arbitrum'),
     },
   },
-  arbitrumGoerli: {
-    accounts: { mnemonic },
-    url: rpc('arbitrum_goerli'),
-    chainId: 421613,
-    verify: {
-      etherscan: etherscan('arbitrum_goerli'),
-    },
-  },
   arbitrumSepolia: {
     accounts: { mnemonic },
     url: rpc('arbitrum_sepolia'),
@@ -93,16 +85,6 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     verify: {
       etherscan: etherscan('optimism'),
     },
-  },
-  opgoerli: {
-    accounts: { mnemonic, count: 100 },
-    url: rpc('optimism_goerli'),
-    chainId: 420,
-    gasPrice: 100000,
-    verify: {
-      etherscan: etherscan('optimism_goerli'),
-    },
-    hardfork: 'merge',
   },
   polygon: {
     accounts: { mnemonic },

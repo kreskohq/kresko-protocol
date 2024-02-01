@@ -69,7 +69,7 @@ export async function updateFacets({ facetNames, multisig = false, initializer }
     logger.log(`Deploying ${facetName} on ${hre.network.name} network`)
     // Deploy each facet contract
     const [, newFacetSigs, NewFacetDeployment] = await hre.deploy(facetName, {
-      log: !process.env.TEST,
+      log: !process.env.HH_TEST,
       from: deployer.address,
     })
 

@@ -1,7 +1,6 @@
 import { MockERC1155 } from '@/types/typechain'
 import { expect } from '@test/chai'
 import { type DefaultFixture, defaultFixture } from '@utils/test/fixtures'
-import { wrapContractWithSigner } from '@utils/test/helpers/general'
 import { toBig } from '@utils/values'
 
 describe('Gating', () => {
@@ -48,7 +47,7 @@ describe('Gating', () => {
 
   it('should not allow users to access phase 1 without nfts', async function () {
     await expect(
-      wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
+      hre.Diamond.connect(this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
         f.Collateral.address,
         this.depositArgsOne.amount,
@@ -61,7 +60,7 @@ describe('Gating', () => {
     await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 2, 1)
 
     await expect(
-      wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
+      hre.Diamond.connect(this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
         f.Collateral.address,
         this.depositArgsOne.amount,
@@ -76,7 +75,7 @@ describe('Gating', () => {
     await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 2, 1)
     await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 3, 1)
     await expect(
-      wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
+      hre.Diamond.connect(this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
         f.Collateral.address,
         this.depositArgsOne.amount,
@@ -86,7 +85,7 @@ describe('Gating', () => {
   it('should not allow users to access phase 2 without nfts', async function () {
     await this.GatingManager.setPhase(2)
     await expect(
-      wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
+      hre.Diamond.connect(this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
         f.Collateral.address,
         this.depositArgsOne.amount,
@@ -95,7 +94,7 @@ describe('Gating', () => {
 
     await nft['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
     await expect(
-      wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
+      hre.Diamond.connect(this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
         f.Collateral.address,
         this.depositArgsOne.amount,
@@ -108,7 +107,7 @@ describe('Gating', () => {
     await nft['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
     await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
     await expect(
-      wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
+      hre.Diamond.connect(this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
         f.Collateral.address,
         this.depositArgsOne.amount,
@@ -118,7 +117,7 @@ describe('Gating', () => {
   it('should not allow users to access phase 3 without nfts', async function () {
     await this.GatingManager.setPhase(3)
     await expect(
-      wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
+      hre.Diamond.connect(this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
         f.Collateral.address,
         this.depositArgsOne.amount,
@@ -130,7 +129,7 @@ describe('Gating', () => {
     await this.GatingManager.setPhase(3)
     await nft['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
     await expect(
-      wrapContractWithSigner(hre.Diamond, this.depositArgsOne.user).depositCollateral(
+      hre.Diamond.connect(this.depositArgsOne.user).depositCollateral(
         this.depositArgsOne.user.address,
         f.Collateral.address,
         this.depositArgsOne.amount,
@@ -143,7 +142,7 @@ describe('Gating', () => {
 
     // Anyone should be able to deposit collateral
     await expect(
-      wrapContractWithSigner(hre.Diamond, this.depositArgsTwo.user).depositCollateral(
+      hre.Diamond.connect(this.depositArgsTwo.user).depositCollateral(
         this.depositArgsTwo.user.address,
         f.Collateral.address,
         this.depositArgsTwo.amount,
