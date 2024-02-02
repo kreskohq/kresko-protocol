@@ -20,7 +20,7 @@ describe('KreskoAsset', () => {
     }))
 
     // Deploy WETH
-    WETH = (await hre.ethers.deployContract('WETH9')) as WETH9
+    WETH = (await hre.ethers.deployContract('WETH')) as WETH9
     // Give WETH to deployer
     await WETH.connect(user).deposit({ value: toBig(100) })
 
