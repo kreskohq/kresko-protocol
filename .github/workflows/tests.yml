@@ -46,7 +46,7 @@ jobs:
         with:
           version: nightly
 
-      - run: forge install --no-git
+      - run: forge install
 
       - run: bun install --yarn --frozen-lockfile
 
