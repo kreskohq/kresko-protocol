@@ -9,6 +9,7 @@ type VaultTaskArgs = {
     mintAmount: BigNumber
   }
 }
+
 task(TASK_DEPLOY_VAULT)
   .addOptionalParam(
     'mockAsset',
