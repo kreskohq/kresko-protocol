@@ -5,7 +5,6 @@ import {View} from "periphery/ViewTypes.sol";
 import {IViewDataFacet} from "periphery/interfaces/IViewDataFacet.sol";
 import {ViewFuncs} from "periphery/ViewData.sol";
 import {PythView} from "vendor/pyth/PythScript.sol";
-import {console} from "forge-std/console.sol";
 
 contract ViewDataFacet is IViewDataFacet {
     /// @inheritdoc IViewDataFacet
