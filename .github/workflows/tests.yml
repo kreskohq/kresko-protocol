@@ -2,7 +2,7 @@ name: tests
 on: [push]
 jobs:
   foundry:
-    name: foundry tests
+    name: foundry
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
         run: forge test
 
   hardhat:
-    name: hardhat tests
+    name: hardhat
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
