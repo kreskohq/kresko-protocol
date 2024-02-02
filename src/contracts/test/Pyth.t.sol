@@ -27,7 +27,6 @@ contract PythTest is Tested {
 
     function setUp() public users(address(111), address(222), address(333)) {
         useMnemonic("MNEMONIC_DEVNET");
-        vm.createSelectFork("arbitrumSepolia");
         mockPyth = createMockPyth(ids, prices);
     }
 
