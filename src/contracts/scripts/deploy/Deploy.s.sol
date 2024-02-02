@@ -4,15 +4,15 @@ pragma solidity 0.8.23;
 
 import {DeployBase} from "scripts/deploy/DeployBase.s.sol";
 import {Scripted} from "kresko-lib/utils/Scripted.s.sol";
-import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
-import {LibDeployMocks} from "scripts/deploy/libs/LibDeployMocks.s.sol";
+import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
+import {LibMocks} from "scripts/deploy/libs/LibMocks.s.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {LibDeployUtils} from "scripts/deploy/libs/LibDeployUtils.s.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {Ownable} from "@oz/access/Ownable.sol";
-import "scripts/deploy/libs/JSON.s.sol" as JSON;
+import "scripts/deploy/JSON.s.sol" as JSON;
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {Enums, Role} from "common/Constants.sol";
@@ -25,8 +25,8 @@ import {getPythData} from "vendor/pyth/PythScript.sol";
 import {MintArgs} from "common/Args.sol";
 
 contract Deploy is Scripted, DeployBase {
-    using LibDeployConfig for *;
-    using LibDeployMocks for *;
+    using LibJSON for *;
+    using LibMocks for *;
     using LibDeploy for *;
     using Deployed for *;
     using LibDeployUtils for *;

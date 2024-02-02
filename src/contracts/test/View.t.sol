@@ -10,8 +10,8 @@ import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
-import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
-import {getConfig} from "scripts/deploy/libs/JSON.s.sol";
+
+import "scripts/deploy/JSON.s.sol" as JSON;
 import {getMockPythViewPrices, PythView} from "vendor/pyth/PythScript.sol";
 
 contract ViewTest is Tested, Deploy {
@@ -46,7 +46,7 @@ contract ViewTest is Tested, Deploy {
     }
 
     function testProtocolDatas() public {
-        JSON.Config memory cfg = getConfig("test", "test-base");
+        JSON.Config memory cfg = JSON.getConfig("test", "test-base");
         View.Protocol memory protocol = dataV1.getGlobals(getMockPythViewPrices(cfg)).protocol;
         protocol.maxPriceDeviationPct.eq(cfg.params.common.maxPriceDeviationPct, "maxPriceDeviationPct");
         protocol.oracleDecimals.eq(cfg.params.common.oracleDecimals, "oracleDecimals");
@@ -158,7 +158,7 @@ contract ViewTest is Tested, Deploy {
     }
 
     function testUserDatas() public {
-        PythView memory prices = getMockPythViewPrices(getConfig("test", "test-base"));
+        PythView memory prices = getMockPythViewPrices(JSON.getConfig("test", "test-base"));
         View.Account memory acc = dataV1.getAccount(prices, user0).protocol;
         acc.addr.eq(user0, "acc.addr");
 

@@ -11,9 +11,8 @@ import {Log} from "kresko-lib/utils/Libs.s.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
-import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import {getConfig} from "scripts/deploy/libs/JSON.s.sol";
+import "scripts/deploy/JSON.s.sol" as JSON;
 import {BurnArgs, MintArgs, WithdrawArgs} from "common/Args.sol";
 
 string constant CONFIG_ID = "test-clean";
@@ -53,7 +52,7 @@ contract ICDPTest is Tested, Deploy {
     }
 
     function testMinterSetup() public {
-        JSON.Config memory json = getConfig("test", CONFIG_ID);
+        JSON.Config memory json = JSON.getConfig("test", CONFIG_ID);
 
         kresko.owner().eq(getAddr(0));
         kresko.getMinCollateralRatioMinter().eq(json.params.minter.minCollateralRatio, "minter-min-collateral-ratio");

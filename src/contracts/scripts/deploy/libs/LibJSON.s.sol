@@ -7,16 +7,16 @@ import {Asset, FeedConfiguration} from "common/Types.sol";
 import {Enums} from "common/Constants.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
-import "scripts/deploy/libs/JSON.s.sol" as JSON;
-import {CONST} from "scripts/deploy/libs/CONST.s.sol";
+import "scripts/deploy/JSON.s.sol" as JSON;
+import {CONST} from "scripts/deploy/CONST.s.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 
-library LibDeployConfig {
+library LibJSON {
     using Help for *;
     using LibDeploy for string;
-    using LibDeployConfig for *;
+    using LibJSON for *;
     using Deployed for *;
 
     struct KrAssetMetadata {

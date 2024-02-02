@@ -29,7 +29,11 @@ using WadRay for uint256;
 
 contract SCDPFacet is ISCDPFacet, Modifiers {
     /// @inheritdoc ISCDPFacet
-    function depositSCDP(address _account, address _collateralAsset, uint256 _amount) external nonReentrant gate(_account) {
+    function depositSCDP(
+        address _account,
+        address _collateralAsset,
+        uint256 _amount
+    ) external payable nonReentrant gate(_account) {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -121,7 +125,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         address _account,
         address _collateralAsset,
         address _receiver
-    ) external onlyRoleIf(_account != msg.sender, Role.MANAGER) returns (uint256 feeAmount) {
+    ) external payable onlyRoleIf(_account != msg.sender, Role.MANAGER) returns (uint256 feeAmount) {
         feeAmount = scdp().handleFeeClaim(
             cs().onlyFeeAccumulatingCollateral(_collateralAsset),
             _account,

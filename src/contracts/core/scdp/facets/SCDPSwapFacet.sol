@@ -23,7 +23,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
     using PercentageMath for uint256;
 
     /// @inheritdoc ISCDPSwapFacet
-    function cumulateIncomeSCDP(address _assetAddr, uint256 _incomeAmount) external nonReentrant returns (uint256) {
+    function cumulateIncomeSCDP(address _assetAddr, uint256 _incomeAmount) external payable nonReentrant returns (uint256) {
         Asset storage asset = cs().onlyIncomeAsset(_assetAddr);
         IERC20(_assetAddr).safeTransferFrom(msg.sender, address(this), _incomeAmount);
 

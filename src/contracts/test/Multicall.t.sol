@@ -12,7 +12,7 @@ import {MockOracle} from "mocks/MockOracle.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {SCDPLiquidationArgs, SwapArgs} from "common/Args.sol";
-import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import "scripts/deploy/JSON.s.sol" as JSON;
 import {getPythData} from "vendor/pyth/PythScript.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console

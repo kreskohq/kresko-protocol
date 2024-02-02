@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {VM} from "kresko-lib/utils/LibVm.s.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
-import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import {JSON} from "scripts/deploy/libs/LibJSON.s.sol";
 
 struct PythView {
     bytes32[] ids;

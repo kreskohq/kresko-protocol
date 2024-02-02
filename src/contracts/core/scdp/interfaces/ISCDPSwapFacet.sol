@@ -29,5 +29,8 @@ interface ISCDPSwapFacet {
      * @param _incomeAmount Amount to accumulate
      * @return nextLiquidityIndex Next liquidity index for the asset.
      */
-    function cumulateIncomeSCDP(address _depositAssetAddr, uint256 _incomeAmount) external returns (uint256 nextLiquidityIndex);
+    function cumulateIncomeSCDP(
+        address _depositAssetAddr,
+        uint256 _incomeAmount
+    ) external payable returns (uint256 nextLiquidityIndex);
 }

@@ -4,9 +4,8 @@ import {MockOracle} from "mocks/MockOracle.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployment} from "factory/IDeploymentFactory.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
-import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import {JSON, LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
-import {JSON, LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {LibSafe} from "kresko-lib/mocks/MockSafe.sol";
 import {VM} from "kresko-lib/utils/LibVm.s.sol";
@@ -14,12 +13,12 @@ import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {MockERC1155} from "mocks/MockERC1155.sol";
 import {Help} from "kresko-lib/utils/Libs.s.sol";
 
-library LibDeployMocks {
+library LibMocks {
     using Help for *;
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
     using LibDeploy for JSON.Config;
-    using LibDeployConfig for *;
+    using LibJSON for *;
     bytes32 internal constant MOCKS_SLOT = keccak256("Mocks");
 
     bytes32 internal constant SEQ_FEED_SALT = bytes32("SEQ_FEED");
@@ -56,7 +55,7 @@ library LibDeployMocks {
         }
 
         if (json.params.common.council == address(0)) {
-            json.params.common.council = LibDeployMocks.deployMockSafe(deployer);
+            json.params.common.council = LibMocks.deployMockSafe(deployer);
         }
 
         for (uint256 i; i < json.assets.extAssets.length; i++) {
@@ -129,9 +128,9 @@ library LibDeployMocks {
     }
 
     function deployMockOracle(string memory ticker, uint256 price, uint8 decimals) internal returns (MockOracle) {
-        LibDeploy.JSONKey(LibDeployConfig.feedStringId(ticker));
+        LibDeploy.JSONKey(LibJSON.feedStringId(ticker));
         bytes memory implementation = type(MockOracle).creationCode.ctor(abi.encode(ticker, price, decimals));
-        Deployment memory deployment = implementation.d3("", LibDeployConfig.feedBytesId(ticker));
+        Deployment memory deployment = implementation.d3("", LibJSON.feedBytesId(ticker));
         MockOracle result = MockOracle(deployment.implementation);
         LibDeploy.saveJSONKey();
         return result;

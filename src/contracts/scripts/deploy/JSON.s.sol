@@ -5,10 +5,10 @@ import {SCDPInitArgs} from "scdp/STypes.sol";
 import {MinterInitArgs} from "minter/MTypes.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {Enums} from "common/Constants.sol";
-import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {mAddr} from "kresko-lib/utils/MinVm.s.sol";
 import {mvm} from "kresko-lib/utils/MinVm.s.sol";
-import {CONST} from "scripts/deploy/libs/CONST.s.sol";
+import {CONST} from "scripts/deploy/CONST.s.sol";
 
 struct Files {
     string params;
@@ -260,8 +260,9 @@ function getMockPrices(Config memory cfg) pure returns (bytes32[] memory ids, in
 }
 
 uint256 constant ALL_USERS = 9999;
+
 using {get} for Users global;
 using {getMockPrices} for Config global;
 
-using {LibDeployConfig.metadata} for KrAssetConfig global;
-using {LibDeployConfig.toAsset} for AssetJSON global;
+using {LibJSON.metadata} for KrAssetConfig global;
+using {LibJSON.toAsset} for AssetJSON global;

@@ -9,7 +9,7 @@ interface IMinterDepositWithdrawFacet {
      * @param _collateralAsset The address of the collateral asset.
      * @param _depositAmount The amount of the collateral asset to deposit.
      */
-    function depositCollateral(address _account, address _collateralAsset, uint256 _depositAmount) external;
+    function depositCollateral(address _account, address _collateralAsset, uint256 _depositAmount) external payable;
 
     /**
      * @notice Withdraws sender's collateral from the protocol.

@@ -13,10 +13,10 @@ import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
-import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import "scripts/deploy/JSON.s.sol" as JSON;
 import {MockOracle} from "mocks/MockOracle.sol";
 import {Enums} from "common/Constants.sol";
-import {SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs, WithdrawArgs} from "common/Args.sol";
+import {SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs} from "common/Args.sol";
 import {getPythData} from "vendor/pyth/PythScript.sol";
 
 contract SCDPTest is Tested, Deploy {

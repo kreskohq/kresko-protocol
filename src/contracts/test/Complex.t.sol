@@ -14,7 +14,7 @@ import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
-import "scripts/deploy/libs/JSON.s.sol" as JSON;
+import "scripts/deploy/JSON.s.sol" as JSON;
 import {MintArgs, SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs} from "common/Args.sol";
 import {getPythData} from "vendor/pyth/PythScript.sol";
 
