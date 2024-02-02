@@ -11,7 +11,7 @@ import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {LibSafe} from "kresko-lib/mocks/MockSafe.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {MockERC1155} from "mocks/MockERC1155.sol";
-import {VM} from "kresko-lib/utils/LibVM.s.sol";
+import {VM} from "kresko-lib/utils/LibVm.s.sol";
 import {Help} from "kresko-lib/utils/Libs.s.sol";
 
 library LibDeployMocks {
