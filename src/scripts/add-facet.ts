@@ -108,34 +108,31 @@ export async function addFacet<T extends keyof TC>({
     )
     // Do not continue with any possible scripts after
     throw new Error('Error adding a facet')
-  } else {
-    // #5.3 Add the new facet into the Diamonds deployment object
-    DiamondDeployment.facets = facets
-
-    // #5.4 Merge the ABI of new facet into the existing Diamond ABI for deployment output.
-    DiamondDeployment.abi = mergeABIs([DiamondDeployment.abi, deployment.abi], {
-      // This check will notify if there are selector clashes
-      check: true,
-      skipSupportsInterface: false,
-    })
-
-    // #5.5 Save the deployment output
-    await hre.deployments.save('Diamond', DiamondDeployment)
-    // Live network deployments should be released into the contracts-package.
-    if (hre.network.live) {
-      // TODO: Automate the release
-      logger.log(
-        'New facets saved to deployment file, remember to make a release of the contracts package for frontend',
-      )
-    }
-
-    // #5.6 Save the deployment and Diamond into runtime for later steps.
-    hre.DiamondDeployment = DiamondDeployment
-    hre.Diamond = await hre.getContractOrFork('Kresko')
-
-    logger.success(1, ' facets succesfully added')
-    logger.success('Facet address: ', Facet.address, 'with ', Signatures.length, ' functions')
-    hre.DiamondDeployment = DiamondDeployment
   }
+  // #5.3 Add the new facet into the Diamonds deployment object
+  DiamondDeployment.facets = facets
+
+  // #5.4 Merge the ABI of new facet into the existing Diamond ABI for deployment output.
+  DiamondDeployment.abi = mergeABIs([DiamondDeployment.abi, deployment.abi], {
+    // This check will notify if there are selector clashes
+    check: true,
+    skipSupportsInterface: false,
+  })
+
+  // #5.5 Save the deployment output
+  await hre.deployments.save('Diamond', DiamondDeployment)
+  // Live network deployments should be released into the contracts-package.
+  if (hre.network.live) {
+    // TODO: Automate the release
+    logger.log('New facets saved to deployment file, remember to make a release of the contracts package for frontend')
+  }
+
+  // #5.6 Save the deployment and Diamond into runtime for later steps.
+  hre.DiamondDeployment = DiamondDeployment
+  hre.Diamond = await hre.getContractOrFork('Kresko')
+
+  logger.success(1, ' facets succesfully added')
+  logger.success('Facet address: ', Facet.address, 'with ', Signatures.length, ' functions')
+  hre.DiamondDeployment = DiamondDeployment
   return Facet
 }

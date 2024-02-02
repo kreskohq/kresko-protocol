@@ -6,7 +6,7 @@ import {MinterInitArgs} from "minter/MTypes.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {Enums} from "common/Constants.sol";
 import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
-import {mAddr} from "../../../../../lib/kresko-foundry-helpers/src/utils/MinVm.s.sol";
+import {mAddr} from "kresko-lib/utils/MinVm.s.sol";
 import {mvm} from "kresko-lib/utils/MinVm.s.sol";
 import {CONST} from "scripts/deploy/libs/CONST.s.sol";
 
@@ -39,6 +39,10 @@ function getConfigFrom(string memory dir, string memory configId) returns (Confi
     files.users = string.concat(dir, "users-", configId, ".json");
     if (mvm.exists(files.users)) {
         json.users = abi.decode(mvm.parseJson(mvm.readFile(files.users)), (Users));
+    }
+
+    if (json.params.common.admin == address(0)) {
+        json.params.common.admin = mAddr("MNEMONIC_DEVNET", 0);
     }
 }
 

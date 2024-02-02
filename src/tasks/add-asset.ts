@@ -63,8 +63,8 @@ task(TASK_ADD_ASSET)
     const Asset = isKISS
       ? await hre.getContractOrFork('KISS')
       : isMinterMintable
-      ? await hre.getContractOrFork('KreskoAsset', config.symbol)
-      : await hre.getContractOrFork('MockERC20', config.symbol)
+        ? await hre.getContractOrFork('KreskoAsset', config.symbol)
+        : await hre.getContractOrFork('MockERC20', config.symbol)
 
     const assetInfo = await Kresko.getAsset(Asset.address)
     const exists = assetInfo.decimals != 0

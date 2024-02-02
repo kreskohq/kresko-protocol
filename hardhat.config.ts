@@ -21,6 +21,7 @@ import 'hardhat-deploy-ethers'
 /* -------------------------------------------------------------------------- */
 import { configDotenv } from 'dotenv'
 configDotenv()
+process.env.HARDHAT = 'true'
 
 const mnemonic = process.env.MNEMONIC_DEVNET || 'test test test test test test test test test test test junk'
 

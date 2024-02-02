@@ -236,9 +236,9 @@ export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtur
 })
 
 const getReceiver = async (kresko: Kresko, grantRole = true) => {
-  const Receiver = await (
-    await smock.mock<SmockCollateralReceiver__factory>('SmockCollateralReceiver')
-  ).deploy(kresko.address)
+  const Receiver = await (await smock.mock<SmockCollateralReceiver__factory>('SmockCollateralReceiver')).deploy(
+    kresko.address,
+  )
   if (grantRole) {
     await kresko.grantRole(Role.MANAGER, Receiver.address)
   }

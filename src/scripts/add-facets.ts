@@ -166,45 +166,20 @@ export async function addFacets({
         )
         // Do not continue with any possible scripts after
         throw new Error('Error adding a facet')
-      } else {
-        // #6.3 Add the new facet into the Diamonds deployment object
-        DiamondDeployment.facets = facetsAfter
-        hre.facets = deploymentInfo
-
-        // #6.4 Merge the ABIs of new facets into the existing Diamond ABI for deployment output.
-        DiamondDeployment.abi = mergeABIs([DiamondDeployment.abi, ...ABIs], {
-          // This check will notify if there are selector clashes
-          check: true,
-          skipSupportsInterface: false,
-        })
-
-        // #6.5 Save the deployment output
-        await hre.deployments.save('Diamond', DiamondDeployment)
-        // Live network deployments should be released into the contracts-package.
-        if (hre.network.live) {
-          // TODO: Automate the release
-          logger.log(
-            'New facets saved to deployment file, remember to make a release of the contracts package for frontend',
-          )
-        }
-
-        // #6.6 Save the deployment and Diamond into runtime for later steps.
-        hre.DiamondDeployment = DiamondDeployment
-        hre.Diamond = await hre.getContractOrFork('Kresko')
-
-        logger.success(FacetCuts.length, 'facets succesfully added')
       }
-      return hre.Diamond
-    } else {
+      // #6.3 Add the new facet into the Diamonds deployment object
+      DiamondDeployment.facets = facetsAfter
+      hre.facets = deploymentInfo
+
       // #6.4 Merge the ABIs of new facets into the existing Diamond ABI for deployment output.
-      // DiamondDeployment.abi = mergeABIs([DiamondDeployment.abi, ...ABIs], {
-      //     // This check will notify if there are selector clashes
-      //     check: true,
-      //     skipSupportsInterface: false,
-      // });
+      DiamondDeployment.abi = mergeABIs([DiamondDeployment.abi, ...ABIs], {
+        // This check will notify if there are selector clashes
+        check: true,
+        skipSupportsInterface: false,
+      })
 
       // #6.5 Save the deployment output
-      // await deployments.save("Diamond", DiamondDeployment);
+      await hre.deployments.save('Diamond', DiamondDeployment)
       // Live network deployments should be released into the contracts-package.
       if (hre.network.live) {
         // TODO: Automate the release
@@ -216,7 +191,30 @@ export async function addFacets({
       // #6.6 Save the deployment and Diamond into runtime for later steps.
       hre.DiamondDeployment = DiamondDeployment
       hre.Diamond = await hre.getContractOrFork('Kresko')
+
+      logger.success(FacetCuts.length, 'facets succesfully added')
+      return hre.Diamond
     }
+    // #6.4 Merge the ABIs of new facets into the existing Diamond ABI for deployment output.
+    // DiamondDeployment.abi = mergeABIs([DiamondDeployment.abi, ...ABIs], {
+    //     // This check will notify if there are selector clashes
+    //     check: true,
+    //     skipSupportsInterface: false,
+    // });
+
+    // #6.5 Save the deployment output
+    // await deployments.save("Diamond", DiamondDeployment);
+    // Live network deployments should be released into the contracts-package.
+    if (hre.network.live) {
+      // TODO: Automate the release
+      logger.log(
+        'New facets saved to deployment file, remember to make a release of the contracts package for frontend',
+      )
+    }
+
+    // #6.6 Save the deployment and Diamond into runtime for later steps.
+    hre.DiamondDeployment = DiamondDeployment
+    hre.Diamond = await hre.getContractOrFork('Kresko')
   } catch (e) {
     console.log(e)
   }

@@ -83,22 +83,21 @@ task(TASK_ADD_FACET, 'Add a facet to the diamond')
         facets.map(f => f.facetAddress),
       )
       throw new Error('Error adding a facet')
-    } else {
-      DiamondDeployment.facets = facets
-      await hre.deployments.save('Diamond', DiamondDeployment)
-      if (hre.network.live) {
-        logger.log('New facet saved to deployment file, you should update the contracts package with the new ABI')
-      }
-      logger.success(
-        'Facet added @',
-        Facet.address,
-        'with ',
-        Signatures.length,
-        ' functions - ',
-        'txHash:',
-        receipt.transactionHash,
-      )
-      hre.DiamondDeployment = DiamondDeployment
     }
+    DiamondDeployment.facets = facets
+    await hre.deployments.save('Diamond', DiamondDeployment)
+    if (hre.network.live) {
+      logger.log('New facet saved to deployment file, you should update the contracts package with the new ABI')
+    }
+    logger.success(
+      'Facet added @',
+      Facet.address,
+      'with ',
+      Signatures.length,
+      ' functions - ',
+      'txHash:',
+      receipt.transactionHash,
+    )
+    hre.DiamondDeployment = DiamondDeployment
     return Facet
   })

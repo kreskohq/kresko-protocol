@@ -84,9 +84,8 @@ const deploy: DeployFunction = async function (hre) {
     case 'hardhat': {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const safeDeploymentFactoryArtifact = require('../../utils/gnosis/json/GnosisSafeProxyFactory2.json')
-      const safeDeploymentFactoryFactory = await hre.ethers.getContractFactoryFromArtifact(
-        safeDeploymentFactoryArtifact,
-      )
+      const safeDeploymentFactoryFactory =
+        await hre.ethers.getContractFactoryFromArtifact(safeDeploymentFactoryArtifact)
       const factory = await safeDeploymentFactoryFactory.deploy()
       await hre.deployments.save('GnosisSafeProxyFactory', {
         abi: safeDeploymentFactoryArtifact.abi,

@@ -6,7 +6,7 @@ import { assets, testnetConfigs } from './arbitrumSepolia'
 
 envCheck()
 
-export type AllTokenSymbols = TestTokenSymbols | 'ETH' | typeof assets[keyof typeof assets]['symbol']
+export type AllTokenSymbols = TestTokenSymbols | 'ETH' | (typeof assets)[keyof typeof assets]['symbol']
 
 // These function namings are ignored when generating ABI for the diamond
 export const signatureFilters = ['init', 'initializer']

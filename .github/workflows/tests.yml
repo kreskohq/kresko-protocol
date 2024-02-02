@@ -1,0 +1,54 @@
+name: tests
+on: [push]
+jobs:
+  foundry:
+    name: foundry tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v1
+        env:
+          BUN_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        with:
+          registry-url: https://registry.npmjs.org
+          scope: '@kreskolabs'
+
+      - run: git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
+      - run: cp .env.example .env
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - run: bun install --yarn --frozen-lockfile
+
+      - name: Run Foundry Tests
+        run: forge test
+
+  hardhat:
+    name: hardhat tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v1
+        env:
+          BUN_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        with:
+          registry-url: https://registry.npmjs.org
+          scope: '@kreskolabs'
+
+      - run: git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
+      - run: cp .env.example .env
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - run: bun install --yarn --frozen-lockfile
+
+      - run: bun run test:ci
+        env:
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          MNEMONIC_DEVNET: ${{ secrets.MNEMONIC_DEVNET }}

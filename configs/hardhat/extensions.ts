@@ -153,9 +153,8 @@ extendEnvironment(function (hre) {
             .map(frag => implementation.interface.getSighash(frag)),
           deployment,
         ] as const
-      } else {
-        throw new Error(e)
       }
+      throw new Error(e)
     }
   }
   hre.getSignature = from =>

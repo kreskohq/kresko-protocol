@@ -363,7 +363,7 @@ contract Deploy is Scripted, DeployBase {
             address user = users.get(i);
             if (users.nfts.useMocks) {
                 if (i < 5) {
-                    okNFT.mint(user, 0, 1, "");
+                    okNFT.mint(user, 0, 3, "");
                 }
                 if (i < 3) {
                     qfkNFT.mint(user, 0, 1, "");
@@ -439,11 +439,11 @@ contract Deploy is Scripted, DeployBase {
     }
 
     function deployTest(uint32 deployer) public returns (JSON.Config memory) {
-        return deploy("test", "test-base", "MNEMONIC_DEVNET", deployer, false, true);
+        return deploy("test", "test-base", "MNEMONIC_DEVNET", deployer, true, true);
     }
 
     function deployTest(string memory mnemonic, string memory configId, uint32 deployer) public returns (JSON.Config memory) {
-        return deploy("test", configId, mnemonic, deployer, false, true);
+        return deploy("test", configId, mnemonic, deployer, true, true);
     }
 
     function deployFrom(

@@ -231,9 +231,8 @@ export const handleForking = (networkConfig: ReturnType<typeof networks>) => {
 const rpc = (network: string) => {
   if (process.env.ALCHEMY_API_KEY) {
     return process.env[`RPC_${network.toUpperCase()}_ALCHEMY`] ?? process.env[`RPC_${network.toUpperCase()}`]
-  } else {
-    return process.env[`RPC_${network.toUpperCase()}`]
   }
+  return process.env[`RPC_${network.toUpperCase()}`]
 }
 
 const etherscan = (network: string) => {

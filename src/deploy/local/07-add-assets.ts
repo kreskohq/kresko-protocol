@@ -15,7 +15,7 @@ const deploy: DeployFunction = async function (hre) {
     }
     logger.log(`Add: ${asset.symbol}`)
 
-    let oracleAddr
+    let oracleAddr: string
 
     if (asset.symbol !== 'KISS') {
       if (hre.network.live) {

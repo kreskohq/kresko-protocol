@@ -1,4 +1,4 @@
-import type { WETH, WETH9 } from '@/types/typechain'
+import type { WETH } from '@/types/typechain'
 import { expect } from '@test/chai'
 import { kreskoAssetFixture } from '@utils/test/fixtures'
 import { Role } from '@utils/test/roles'

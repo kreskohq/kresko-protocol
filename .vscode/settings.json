@@ -9,6 +9,8 @@
     "**/bower_components": true,
     "**/*.code-search": true,
     "pnpm-lock.yaml": true,
+    "yarn.lock": true,
+    "bun.lockb": true,
     "mochawesome-report": true,
     "**/deployments/**": true,
     "node_modules/**": true,

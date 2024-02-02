@@ -114,7 +114,8 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
       saltBytes32: salt,
       args: options,
     }
-  } else if (options.type === 'create2') {
+  }
+  if (options.type === 'create2') {
     if (!salt) throw new Error('create2 needs a salt value')
 
     calldata = hre.DeploymentFactory.interface.encodeFunctionData('create2ProxyAndLogic', [
@@ -141,7 +142,8 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
       saltBytes32: salt,
       args: options,
     }
-  } else if (options.type === 'create3') {
+  }
+  if (options.type === 'create3') {
     if (!salt) throw new Error('create3 needs a salt value')
 
     calldata = hre.DeploymentFactory.interface.encodeFunctionData('create3ProxyAndLogic', [
@@ -165,7 +167,8 @@ const prepareProxy: PrepareProxyFunction = async (name, options) => {
       saltBytes32: salt,
       args: options,
     }
-  } else throw new Error('Invalid proxy type')
+  }
+  throw new Error('Invalid proxy type')
 }
 
 const saveProxyDeployment = async <

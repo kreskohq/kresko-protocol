@@ -18,7 +18,7 @@ just not installed: `npx just <command>`.
 
 ## Quick Setup
 
-Install missing tools (pnpm, foundry, pm2) and dependencies (npm, forge) and run dry deploy
+Install missing tools (bun, foundry, pm2), forge dependencies and run dry deploy
 
 ```sh
 just setup
@@ -40,24 +40,16 @@ cp .env.example .env
 
 ### Tools
 
-#### pnpm
+#### bun
 
 ```sh
-npm i -g pnpm
+curl -fsSL https://bun.sh/install | bash
 ```
 
 PM2 is required for anvil & forge development network
 
 ```sh
-pnpm i -g pm2
-```
-
-#### Node
-
-Use the node version in .nvmrc
-
-```sh
-nvm use
+bun a -g pm2
 ```
 
 #### Foundry
@@ -85,7 +77,7 @@ forge install
 Install node dependencies
 
 ```sh
-pnpm i
+bun install --yarn
 ```
 
 ### Compiling
@@ -101,7 +93,7 @@ forge build
 Check your setup by running the forge deployment script
 
 ```sh
-pnpm f:dry
+bun f:dry
 ```
 
 or
@@ -115,13 +107,13 @@ just d
 Compile the contracts
 
 ```sh
-pnpm hh:compile
+bun hh:compile
 ```
 
 Check your setup by running the hardhat deployment script
 
 ```sh
-pnpm hh:dry
+bun hh:dry
 ```
 
 ### Testing
@@ -133,7 +125,7 @@ pnpm hh:dry
 Run tests with against a local deployment fixture
 
 ```sh
-pnpm hh:test
+bun hh:test
 ```
 
 #### Foundry
@@ -149,12 +141,12 @@ forge test
 Spins up hardhat node and runs deployment
 
 ```sh
-pnpm hh:dev
+bun hh:dev
 ```
 
 #### Foundry
 
-(requires PM2: `pnpm i -g pm2`)
+(requires PM2: `bun a -g pm2`)
 
 Spins up anvil and runs deployment
 

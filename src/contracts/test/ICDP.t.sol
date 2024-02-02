@@ -55,7 +55,7 @@ contract ICDPTest is Tested, Deploy {
     function testMinterSetup() public {
         JSON.Config memory json = getConfig("test", CONFIG_ID);
 
-        kresko.owner().eq(json.params.common.admin);
+        kresko.owner().eq(getAddr(0));
         kresko.getMinCollateralRatioMinter().eq(json.params.minter.minCollateralRatio, "minter-min-collateral-ratio");
         kresko.getParametersSCDP().minCollateralRatio.eq(json.params.scdp.minCollateralRatio, "scdp-min-collateral-ratio");
         kresko.getParametersSCDP().liquidationThreshold.eq(json.params.scdp.liquidationThreshold, "scdp-liquidation-threshold");

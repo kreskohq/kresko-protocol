@@ -55,7 +55,7 @@ const getPayloadHardhat = async assets => {
   return data.map(({ vaa }) => `0x${Buffer.from(vaa, 'base64').toString('hex')}`)
 }
 
-if (!process.env.HH_TEST) {
+if (!process.env.HARDHAT) {
   getPrices(
     !process.argv[2].startsWith('0x') ? process.argv[2].split(',') : process.argv.slice(2),
     !process.argv[2].startsWith('0x'),

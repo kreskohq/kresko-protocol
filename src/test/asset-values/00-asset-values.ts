@@ -8,7 +8,7 @@ describe('Asset Amounts & Values', function () {
   let f: AssetValuesFixture
   let User: Kresko
 
-  beforeEach(async function () {
+  beforeEach(async () => {
     f = await assetValuesFixture()
     f.user = hre.users.userEight
     User = hre.Diamond.connect(f.user)

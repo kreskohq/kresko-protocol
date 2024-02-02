@@ -45,10 +45,12 @@ contract ComplexTest is Deploy {
     }
 
     function setUp() public {
-        Deploy.deployTest("MNEMONIC_DEVNET", "test-audit", 0);
-
+        JSON.Config memory cfg = Deploy.deployTest("MNEMONIC_DEVNET", "test-audit", 0);
+        getAddr(0).clg("deployer");
+        cfg.params.common.admin.clg("admin");
         // for price updates
         vm.deal(address(kresko), 1 ether);
+        vm.deal(getAddr(0), 1 ether);
 
         usdc = MockERC20(Deployed.addr("USDC"));
         usdt = MockERC20(Deployed.addr("USDT"));
@@ -73,6 +75,7 @@ contract ComplexTest is Deploy {
 
     function testRebase() external {
         prank(getAddr(0));
+
         uint256 crBefore = kresko.getCollateralRatioSCDP();
         uint256 amountDebtBefore = kresko.getDebtSCDP(krETHAddr);
         uint256 valDebtBefore = kresko.getDebtValueSCDP(krETHAddr, false);

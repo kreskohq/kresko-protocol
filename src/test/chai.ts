@@ -1,4 +1,4 @@
-import chai from 'chai'
+const chai = require('chai')
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // chai.use(require("chai-bn")(BigNumber));

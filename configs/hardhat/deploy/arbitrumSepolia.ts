@@ -33,9 +33,8 @@ const pricesMock = {
 const price = async (symbol: keyof typeof pricesMock) => {
   if (!process.env.TWELVEDATA_API_KEY) {
     return toBig(pricesMock[symbol], 8)
-  } else {
-    return toBig(await priceTW(symbol), 8)
   }
+  return toBig(await priceTW(symbol), 8)
 }
 
 export const oracles = {

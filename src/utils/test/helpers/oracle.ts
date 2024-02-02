@@ -147,4 +147,4 @@ export const defaultPrices: PriceConfig = [
   ['KrAsset5', 10e8],
 ]
 
-export type AllTickers = TestAssetIds | 'ETH' | typeof assets[keyof typeof assets]['ticker']
+export type AllTickers = TestAssetIds | 'ETH' | (typeof assets)[keyof typeof assets]['ticker']
