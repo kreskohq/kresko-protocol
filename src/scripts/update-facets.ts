@@ -69,7 +69,7 @@ export async function updateFacets({ facetNames, multisig = false, initializer }
     logger.log(`Deploying ${facetName} on ${hre.network.name} network`)
     // Deploy each facet contract
     const [, newFacetSigs, NewFacetDeployment] = await hre.deploy(facetName, {
-      log: !process.env.TEST,
+      log: !process.env.HH_TEST,
       from: deployer.address,
     })
 
@@ -177,19 +177,14 @@ export async function updateFacets({ facetNames, multisig = false, initializer }
       facetsAfter: facetsAfterOnChain,
       txParams,
     }
-  } else {
-    logger.log('Multisig mode, not executing transaction')
-    hre.facets = deploymentInfo
-    const txParams = await Diamond.populateTransaction.diamondCut(
-      FacetCuts,
-      initializerArgs.address,
-      initializerArgs.data,
-    )
+  }
+  logger.log('Multisig mode, not executing transaction')
+  hre.facets = deploymentInfo
+  const tx = await Diamond.populateTransaction.diamondCut(FacetCuts, initializerArgs.address, initializerArgs.data)
 
-    writeFileSync(`./txParams-${Date.now()}.json`, JSON.stringify(txParams, null, 2))
-    return {
-      facetsAfter: undefined,
-      txParams,
-    }
+  writeFileSync(`./txParams-${Date.now()}.json`, JSON.stringify(tx, null, 2))
+  return {
+    facetsAfter: undefined,
+    txParams,
   }
 }

@@ -9,6 +9,7 @@ type VaultTaskArgs = {
     mintAmount: BigNumber
   }
 }
+
 task(TASK_DEPLOY_VAULT)
   .addOptionalParam(
     'mockAsset',
@@ -68,7 +69,7 @@ task(TASK_DEPLOY_VAULT)
     }
 
     const VaultFactory = await hre.ethers.getContractFactory('Vault')
-    const vaultConstructorArgs: Parameters<typeof VaultFactory['deploy']> = [
+    const vaultConstructorArgs: Parameters<(typeof VaultFactory)['deploy']> = [
       'vKISS',
       'vKISS',
       18,

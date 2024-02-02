@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 import {MaxLiqInfo} from "common/Types.sol";
-import {LiquidationArgs} from "minter/MTypes.sol";
+import {LiquidationArgs} from "common/Args.sol";
 
 interface IMinterLiquidationFacet {
     /**
@@ -9,7 +9,7 @@ interface IMinterLiquidationFacet {
      * debt, receiving in return a portion of the account's collateral at a discounted rate.
      * @param _args LiquidationArgs struct containing the arguments necessary to perform a liquidation.
      */
-    function liquidate(LiquidationArgs memory _args) external;
+    function liquidate(LiquidationArgs calldata _args) external payable;
 
     /**
      * @dev Calculates the total value that is allowed to be liquidated from an account (if it is liquidatable)

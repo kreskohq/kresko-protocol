@@ -20,8 +20,9 @@ import {Constants, Enums} from "common/Constants.sol";
 
 import {MEvent} from "minter/MEvent.sol";
 import {ms, MinterState} from "minter/MState.sol";
-import {LiquidationArgs, LiquidateExecution} from "minter/MTypes.sol";
+import {LiquidateExecution} from "minter/MTypes.sol";
 import {handleMinterFee} from "minter/funcs/MFees.sol";
+import {LiquidationArgs} from "common/Args.sol";
 
 using Arrays for address[];
 using WadRay for uint256;
@@ -37,7 +38,7 @@ using PercentageMath for uint16;
  */
 contract MinterLiquidationFacet is Modifiers, IMinterLiquidationFacet {
     /// @inheritdoc IMinterLiquidationFacet
-    function liquidate(LiquidationArgs memory _args) external nonReentrant {
+    function liquidate(LiquidationArgs calldata _args) external payable usePyth(_args.prices) nonReentrant {
         if (msg.sender == _args.account) revert Errors.CANNOT_LIQUIDATE_SELF();
 
         Asset storage repayAsset = cs().onlyMinterMintable(_args.repayAssetAddr);

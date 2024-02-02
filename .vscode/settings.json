@@ -9,6 +9,8 @@
     "**/bower_components": true,
     "**/*.code-search": true,
     "pnpm-lock.yaml": true,
+    "yarn.lock": true,
+    "bun.lockb": true,
     "mochawesome-report": true,
     "**/deployments/**": true,
     "node_modules/**": true,
@@ -40,6 +42,6 @@
   "solidity.validation.onSave": true,
   "solidity.validation.onChange": true,
   "solidity.validation.onOpen": false,
-  "solidity.test.verbosity": 2,
+  "solidity.test.verbosity": 5,
   "inline-bookmarks.view.showVisibleFilesOnly": false
 }

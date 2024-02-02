@@ -5,10 +5,10 @@ import {SCDPInitArgs} from "scdp/STypes.sol";
 import {MinterInitArgs} from "minter/MTypes.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {Enums} from "common/Constants.sol";
-import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
-import {mAddr} from "../../../../../lib/kresko-foundry-helpers/src/utils/MinVm.s.sol";
+import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
+import {mAddr} from "kresko-lib/utils/MinVm.s.sol";
 import {mvm} from "kresko-lib/utils/MinVm.s.sol";
-import {CONST} from "scripts/deploy/libs/CONST.s.sol";
+import {CONST} from "scripts/deploy/CONST.s.sol";
 
 struct Files {
     string params;
@@ -39,6 +39,10 @@ function getConfigFrom(string memory dir, string memory configId) returns (Confi
     files.users = string.concat(dir, "users-", configId, ".json");
     if (mvm.exists(files.users)) {
         json.users = abi.decode(mvm.parseJson(mvm.readFile(files.users)), (Users));
+    }
+
+    if (json.params.common.admin == address(0)) {
+        json.params.common.admin = mAddr("MNEMONIC_DEVNET", 0);
     }
 }
 
@@ -90,7 +94,6 @@ struct Assets {
     KISSConfig kiss;
     TickerConfig[] tickers;
     TradeRouteConfig[] customTradeRoutes;
-    string rsPrices;
 }
 
 struct KISSConfig {
@@ -123,7 +126,13 @@ struct TickerConfig {
     address chainlink;
     address api3;
     address vault;
+    bytes32 pythId;
+    uint256 staleTimePyth;
+    uint256 staleTimeAPI3;
+    uint256 staleTimeChainlink;
+    uint256 staleTimeRedstone;
     bool useAdapter;
+    bool invertPyth;
 }
 
 struct Balance {
@@ -228,8 +237,32 @@ function get(Users memory users, uint256 i) returns (address) {
     return acc.addr;
 }
 
-uint256 constant ALL_USERS = 9999;
-using {get} for Users global;
+function getMockPrices(Config memory cfg) pure returns (bytes32[] memory ids, int64[] memory prices) {
+    uint256 count;
 
-using {LibDeployConfig.metadata} for KrAssetConfig global;
-using {LibDeployConfig.toAsset} for AssetJSON global;
+    for (uint256 i; i < cfg.assets.tickers.length; i++) {
+        if (cfg.assets.tickers[i].pythId != bytes32(0)) {
+            count++;
+        }
+    }
+
+    ids = new bytes32[](count);
+    prices = new int64[](count);
+
+    count = 0;
+    for (uint256 i; i < cfg.assets.tickers.length; i++) {
+        if (cfg.assets.tickers[i].pythId != bytes32(0)) {
+            ids[count] = cfg.assets.tickers[i].pythId;
+            prices[count] = int64(uint64(cfg.assets.tickers[i].mockPrice));
+            count++;
+        }
+    }
+}
+
+uint256 constant ALL_USERS = 9999;
+
+using {get} for Users global;
+using {getMockPrices} for Config global;
+
+using {LibJSON.metadata} for KrAssetConfig global;
+using {LibJSON.toAsset} for AssetJSON global;

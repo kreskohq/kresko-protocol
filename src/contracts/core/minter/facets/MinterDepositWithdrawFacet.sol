@@ -11,6 +11,8 @@ import {Asset} from "common/Types.sol";
 import {IMinterDepositWithdrawFacet} from "minter/interfaces/IMinterDepositWithdrawFacet.sol";
 import {ICollateralReceiver} from "minter/interfaces/ICollateralReceiver.sol";
 import {ms} from "minter/MState.sol";
+import {UncheckedWithdrawArgs, WithdrawArgs} from "common/Args.sol";
+import {console2} from "forge-std/console2.sol";
 
 /**
  * @author Kresko
@@ -29,9 +31,10 @@ contract MinterDepositWithdrawFacet is Modifiers, IMinterDepositWithdrawFacet {
         address _account,
         address _collateralAsset,
         uint256 _depositAmount
-    ) external nonReentrant gate(_account) {
+    ) external payable nonReentrant gate(_account) {
         Asset storage asset = cs().onlyMinterCollateral(_collateralAsset, Enums.Action.Deposit);
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
+        console2.log("Transfering tokens from %s to %s", msg.sender, address(this));
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
         // Record the collateral deposit.
         ms().handleDeposit(asset, _account, _collateralAsset, _depositAmount);
@@ -39,64 +42,58 @@ contract MinterDepositWithdrawFacet is Modifiers, IMinterDepositWithdrawFacet {
 
     /// @inheritdoc IMinterDepositWithdrawFacet
     function withdrawCollateral(
-        address _account,
-        address _collateralAsset,
-        uint256 _withdrawAmount,
-        uint256 _collateralIndex,
-        address _receiver
-    ) external nonReentrant onlyRoleIf(_account != msg.sender, Role.MANAGER) {
-        Asset storage asset = cs().onlyMinterCollateral(_collateralAsset, Enums.Action.Withdraw);
-        uint256 collateralAmount = ms().accountCollateralAmount(_account, _collateralAsset, asset);
+        WithdrawArgs memory _args,
+        bytes[] calldata _updateData
+    ) external payable nonReentrant onlyRoleIf(_args.account != msg.sender, Role.MANAGER) usePyth(_updateData) {
+        Asset storage asset = cs().onlyMinterCollateral(_args.asset, Enums.Action.Withdraw);
+        uint256 collateralAmount = ms().accountCollateralAmount(_args.account, _args.asset, asset);
 
         // Try to send full deposits when overflowing
-        _withdrawAmount = (_withdrawAmount > collateralAmount ? collateralAmount : _withdrawAmount);
+        _args.amount = (_args.amount > collateralAmount ? collateralAmount : _args.amount);
 
-        ms().handleWithdrawal(asset, _account, _collateralAsset, _withdrawAmount, collateralAmount, _collateralIndex);
+        ms().handleWithdrawal(asset, _args.account, _args.asset, _args.amount, collateralAmount, _args.collateralIndex);
 
-        IERC20(_collateralAsset).safeTransfer(_receiver == address(0) ? _account : _receiver, _withdrawAmount);
+        IERC20(_args.asset).safeTransfer(_args.receiver == address(0) ? _args.account : _args.receiver, _args.amount);
     }
 
     /// @inheritdoc IMinterDepositWithdrawFacet
     function withdrawCollateralUnchecked(
-        address _account,
-        address _collateralAsset,
-        uint256 _withdrawAmount,
-        uint256 _collateralIndex,
-        bytes memory _userData
-    ) external onlyRole(Role.MANAGER) {
-        Asset storage asset = cs().onlyMinterCollateral(_collateralAsset, Enums.Action.Withdraw);
-        uint256 collateralDeposits = ms().accountCollateralAmount(_account, _collateralAsset, asset);
+        UncheckedWithdrawArgs memory _args,
+        bytes[] calldata _updateData
+    ) external payable onlyRole(Role.MANAGER) usePyth(_updateData) {
+        Asset storage asset = cs().onlyMinterCollateral(_args.asset, Enums.Action.Withdraw);
+        uint256 collateralDeposits = ms().accountCollateralAmount(_args.account, _args.asset, asset);
 
         // Try to send full deposits when overflowing
-        _withdrawAmount = (_withdrawAmount > collateralDeposits ? collateralDeposits : _withdrawAmount);
+        _args.amount = (_args.amount > collateralDeposits ? collateralDeposits : _args.amount);
 
         // perform unchecked withdrawal
         // Emits MinterEvent.UncheckedCollateralWithdrawn
         ms().handleUncheckedWithdrawal(
             asset,
-            _account,
-            _collateralAsset,
-            _withdrawAmount,
+            _args.account,
+            _args.asset,
+            _args.amount,
             collateralDeposits,
-            _collateralIndex
+            _args.collateralIndex
         );
 
         // transfer the withdrawn asset to the caller
-        IERC20(_collateralAsset).safeTransfer(msg.sender, _withdrawAmount);
+        IERC20(_args.asset).safeTransfer(msg.sender, _args.amount);
 
         // Executes the callback on the caller after sending them the withdrawn collateral
         ICollateralReceiver(msg.sender).onUncheckedCollateralWithdraw(
-            _account,
-            _collateralAsset,
-            _withdrawAmount,
-            _collateralIndex,
-            _userData
+            _args.account,
+            _args.asset,
+            _args.amount,
+            _args.collateralIndex,
+            _args.userData
         );
 
         /*
          Perform the MCR check after the callback has been executed
          Ensures accountCollateralValue remains over accountMinColateralValueAtRatio(MCR)
         */
-        ms().checkAccountCollateral(_account);
+        ms().checkAccountCollateral(_args.account);
     }
 }

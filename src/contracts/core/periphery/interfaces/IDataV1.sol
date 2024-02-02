@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {PType} from "periphery/PTypes.sol";
+import {View} from "periphery/ViewTypes.sol";
 import {RawPrice} from "common/Types.sol";
 import {VaultAsset} from "vault/VTypes.sol";
+import {PythView} from "vendor/pyth/PythScript.sol";
 
 interface IDataV1 {
     struct ExternalTokenArgs {
@@ -52,7 +53,7 @@ interface IDataV1 {
     }
 
     struct DGlobal {
-        PType.Protocol protocol;
+        View.Protocol protocol;
         DVault vault;
         DCollection[] collections;
         uint256 chainId;
@@ -73,7 +74,7 @@ interface IDataV1 {
     }
 
     struct DAccount {
-        PType.Account protocol;
+        View.Account protocol;
         DCollection[] collections;
         DVTokenBalance vault;
         bool eligible;
@@ -81,22 +82,14 @@ interface IDataV1 {
         uint256 chainId;
     }
 
-    function getGlobals(bytes memory rsPayload) external view returns (DGlobal memory);
-
-    function getGlobalsPushPriced() external view returns (DGlobal memory);
-
-    function getGlobalsRs() external view returns (DGlobal memory);
+    function getGlobals(PythView calldata prices) external view returns (DGlobal memory);
 
     function getExternalTokens(
         ExternalTokenArgs[] memory tokens,
         address _account
     ) external view returns (DVTokenBalance[] memory);
 
-    function getAccount(address _account, bytes memory rsPayload) external view returns (DAccount memory);
-
-    function getAccountPushPriced(address _account) external view returns (DAccount memory);
-
-    function getAccountRs(address _account) external view returns (DAccount memory);
+    function getAccount(PythView calldata prices, address _account) external view returns (DAccount memory);
 
     function getVault() external view returns (DVault memory);
 

@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Errors} from "common/Errors.sol";
-import {Redstone} from "libs/Redstone.sol";
 import {Constants} from "common/Constants.sol";
 import {Asset} from "common/Types.sol";
 import {toWad} from "common/funcs/Math.sol";
@@ -40,13 +39,6 @@ library Assets {
      */
     function assetUSD(Asset storage self, uint256 _amount) internal view returns (uint256) {
         return self.collateralAmountToValue(_amount, true);
-    }
-
-    /**
-     * @notice Get the oracle price of an asset in uint256 with oracleDecimals
-     */
-    function redstonePrice(Asset storage self) internal view returns (uint256) {
-        return Redstone.getPrice(self.ticker);
     }
 
     function isMarketOpen(Asset storage) internal pure returns (bool) {

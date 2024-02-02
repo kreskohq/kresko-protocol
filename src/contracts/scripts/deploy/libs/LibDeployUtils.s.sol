@@ -8,16 +8,16 @@ import {VaultAsset} from "vault/VTypes.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
-import "scripts/deploy/libs/JSON.s.sol" as JSON;
+import "scripts/deploy/JSON.s.sol" as JSON;
 import {toWad} from "common/funcs/Math.sol";
-import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 
 library LibDeployUtils {
     using Log for *;
     using Help for *;
     using LibDeploy for *;
-    using LibDeployConfig for *;
+    using LibJSON for *;
     using Deployed for *;
 
     function getAllTradeRoutes(

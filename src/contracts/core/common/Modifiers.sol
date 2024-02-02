@@ -9,6 +9,7 @@ import {Asset} from "common/Types.sol";
 import {cs, gm, CommonState} from "common/State.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {scdp} from "scdp/SState.sol";
+import {IPyth} from "vendor/pyth/IPyth.sol";
 
 library LibModifiers {
     /// @dev Simple check for the enabled flag
@@ -205,6 +206,21 @@ contract Modifiers {
     modifier gate(address _account) {
         if (address(gm().manager) != address(0)) {
             gm().manager.check(_account);
+        }
+        _;
+    }
+
+    modifier usePyth(bytes[] calldata _updateData) {
+        if (_updateData.length > 0) {
+            IPyth pyth = IPyth(cs().pythEp);
+            pyth.updatePriceFeeds{value: pyth.getUpdateFee(_updateData)}(_updateData);
+        }
+        _;
+    }
+    modifier usePythMem(bytes[] memory _updateData) {
+        if (_updateData.length > 0) {
+            IPyth pyth = IPyth(cs().pythEp);
+            pyth.updatePriceFeeds{value: pyth.getUpdateFee(_updateData)}(_updateData);
         }
         _;
     }

@@ -1,6 +1,5 @@
 import type { AllTokenSymbols } from '@config/hardhat/deploy';
-import type { AssetConfigExtended } from '@config/hardhat/deploy/arbitrumGoerli';
-import type { AllTickers } from '@utils/redstone';
+import type { AssetConfigExtended } from '@config/hardhat/deploy/arbitrumSepolia';
 import type { BigNumber, Overrides } from 'ethers';
 import type { Address } from 'hardhat-deploy/types';
 import type * as Contracts from './typechain';
@@ -11,6 +10,7 @@ import type {
   MinterInitArgsStruct,
   SCDPInitArgsStruct,
 } from './typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import type { AllTickers } from '@utils/test/helpers/oracle';
 
 export type ContractTypes = GetContractTypes<typeof Contracts>;
 export type ContractNames = keyof ContractTypes;
@@ -31,6 +31,7 @@ export enum OracleType {
   Chainlink,
   API3,
   Vault,
+  Pyth
 }
 
 export enum Action {
@@ -73,6 +74,11 @@ export type AssetArgs = {
   symbol: AllTokenSymbols;
   name?: string;
   price?: number;
+  staleTimes?: [number, number];
+  pyth: {
+    id: string | null;
+    invert: boolean;
+  };
   marketOpen?: boolean;
   decimals?: number;
   feed?: string;

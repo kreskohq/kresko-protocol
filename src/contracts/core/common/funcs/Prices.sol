@@ -17,6 +17,8 @@ import {isSequencerUp} from "common/funcs/Utils.sol";
 import {RawPrice, Oracle} from "common/Types.sol";
 import {Percents, Enums} from "common/Constants.sol";
 import {fromWad, toWad} from "common/funcs/Math.sol";
+import {IPyth} from "vendor/pyth/IPyth.sol";
+import {PythView} from "vendor/pyth/PythScript.sol";
 
 using WadRay for uint256;
 using PercentageMath for uint256;
@@ -56,19 +58,22 @@ function safePrice(bytes32 _ticker, Enums.OracleType[2] memory _oracles, uint256
  */
 function oraclePrice(Enums.OracleType _oracleId, bytes32 _ticker) view returns (uint256) {
     if (_oracleId == Enums.OracleType.Empty) return 0;
-    if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker);
+    Oracle memory config = cs().oracles[_ticker][_oracleId];
 
-    address feed = cs().oracles[_ticker][_oracleId].feed;
+    if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker, config.staleTime);
+
+    if (_oracleId == Enums.OracleType.Pyth) return pythPrice(config.pythId, config.invertPyth, config.staleTime);
+
     if (_oracleId == Enums.OracleType.Vault) {
-        return vaultPrice(feed);
+        return vaultPrice(config.feed);
     }
 
     if (_oracleId == Enums.OracleType.Chainlink) {
-        return aggregatorV3Price(feed, cs().staleTime);
+        return aggregatorV3Price(config.feed, config.staleTime);
     }
 
     if (_oracleId == Enums.OracleType.API3) {
-        return API3Price(feed, cs().staleTime);
+        return API3Price(config.feed, config.staleTime);
     }
 
     // Revert if no answer is found
@@ -98,6 +103,39 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
 
     // Revert if price deviates more than `_oracleDeviationPct`
     revert Errors.PRICE_UNSTABLE(_primaryPrice, _referencePrice, _oracleDeviationPct);
+}
+
+function pythPrice(bytes32 _id, bool _invert, uint256 _staleTime) view returns (uint256 price_) {
+    IPyth.Price memory result = IPyth(cs().pythEp).getPriceNoOlderThan(_id, _staleTime);
+
+    if (!_invert) {
+        price_ = normalizePythPrice(result, cs().oracleDecimals);
+    } else {
+        price_ = invertNormalizePythPrice(result, cs().oracleDecimals);
+    }
+
+    if (price_ == 0 || price_ > type(uint56).max) {
+        revert Errors.INVALID_PYTH_PRICE(_id, price_);
+    }
+}
+
+function normalizePythPrice(IPyth.Price memory _price, uint8 oracleDec) pure returns (uint256) {
+    uint256 result = uint64(_price.price);
+    uint256 exp = uint32(-_price.exp);
+    if (exp > oracleDec) {
+        result = result / 10 ** (exp - oracleDec);
+    }
+    if (exp < oracleDec) {
+        result = result * 10 ** (oracleDec - exp);
+    }
+
+    return result;
+}
+
+function invertNormalizePythPrice(IPyth.Price memory _price, uint8 oracleDec) pure returns (uint256) {
+    _price.price = int64(uint64(1 * (10 ** uint32(-_price.exp)).wadDiv(uint64(_price.price))));
+    _price.exp = -18;
+    return normalizePythPrice(_price, oracleDec);
 }
 
 /**
@@ -132,7 +170,7 @@ function aggregatorV3Price(address _feedAddr, uint256 _staleTime) view returns (
     }
     // IMPORTANT: Returning zero when answer is stale, to activate fallback oracle.
     if (block.timestamp - updatedAt > _staleTime) {
-        return 0;
+        revert Errors.STALE_ORACLE(uint8(Enums.OracleType.Chainlink), _feedAddr, block.timestamp - updatedAt, _staleTime);
     }
     return uint256(answer);
 }
@@ -150,7 +188,7 @@ function API3Price(address _feedAddr, uint256 _staleTime) view returns (uint256)
     }
     // IMPORTANT: Returning zero when answer is stale, to activate fallback oracle.
     if (block.timestamp - updatedAt > _staleTime) {
-        return 0;
+        revert Errors.STALE_ORACLE(uint8(Enums.OracleType.API3), _feedAddr, block.timestamp - updatedAt, _staleTime);
     }
     return fromWad(uint256(answer), cs().oracleDecimals); // API3 returns 18 decimals always.
 }
@@ -161,24 +199,24 @@ function API3Price(address _feedAddr, uint256 _staleTime) view returns (uint256)
 
 /**
  * @notice Gets raw answer info from AggregatorV3 type feed.
- * @param _feedAddr The feed address.
+ * @param _config Configuration for the oracle.
  * @return RawPrice Unparsed answer with metadata.
  */
-function aggregatorV3RawPrice(address _feedAddr) view returns (RawPrice memory) {
-    (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_feedAddr).latestRoundData();
-    bool isStale = block.timestamp - updatedAt > cs().staleTime;
-    return RawPrice(answer, updatedAt, isStale, answer == 0, Enums.OracleType.Chainlink, _feedAddr);
+function aggregatorV3RawPrice(Oracle memory _config) view returns (RawPrice memory) {
+    (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(_config.feed).latestRoundData();
+    bool isStale = block.timestamp - updatedAt > _config.staleTime;
+    return RawPrice(answer, updatedAt, _config.staleTime, isStale, answer == 0, Enums.OracleType.Chainlink, _config.feed);
 }
 
 /**
  * @notice Gets raw answer info from IAPI3 type feed.
- * @param _feedAddr The feed address.
+ * @param _config Configuration for the oracle.
  * @return RawPrice Unparsed answer with metadata.
  */
-function API3RawPrice(address _feedAddr) view returns (RawPrice memory) {
-    (int256 answer, uint256 updatedAt) = IAPI3(_feedAddr).read();
-    bool isStale = block.timestamp - updatedAt > cs().staleTime;
-    return RawPrice(answer, updatedAt, isStale, answer == 0, Enums.OracleType.API3, _feedAddr);
+function API3RawPrice(Oracle memory _config) view returns (RawPrice memory) {
+    (int256 answer, uint256 updatedAt) = IAPI3(_config.feed).read();
+    bool isStale = block.timestamp - updatedAt > _config.staleTime;
+    return RawPrice(answer, updatedAt, _config.staleTime, isStale, answer == 0, Enums.OracleType.API3, _config.feed);
 }
 
 /**
@@ -192,14 +230,48 @@ function pushPrice(Enums.OracleType[2] memory _oracles, bytes32 _ticker) view re
         Enums.OracleType oracleType = _oracles[i];
         Oracle storage oracle = cs().oracles[_ticker][_oracles[i]];
 
-        if (oracleType == Enums.OracleType.Chainlink) return aggregatorV3RawPrice(oracle.feed);
-        if (oracleType == Enums.OracleType.API3) return API3RawPrice(oracle.feed);
+        if (oracleType == Enums.OracleType.Chainlink) return aggregatorV3RawPrice(oracle);
+        if (oracleType == Enums.OracleType.API3) return API3RawPrice(oracle);
         if (oracleType == Enums.OracleType.Vault) {
             int256 answer = int256(vaultPrice(oracle.feed));
-            return RawPrice(answer, block.timestamp, false, answer == 0, Enums.OracleType.Vault, oracle.feed);
+            return RawPrice(answer, block.timestamp, 0, false, answer == 0, Enums.OracleType.Vault, oracle.feed);
         }
     }
 
     // Revert if no answer is found
     revert Errors.NO_PUSH_ORACLE_SET(_ticker.toString());
+}
+
+function viewPrice(bytes32 _ticker, PythView calldata views) view returns (RawPrice memory) {
+    Oracle memory config;
+
+    if (_ticker == bytes32("KISS")) {
+        config = cs().oracles[_ticker][Enums.OracleType.Vault];
+        int256 answer = int256(vaultPrice(config.feed));
+        return RawPrice(answer, block.timestamp, 0, false, answer == 0, Enums.OracleType.Vault, config.feed);
+    }
+
+    config = cs().oracles[_ticker][Enums.OracleType.Pyth];
+
+    for (uint256 i; i < views.ids.length; i++) {
+        if (views.ids[i] == config.pythId) {
+            IPyth.Price memory _price = views.prices[i];
+            RawPrice memory result = RawPrice(
+                int256(
+                    !config.invertPyth
+                        ? normalizePythPrice(_price, cs().oracleDecimals)
+                        : invertNormalizePythPrice(_price, cs().oracleDecimals)
+                ),
+                _price.timestamp,
+                config.staleTime,
+                false,
+                _price.price == 0,
+                Enums.OracleType.Pyth,
+                address(0)
+            );
+            return result;
+        }
+    }
+
+    revert Errors.NO_VIEW_PRICE_AVAILABLE(_ticker.toString());
 }

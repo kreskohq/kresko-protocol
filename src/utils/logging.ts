@@ -18,4 +18,4 @@ export const logger = (prefix?: string, log = true) => ({
     log &&
     console.log('\x1b[32m', '\x1b[1m', `${prefix}:`, '\x1b[32m', ...args.flatMap(a => ['\x1b[32m', a, '']), '\x1b[0m'),
 })
-export const getLogger = (name: string, log = !process.env.TEST) => logger(name, process.env.TEST ? false : log)
+export const getLogger = (name: string, log = !process.env.HH_TEST) => logger(name, process.env.HH_TEST ? false : log)

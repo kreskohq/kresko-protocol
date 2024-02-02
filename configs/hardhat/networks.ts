@@ -59,14 +59,6 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
       etherscan: etherscan('arbitrum'),
     },
   },
-  arbitrumGoerli: {
-    accounts: { mnemonic },
-    url: rpc('arbitrum_goerli'),
-    chainId: 421613,
-    verify: {
-      etherscan: etherscan('arbitrum_goerli'),
-    },
-  },
   arbitrumSepolia: {
     accounts: { mnemonic },
     url: rpc('arbitrum_sepolia'),
@@ -93,16 +85,6 @@ export const networks = (mnemonic: string): NetworksUserConfig => ({
     verify: {
       etherscan: etherscan('optimism'),
     },
-  },
-  opgoerli: {
-    accounts: { mnemonic, count: 100 },
-    url: rpc('optimism_goerli'),
-    chainId: 420,
-    gasPrice: 100000,
-    verify: {
-      etherscan: etherscan('optimism_goerli'),
-    },
-    hardfork: 'merge',
   },
   polygon: {
     accounts: { mnemonic },
@@ -249,9 +231,8 @@ export const handleForking = (networkConfig: ReturnType<typeof networks>) => {
 const rpc = (network: string) => {
   if (process.env.ALCHEMY_API_KEY) {
     return process.env[`RPC_${network.toUpperCase()}_ALCHEMY`] ?? process.env[`RPC_${network.toUpperCase()}`]
-  } else {
-    return process.env[`RPC_${network.toUpperCase()}`]
   }
+  return process.env[`RPC_${network.toUpperCase()}`]
 }
 
 const etherscan = (network: string) => {

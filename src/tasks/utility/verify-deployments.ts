@@ -1,32 +1,32 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { getLogger } from '@utils/logging';
-import { task } from 'hardhat/config';
-import { TASK_VERIFY_DEPLOYMENTS } from '../names';
+import { getLogger } from '@utils/logging'
+import { task } from 'hardhat/config'
+import { TASK_VERIFY_DEPLOYMENTS } from '../names'
 
-const logger = getLogger(TASK_VERIFY_DEPLOYMENTS);
+const logger = getLogger(TASK_VERIFY_DEPLOYMENTS)
 
 task(TASK_VERIFY_DEPLOYMENTS).setAction(async function () {
   if (!hre.network.live) {
-    throw new Error('This task is only for live networks');
+    throw new Error('This task is only for live networks')
   }
 
   if (!process.env.TENDERLY_ACCESS_TOKEN) {
-    throw new Error('TENDERLY_ACCESS_TOKEN not found');
+    throw new Error('TENDERLY_ACCESS_TOKEN not found')
   }
 
-  const all = await hre.deployments.all();
+  const all = await hre.deployments.all()
 
   if (Object.keys(all).length === 0) {
-    throw new Error(`No contracts deployed in ${hre.network.name}`);
+    throw new Error(`No contracts deployed in ${hre.network.name}`)
   }
 
-  logger.log(`Verifying export ${all.length} contracts...`);
+  logger.log(`Verifying export ${all.length} contracts...`)
 
-  logger.log('Verifying contracts on etherscan...');
-  await hre.run('etherscan-verify');
+  logger.log('Verifying contracts on etherscan...')
+  await hre.run('etherscan-verify')
 
   for (const [key, deployment] of Object.entries(all)) {
-    console.log('tenderly', key, deployment.address);
+    console.log('tenderly', key, deployment.address)
     // await hre.tenderly.verifyMultiCompilerAPI(data);
 
     await fetch('https://api.tenderly.co/api/v1/account/kresko/project/protocol/address', {
@@ -40,8 +40,8 @@ task(TASK_VERIFY_DEPLOYMENTS).setAction(async function () {
         display_name: key,
         network_id: hre.network.config.chainId,
       }),
-    });
+    })
   }
 
-  logger.log('Done!');
-});
+  logger.log('Done!')
+})

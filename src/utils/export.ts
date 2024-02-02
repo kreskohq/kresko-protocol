@@ -3,7 +3,7 @@ import { TASK_GENERATE_TYPECHAIN } from '@tasks'
 import { subtask } from 'hardhat/config'
 import { getFullyQualifiedName } from 'hardhat/utils/contract-names'
 import type { PublicConfig as RunTypeChainConfig } from 'typechain'
-export const coreExports = ['Kresko', 'Vault', 'KreskoAsset', 'KreskoAssetAnchor', 'KISS', 'ERC20Upgradeable', 'WETH']
+
 function getFQNamesFromCompilationOutput(compileSolOutput: any): string[] {
   const allFQNNamesNested = compileSolOutput.artifactsEmittedPerJob.map((a: any) => {
     return a.artifactsEmittedPerFile.map((artifactPerFile: any) => {
@@ -19,6 +19,7 @@ const taskArgsStore = {
   noTypechain: false,
   fullRebuild: false,
 }
+
 subtask(TASK_GENERATE_TYPECHAIN, async ({ compileSolOutput, quiet }, { config, artifacts }) => {
   const artifactFQNs: string[] = getFQNamesFromCompilationOutput(compileSolOutput)
   const artifactPaths = Array.from(
@@ -95,13 +96,7 @@ subtask(TASK_GENERATE_TYPECHAIN, async ({ compileSolOutput, quiet }, { config, a
     }
   }
 })
-export const externalArtifacts = () => {
-  return [
-    './artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Positions.json',
-    './artifacts/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko.json',
-    `./artifacts/!(interfaces|forge|deployments)/**/+(${coreExports.join('|')}).json`,
-  ]
-}
+
 export const exportDeployments = async () => {
   return new Promise((resolve, reject) => {
     try {

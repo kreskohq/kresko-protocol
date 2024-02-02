@@ -18,6 +18,10 @@ const deploy: DeployFunction = async function (hre) {
   if (!hre.Diamond.address) {
     throw new Error('Diamond not deployed')
   }
+
+  await hre.deploy('MockPyth', {
+    args: [[]],
+  })
   await hre.deploy('MockSequencerUptimeFeed')
 
   const [GatingManager] = await hre.deploy('GatingManager', {

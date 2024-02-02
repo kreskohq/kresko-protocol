@@ -11,6 +11,8 @@ import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {Ownable} from "@oz/access/Ownable.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {ISwapRouter, IKrMulticall} from "periphery/IKrMulticall.sol";
+import {IPyth} from "vendor/pyth/IPyth.sol";
+import {BurnArgs, MintArgs, SCDPWithdrawArgs, SwapArgs, WithdrawArgs} from "common/Args.sol";
 
 // solhint-disable avoid-low-level-calls, code-complexity
 
@@ -24,14 +26,16 @@ import {ISwapRouter, IKrMulticall} from "periphery/IKrMulticall.sol";
 contract KrMulticall is IKrMulticall, Ownable {
     address public kresko;
     address public kiss;
+    IPyth public pythEp;
     ISwapRouter public v3Router;
     IWETH9 public wNative;
 
-    constructor(address _kresko, address _kiss, address _v3Router, address _wNative) Ownable(msg.sender) {
+    constructor(address _kresko, address _kiss, address _v3Router, address _wNative, address _pythEp) Ownable(msg.sender) {
         kresko = _kresko;
         kiss = _kiss;
         v3Router = ISwapRouter(_v3Router);
         wNative = IWETH9(_wNative);
+        pythEp = IPyth(_pythEp);
     }
 
     function rescue(address _token, uint256 _amount, address _receiver) external onlyOwner {
@@ -39,14 +43,26 @@ contract KrMulticall is IKrMulticall, Ownable {
         IERC20(_token).transfer(_receiver, _amount);
     }
 
-    function execute(Operation[] calldata ops, bytes calldata rsPayload) external payable returns (Result[] memory results) {
+    function execute(
+        Operation[] calldata ops,
+        bytes[] calldata _updateData
+    ) external payable returns (Result[] memory results) {
+        uint256 value = msg.value;
+        bool didUpdate;
+        if (msg.value > 0 && _updateData.length > 0) {
+            uint256 updateFee = pythEp.getUpdateFee(_updateData);
+            pythEp.updatePriceFeeds{value: updateFee}(_updateData);
+            value -= updateFee;
+            didUpdate = true;
+        }
+
         unchecked {
             results = new Result[](ops.length);
             for (uint256 i; i < ops.length; i++) {
                 Operation memory op = ops[i];
 
                 if (op.data.tokensInMode != TokensInMode.None) {
-                    op.data.amountIn = uint96(_handleTokensIn(op));
+                    op.data.amountIn = uint96(_handleTokensIn(op, value));
                     results[i].tokenIn = op.data.tokenIn;
                     results[i].amountIn = op.data.amountIn;
                 } else {
@@ -70,7 +86,7 @@ contract KrMulticall is IKrMulticall, Ownable {
                     }
                 }
 
-                (bool success, bytes memory returndata) = _handleOp(op, rsPayload);
+                (bool success, bytes memory returndata) = _handleOp(op, _updateData, didUpdate);
                 if (!success) _handleRevert(returndata);
 
                 if (
@@ -101,9 +117,9 @@ contract KrMulticall is IKrMulticall, Ownable {
         }
     }
 
-    function _handleTokensIn(Operation memory _op) internal returns (uint256 amountIn) {
+    function _handleTokensIn(Operation memory _op, uint256 _value) internal returns (uint256 amountIn) {
         if (_op.data.tokensInMode == TokensInMode.Native) {
-            if (msg.value == 0) {
+            if (_value == 0) {
                 revert ZERO_NATIVE_IN(_op.action);
             }
 
@@ -111,8 +127,8 @@ contract KrMulticall is IKrMulticall, Ownable {
                 revert INVALID_NATIVE_TOKEN_IN(_op.action, _op.data.tokenIn, wNative.symbol());
             }
 
-            wNative.deposit{value: msg.value}();
-            return msg.value;
+            wNative.deposit{value: _value}();
+            return _value;
         }
 
         IERC20 token = IERC20(_op.data.tokenIn);
@@ -187,7 +203,8 @@ contract KrMulticall is IKrMulticall, Ownable {
 
     function _handleOp(
         Operation memory _op,
-        bytes calldata rsPayload
+        bytes[] calldata _updateData,
+        bool _didUpdate
     ) internal returns (bool success, bytes memory returndata) {
         bool isReturn = _op.data.tokensOutMode == TokensOutMode.ReturnToSender;
         address receiver = isReturn ? msg.sender : address(this);
@@ -195,84 +212,78 @@ contract KrMulticall is IKrMulticall, Ownable {
             _approve(_op.data.tokenIn, _op.data.amountIn, address(kresko));
             return
                 kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(
-                            IMinterDepositWithdrawFacet.depositCollateral,
-                            (msg.sender, _op.data.tokenIn, _op.data.amountIn)
-                        ),
-                        rsPayload
+                    abi.encodeCall(
+                        IMinterDepositWithdrawFacet.depositCollateral,
+                        (msg.sender, _op.data.tokenIn, _op.data.amountIn)
                     )
                 );
         } else if (_op.action == Action.MinterWithdraw) {
             return
                 kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(
-                            IMinterDepositWithdrawFacet.withdrawCollateral,
-                            (msg.sender, _op.data.tokenOut, _op.data.amountOut, _op.data.index, receiver)
-                        ),
-                        rsPayload
+                    abi.encodeCall(
+                        IMinterDepositWithdrawFacet.withdrawCollateral,
+                        (
+                            WithdrawArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, _op.data.index, receiver),
+                            !_didUpdate ? _updateData : new bytes[](0)
+                        )
                     )
                 );
         } else if (_op.action == Action.MinterRepay) {
             return
                 kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(
-                            IMinterBurnFacet.burnKreskoAsset,
-                            (msg.sender, _op.data.tokenIn, _op.data.amountIn, _op.data.index, receiver)
-                        ),
-                        rsPayload
+                    abi.encodeCall(
+                        IMinterBurnFacet.burnKreskoAsset,
+                        (
+                            BurnArgs(msg.sender, _op.data.tokenIn, _op.data.amountIn, _op.data.index, receiver),
+                            !_didUpdate ? _updateData : new bytes[](0)
+                        )
                     )
                 );
         } else if (_op.action == Action.MinterBorrow) {
             return
                 kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(
-                            IMinterMintFacet.mintKreskoAsset,
-                            (msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver)
-                        ),
-                        rsPayload
+                    abi.encodeCall(
+                        IMinterMintFacet.mintKreskoAsset,
+                        (
+                            MintArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver),
+                            !_didUpdate ? _updateData : new bytes[](0)
+                        )
                     )
                 );
         } else if (_op.action == Action.SCDPDeposit) {
             _approve(_op.data.tokenIn, _op.data.amountIn, address(kresko));
-            return
-                kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(ISCDPFacet.depositSCDP, (msg.sender, _op.data.tokenIn, _op.data.amountIn)),
-                        rsPayload
-                    )
-                );
+            return kresko.call(abi.encodeCall(ISCDPFacet.depositSCDP, (msg.sender, _op.data.tokenIn, _op.data.amountIn)));
         } else if (_op.action == Action.SCDPTrade) {
             _approve(_op.data.tokenIn, _op.data.amountIn, address(kresko));
             return
                 kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(
-                            ISCDPSwapFacet.swapSCDP,
-                            (receiver, _op.data.tokenIn, _op.data.tokenOut, _op.data.amountIn, _op.data.amountOutMin)
-                        ),
-                        rsPayload
+                    abi.encodeCall(
+                        ISCDPSwapFacet.swapSCDP,
+                        (
+                            SwapArgs(
+                                receiver,
+                                _op.data.tokenIn,
+                                _op.data.tokenOut,
+                                _op.data.amountIn,
+                                _op.data.amountOutMin,
+                                !_didUpdate ? _updateData : new bytes[](0)
+                            )
+                        )
                     )
                 );
         } else if (_op.action == Action.SCDPWithdraw) {
             return
                 kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(ISCDPFacet.withdrawSCDP, (msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver)),
-                        rsPayload
+                    abi.encodeCall(
+                        ISCDPFacet.withdrawSCDP,
+                        (
+                            SCDPWithdrawArgs(msg.sender, _op.data.tokenOut, _op.data.amountOut, receiver),
+                            !_didUpdate ? _updateData : new bytes[](0)
+                        )
                     )
                 );
         } else if (_op.action == Action.SCDPClaim) {
-            return
-                kresko.call(
-                    abi.encodePacked(
-                        abi.encodeCall(ISCDPFacet.claimFeesSCDP, (msg.sender, _op.data.tokenOut, receiver)),
-                        rsPayload
-                    )
-                );
+            return kresko.call(abi.encodeCall(ISCDPFacet.claimFeesSCDP, (msg.sender, _op.data.tokenOut, receiver)));
         } else if (_op.action == Action.SynthWrap) {
             _approve(_op.data.tokenIn, _op.data.amountIn, _op.data.tokenOut);
             return _op.data.tokenOut.call(abi.encodeCall(IKreskoAsset.wrap, (receiver, _op.data.amountIn)));

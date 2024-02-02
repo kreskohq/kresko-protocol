@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 import {MaxLiqInfo} from "common/Types.sol";
+import {SCDPLiquidationArgs, SCDPRepayArgs, SCDPWithdrawArgs} from "common/Args.sol";
 
 interface ISCDPFacet {
     /**
@@ -9,25 +10,19 @@ interface ISCDPFacet {
      * @param _collateralAsset The collateral asset to deposit.
      * @param _amount The amount to deposit.
      */
-    function depositSCDP(address _account, address _collateralAsset, uint256 _amount) external;
+    function depositSCDP(address _account, address _collateralAsset, uint256 _amount) external payable;
 
     /**
      * @notice Withdraw collateral for account from the collateral pool.
-     * @param _account The account to withdraw from.
-     * @param _collateralAsset The collateral asset to withdraw.
-     * @param _amount The amount to withdraw.
-     * @param _receiver The receiver of assets, if 0 then the receiver is the account.
+     * @param _args WithdrawArgs struct containing withdraw data.
      */
-    function withdrawSCDP(address _account, address _collateralAsset, uint256 _amount, address _receiver) external;
+    function withdrawSCDP(SCDPWithdrawArgs memory _args, bytes[] calldata _updateData) external payable;
 
     /**
      * @notice Withdraw collateral without caring about fees.
-     * @param _account The account to withdraw from.
-     * @param _collateralAsset The collateral asset to withdraw.
-     * @param _amount The amount to withdraw.
-     * @param _receiver The receiver of assets, if 0 then the receiver is the account.
+     * @param _args WithdrawArgs struct containing withdraw data.
      */
-    function emergencyWithdrawSCDP(address _account, address _collateralAsset, uint256 _amount, address _receiver) external;
+    function emergencyWithdrawSCDP(SCDPWithdrawArgs memory _args, bytes[] calldata _updateData) external payable;
 
     /**
      * @notice Withdraws any pending fees for an account.
@@ -36,25 +31,25 @@ interface ISCDPFacet {
      * @param _receiver Receiver of fees withdrawn, if 0 then the receiver is the account.
      * @return feeAmount The amount of fees withdrawn.
      */
-    function claimFeesSCDP(address _account, address _collateralAsset, address _receiver) external returns (uint256 feeAmount);
+    function claimFeesSCDP(
+        address _account,
+        address _collateralAsset,
+        address _receiver
+    ) external payable returns (uint256 feeAmount);
 
     /**
      * @notice Repay debt for no fees or slippage.
      * @notice Only uses swap deposits, if none available, reverts.
-     * @param _repayAssetAddr The asset to repay the debt in.
-     * @param _repayAmount The amount of the asset to repay the debt with.
-     * @param _seizeAssetAddr The collateral asset to seize.
+     * @param _args RepayArgs struct containing repay data.
      */
-    function repaySCDP(address _repayAssetAddr, uint256 _repayAmount, address _seizeAssetAddr) external;
+    function repaySCDP(SCDPRepayArgs calldata _args) external payable;
 
     /**
      * @notice Liquidate the collateral pool.
      * @notice Adjusts everyones deposits if swap deposits do not cover the seized amount.
-     * @param _repayAssetAddr The asset to repay the debt in.
-     * @param _repayAmount The amount of the asset to repay the debt with.
-     * @param _seizeAssetAddr The collateral asset to seize.
+     * @param _args LiquidationArgs struct containing liquidation data.
      */
-    function liquidateSCDP(address _repayAssetAddr, uint256 _repayAmount, address _seizeAssetAddr) external;
+    function liquidateSCDP(SCDPLiquidationArgs memory _args) external payable;
 
     /**
      * @dev Calculates the total value that is allowed to be liquidated from SCDP (if it is liquidatable)

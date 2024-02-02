@@ -6,12 +6,18 @@ import {Redstone} from "libs/Redstone.sol";
 
 import {Enums} from "common/Constants.sol";
 import {cs, gm} from "common/State.sol";
-import {aggregatorV3Price, API3Price, vaultPrice} from "common/funcs/Prices.sol";
+import {aggregatorV3Price, API3Price, pythPrice, vaultPrice} from "common/funcs/Prices.sol";
+import {Oracle} from "common/Types.sol";
 
 contract CommonStateFacet is ICommonStateFacet {
     /// @inheritdoc ICommonStateFacet
     function getFeeRecipient() external view returns (address) {
         return cs().feeRecipient;
+    }
+
+    /// @inheritdoc ICommonStateFacet
+    function getPythEndpoint() external view returns (address) {
+        return cs().pythEp;
     }
 
     /// @inheritdoc ICommonStateFacet
@@ -40,32 +46,35 @@ contract CommonStateFacet is ICommonStateFacet {
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getOracleTimeout() external view returns (uint32) {
-        return cs().staleTime;
+    function getOracleOfTicker(bytes32 _ticker, Enums.OracleType _oracleType) public view returns (Oracle memory) {
+        return cs().oracles[_ticker][_oracleType];
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getFeedForId(bytes32 _ticker, Enums.OracleType _oracleType) external view returns (address) {
-        return cs().oracles[_ticker][_oracleType].feed;
+    function getRedstonePrice(bytes32 _ticker) external view returns (uint256) {
+        return Redstone.getPrice(_ticker, getOracleOfTicker(_ticker, Enums.OracleType.Redstone).staleTime);
     }
 
     /// @inheritdoc ICommonStateFacet
-    function redstonePrice(bytes32 _ticker, address) external view returns (uint256) {
-        return Redstone.getPrice(_ticker);
+    function getPythPrice(bytes32 _ticker) external view returns (uint256) {
+        Oracle memory oracle = getOracleOfTicker(_ticker, Enums.OracleType.Redstone);
+        return pythPrice(oracle.pythId, oracle.invertPyth, oracle.staleTime);
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getAPI3Price(address _feedAddr) external view returns (uint256) {
-        return API3Price(_feedAddr, cs().staleTime);
+    function getAPI3Price(bytes32 _ticker) external view returns (uint256) {
+        Oracle memory oracle = getOracleOfTicker(_ticker, Enums.OracleType.API3);
+        return API3Price(oracle.feed, oracle.staleTime);
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getVaultPrice(address _vaultAddr) external view returns (uint256) {
-        return vaultPrice(_vaultAddr);
+    function getVaultPrice(bytes32 _ticker) external view returns (uint256) {
+        return vaultPrice(getOracleOfTicker(_ticker, Enums.OracleType.Vault).feed);
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getChainlinkPrice(address _feedAddr) external view returns (uint256) {
-        return aggregatorV3Price(_feedAddr, cs().staleTime);
+    function getChainlinkPrice(bytes32 _ticker) external view returns (uint256) {
+        Oracle memory oracle = getOracleOfTicker(_ticker, Enums.OracleType.Chainlink);
+        return aggregatorV3Price(oracle.feed, oracle.staleTime);
     }
 }

@@ -15,6 +15,7 @@ import {Validations} from "common/Validations.sol";
 import {ISCDPSwapFacet} from "scdp/interfaces/ISCDPSwapFacet.sol";
 import {scdp} from "scdp/SState.sol";
 import {SEvent} from "scdp/SEvent.sol";
+import {SwapArgs} from "common/Args.sol";
 
 contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
     using SafeTransfer for IERC20;
@@ -22,7 +23,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
     using PercentageMath for uint256;
 
     /// @inheritdoc ISCDPSwapFacet
-    function cumulateIncomeSCDP(address _assetAddr, uint256 _incomeAmount) external nonReentrant returns (uint256) {
+    function cumulateIncomeSCDP(address _assetAddr, uint256 _incomeAmount) external payable nonReentrant returns (uint256) {
         Asset storage asset = cs().onlyIncomeAsset(_assetAddr);
         IERC20(_assetAddr).safeTransferFrom(msg.sender, address(this), _incomeAmount);
 
@@ -61,26 +62,20 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
     }
 
     /// @inheritdoc ISCDPSwapFacet
-    function swapSCDP(
-        address _receiver,
-        address _assetInAddr,
-        address _assetOutAddr,
-        uint256 _amountIn,
-        uint256 _amountOutMin
-    ) external nonReentrant {
-        if (_amountIn == 0) revert Errors.SWAP_ZERO_AMOUNT_IN(Errors.id(_assetInAddr));
-        address receiver = _receiver == address(0) ? msg.sender : _receiver;
-        IERC20(_assetInAddr).safeTransferFrom(msg.sender, address(this), _amountIn);
+    function swapSCDP(SwapArgs calldata _args) external payable nonReentrant usePyth(_args.prices) {
+        if (_args.amountIn == 0) revert Errors.SWAP_ZERO_AMOUNT_IN(Errors.id(_args.assetIn));
+        address receiver = _args.receiver == address(0) ? msg.sender : _args.receiver;
+        IERC20(_args.assetIn).safeTransferFrom(msg.sender, address(this), _args.amountIn);
 
-        Asset storage assetIn = cs().onlySwapMintable(_assetInAddr);
+        Asset storage assetIn = cs().onlySwapMintable(_args.assetIn);
         emit SEvent.Swap(
             msg.sender,
-            _assetInAddr,
-            _assetOutAddr,
-            _amountIn,
-            _assetOutAddr == scdp().feeAsset
-                ? _swapFeeAssetOut(receiver, _assetInAddr, assetIn, _amountIn, _amountOutMin)
-                : _swap(receiver, _assetInAddr, assetIn, _assetOutAddr, _amountIn, _amountOutMin),
+            _args.assetIn,
+            _args.assetOut,
+            _args.amountIn,
+            _args.assetOut == scdp().feeAsset
+                ? _swapFeeAssetOut(receiver, _args.assetIn, assetIn, _args.amountIn, _args.amountOutMin)
+                : _swap(receiver, _args.assetIn, assetIn, _args.assetOut, _args.amountIn, _args.amountOutMin),
             block.timestamp
         );
     }

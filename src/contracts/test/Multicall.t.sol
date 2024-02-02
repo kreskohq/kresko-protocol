@@ -11,6 +11,9 @@ import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
+import {SCDPLiquidationArgs, SwapArgs} from "common/Args.sol";
+import "scripts/deploy/JSON.s.sol" as JSON;
+import {getPythData} from "vendor/pyth/PythScript.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
@@ -23,7 +26,7 @@ contract MulticallTest is Deploy {
     uint256 constant ETH_PRICE = 2000;
 
     string internal rs_price_eth = "ETH:2000:8,";
-    string internal rs_prices_rest = "BTC:35159:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,XAU:1977:8,WTI:77.5:8,USDT:1:8,JPY:0.0067:8";
+    string internal rs_prices_rest = "BTC:35159:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,XAU:1977:8,USDT:1:8,JPY:0.0067:8";
 
     KreskoAsset krETH;
     KreskoAsset krJPY;
@@ -35,6 +38,9 @@ contract MulticallTest is Deploy {
 
     function setUp() public {
         Deploy.deployTest(0);
+
+        // for price updates
+        vm.deal(address(kresko), 1 ether);
 
         usdc = MockERC20(Deployed.addr("USDC"));
         usdt = MockERC20(Deployed.addr("USDT"));
@@ -50,7 +56,7 @@ contract MulticallTest is Deploy {
         krETH.approve(address(kresko), type(uint256).max);
         _setETHPrice(ETH_PRICE);
         // 1000 KISS -> 0.48 ETH
-        rsCall(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETHAddr, 1000e18, 0);
+        kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, 1000e18, 0, updateData));
         vault.setDepositFee(address(usdt), 10e2);
         vault.setWithdrawFee(address(usdt), 10e2);
 
@@ -93,7 +99,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute(ops, rsPayload);
+        IKrMulticall.Result[] memory results = multicall.execute(ops, updateData);
         usdc.balanceOf(user).eq(0, "usdc-balance");
         krJPY.balanceOf(user).eq(10000e18, "jpy-borrow-balance");
         results[0].amountIn.eq(10_000e6, "usdc-deposit-amount");
@@ -105,7 +111,7 @@ contract MulticallTest is Deploy {
     function testNativeDeposit() public {
         address user = getAddr(100);
         uint256 amount = 5 ether;
-        vm.deal(user, amount * 2);
+        vm.deal(user, amount * 2 + updateFee);
         prank(user);
         IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](1);
 
@@ -124,7 +130,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute{value: 5 ether}(ops, rsPayload);
+        IKrMulticall.Result[] memory results = multicall.execute{value: 5 ether + updateFee}(ops, updateData);
         results[0].amountIn.eq(5 ether, "native-deposit-amount");
         results[0].tokenIn.eq(address(weth), "native-deposit-addr");
         uint256 depositsAfter = kresko.getAccountCollateralAmount(user, address(weth));
@@ -157,13 +163,13 @@ contract MulticallTest is Deploy {
         });
 
         vm.expectRevert();
-        multicall.execute{value: 5 ether}(ops, rsPayload);
+        multicall.execute{value: 5 ether}(ops, updateData);
     }
 
     function testNativeDepositWithdraw() public {
         address user = getAddr(100);
         uint256 amount = 5 ether;
-        vm.deal(user, amount * 2);
+        vm.deal(user, amount * 2 + updateFee);
         prank(user);
         IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
 
@@ -188,7 +194,7 @@ contract MulticallTest is Deploy {
                 amountIn: 0,
                 tokensInMode: IKrMulticall.TokensInMode.None,
                 tokenOut: address(weth),
-                amountOut: 5 ether,
+                amountOut: uint96(amount),
                 tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSenderNative,
                 amountOutMin: 0,
                 path: "",
@@ -196,10 +202,10 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute{value: 5 ether}(ops, rsPayload);
-        results[0].amountIn.eq(5 ether, "native-deposit-amount");
+        IKrMulticall.Result[] memory results = multicall.execute{value: amount + updateFee}(ops, updateData);
+        results[0].amountIn.eq(amount, "native-deposit-amount");
         results[0].tokenIn.eq(address(weth), "native-deposit-addr");
-        results[1].amountOut.eq(5 ether, "native-deposit-amount");
+        results[1].amountOut.eq(amount, "native-deposit-amount");
         results[1].tokenOut.eq(address(weth), "native-deposit-addr");
         uint256 depositsAfter = kresko.getAccountCollateralAmount(user, address(weth));
         address(multicall).balance.eq(0 ether, "native-contract-balance-after");
@@ -258,7 +264,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute(ops, rsPayload);
+        IKrMulticall.Result[] memory results = multicall.execute(ops, updateData);
         usdc.balanceOf(user).eq(0, "usdc-balance");
         krJPY.balanceOf(user).eq(0, "jpy-borrow-balance");
         results[0].amountIn.eq(10_000e6, "usdc-deposit-amount");
@@ -305,7 +311,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute(ops, rsPayload);
+        IKrMulticall.Result[] memory results = multicall.execute(ops, updateData);
         usdc.balanceOf(user).eq(0, "usdc-balance");
         kresko.getAccountDepositSCDP(user, address(kiss)).eq(9998e18, "kiss-deposit-amount");
         kiss.balanceOf(user).eq(0, "jpy-borrow-balance");
@@ -351,7 +357,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        multicall.execute(opsDeposit, rsPayload);
+        multicall.execute(opsDeposit, updateData);
 
         IKrMulticall.Operation[] memory opsWithdraw = new IKrMulticall.Operation[](2);
         opsWithdraw[0] = IKrMulticall.Operation({
@@ -383,7 +389,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute(opsWithdraw, rsPayload);
+        IKrMulticall.Result[] memory results = multicall.execute(opsWithdraw, updateData);
 
         usdc.balanceOf(user).eq(9996000400, "usdc-balance");
         kresko.getAccountDepositSCDP(user, address(kiss)).eq(0, "kiss-deposit-amount");
@@ -436,7 +442,7 @@ contract MulticallTest is Deploy {
                 index: 0
             })
         });
-        IKrMulticall.Result[] memory results = multicall.execute(opsShort, rsPayload);
+        IKrMulticall.Result[] memory results = multicall.execute(opsShort, updateData);
 
         krJPY.balanceOf(address(multicall)).eq(0, "jpy-balance-multicall-after");
         kiss.balanceOf(address(multicall)).eq(0, "kiss-balance-multicall-after");
@@ -493,7 +499,7 @@ contract MulticallTest is Deploy {
                 index: 0
             })
         });
-        multicall.execute(opsShort, rsPayload);
+        multicall.execute(opsShort, updateData);
 
         IKrMulticall.Operation[] memory opsShortClose = new IKrMulticall.Operation[](2);
 
@@ -525,7 +531,7 @@ contract MulticallTest is Deploy {
                 index: 0
             })
         });
-        IKrMulticall.Result[] memory results = multicall.execute(opsShortClose, rsPayload);
+        IKrMulticall.Result[] memory results = multicall.execute(opsShortClose, updateData);
 
         usdc.balanceOf(user).eq(0, "usdc-balance");
         kresko.getAccountCollateralAmount(user, address(usdc)).eq(9997520000, "usdc-deposit-amount");
@@ -677,7 +683,7 @@ contract MulticallTest is Deploy {
 
         prank(getAddr(0));
         krJPY.approve(address(multicall), type(uint256).max);
-        IKrMulticall.Result[] memory results = multicall.execute(ops, rsPayload);
+        IKrMulticall.Result[] memory results = multicall.execute(ops, updateData);
         for (uint256 i; i < results.length; i++) {
             results[i].tokenIn.clg("tokenIn");
             results[i].amountIn.clg("amountIn");
@@ -699,14 +705,14 @@ contract MulticallTest is Deploy {
         krETH.approve(address(kresko), type(uint256).max);
         (uint256 tradeAmount, ) = kiss.vaultDeposit(address(usdc), mintAmount * count, trader);
         for (uint256 i = 0; i < count; i++) {
-            rsCall(kresko.swapSCDP.selector, trader, address(kiss), krETHAddr, tradeAmount / count, 0);
-            rsCall(kresko.swapSCDP.selector, trader, krETHAddr, address(kiss), krETH.balanceOf(trader), 0);
+            kresko.swapSCDP(SwapArgs(trader, address(kiss), krETHAddr, tradeAmount / count, 0, updateData));
+            kresko.swapSCDP(SwapArgs(trader, krETHAddr, address(kiss), krETH.balanceOf(trader), 0, updateData));
         }
     }
 
     function _cover(uint256 _coverAmount) internal returns (uint256 crAfter, uint256 debtValAfter) {
-        rsCall(kresko.coverSCDP.selector, address(kiss), _coverAmount);
-        return (rsStatic(kresko.getCollateralRatioSCDP.selector), rsStatic(kresko.getTotalDebtValueSCDP.selector, true));
+        kresko.coverSCDP(address(kiss), _coverAmount, updateData);
+        return (kresko.getCollateralRatioSCDP(), kresko.getTotalDebtValueSCDP(true));
     }
 
     function _liquidate(
@@ -714,30 +720,18 @@ contract MulticallTest is Deploy {
         uint256 _repayAmount,
         address _seizeAsset
     ) internal returns (uint256 crAfter, uint256 debtValAfter, uint256 debtAmountAfter) {
-        rsCall(kresko.liquidateSCDP.selector, _repayAsset, _repayAmount, _seizeAsset);
-        return (
-            rsStatic(kresko.getCollateralRatioSCDP.selector),
-            rsStatic(kresko.getDebtValueSCDP.selector, _repayAsset, true),
-            kresko.getDebtSCDP(_repayAsset)
-        );
+        kresko.liquidateSCDP(SCDPLiquidationArgs(_repayAsset, _repayAmount, _seizeAsset, updateData));
+        return (kresko.getCollateralRatioSCDP(), kresko.getDebtValueSCDP(_repayAsset, true), kresko.getDebtSCDP(_repayAsset));
     }
 
-    function _setETHPrice(uint256 _pushPrice) internal {
-        ethFeed.setPrice(_pushPrice * 1e8);
-        rs_price_eth = ("ETH:").and(_pushPrice.str()).and(":8");
-        rsInit(rs_price_eth.and(rs_prices_rest));
-    }
-
-    function _getPrice(address _asset) internal view returns (uint256) {
-        return rsStatic(kresko.getPrice.selector, _asset);
-    }
-
-    function _previewSwap(
-        address _assetIn,
-        address _assetOut,
-        uint256 _amountIn,
-        uint256 _minAmountOut
-    ) internal view returns (uint256 amountOut_) {
-        return rsStatic(kresko.previewSwapSCDP.selector, _assetIn, _assetOut, _amountIn, _minAmountOut);
+    function _setETHPrice(uint256 _newPrice) internal {
+        ethFeed.setPrice(_newPrice * 1e8);
+        JSON.Config memory cfg = JSON.getConfig("test", "test-base");
+        for (uint256 i = 0; i < cfg.assets.tickers.length; i++) {
+            if (cfg.assets.tickers[i].ticker.equals("ETH")) {
+                cfg.assets.tickers[i].mockPrice = _newPrice * 1e8;
+            }
+        }
+        updateData = getPythData(cfg);
     }
 }

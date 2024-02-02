@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import {Asset, RawPrice} from "common/Types.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 
-library PType {
+library View {
     struct AssetData {
         uint256 amountColl;
         address addr;
@@ -39,9 +39,9 @@ library PType {
         SCDP scdp;
         Gate gate;
         Minter minter;
-        PAsset[] assets;
+        AssetView[] assets;
         uint32 sequencerGracePeriodTime;
-        uint32 staleTime;
+        address pythEp;
         uint32 maxPriceDeviationPct;
         uint8 oracleDecimals;
         uint32 sequencerStartedAt;
@@ -81,7 +81,7 @@ library PType {
         uint32 LT;
         uint32 MLR;
         SDeposit[] deposits;
-        PAssetEntry[] debts;
+        Position[] debts;
         STotals totals;
         uint32 coverIncentive;
         uint32 coverThreshold;
@@ -99,7 +99,7 @@ library PType {
         uint256 closeFee;
     }
 
-    struct PAsset {
+    struct AssetView {
         IKreskoAsset.Wrapping synthwrap;
         RawPrice priceRaw;
         string name;
@@ -113,8 +113,8 @@ library PType {
 
     struct MAccount {
         MTotals totals;
-        PAssetEntry[] deposits;
-        PAssetEntry[] debts;
+        Position[] deposits;
+        Position[] debts;
     }
 
     struct MTotals {
@@ -165,7 +165,7 @@ library PType {
         Asset config;
     }
 
-    struct PAssetEntry {
+    struct Position {
         uint256 amount;
         address addr;
         string symbol;

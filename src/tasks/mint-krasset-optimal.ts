@@ -9,12 +9,14 @@ const logger = getLogger(TASK_MINT_OPTIMAL)
 task(TASK_MINT_OPTIMAL, 'Mint KrAsset with optimal KISS collateral')
   .addParam('kreskoAsset', 'Deployment name of the krAsset')
   .addParam('amount', 'Amount to mint in decimal', 0, types.float)
+  .addParam('pythPayload', 'Path to pyth payload', '', types.json)
   .addOptionalParam('account', 'Account to mint assets for', '', types.string)
   .addOptionalParam('wait', 'wait confirmations', 1, types.int)
   .setAction(async function (taskArgs: TaskArguments, hre) {
     if (taskArgs.amount === 0) {
       throw new Error('Amount should be greater than 0')
     }
+
     const { deployer } = await hre.ethers.getNamedSigners()
 
     const accountSupplied = taskArgs.account !== ''
@@ -50,7 +52,10 @@ task(TASK_MINT_OPTIMAL, 'Mint KrAsset with optimal KISS collateral')
     logger.log(`Deposited ${parsedValue} KISS for minting ${taskArgs.kreskoAsset}`)
 
     try {
-      await Kresko.mintKreskoAsset(address, KrAsset.address, mintAmount, address)
+      await Kresko.mintKreskoAsset(
+        { account: address, krAsset: KrAsset.address, amount: mintAmount, receiver: address },
+        taskArgs.pythPayload,
+      )
     } catch (e) {
       logger.error(false, 'Minting failed', e)
     }

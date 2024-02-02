@@ -32,6 +32,11 @@ export const testKrAssetConfig: AssetArgs = {
   symbol: 'KrAsset',
   marketOpen: true,
   price: TEN_USD,
+  pyth: {
+    id: 'KrAsset',
+    invert: false,
+  },
+  staleTimes: [10000, 86401],
   krAssetConfig: {
     anchorSymbol: 'aKrAsset',
     closeFee: defaultCloseFee,
@@ -40,7 +45,7 @@ export const testKrAssetConfig: AssetArgs = {
     maxDebtMinter: defaultSupplyLimit,
     anchor: null,
   },
-  oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
+  oracleIds: [OracleType.Pyth, OracleType.Chainlink] as [OracleType, OracleType],
 }
 
 export const testCollateralConfig: AssetArgs = {
@@ -49,12 +54,17 @@ export const testCollateralConfig: AssetArgs = {
   symbol: 'Collateral',
   price: TEN_USD,
   marketOpen: true,
+  pyth: {
+    id: 'Collateral',
+    invert: false,
+  },
+  staleTimes: [10000, 86401],
   collateralConfig: {
     cFactor: 1e4,
     liqIncentive: 1.1e4,
   },
   decimals: defaultDecimals,
-  oracleIds: [OracleType.Redstone, OracleType.Chainlink] as [OracleType, OracleType],
+  oracleIds: [OracleType.Pyth, OracleType.Chainlink] as [OracleType, OracleType],
 }
 export const testCommonParams = (feeRecipient: string) => ({
   minDebtValue: toBig(20, 8),

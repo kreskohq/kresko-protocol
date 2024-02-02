@@ -15,12 +15,20 @@ const func: DeployFunction = async function (hre) {
     ...testCollateralConfig,
     ticker: 'Collateral2',
     symbol: 'Collateral2',
+    pyth: {
+      id: 'Collateral2',
+      invert: false,
+    },
     decimals: 18,
   })
   await addMockExtAsset({
     ...testCollateralConfig,
     ticker: 'Coll8Dec',
     symbol: 'Coll8Dec',
+    pyth: {
+      id: 'Coll8Dec',
+      invert: false,
+    },
     decimals: 8,
   })
   await addMockKreskoAsset()
@@ -28,11 +36,19 @@ const func: DeployFunction = async function (hre) {
     ...testKrAssetConfig,
     ticker: 'KrAsset2',
     symbol: 'KrAsset2',
+    pyth: {
+      id: 'KrAsset2',
+      invert: false,
+    },
   })
   await addMockKreskoAsset({
     ...testKrAssetConfig,
     ticker: 'KrAsset3',
     symbol: 'KrAsset3',
+    pyth: {
+      id: 'KrAsset3',
+      invert: false,
+    },
     collateralConfig: testCollateralConfig.collateralConfig,
   })
 

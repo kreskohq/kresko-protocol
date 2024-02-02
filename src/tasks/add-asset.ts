@@ -5,9 +5,10 @@ import { task, types } from 'hardhat/config'
 
 import type { AssetArgs } from '@/types'
 import type { KISS, MockERC20 } from '@/types/typechain'
-import { TickerMap } from '@utils/redstone'
+import { TestTickers } from '@utils/test/helpers/oracle'
 import { zeroAddress } from 'viem'
 import { TASK_ADD_ASSET } from './names'
+
 type AddAssetArgs = {
   address: string
   assetConfig: AssetArgs
@@ -55,15 +56,15 @@ task(TASK_ADD_ASSET)
     if (isMinterCollateral && config.collateralConfig?.cFactor === 0) {
       throw new Error(`Invalid cFactor for ${config.symbol}`)
     }
-    const redstoneId = TickerMap[config.ticker as keyof typeof TickerMap]
-    if (!redstoneId) throw new Error(`RedstoneId not found for ${config.symbol}`)
+    const pythId = TestTickers[config.ticker as keyof typeof TestTickers]
+    if (!pythId) throw new Error(`Pyth id not found for: ${config.symbol}`)
 
     const Kresko = await hre.getContractOrFork('Kresko')
     const Asset = isKISS
       ? await hre.getContractOrFork('KISS')
       : isMinterMintable
-      ? await hre.getContractOrFork('KreskoAsset', config.symbol)
-      : await hre.getContractOrFork('MockERC20', config.symbol)
+        ? await hre.getContractOrFork('KreskoAsset', config.symbol)
+        : await hre.getContractOrFork('MockERC20', config.symbol)
 
     const assetInfo = await Kresko.getAsset(Asset.address)
     const exists = assetInfo.decimals != 0
@@ -75,12 +76,12 @@ task(TASK_ADD_ASSET)
       config: {
         args: config,
       },
-      m: null,
       balanceOf: acc => Asset.balanceOf(typeof acc === 'string' ? acc : acc.address),
       contract: Asset,
       assetInfo: () => Kresko.getAsset(Asset.address),
       priceFeed: await hre.ethers.getContractAt('MockOracle', config.feed),
     }
+
     const { anchorSymbol } = getAnchorNameAndSymbol(config.symbol, config.name)
     if (exists) {
       logger.warn(`Asset ${config.symbol} already exists, skipping..`)
@@ -114,7 +115,7 @@ task(TASK_ADD_ASSET)
       asset.config.assetStruct = parsedConfig.assetStruct
       asset.config.feedConfig = parsedConfig.feedConfig
       asset.config.extendedInfo = parsedConfig.extendedInfo
-      const tx = await Kresko.addAsset(Asset.address, parsedConfig.assetStruct, parsedConfig.feedConfig.feeds)
+      const tx = await Kresko.addAsset(Asset.address, parsedConfig.assetStruct, parsedConfig.feedConfig)
       logger.success('Transaction hash: ', tx.hash)
       logger.success(`Succesfully added asset: ${config.symbol}`)
     }

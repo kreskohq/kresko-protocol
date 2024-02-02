@@ -2,11 +2,11 @@ import type { CommonInitializer, MinterInitializer, SCDPInitializer } from '@/ty
 import { envCheck } from '@utils/env'
 import type { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { zeroAddress } from 'viem'
-import { assets, testnetConfigs } from './arbitrumGoerli'
+import { assets, testnetConfigs } from './arbitrumSepolia'
 
 envCheck()
 
-export type AllTokenSymbols = TestTokenSymbols | 'ETH' | typeof assets[keyof typeof assets]['symbol']
+export type AllTokenSymbols = TestTokenSymbols | 'ETH' | (typeof assets)[keyof typeof assets]['symbol']
 
 // These function namings are ignored when generating ABI for the diamond
 export const signatureFilters = ['init', 'initializer']
@@ -21,7 +21,7 @@ export const commonFacets = [
   'AssetConfigFacet',
   'SafetyCouncilFacet',
 ] as const
-export const peripheryFacets = ['DataFacet'] as const
+export const peripheryFacets = ['ViewDataFacet'] as const
 export const minterFacets = [
   'MinterAccountStateFacet',
   'MinterBurnFacet',
@@ -64,6 +64,7 @@ export const getCommonInitializer = async (
       treasury,
       council: multisig,
       gatingManager,
+      pythEp: hre.network.live ? config.pythEp : (await hre.deployments.get('MockPyth')).address,
       sequencerUptimeFeed: hre.network.live
         ? config.sequencerUptimeFeed
         : (await hre.deployments.get('MockSequencerUptimeFeed')).address,

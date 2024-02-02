@@ -4,9 +4,9 @@ import { type DefaultFixture, defaultFixture } from '@utils/test/fixtures'
 import type { KrAssetConfig } from '@/types'
 import type { AssetStruct } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
 import { addMockExtAsset } from '@utils/test/helpers/collaterals'
-import { getAssetConfig, wrapContractWithSigner } from '@utils/test/helpers/general'
+import { getAssetConfig } from '@utils/test/helpers/general'
 import { addMockKreskoAsset } from '@utils/test/helpers/krassets'
-import { getFakeOracle } from '@utils/test/helpers/oracle'
+import { createOracles } from '@utils/test/helpers/oracle'
 import { testCollateralConfig, testKrAssetConfig, testMinterParams } from '@utils/test/mocks'
 import { fromBig, toBig } from '@utils/values'
 
@@ -116,7 +116,7 @@ describe('Minter - Configuration', function () {
         openFee: 0.03e4,
         anchor: f.KrAsset.anchor.address,
       }
-      const FakeFeed = await getFakeOracle(20)
+      const FakeFeed = await createOracles(hre, f.KrAsset.pythId.toString(), 20)
       const newConfig = await getAssetConfig(f.KrAsset.contract, {
         ...testKrAssetConfig,
         feed: FakeFeed.address,
@@ -125,10 +125,7 @@ describe('Minter - Configuration', function () {
       })
 
       await hre.Diamond.setFeedsForTicker(newConfig.assetStruct.ticker, newConfig.feedConfig)
-      await wrapContractWithSigner(hre.Diamond, hre.users.deployer).updateAsset(
-        f.KrAsset.address,
-        newConfig.assetStruct,
-      )
+      await hre.Diamond.connect(hre.users.deployer).updateAsset(f.KrAsset.address, newConfig.assetStruct)
 
       const newValues = await hre.Diamond.getAsset(f.KrAsset.address)
       const updatedOracleAnswer = fromBig((await FakeFeed.latestRoundData())[1], 8)
@@ -168,6 +165,8 @@ describe('Minter - Configuration', function () {
       expect(newValues2.closeFee).to.equal(update2.openFee)
       expect(newValues2.swapInFeeSCDP).to.equal(update2.swapInFeeSCDP)
       expect(newValues2.maxDebtMinter).to.equal(update2.maxDebtMinter)
+
+      await f.KrAsset.setPrice(10)
     })
   })
 })

@@ -24,24 +24,6 @@ struct LiquidateExecution {
     uint256 seizedAssetIndex;
 }
 
-/**
- * @notice External, used when caling liquidate.
- * @param account The account to attempt to liquidate.
- * @param repayAssetAddr Address of the Kresko asset to be repaid.
- * @param repayAmount Amount of the Kresko asset to be repaid.
- * @param seizeAssetAddr Address of the collateral asset to be seized.
- * @param repayAssetIndex Index of the Kresko asset in the user's minted assets array.
- * @param seizeAssetIndex Index of the collateral asset in the account's collateral assets array.
- */
-struct LiquidationArgs {
-    address account;
-    address repayAssetAddr;
-    uint256 repayAmount;
-    address seizeAssetAddr;
-    uint256 repayAssetIndex;
-    uint256 seizeAssetIndex;
-}
-
 struct MinterAccountState {
     uint256 totalDebtValue;
     uint256 totalCollateralValue;

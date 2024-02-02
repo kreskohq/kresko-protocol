@@ -12,6 +12,7 @@ import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import type * as Contracts from './typechain';
 import type { MockOracle } from './typechain';
 import type { AssetStruct } from './typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko';
+import { PromiseOrValue } from './typechain/common';
 
 declare global {
   const hre: HardhatRuntimeEnvironment;
@@ -30,6 +31,8 @@ declare global {
     address: string;
     isMinterMintable?: boolean;
     isMinterCollateral?: boolean;
+    initialPrice: number;
+    pythId: PromiseOrValue<BytesLike>;
     isMocked?: boolean;
     contract: T extends 'mock' ? MockContract<C> : C;
     config: AssetConfig;
@@ -47,15 +50,16 @@ declare global {
     balanceOf: T extends KreskoAsset
       ? ReturnType<typeof getBalanceKrAssetFunc>
       : ReturnType<typeof getBalanceCollateralFunc>;
-    setPrice: (price: number) => void;
+    setPrice: (price: number) => Promise<void>;
     setOracleOrder: (order: [OracleType, OracleType]) => Promise<any>;
-    getPrice: () => Promise<BigNumber>;
+    getPrice: () => Promise<{push: BigNumber, pyth: BigNumber}>;
     update: (update: TestAssetUpdate) => Promise<TestAsset<C, T>>;
   };
 
   export type TestTokenSymbols =
     | 'krSYMBOL'
     | 'USDC'
+    | 'MockKISS'
     | 'TSLA'
     | 'Collateral'
     | 'Coll8Dec'

@@ -39,11 +39,6 @@ interface ISCDPStateFacet {
     function getAccountTotalDepositsValueSCDP(address _account) external view returns (uint256);
 
     /**
-     * @notice Get all pool CollateralAssets
-     */
-    function getDepositAssetsSCDP() external view returns (address[] memory);
-
-    /**
      * @notice Get the total collateral deposits for `_collateralAsset`
      * @param _collateralAsset The collateral asset
      */

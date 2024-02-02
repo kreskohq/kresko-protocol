@@ -1,10 +1,8 @@
-import { wrapKresko } from '@utils/redstone'
 import optimized from '@utils/test/helpers/optimizations'
 import { fromBig, toBig } from '@utils/values'
-import hre from 'hardhat'
 import { depositCollateral, depositMockCollateral } from './collaterals'
 import { mintKrAsset } from './krassets'
-export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collateral: any, log = false) => {
+export const getLiqAmount = async (user: SignerWithAddress, krAsset: TestKrAsset, collateral: any, log = false) => {
   const [maxLiquidatableValue, krAssetPrice] = await Promise.all([
     hre.Diamond.getMaxLiqValue(user.address, krAsset.address, collateral.address),
     krAsset.getPrice(),
@@ -28,23 +26,24 @@ export const getLiqAmount = async (user: SignerWithAddress, krAsset: any, collat
       valueUnder: fromBig(accountMinimumCollateralValue.sub(accountCollateralValue), 8),
       kreskoAssetDebt,
       maxValue: maxLiquidatableValue,
-      maxAmount: maxLiquidatableValue.repayValue.wadDiv(krAssetPrice),
+      maxAmount: maxLiquidatableValue.repayValue.wadDiv(krAssetPrice.pyth),
     })
   }
 
-  return maxLiquidatableValue.repayValue.wadDiv(krAssetPrice)
+  return maxLiquidatableValue.repayValue.wadDiv(krAssetPrice.pyth)
 }
 
 export const liquidate = async (
   user: SignerWithAddress,
   krAsset: TestKrAsset,
-  collateral: any,
+  collateral: TestExtAsset | TestKrAsset,
   allowSeizeUnderflow = false,
 ) => {
-  const [depositsBefore, debtBefore, liqAmount] = await Promise.all([
+  const [depositsBefore, debtBefore, liqAmount, updateData] = await Promise.all([
     hre.Diamond.getAccountCollateralAmount(user.address, collateral.address),
     hre.Diamond.getAccountDebtAmount(user.address, krAsset.address),
     getLiqAmount(user, krAsset, collateral),
+    hre.updateData(),
   ])
 
   if (liqAmount.eq(0)) {
@@ -54,9 +53,9 @@ export const liquidate = async (
       tx: new Error('Not liquidatable'),
     }
   }
-  const [minDebt, krAssetPrice] = await Promise.all([optimized.getMinDebtValue(), krAsset.getPrice()])
+  const [minDebt, { pyth: pythPrice }] = await Promise.all([optimized.getMinDebtValue(), krAsset.getPrice()])
 
-  const minDebtAmount = minDebt.wadDiv(krAssetPrice)
+  const minDebtAmount = minDebt.wadDiv(pythPrice)
   const liquidationAmount = liqAmount.lt(minDebtAmount) ? minDebtAmount : liqAmount
   const liquidatorBal = await krAsset.balanceOf(hre.users.liquidator)
   if (liquidatorBal.lt(liquidationAmount)) {
@@ -83,13 +82,14 @@ export const liquidate = async (
     })
   }
 
-  const tx = await wrapKresko(hre.Diamond, hre.users.liquidator).liquidate({
+  const tx = await hre.Diamond.connect(hre.users.liquidator).liquidate({
     account: user.address,
     repayAssetAddr: krAsset.address,
     repayAmount: liquidationAmount,
     seizeAssetAddr: collateral.address,
     repayAssetIndex: optimized.getAccountMintIndex(user.address, krAsset.address),
     seizeAssetIndex: optimized.getAccountDepositIndex(user.address, collateral.address),
+    prices: updateData,
   })
 
   const [depositsAfter, debtAfter, decimals] = await Promise.all([

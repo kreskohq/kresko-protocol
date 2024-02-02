@@ -6,9 +6,9 @@ alias r := restart
 alias k := kill
 
 hasEnv := path_exists(absolute_path("./.env"))
-hasPNPM := `pnpm --help | grep -q 'Version' && echo true || echo false`
+hasBun := `bun --help | grep -q 'Usage: bun' && echo true || echo false`
 hasFoundry := `forge --version | grep -q 'forge' && echo true || echo false`
-hasPM2 := `pnpm list --global pm2 | grep -q '' && echo true || echo false`
+hasPM2 := `bunx pm2 | grep -q 'usage: pm2' && echo true || echo false`
 
 dry-local:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
@@ -36,7 +36,6 @@ dry-arbitrum-sepolia:
 	--evm-version "paris" \
 	--skip-simulation \
 	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
-	--fork-block-number 2680581 \
 	--ffi \
 	-vvv
 
@@ -45,7 +44,6 @@ dry-arbitrum-fork:
 	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "arbitrum-fork" "MNEMONIC_DEVNET" 0 true false) \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--with-gas-price 100000000 \
-	--fork-block-number 159492977 \
 	--skip-simulation \
 	--evm-version "paris" \
 	--ffi \
@@ -207,14 +205,14 @@ verify-arbitrum-sepolia:
 @setup:
 	just deps
 	just dry-local
-	pnpm hh:dry
+	bun hh:dry
 	echo "*** kresko: Setup complete!"
 
 @deps:
 	{{ if hasFoundry == "true" { "echo '***' kresko: foundry exists, skipping install.." } else { "echo '***' kresko: Installing foundry && curl -L https://foundry.paradigm.xyz | bash && foundryup" } }}
 	echo "*** kresko: Installing forge dependencies" && forge install && echo "*** kresko: Forge dependencies installed"
 	{{ if hasEnv == "true" { "echo '***' kresko: .env exists, skipping copy.." } else { "echo '***' kresko: Copying .env.example to .env && cp .env.example .env" } }}
-	{{ if hasPNPM == "true" { "echo '***' kresko: pnpm exist, skipping install.." } else { "echo '***' kresko: Installing pnpm && npm i -g pnpm" } }}
-	echo "*** kresko: Installing node dependencies..." && pnpm i && echo "*** kresko: Node dependencies installed"
-	{{ if hasPM2 == "true" { "echo '***' kresko: PM2 exists, skipping install.." } else { "echo '***' kresko: Installing PM2 && pnpm i -g pm2 && echo '***' kresko: PM2 installed" } }}
+	{{ if hasBun == "true" { "echo '***' kresko: bun exist, skipping install.." } else { "echo '***' kresko: Installing bun && curl -fsSL https://bun.sh/install | bash" } }}
+	echo "*** kresko: Installing npm dependencies..." && bun install --yarn && echo "*** kresko: NPM dependencies installed"
+	{{ if hasPM2 == "true" { "echo '***' kresko: PM2 exists, skipping install.." } else { "echo '***' kresko: Installing PM2 && bun a -g pm2 && echo '***' kresko: PM2 installed" } }}
 	echo "*** kresko: Finished installing dependencies"

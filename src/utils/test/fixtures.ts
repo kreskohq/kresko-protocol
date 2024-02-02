@@ -5,13 +5,12 @@ import type { AllTokenSymbols } from '@config/hardhat/deploy'
 import { type MockContract, smock } from '@defi-wonderland/smock'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { createKrAsset } from '@scripts/create-krasset'
-import { wrapKresko } from '@utils/redstone'
 import { MaxUint128, toBig } from '@utils/values'
 import type { Facet } from 'hardhat-deploy/types'
 import { zeroAddress } from 'viem'
 import { addMockExtAsset, depositCollateral } from './helpers/collaterals'
-import { wrapContractWithSigner } from './helpers/general'
 import { addMockKreskoAsset, leverageKrAsset, mintKrAsset } from './helpers/krassets'
+
 import {
   HUNDRED_USD,
   ONE_USD,
@@ -55,9 +54,16 @@ export type SCDPFixture = {
 
 export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtureParams>(async hre => {
   const result = await hre.deployments.fixture('local')
+
   if (result.Diamond) {
-    hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'))
+    hre.Diamond = await hre.getContractOrFork('Kresko')
   }
+  // preload for price updates
+  await hre.users.deployer.sendTransaction({
+    to: hre.Diamond.address,
+    value: (1).ebn(18),
+  })
+
   await time.increase(3610)
 
   const Collateral = hre.extAssets.find(c => c.config.args.symbol === testCollateralConfig.symbol)!
@@ -93,9 +99,13 @@ export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtur
     maxDebtSCDP: defaultSupplyLimit,
   }
   const KISS = await addMockKreskoAsset({
-    ticker: 'KISS',
+    ticker: 'MockKISS',
     price: ONE_USD,
     symbol: 'KISS',
+    pyth: {
+      id: 'MockKISS',
+      invert: false,
+    },
     krAssetConfig: {
       anchor: null,
       closeFee: 0.025e4,
@@ -183,11 +193,13 @@ export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtur
     const depositAmount = 1000
     const depositAmount18Dec = toBig(depositAmount)
     const depositAmount8Dec = toBig(depositAmount, 8)
-    Collateral.setPrice(TEN_USD)
-    Coll8Dec.setPrice(TEN_USD)
-    KrAsset.setPrice(TEN_USD)
-    KrAsset2.setPrice(HUNDRED_USD)
-    KISS.setPrice(ONE_USD)
+    await Promise.all([
+      Collateral.setPrice(TEN_USD),
+      Coll8Dec.setPrice(TEN_USD),
+      KrAsset.setPrice(TEN_USD),
+      KrAsset2.setPrice(HUNDRED_USD),
+      KISS.setPrice(ONE_USD),
+    ])
 
     for (const user of users) {
       await Collateral.setBalance(user, depositAmount18Dec, hre.Diamond.address)
@@ -216,17 +228,17 @@ export const scdpFixture = hre.deployments.createFixture<SCDPFixture, SCDPFixtur
     depositor: users[1],
     depositor2: users[2],
     liquidator: hre.users.liquidator,
-    KreskoSwapper: wrapKresko(hre.Diamond, users[0]),
-    KreskoDepositor: wrapKresko(hre.Diamond, users[1]),
-    KreskoDepositor2: wrapKresko(hre.Diamond, users[2]),
-    KreskoLiquidator: wrapKresko(hre.Diamond, hre.users.liquidator),
+    KreskoSwapper: hre.Diamond.connect(users[0]),
+    KreskoDepositor: hre.Diamond.connect(users[1]),
+    KreskoDepositor2: hre.Diamond.connect(users[2]),
+    KreskoLiquidator: hre.Diamond.connect(hre.users.liquidator),
   }
 })
 
 const getReceiver = async (kresko: Kresko, grantRole = true) => {
-  const Receiver = await (
-    await smock.mock<SmockCollateralReceiver__factory>('SmockCollateralReceiver')
-  ).deploy(kresko.address)
+  const Receiver = await (await smock.mock<SmockCollateralReceiver__factory>('SmockCollateralReceiver')).deploy(
+    kresko.address,
+  )
   if (grantRole) {
     await kresko.grantRole(Role.MANAGER, Receiver.address)
   }
@@ -236,7 +248,7 @@ const getReceiver = async (kresko: Kresko, grantRole = true) => {
 export const diamondFixture = hre.deployments.createFixture<{ facets: Facet[] }, {}>(async hre => {
   const result = await hre.deployments.fixture('diamond-init')
   if (result.Diamond) {
-    hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'))
+    hre.Diamond = await hre.getContractOrFork('Kresko')
   }
 
   return {
@@ -250,7 +262,7 @@ export const kreskoAssetFixture = hre.deployments.createFixture<
 >(async (hre, opts) => {
   const result = await hre.deployments.fixture(['diamond-init', opts?.name!])
   if (result.Diamond) {
-    hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'))
+    hre.Diamond = await hre.getContractOrFork('Kresko')
   }
   if (!opts) throw new Error('Must supply options')
   return createKrAsset(
@@ -279,14 +291,21 @@ export type DefaultFixture = {
 export const defaultFixture = hre.deployments.createFixture<DefaultFixture, {}>(async hre => {
   const result = await hre.deployments.fixture('local')
   if (result.Diamond) {
-    hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'))
+    hre.Diamond = await hre.getContractOrFork('Kresko')
   }
+  // preload for price updates
+  await hre.users.deployer.sendTransaction({
+    to: hre.Diamond.address,
+    value: (1).ebn(18),
+  })
+
   await time.increase(3610)
+
   const depositAmount = toBig(1000)
   const mintAmount = toBig(100)
-  const DefaultCollateral = hre.extAssets!.find(c => c.config.args.ticker === testCollateralConfig.ticker)!
-  const DefaultKrAsset = hre.krAssets!.find(k => k.config.args.ticker === testKrAssetConfig.ticker)!
-  const Collateral2 = hre.extAssets!.find(c => c.config.args.ticker === 'Collateral2')!
+  const DefaultCollateral = hre.extAssets.find(c => c.config.args.ticker === testCollateralConfig.ticker)!
+  const DefaultKrAsset = hre.krAssets.find(k => k.config.args.ticker === testKrAssetConfig.ticker)!
+  const Collateral2 = hre.extAssets.find(c => c.config.args.ticker === 'Collateral2')!
 
   const blankUser = hre.users.userOne
   const userWithDeposits = hre.users.userTwo
@@ -298,19 +317,21 @@ export const defaultFixture = hre.deployments.createFixture<DefaultFixture, {}>(
   await depositCollateral({ user: userWithDeposits, asset: DefaultCollateral, amount: depositAmount })
   await depositCollateral({ user: userWithMint, asset: DefaultCollateral, amount: depositAmount })
   await mintKrAsset({ user: userWithMint, asset: DefaultKrAsset, amount: mintAmount })
+
   const Receiver = await getReceiver(hre.Diamond)
+
   return {
     users: [
-      [blankUser, wrapKresko(hre.Diamond, blankUser)],
-      [userWithDeposits, wrapKresko(hre.Diamond, userWithDeposits)],
-      [userWithMint, wrapKresko(hre.Diamond, userWithMint)],
+      [blankUser, hre.Diamond.connect(blankUser)],
+      [userWithDeposits, hre.Diamond.connect(userWithDeposits)],
+      [userWithMint, hre.Diamond.connect(userWithMint)],
     ],
     collaterals: hre.extAssets,
     krAssets: hre.krAssets,
     KrAsset: DefaultKrAsset,
     Collateral: DefaultCollateral,
     Collateral2,
-    Receiver: wrapContractWithSigner(Receiver, userWithMint),
+    Receiver: Receiver.connect(userWithMint),
     depositAmount,
     mintAmount,
   }
@@ -324,13 +345,21 @@ export type AssetValuesFixture = {
   CollateralAsset21Dec: TestExtAsset
   oracleDecimals: number
 }
+
 export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixture, {}>(async hre => {
   const result = await hre.deployments.fixture('local')
+
   if (result.Diamond) {
-    hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'))
+    hre.Diamond = await hre.getContractOrFork('Kresko')
   }
+  // preload for price updates
+  await hre.users.deployer.sendTransaction({
+    to: hre.Diamond.address,
+    value: (1).ebn(18),
+  })
+
   await time.increase(3610)
-  const KreskoAsset = hre.krAssets!.find(c => c.config.args.symbol === testKrAssetConfig.symbol)!
+  const KreskoAsset = hre.krAssets.find(c => c.config.args.symbol === testKrAssetConfig.symbol)!
   await hre.Diamond.updateAsset(KreskoAsset.address, {
     ...KreskoAsset.config.assetStruct,
     openFee: 0.1e4,
@@ -338,12 +367,17 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
     kFactor: 2e4,
   })
 
-  const CollateralAsset = hre.extAssets!.find(c => c.config.args.symbol === testCollateralConfig.symbol)!
+  const CollateralAsset = hre.extAssets.find(c => c.config.args.symbol === testCollateralConfig.symbol)!
   const Coll8Dec = hre.extAssets!.find(c => c.config.args.symbol === 'Coll8Dec')!
+
   const CollateralAsset21Dec = await addMockExtAsset({
     ticker: 'Coll21Dec',
     symbol: 'Coll21Dec',
     price: TEN_USD,
+    pyth: {
+      id: 'Coll21Dec',
+      invert: false,
+    },
     collateralConfig: {
       cFactor: 0.5e4,
       liqIncentive: 1.1e4,
@@ -359,9 +393,8 @@ export const assetValuesFixture = hre.deployments.createFixture<AssetValuesFixtu
   await Coll8Dec.setBalance(user, toBig(startingBalance, 8), hre.Diamond.address)
   await CollateralAsset21Dec.setBalance(user, toBig(startingBalance, 21), hre.Diamond.address)
 
-  const oracleDecimals = await hre.Diamond.getDefaultOraclePrecision()
   return {
-    oracleDecimals,
+    oracleDecimals: await hre.Diamond.getDefaultOraclePrecision(),
     startingBalance,
     user,
     KreskoAsset,
@@ -388,17 +421,22 @@ export type DepositWithdrawFixture = {
 
 export const depositWithdrawFixture = hre.deployments.createFixture<DepositWithdrawFixture, {}>(async hre => {
   const result = await hre.deployments.fixture('local')
+  // preload for price updates
+  await hre.users.deployer.sendTransaction({
+    to: hre.Diamond.address,
+    value: (1).ebn(18),
+  })
   if (result.Diamond) {
-    hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'))
+    hre.Diamond = await hre.getContractOrFork('Kresko')
   }
   await time.increase(3610)
 
   const withdrawer = hre.users.userThree
 
-  const DefaultCollateral = hre.extAssets!.find(c => c.config.args.ticker === testCollateralConfig.ticker)!
+  const DefaultCollateral = hre.extAssets.find(c => c.config.args.ticker === testCollateralConfig.ticker)!
 
-  const DefaultKrAsset = hre.krAssets!.find(k => k.config.args.ticker === testKrAssetConfig.ticker)!
-  const KrAssetCollateral = hre.krAssets!.find(k => k.config.args.ticker === 'KrAsset3')!
+  const DefaultKrAsset = hre.krAssets.find(k => k.config.args.ticker === testKrAssetConfig.ticker)!
+  const KrAssetCollateral = hre.krAssets.find(k => k.config.args.ticker === 'KrAsset3')!
 
   const initialDeposits = toBig(10000)
   const initialBalance = toBig(100000)
@@ -410,7 +448,7 @@ export const depositWithdrawFixture = hre.deployments.createFixture<DepositWithd
   })
   await DefaultCollateral.setBalance(hre.users.userOne, initialBalance, hre.Diamond.address)
   await DefaultCollateral.setBalance(hre.users.userTwo, initialBalance, hre.Diamond.address)
-  await wrapKresko(hre.Diamond, withdrawer).depositCollateral(
+  await hre.Diamond.connect(withdrawer).depositCollateral(
     withdrawer.address,
     DefaultCollateral.address,
     initialDeposits,
@@ -426,11 +464,12 @@ export const depositWithdrawFixture = hre.deployments.createFixture<DepositWithd
     user: hre.users.userOne,
     depositor: hre.users.userTwo,
     withdrawer: hre.users.userThree,
-    User: wrapKresko(hre.Diamond, hre.users.userOne),
-    Depositor: wrapKresko(hre.Diamond, hre.users.userTwo),
-    Withdrawer: wrapKresko(hre.Diamond, hre.users.userThree),
+    User: hre.Diamond.connect(hre.users.userOne),
+    Depositor: hre.Diamond.connect(hre.users.userTwo),
+    Withdrawer: hre.Diamond.connect(hre.users.userThree),
   }
 })
+
 export type MintRepayFixture = {
   reset: () => Promise<void>
   Collateral: TestExtAsset
@@ -450,16 +489,20 @@ export type MintRepayFixture = {
 
 export const mintRepayFixture = hre.deployments.createFixture<MintRepayFixture, {}>(async hre => {
   const result = await hre.deployments.fixture('local')
+  await hre.users.deployer.sendTransaction({
+    to: hre.Diamond.address,
+    value: (1).ebn(18),
+  })
   if (result.Diamond) {
-    hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'))
+    hre.Diamond = await hre.getContractOrFork('Kresko')
   }
   await time.increase(3610)
 
-  const DefaultCollateral = hre.extAssets!.find(c => c.config.args.ticker === testCollateralConfig.ticker)!
+  const DefaultCollateral = hre.extAssets.find(c => c.config.args.ticker === testCollateralConfig.ticker)!
 
-  const DefaultKrAsset = hre.krAssets!.find(k => k.config.args.ticker === testKrAssetConfig.ticker)!
-  const KrAsset2 = hre.krAssets!.find(k => k.config.args.ticker === 'KrAsset2')!
-  const KrAssetCollateral = hre.krAssets!.find(k => k.config.args.ticker === 'KrAsset3')!
+  const DefaultKrAsset = hre.krAssets.find(k => k.config.args.ticker === testKrAssetConfig.ticker)!
+  const KrAsset2 = hre.krAssets.find(k => k.config.args.ticker === 'KrAsset2')!
+  const KrAssetCollateral = hre.krAssets.find(k => k.config.args.ticker === 'KrAsset3')!
 
   await DefaultKrAsset.contract.grantRole(Role.OPERATOR, hre.users.deployer.address)
 
@@ -482,11 +525,14 @@ export const mintRepayFixture = hre.deployments.createFixture<MintRepayFixture, 
     asset: DefaultCollateral,
     amount: initialDeposits,
   })
+
   await mintKrAsset({ user: hre.users.userTwo, asset: DefaultKrAsset, amount: initialMintAmount })
+
   const reset = async () => {
-    DefaultKrAsset.setPrice(TEN_USD)
-    DefaultCollateral.setPrice(TEN_USD)
+    await DefaultKrAsset.setPrice(TEN_USD)
+    await DefaultCollateral.setPrice(TEN_USD)
   }
+
   return {
     reset,
     collaterals: hre.extAssets,
@@ -500,8 +546,8 @@ export const mintRepayFixture = hre.deployments.createFixture<MintRepayFixture, 
     KrAssetCollateral,
     user1: hre.users.userOne,
     user2: hre.users.userTwo,
-    User1: wrapKresko(hre.Diamond, hre.users.userOne),
-    User2: wrapKresko(hre.Diamond, hre.users.userTwo),
+    User1: hre.Diamond.connect(hre.users.userOne),
+    User2: hre.Diamond.connect(hre.users.userTwo),
   }
 })
 
@@ -542,8 +588,13 @@ export type LiquidationFixture = {
 
 export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixture, {}>(async hre => {
   const result = await hre.deployments.fixture('local')
+  // preload for price updates
+  await hre.users.deployer.sendTransaction({
+    to: hre.Diamond.address,
+    value: (1).ebn(18),
+  })
   if (result.Diamond) {
-    hre.Diamond = wrapKresko(await hre.getContractOrFork('Kresko'))
+    hre.Diamond = await hre.getContractOrFork('Kresko')
   }
   await time.increase(3610)
   const DefaultCollateral = hre.extAssets.find(c => c.config.args.ticker === testCollateralConfig.ticker)!
@@ -565,6 +616,7 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     amount: initialDeposits,
     asset: DefaultCollateral,
   })
+
   await depositCollateral({
     user: hre.users.liquidator,
     amount: toBig(100000000),
@@ -581,22 +633,24 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     amount: initialMintAmount.mul(1000),
     asset: DefaultKrAsset,
   })
-  DefaultKrAsset.setPrice(11)
-  DefaultCollateral.setPrice(7.5)
+  await DefaultKrAsset.setPrice(11)
+  await DefaultCollateral.setPrice(7.5)
   const userOneMaxLiqPrecalc = (
     await hre.Diamond.getMaxLiqValue(hre.users.userOne.address, DefaultKrAsset.address, DefaultCollateral.address)
   ).repayValue
 
-  DefaultCollateral.setPrice(TEN_USD)
+  await DefaultCollateral.setPrice(TEN_USD)
 
   const reset = async () => {
-    DefaultKrAsset.setPrice(11)
-    KreskoAsset2.setPrice(TEN_USD)
-    DefaultCollateral.setPrice(testCollateralConfig.price!)
-    Collateral2.setPrice(TEN_USD)
-    Collateral8Dec.setPrice(TEN_USD)
-    await hre.Diamond.setAssetCFactor(DefaultCollateral.address, 1e4)
-    await hre.Diamond.setAssetKFactor(KrAssetCollateral.address, 1e4)
+    await Promise.all([
+      DefaultKrAsset.setPrice(11),
+      KreskoAsset2.setPrice(TEN_USD),
+      DefaultCollateral.setPrice(testCollateralConfig.price!),
+      Collateral2.setPrice(TEN_USD),
+      Collateral8Dec.setPrice(TEN_USD),
+      hre.Diamond.setAssetCFactor(DefaultCollateral.address, 1e4),
+      hre.Diamond.setAssetKFactor(KrAssetCollateral.address, 1e4),
+    ])
   }
 
   /* -------------------------------------------------------------------------- */
@@ -625,12 +679,14 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     asset: DefaultCollateral,
     amount: rebasingAmounts.liquidatorDeposits,
   })
-  DefaultKrAsset.setPrice(krAssetPriceRebasing)
+
+  await DefaultKrAsset.setPrice(krAssetPriceRebasing)
   await mintKrAsset({
     user: hre.users.userFour,
     asset: DefaultKrAsset,
     amount: toBig(6666.66666),
   })
+
   // another user
   await DefaultCollateral.setBalance(hre.users.userNine, rebasingAmounts.liquidatorDeposits, hre.Diamond.address)
   await depositCollateral({
@@ -638,19 +694,23 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     asset: DefaultCollateral,
     amount: rebasingAmounts.liquidatorDeposits,
   })
-  DefaultKrAsset.setPrice(krAssetPriceRebasing)
+
+  await DefaultKrAsset.setPrice(krAssetPriceRebasing)
   await mintKrAsset({
     user: hre.users.userNine,
     asset: DefaultKrAsset,
     amount: toBig(6666.66666),
   })
-  DefaultKrAsset.setPrice(11)
+
+  await DefaultKrAsset.setPrice(11)
+
   // another user
   await leverageKrAsset(hre.users.userThree, KrAssetCollateral, DefaultCollateral, rebasingAmounts.userDeposits)
   await leverageKrAsset(hre.users.userThree, KrAssetCollateral, DefaultCollateral, rebasingAmounts.userDeposits)
+
   const resetRebasing = async () => {
-    DefaultCollateral.setPrice(collateralPriceRebasing)
-    DefaultKrAsset.setPrice(krAssetPriceRebasing)
+    await DefaultCollateral.setPrice(collateralPriceRebasing)
+    await DefaultKrAsset.setPrice(krAssetPriceRebasing)
   }
 
   /* --------------------------------- Values --------------------------------- */
@@ -668,9 +728,9 @@ export const liquidationsFixture = hre.deployments.createFixture<LiquidationFixt
     Collateral8Dec,
     KrAsset2: KreskoAsset2,
     KrAssetCollateral,
-    Liquidator: wrapKresko(hre.Diamond, hre.users.liquidator),
-    LiquidatorTwo: wrapKresko(hre.Diamond, hre.users.userFive),
-    User: wrapKresko(hre.Diamond, hre.users.userOne),
+    Liquidator: hre.Diamond.connect(hre.users.liquidator),
+    LiquidatorTwo: hre.Diamond.connect(hre.users.userFive),
+    User: hre.Diamond.connect(hre.users.userOne),
     liquidator: hre.users.liquidator,
     liquidatorTwo: hre.users.userFive,
     user1: hre.users.userOne,

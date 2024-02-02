@@ -1,29 +1,27 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
-import {IDataV1} from "./IDataV1.sol";
-import {IDataFacet} from "periphery/interfaces/IDataFacet.sol";
-import {PFunc} from "periphery/PFuncs.sol";
+import {IDataV1} from "./interfaces/IDataV1.sol";
+import {ViewFuncs} from "periphery/ViewData.sol";
+import {View} from "periphery/ViewTypes.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {Enums} from "common/Constants.sol";
 import {RawPrice} from "common/Types.sol";
-import {PType} from "periphery/PTypes.sol";
-import {ProxyConnector} from "vendor/redstone/ProxyConnector.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {WadRay} from "libs/WadRay.sol";
-import {IPushPriceDataFacet} from "periphery/interfaces/IPushPriceDataFacet.sol";
+import {IViewDataFacet} from "periphery/interfaces/IViewDataFacet.sol";
+import {PythView} from "vendor/pyth/PythScript.sol";
 
 // solhint-disable avoid-low-level-calls, var-name-mixedcase
 
-contract DataV1 is ProxyConnector, IDataV1 {
+contract DataV1 is IDataV1 {
     using WadRay for uint256;
 
     address public immutable VAULT;
-    IDataFacet public immutable DIAMOND;
-    IPushPriceDataFacet public immutable DIAMONDPUSH;
+    IViewDataFacet public immutable DIAMOND;
     address public immutable KISS;
 
     uint256 public constant QUEST_FOR_KRESK_LAST_TOKEN_ID = 7;
@@ -33,41 +31,15 @@ contract DataV1 is ProxyConnector, IDataV1 {
 
     constructor(address _diamond, address _vault, address _KISS, address _kreskian, address _questForKresk) {
         VAULT = _vault;
-        DIAMOND = IDataFacet(_diamond);
-        DIAMONDPUSH = IPushPriceDataFacet(address(_diamond));
+        DIAMOND = IViewDataFacet(address(_diamond));
         KISS = _KISS;
         KRESKIAN_COLLECTION = _kreskian;
         QUEST_FOR_KRESK_COLLECTION = _questForKresk;
     }
 
-    function getGlobals(bytes memory redstoneData) external view override returns (DGlobal memory result) {
-        (bool success, bytes memory data) = address(DIAMOND).staticcall(
-            abi.encodePacked(abi.encodeWithSelector(DIAMOND.getProtocolData.selector), redstoneData)
-        );
-        if (!success) {
-            assembly {
-                revert(add(32, data), mload(data))
-            }
-        }
+    function getGlobals(PythView calldata _prices) external view returns (DGlobal memory result) {
         result.chainId = block.chainid;
-        result.protocol = abi.decode(data, (PType.Protocol));
-        result.vault = getVault();
-        result.collections = getCollectionData(address(1));
-    }
-
-    function getGlobalsPushPriced() external view returns (DGlobal memory result) {
-        result.chainId = block.chainid;
-        result.protocol = DIAMONDPUSH.getProtocolDataPushPriced();
-        result.vault = getVault();
-        result.collections = getCollectionData(address(1));
-    }
-
-    function getGlobalsRs() external view returns (DGlobal memory result) {
-        result.protocol = abi.decode(
-            proxyCalldataView(address(DIAMOND), abi.encodeWithSelector(DIAMOND.getProtocolData.selector)),
-            (PType.Protocol)
-        );
-        result.chainId = block.chainid;
+        result.protocol = DIAMOND.viewProtocolData(_prices);
         result.vault = getVault();
         result.collections = getCollectionData(address(1));
     }
@@ -93,7 +65,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
                 chainId: block.chainid,
                 addr: token.token,
                 name: tkn.name(),
-                symbol: PFunc._getSymbol(token.token),
+                symbol: ViewFuncs._symbol(token.token),
                 decimals: decimals,
                 amount: balance,
                 val: value,
@@ -103,6 +75,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
                 priceRaw: RawPrice(
                     answer,
                     block.timestamp,
+                    86401,
                     block.timestamp - updatedAt > 86401,
                     answer == 0,
                     Enums.OracleType.Chainlink,
@@ -120,11 +93,8 @@ contract DataV1 is ProxyConnector, IDataV1 {
         decimals = IAggregatorV3(_feed).decimals();
     }
 
-    function getAccountRs(address _account) external view returns (DAccount memory result) {
-        result.protocol = abi.decode(
-            proxyCalldataView(address(DIAMOND), abi.encodeWithSelector(DIAMOND.getAccountData.selector, _account)),
-            (PType.Account)
-        );
+    function getAccount(PythView calldata _prices, address _account) external view returns (DAccount memory result) {
+        result.protocol = DIAMOND.viewAccountData(_prices, _account);
 
         result.vault.addr = VAULT;
         result.vault.name = IERC20(VAULT).name();
@@ -135,53 +105,16 @@ contract DataV1 is ProxyConnector, IDataV1 {
         result.vault.decimals = IERC20(VAULT).decimals();
 
         result.collections = getCollectionData(_account);
-        (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(_account);
+        (result.phase, result.eligible) = DIAMOND.viewAccountGatingPhase(_account);
         result.chainId = block.chainid;
     }
 
-    function getAccount(address _account, bytes memory redstoneData) external view returns (DAccount memory result) {
-        (bool success, bytes memory data) = address(DIAMOND).staticcall(
-            abi.encodePacked(abi.encodeWithSelector(DIAMOND.getAccountData.selector, _account), redstoneData)
-        );
-        if (!success) {
-            assembly {
-                revert(add(32, data), mload(data))
-            }
-        }
-
-        result.protocol = abi.decode(data, (PType.Account));
-
-        result.vault.addr = VAULT;
-        result.vault.name = IERC20(VAULT).name();
-        result.vault.amount = IERC20(VAULT).balanceOf(_account);
-        result.vault.price = IVault(VAULT).exchangeRate();
-        result.vault.oracleDecimals = 18;
-        result.vault.symbol = IERC20(VAULT).symbol();
-        result.vault.decimals = IERC20(VAULT).decimals();
-
-        result.collections = getCollectionData(_account);
-        (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(_account);
-        result.chainId = block.chainid;
-    }
-
-    function getAccountPushPriced(address _account) external view returns (DAccount memory result) {
-        result.protocol = DIAMONDPUSH.getAccountDataPushPriced(_account);
-
-        result.vault.addr = VAULT;
-        result.vault.name = IERC20(VAULT).name();
-        result.vault.amount = IERC20(VAULT).balanceOf(_account);
-        result.vault.price = IVault(VAULT).exchangeRate();
-        result.vault.oracleDecimals = 18;
-        result.vault.symbol = IERC20(VAULT).symbol();
-        result.vault.decimals = IERC20(VAULT).decimals();
-
-        result.collections = getCollectionData(_account);
-        (result.phase, result.eligible) = DIAMOND.getAccountGatingPhase(_account);
-        result.chainId = block.chainid;
-    }
-
-    function getBalances(address _account, address[] memory _tokens) external view returns (PType.Balance[] memory result) {
-        result = DIAMOND.getTokenBalances(_account, _tokens);
+    function getBalances(
+        PythView calldata _prices,
+        address _account,
+        address[] memory _tokens
+    ) external view returns (View.Balance[] memory result) {
+        result = DIAMOND.viewTokenBalances(_prices, _account, _tokens);
     }
 
     function getCollectionData(address _account) public view returns (DCollection[] memory result) {
@@ -239,7 +172,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
             result[i] = DVAsset({
                 addr: address(asset.token),
                 name: asset.token.name(),
-                symbol: PFunc._getSymbol(address(asset.token)),
+                symbol: ViewFuncs._symbol(address(asset.token)),
                 tSupply: asset.token.totalSupply(),
                 vSupply: asset.token.balanceOf(VAULT),
                 price: answer > 0 ? uint256(answer) : 0,
@@ -248,6 +181,7 @@ contract DataV1 is ProxyConnector, IDataV1 {
                 priceRaw: RawPrice(
                     answer,
                     block.timestamp,
+                    asset.staleTime,
                     block.timestamp - updatedAt > asset.staleTime,
                     answer == 0,
                     Enums.OracleType.Chainlink,

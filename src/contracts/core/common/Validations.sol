@@ -356,7 +356,7 @@ library Validations {
                 uint8(result.oracle),
                 result.feed,
                 block.timestamp - result.timestamp,
-                cs().staleTime
+                result.staleTime
             );
         }
     }

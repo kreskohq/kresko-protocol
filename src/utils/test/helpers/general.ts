@@ -4,10 +4,9 @@ import type {
   AssetStruct,
   FeedConfigurationStruct,
 } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
-import { WrapperBuilder } from '@redstone-finance/evm-connector'
-import { defaultRedstoneDataPoints, wrapKresko } from '@utils/redstone'
 import { formatBytesString } from '@utils/values'
 import { zeroAddress } from 'viem'
+import { toBytes } from './oracle'
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
@@ -19,11 +18,11 @@ export const updateTestAsset = async <T extends MockERC20 | KreskoAsset>(
   const { deployer } = await hre.ethers.getNamedSigners()
   const { newPrice, ...assetStruct } = args
   if (newPrice) {
-    asset.setPrice(newPrice)
+    await asset.setPrice(newPrice)
     asset.config.args.price = newPrice
   }
   const newAssetConfig = { ...asset.config.assetStruct, ...assetStruct }
-  await wrapKresko(hre.Diamond, deployer).updateAsset(asset.address, newAssetConfig)
+  await hre.Diamond.connect(deployer).updateAsset(asset.address, newAssetConfig)
   asset.config.assetStruct = newAssetConfig
   return asset
 }
@@ -33,15 +32,11 @@ export const getAssetConfig = async (
 ): Promise<AssetConfig> => {
   if (!config.krAssetConfig && !config.collateralConfig && !config.scdpDepositConfig && !config.scdpKrAssetConfig)
     throw new Error('No config provided')
-  const configuredDataPoint = defaultRedstoneDataPoints.find(i => i.dataFeedId === config.ticker)
-  if (!configuredDataPoint)
-    throw new Error(`No configured price for asset: ${config.symbol} | ticker: ${config.ticker}`)
-
   const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()])
 
   const assetStruct: AssetStruct = {
     ticker: formatBytesString(config.ticker, 32),
-    oracles: (config.oracleIds as any) ?? [OracleType.Redstone, OracleType.Chainlink],
+    oracles: (config.oracleIds as any) ?? [OracleType.Pyth, OracleType.Chainlink],
     isMinterCollateral: !!config.collateralConfig,
     isSharedCollateral: !!config.scdpDepositConfig,
     isSwapMintable: !!config.scdpKrAssetConfig,
@@ -94,15 +89,10 @@ export const getAssetConfig = async (
 
   const feedConfig: FeedConfigurationStruct = {
     oracleIds: assetStruct.oracles,
-    feeds: assetStruct.oracles[0] === OracleType.Redstone ? [zeroAddress, config.feed] : [config.feed, zeroAddress],
+    pythId: toBytes(config.pyth.id),
+    invertPyth: config.pyth.invert,
+    staleTimes: config.staleTimes ?? [10000, 86401],
+    feeds: assetStruct.oracles[0] === OracleType.Pyth ? [zeroAddress, config.feed] : [config.feed, zeroAddress],
   }
   return { args: config, assetStruct, feedConfig, extendedInfo: { decimals, symbol } }
 }
-
-export const wrapContractWithSigner = <T>(contract: T, signer: SignerWithAddress) =>
-  // @ts-expect-error
-  WrapperBuilder.wrap(contract.connect(signer)).usingSimpleNumericMock({
-    mockSignersCount: 1,
-    timestampMilliseconds: Date.now(),
-    dataPoints: defaultRedstoneDataPoints,
-  }) as T

@@ -10,13 +10,12 @@ import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 
 import {VaultAsset} from "vault/VTypes.sol";
 import {Vault} from "vault/Vault.sol";
-import {console2} from "forge-std/console2.sol";
 
 // solhint-disable private-vars-leading-underscore
 // solhint-disable contract-name-camelcase
 // solhint-disable max-states-count
 
-contract vKISSTest is Test {
+contract VaultTest is Test {
     Vault public vkiss;
     MockERC20 public usdc;
     MockERC20 public dai;
@@ -75,8 +74,7 @@ contract vKISSTest is Test {
         );
         vm.stopPrank();
 
-        // approvals
-        _init();
+        _approvals();
     }
 
     function testDepositsSingleToken() public {
@@ -138,8 +136,6 @@ contract vKISSTest is Test {
         assertEq(vkiss.balanceOf(user2), 101.0e18);
 
         usdcOracle.setPrice(0.5e8);
-
-        console2.log(vkiss.exchangeRate());
 
         _redeem(user1, usdc, 505e18);
         _redeem(user2, usdc, 101e18);
@@ -629,16 +625,6 @@ contract vKISSTest is Test {
         vm.stopPrank();
     }
 
-    // function testRandom() public {
-    //   vm.startPrank(user0);
-    //   usdc.mint(user1, 100 ether);
-    //   usdt.mint(user2, 100e6);
-    //   vm.stopPrank();
-    //   deposit(user1, usdc, 100 ether);
-    //   deposit(user2, usdt, 100e6);
-    //   usdcOracle.setPrice(1.05e8);
-    // }
-
     /* -------------------------------------------------------------------------- */
     /*                                   Helpers                                  */
     /* -------------------------------------------------------------------------- */
@@ -670,7 +656,7 @@ contract vKISSTest is Test {
         (kissIn, ) = vkiss.withdraw(address(asset), amount, user, user);
     }
 
-    function _init() internal {
+    function _approvals() internal {
         vm.startPrank(user0);
         usdc.approve(address(vkiss), type(uint256).max);
         dai.approve(address(vkiss), type(uint256).max);

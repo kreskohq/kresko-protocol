@@ -126,6 +126,7 @@ library SignatureLib {
 library RedstoneError {
     // Error messages
     error ProxyCalldataFailedWithoutErrMsg2();
+    error Timestamp(uint256 receivedTimestampSeconds, uint256 blockTimestamp);
     error ProxyCalldataFailedWithoutErrMsg();
     error CalldataOverOrUnderFlow();
     error ProxyCalldataFailedWithCustomError(bytes result);

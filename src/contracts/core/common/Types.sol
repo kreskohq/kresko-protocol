@@ -13,6 +13,9 @@ using Assets for Asset global;
 /// @notice Oracle configuration mapped to `Asset.ticker`.
 struct Oracle {
     address feed;
+    bytes32 pythId;
+    uint256 staleTime;
+    bool invertPyth;
 }
 
 /**
@@ -23,6 +26,9 @@ struct Oracle {
 struct FeedConfiguration {
     Enums.OracleType[2] oracleIds;
     address[2] feeds;
+    uint256[2] staleTimes;
+    bytes32 pythId;
+    bool invertPyth;
 }
 
 /**
@@ -126,6 +132,7 @@ struct MaxLiqInfo {
 struct RawPrice {
     int256 answer;
     uint256 timestamp;
+    uint256 staleTime;
     bool isStale;
     bool isZero;
     Enums.OracleType oracle;
@@ -154,7 +161,7 @@ struct CommonInitArgs {
     uint16 maxPriceDeviationPct;
     uint8 oracleDecimals;
     uint32 sequencerGracePeriodTime;
-    uint32 staleTime;
     address sequencerUptimeFeed;
     address gatingManager;
+    address pythEp;
 }

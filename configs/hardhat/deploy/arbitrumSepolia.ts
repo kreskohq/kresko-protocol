@@ -1,5 +1,6 @@
 import { type AssetArgs, type GnosisSafeDeployment, type NetworkConfig, OracleType } from '@/types'
 import { defaultSupplyLimit } from '@utils/test/mocks'
+import pyth_ids from 'utils/pyth_stable_ids.json'
 import {
   CompatibilityFallbackHandler,
   CreateCall,
@@ -32,41 +33,40 @@ const pricesMock = {
 const price = async (symbol: keyof typeof pricesMock) => {
   if (!process.env.TWELVEDATA_API_KEY) {
     return toBig(pricesMock[symbol], 8)
-  } else {
-    return toBig(await priceTW(symbol), 8)
   }
+  return toBig(await priceTW(symbol), 8)
 }
 
 export const oracles = {
   ARB: {
     name: 'ARB/USD',
     description: 'ARB/USD',
-    chainlink: '0x2eE9BFB2D319B31A573EA15774B755715988E99D',
+    chainlink: '0xD1092a65338d049DB68D7Be6bD89d17a0929945e',
   },
   DAI: {
     name: 'DAI/USD',
     description: 'DAI/USD',
-    chainlink: '0x103b53E977DA6E4Fa92f76369c8b7e20E7fb7fe1',
+    chainlink: '0xb113F5A928BCfF189C998ab20d753a47F9dE5A61',
   },
   BTC: {
     name: 'BTCUSD',
     description: 'BTC/USD',
-    chainlink: '0x6550bc2301936011c1334555e62A87705A81C12C',
+    chainlink: '0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69',
   },
   USDT: {
     name: 'USDT/USD',
     description: 'USDT/USD',
-    chainlink: '0x0a023a3423D9b27A0BE48c768CCF2dD7877fEf5E',
+    chainlink: '0x0153002d20B96532C639313c2d54c3dA09109309',
   },
   USDC: {
     name: 'USDC/USD',
     description: 'USDC/USD',
-    chainlink: '0x1692Bdd32F31b831caAc1b0c9fAF68613682813b',
+    chainlink: '0x0153002d20B96532C639313c2d54c3dA09109309',
   },
   ETH: {
     name: 'ETHUSD',
     description: 'ETH/USD',
-    chainlink: '0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08',
+    chainlink: '0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165',
     price: async () => price('ETH/USD'),
     marketOpen: async () => {
       return true
@@ -96,12 +96,17 @@ export const assets = {
     name: 'Dai',
     symbol: 'DAI',
     decimals: 18,
-    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
+    oracleIds: [OracleType.Pyth, OracleType.Chainlink] as const,
     getPrice: async () => toBig('1', 8),
     getMarketOpen: async () => {
       return true
     },
     feed: oracles.DAI.chainlink,
+    staletimes: [10000, 86401],
+    pyth: {
+      id: pyth_ids.DAI,
+      invert: false,
+    },
     collateralConfig: {
       cFactor: 0.9e4,
       liqIncentive: 1.05e4,
@@ -113,10 +118,15 @@ export const assets = {
     name: 'Wrapped Ether',
     symbol: 'WETH',
     decimals: 18,
-    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
+    oracleIds: [OracleType.Pyth, OracleType.Chainlink] as const,
     getPrice: async () => price('ETH/USD'),
     getMarketOpen: async () => true,
     feed: oracles.ETH.chainlink,
+    staletimes: [10000, 86401],
+    pyth: {
+      id: pyth_ids.ETH,
+      invert: false,
+    },
     collateralConfig: {
       cFactor: 0.9e4,
       liqIncentive: 1.05e4,
@@ -128,10 +138,14 @@ export const assets = {
     name: 'Kresko Integrated Stable System',
     symbol: 'KISS',
     decimals: 18,
-    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
+    oracleIds: [OracleType.Vault, OracleType.Empty] as const,
     getPrice: async () => toBig('1', 8),
     getMarketOpen: async () => true,
-    feed: oracles.KISS.chainlink,
+    pyth: {
+      id: null,
+      invert: false,
+    },
+    staletimes: [86401, 0],
     collateralConfig: {
       cFactor: 0.95e4,
       liqIncentive: 1.05e4,
@@ -158,10 +172,15 @@ export const assets = {
     name: 'Bitcoin',
     symbol: 'krBTC',
     decimals: 18,
-    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
+    oracleIds: [OracleType.Pyth, OracleType.Chainlink] as const,
     getPrice: async () => price('BTC/USD'),
     getMarketOpen: async () => true,
     feed: oracles.BTC.chainlink,
+    pyth: {
+      id: pyth_ids.BTC,
+      invert: false,
+    },
+    staletimes: [10000, 86401],
     krAssetConfig: {
       anchor: null,
       kFactor: 1.05e4,
@@ -181,12 +200,17 @@ export const assets = {
     name: 'Ether',
     symbol: 'krETH',
     decimals: 18,
-    oracleIds: [OracleType.Redstone, OracleType.Chainlink] as const,
+    oracleIds: [OracleType.Pyth, OracleType.Chainlink] as const,
     getPrice: async () => price('ETH/USD'),
     getMarketOpen: async () => {
       return true
     },
     feed: oracles.ETH.chainlink,
+    staletimes: [10000, 86401],
+    pyth: {
+      id: pyth_ids.ETH,
+      invert: false,
+    },
     krAssetConfig: {
       anchor: null,
       kFactor: 1.05e4,
@@ -221,8 +245,8 @@ const commonInitAgs = (
   gatingManager,
   maxPriceDeviationPct: 0.1e4,
   sequencerGracePeriodTime: 3600,
-  sequencerUptimeFeed: '0x4da69F028a5790fCCAfe81a75C0D24f46ceCDd69',
-  staleTime: 6.5e4,
+  sequencerUptimeFeed: '0x23ab08d87BBAe90e8BDe56F87ad6e53683E08279',
+  pythEp: '0x4374e5a8b9C22271E9EB878A2AA31DE97DF15DAF',
 })
 
 export const minterInitArgs: MinterInitArgsStruct = {

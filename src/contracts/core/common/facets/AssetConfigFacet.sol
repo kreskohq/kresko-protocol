@@ -33,7 +33,7 @@ contract AssetConfigFacet is IAssetConfigFacet, Modifiers, DSModifiers {
     function addAsset(
         address _assetAddr,
         Asset memory _config,
-        address[2] memory _feeds
+        FeedConfiguration memory _feedConfig
     ) external onlyRole(Role.ADMIN) returns (Asset memory) {
         (string memory symbol, string memory tickerStr, uint8 decimals) = _assetAddr.validateAddAssetArgs(_config);
         _config.decimals = decimals;
@@ -85,13 +85,9 @@ contract AssetConfigFacet is IAssetConfigFacet, Modifiers, DSModifiers {
         cs().assets[_assetAddr] = _config;
 
         // possibly save feeds
-        if (!_feeds.empty()) {
+        if (!_feedConfig.feeds.empty()) {
             (bool success, ) = address(this).delegatecall(
-                abi.encodeWithSelector(
-                    CommonConfigFacet.setFeedsForTicker.selector,
-                    _config.ticker,
-                    FeedConfiguration(_config.oracles, _feeds)
-                )
+                abi.encodeWithSelector(CommonConfigFacet.setFeedsForTicker.selector, _config.ticker, _feedConfig)
             );
             if (!success) {
                 revert Errors.ASSET_SET_FEEDS_FAILED(Errors.id(_assetAddr));

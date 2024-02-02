@@ -21,6 +21,7 @@ import 'hardhat-deploy-ethers'
 /* -------------------------------------------------------------------------- */
 import { configDotenv } from 'dotenv'
 configDotenv()
+process.env.HARDHAT = 'true'
 
 const mnemonic = process.env.MNEMONIC_DEVNET || 'test test test test test test test test test test test junk'
 
@@ -31,11 +32,11 @@ import { compilers, diamondAbiConfig, handleForking, networks, users } from '@co
 /* -------------------------------------------------------------------------- */
 /*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
-import '@config/hardhat/extensions'
+// import '@config/hardhat/extensions'
 /* -------------------------------------------------------------------------- */
 /*                                    Tasks                                   */
 /* -------------------------------------------------------------------------- */
-import 'src/tasks'
+// import 'src/tasks'
 
 /* -------------------------------------------------------------------------- */
 /*                               CONFIGURATION                                */

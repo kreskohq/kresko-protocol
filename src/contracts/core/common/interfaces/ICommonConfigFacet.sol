@@ -3,11 +3,19 @@ pragma solidity ^0.8.0;
 import {FeedConfiguration} from "common/Types.sol";
 
 interface ICommonConfigFacet {
+    struct PythConfig {
+        bytes32[] pythIds;
+        uint256[] staleTimes;
+        bool[] invertPyth;
+    }
+
     /**
      * @notice Updates the fee recipient.
      * @param _newFeeRecipient The new fee recipient.
      */
     function setFeeRecipient(address _newFeeRecipient) external;
+
+    function setPythEndpoint(address _pythEp) external;
 
     /**
      * @notice Sets the decimal precision of external oracle
@@ -34,12 +42,6 @@ interface ICommonConfigFacet {
     function setSequencerGracePeriod(uint32 _sequencerGracePeriodTime) external;
 
     /**
-     * @notice Sets the time in seconds until a price is considered stale.
-     * @param _staleTime Time in seconds.
-     */
-    function setStaleTime(uint32 _staleTime) external;
-
-    /**
      * @notice Set feeds for a ticker.
      * @param _ticker Ticker in bytes32 eg. bytes32("ETH")
      * @param _feedConfig List oracle configuration containing oracle identifiers and feed addresses.
@@ -52,7 +54,7 @@ interface ICommonConfigFacet {
      * @param _tickers Bytes32 list of tickers
      * @param _feeds List of feed addresses.
      */
-    function setChainlinkFeeds(bytes32[] calldata _tickers, address[] calldata _feeds) external;
+    function setChainlinkFeeds(bytes32[] calldata _tickers, address[] calldata _feeds, uint256[] memory _staleTimes) external;
 
     /**
      * @notice Set api3 feeds for tickers.
@@ -60,7 +62,7 @@ interface ICommonConfigFacet {
      * @param _tickers Bytes32 list of tickers
      * @param _feeds List of feed addresses.
      */
-    function setApi3Feeds(bytes32[] calldata _tickers, address[] calldata _feeds) external;
+    function setAPI3Feeds(bytes32[] calldata _tickers, address[] calldata _feeds, uint256[] memory _staleTimes) external;
 
     /**
      * @notice Set a vault feed for ticker.
@@ -73,13 +75,23 @@ interface ICommonConfigFacet {
     function setVaultFeed(bytes32 _ticker, address _vaultAddr) external;
 
     /**
+     * @notice Set a pyth feeds for tickers.
+     * @dev Has modifiers: onlyRole.
+     * @param _tickers Bytes32 list of tickers
+     * @param pythConfig Pyth configuration
+     */
+    function setPythFeeds(bytes32[] calldata _tickers, PythConfig calldata pythConfig) external;
+
+    function setPythFeed(bytes32 _ticker, bytes32 _pythId, bool _invert, uint256 _staleTime) external;
+
+    /**
      * @notice Set ChainLink feed address for ticker.
      * @param _ticker Ticker in bytes32 eg. bytes32("ETH")
      * @param _feedAddr The feed address.
      * @custom:signature setChainLinkFeed(bytes32,address)
      * @custom:selector 0xe091f77a
      */
-    function setChainLinkFeed(bytes32 _ticker, address _feedAddr) external;
+    function setChainLinkFeed(bytes32 _ticker, address _feedAddr, uint256 _staleTime) external;
 
     /**
      * @notice Set API3 feed address for an asset.
@@ -88,7 +100,7 @@ interface ICommonConfigFacet {
      * @custom:signature setApi3Feed(bytes32,address)
      * @custom:selector 0x7e9f9837
      */
-    function setApi3Feed(bytes32 _ticker, address _feedAddr) external;
+    function setAPI3Feed(bytes32 _ticker, address _feedAddr, uint256 _staleTime) external;
 
     /**
      * @notice Sets gating manager

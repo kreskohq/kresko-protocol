@@ -3,8 +3,8 @@ import type { ContractTypes } from '@/types'
 import { DeterministicProxy } from '@/types/functions'
 import { signatureFilters } from '@config/hardhat/deploy'
 import { Fragment } from '@ethersproject/abi'
-import { WrapperBuilder } from '@redstone-finance/evm-connector'
 import { getAddresses, getUsers } from '@utils/hardhat'
+import { getUpdateData, getViewData } from '@utils/test/helpers/oracle'
 import { extendEnvironment } from 'hardhat/config'
 import { commonUtils, proxyUtils } from './utils'
 
@@ -19,10 +19,13 @@ extendEnvironment(function (hre) {
   /* -------------------------------------------------------------------------- */
   /*                                   VALUES                                   */
   /* -------------------------------------------------------------------------- */
+
   hre.facets = []
   hre.extAssets = []
   hre.krAssets = []
-  hre.allAssets = []
+  hre.updateData = () => getUpdateData(hre)
+  hre.viewData = () => getViewData(hre)
+
   hre.getDeploymentOrFork = async deploymentName => {
     const isFork = !hre.network.live && hre.companionNetworks.live
     const deployment = !isFork
@@ -46,19 +49,6 @@ extendEnvironment(function (hre) {
     if (!deployment) {
       throw new Error(`${deploymentId} not deployed on ${hre.network.name} network`)
     }
-    if (type === 'Kresko') {
-      return WrapperBuilder.wrap(await hre.ethers.getContractAt(type, deployment.address)).usingSimpleNumericMock({
-        mockSignersCount: 1,
-        timestampMilliseconds: Date.now(),
-        dataPoints: [
-          { dataFeedId: 'DAI', value: 0 },
-          { dataFeedId: 'USDC', value: 0 },
-          { dataFeedId: 'TSLA', value: 0 },
-          { dataFeedId: 'ETH', value: 0 },
-          { dataFeedId: 'BTC', value: 0 },
-        ],
-      }) as ContractTypes[typeof type]
-    }
 
     return (await hre.ethers.getContractAt(type, deployment.address)) as unknown as TC[typeof type]
   }
@@ -69,20 +59,6 @@ extendEnvironment(function (hre) {
     if (!deployment) {
       return null
     }
-    if (type === 'Kresko') {
-      return WrapperBuilder.wrap(await hre.ethers.getContractAt(type, deployment.address)).usingSimpleNumericMock({
-        mockSignersCount: 1,
-        timestampMilliseconds: Date.now(),
-        dataPoints: [
-          { dataFeedId: 'DAI', value: 0 },
-          { dataFeedId: 'USDC', value: 0 },
-          { dataFeedId: 'TSLA', value: 0 },
-          { dataFeedId: 'ETH', value: 0 },
-          { dataFeedId: 'BTC', value: 0 },
-        ],
-      }) as ContractTypes[typeof type]
-    }
-
     return (await hre.ethers.getContractAt(type, deployment.address)) as unknown as TC[typeof type]
   }
 
@@ -177,9 +153,8 @@ extendEnvironment(function (hre) {
             .map(frag => implementation.interface.getSighash(frag)),
           deployment,
         ] as const
-      } else {
-        throw new Error(e)
       }
+      throw new Error(e)
     }
   }
   hre.getSignature = from =>

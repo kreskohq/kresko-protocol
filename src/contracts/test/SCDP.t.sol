@@ -13,9 +13,11 @@ import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
-import {JSON} from "scripts/deploy/libs/LibDeployConfig.s.sol";
+import "scripts/deploy/JSON.s.sol" as JSON;
 import {MockOracle} from "mocks/MockOracle.sol";
 import {Enums} from "common/Constants.sol";
+import {SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs} from "common/Args.sol";
+import {getPythData} from "vendor/pyth/PythScript.sol";
 
 contract SCDPTest is Tested, Deploy {
     using ShortAssert for *;
@@ -42,10 +44,11 @@ contract SCDPTest is Tested, Deploy {
     address krETHAddr;
     address kissAddr;
 
-    string ethPrice = "ETH:2000:8";
-
     function setUp() public mnemonic("MNEMONIC_DEVNET") users(getAddr(11), getAddr(22), getAddr(33)) {
         JSON.Config memory json = Deploy.deployTest("MNEMONIC_DEVNET", "test-clean", 0);
+
+        // for price updates
+        vm.deal(address(kresko), 1 ether);
 
         deployer = getAddr(0);
         admin = json.params.common.admin;
@@ -81,8 +84,8 @@ contract SCDPTest is Tested, Deploy {
     }
 
     function testSCDPSetup() public {
-        rsStatic(kresko.getEffectiveSDIDebt.selector).eq(0, "debt should be 0");
-        rsStatic(kresko.totalSDI.selector).eq(0, "total supply should be 0");
+        kresko.getEffectiveSDIDebt().eq(0, "debt should be 0");
+        kresko.totalSDI().eq(0, "total supply should be 0");
         kresko.getAssetIndexesSCDP(address(usdc)).currFeeIndex.eq(1e27);
         kresko.getAssetIndexesSCDP(address(usdc)).currFeeIndex.eq(1e27);
         kresko.getAssetIndexesSCDP(address(kiss)).currLiqIndex.eq(1e27);
@@ -95,8 +98,8 @@ contract SCDPTest is Tested, Deploy {
         usdc.balanceOf(user0).eq(0, "usdc balance should be 0");
         usdc.balanceOf(address(kresko)).eq(1000e6, "usdc-bal-kresko");
 
-        rsStatic(kresko.totalSDI.selector).eq(0, "total supply should be 0");
-        rsStatic(kresko.getTotalCollateralValueSCDP.selector, true).eq(1000e8, "collateral value should be 1000");
+        kresko.totalSDI().eq(0, "total supply should be 0");
+        kresko.getTotalCollateralValueSCDP(true).eq(1000e8, "collateral value should be 1000");
     }
 
     function testDepositModified() public pranked(user0) {
@@ -160,7 +163,7 @@ contract SCDPTest is Tested, Deploy {
     function testSCDPWithdraw() public {
         _poolDeposit(user0, address(usdc), 1000e6);
         _poolWithdraw(user0, address(usdc), 1000e6);
-        rsStatic(kresko.getTotalCollateralValueSCDP.selector, true).eq(0, "collateral value should be 0");
+        kresko.getTotalCollateralValueSCDP(true).eq(0, "collateral value should be 0");
         usdc.balanceOf(user0).eq(1000e6, "usdc balance should be 1000");
         usdc.balanceOf(address(kresko)).eq(0, "usdc balance should be 0");
     }
@@ -170,11 +173,10 @@ contract SCDPTest is Tested, Deploy {
 
         kresko.getSwapDepositsSCDP(address(kiss)).eq(0, "swap deposits should be 0");
         uint256 kissBalBefore = kiss.balanceOf(address(kresko));
-        (uint256 amountOut, uint256 feesDistributed, uint256 feesToProtocol) = _previewSwap(
+        (uint256 amountOut, uint256 feesDistributed, uint256 feesToProtocol) = kresko.previewSwapSCDP(
             address(kiss),
             address(krETH),
-            1000e18,
-            0
+            1000e18
         );
         _swap(user0, address(kiss), 1000e18, address(krETH));
 
@@ -202,7 +204,7 @@ contract SCDPTest is Tested, Deploy {
         kiss.transfer(user1, 20000e18);
 
         _poolDeposit(deployer, address(kiss), 5000e18);
-        (, uint256 feesDistributed, ) = _previewSwap(address(kiss), address(krETH), 1000e18, 0);
+        (, uint256 feesDistributed, ) = kresko.previewSwapSCDP(address(kiss), address(krETH), 1000e18);
 
         _swap(user0, address(kiss), 1000e18, address(krETH));
 
@@ -244,7 +246,7 @@ contract SCDPTest is Tested, Deploy {
         kiss.transfer(user1, 20000e18);
 
         _poolDeposit(deployer, address(kiss), 5000e18);
-        (, uint256 feesDistributed, ) = _previewSwap(address(kiss), address(krETH), 1000e18, 0);
+        (, uint256 feesDistributed, ) = kresko.previewSwapSCDP(address(kiss), address(krETH), 1000e18);
 
         _swap(user0, address(kiss), 1000e18, address(krETH));
         kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(feesDistributed, "feesDistributed-1");
@@ -313,9 +315,9 @@ contract SCDPTest is Tested, Deploy {
     function testClaimFeeGasNoSwaps() public {
         prank(deployer);
         _poolDeposit(deployer, address(kiss), 50000e18);
-        (, uint256 feesDistributed, ) = _previewSwap(address(kiss), address(krETH), 1000e18, 0);
+        (, uint256 feesDistributed, ) = kresko.previewSwapSCDP(address(kiss), address(krETH), 1000e18);
 
-        rsCall(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETHAddr, 1000e18, 0);
+        kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, 1000e18, 0, updateData));
         _liquidate(75, 1000e18, 0.01e18);
 
         uint256 kissBalBefore = kiss.balanceOf(deployer);
@@ -337,7 +339,7 @@ contract SCDPTest is Tested, Deploy {
         uint256 fees = kresko.getAccountFeesSCDP(deployer, address(kiss));
         fees.gt(0, "fees");
         uint256 kissBalBefore = kiss.balanceOf(deployer);
-        rsCall(kresko.emergencyWithdrawSCDP.selector, deployer, address(kiss), 1000e18, deployer);
+        kresko.emergencyWithdrawSCDP(SCDPWithdrawArgs(deployer, address(kiss), 1000e18, deployer), updateData);
 
         (kiss.balanceOf(deployer) - kissBalBefore).eq(1000e18, "received-withdraw");
         kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(0, "fees-after");
@@ -347,50 +349,50 @@ contract SCDPTest is Tested, Deploy {
         bool success;
         uint256 amount = 1000e18;
 
-        bytes memory depositData = abi.encodePacked(
-            abi.encodeWithSelector(kresko.depositSCDP.selector, user0, address(kiss), amount),
-            rsPayload
-        );
+        bytes memory depositData = abi.encodeWithSelector(kresko.depositSCDP.selector, user0, address(kiss), amount);
+
         uint256 gasDeposit = gasleft();
         (success, ) = address(kresko).call(depositData);
         (gasDeposit - gasleft()).clg("gasPoolDeposit");
-        require(success, "!success");
+        require(success, "!success pool deposit");
 
-        bytes memory withdrawData = abi.encodePacked(
-            abi.encodeWithSelector(kresko.withdrawSCDP.selector, user0, address(kiss), amount, user0),
-            rsPayload
+        bytes memory withdrawData = abi.encodeWithSelector(
+            kresko.withdrawSCDP.selector,
+            SCDPWithdrawArgs(user0, address(kiss), amount, user0),
+            updateData
         );
         uint256 gasWithdraw = gasleft();
         (success, ) = address(kresko).call(withdrawData);
         (gasWithdraw - gasleft()).clg("gasPoolWithdraw");
 
-        require(success, "!success");
+        require(success, "!success pool withdraw");
 
         (success, ) = address(kresko).call(depositData);
 
-        bytes memory swapData = abi.encodePacked(
-            abi.encodeWithSelector(kresko.swapSCDP.selector, user0, address(kiss), address(krETH), amount, 0),
-            rsPayload
+        bytes memory swapData = abi.encodeWithSelector(
+            kresko.swapSCDP.selector,
+            SwapArgs(user0, address(kiss), address(krETH), amount, 0, updateData)
         );
         uint256 gasSwap = gasleft();
         (success, ) = address(kresko).call(swapData);
         (gasSwap - gasleft()).clg("gasPoolSwap");
 
-        require(success, "!success");
+        require(success, "!success pool swap 1");
 
-        bytes memory swapData2 = abi.encodePacked(
-            abi.encodeWithSelector(kresko.swapSCDP.selector, user0, address(krETH), address(kiss), krETH.balanceOf(user0), 0),
-            rsPayload
+        bytes memory swapData2 = abi.encodeWithSelector(
+            kresko.swapSCDP.selector,
+            SwapArgs(user0, address(krETH), address(kiss), krETH.balanceOf(user0), 0, updateData)
         );
+
         uint256 gasSwap2 = gasleft();
         (success, ) = address(kresko).call(swapData2);
         (gasSwap2 - gasleft()).clg("gasPoolSwap2");
 
-        require(success, "!success");
+        require(success, "!success pool swap 2");
 
-        bytes memory swapData3 = abi.encodePacked(
-            abi.encodeWithSelector(kresko.swapSCDP.selector, user0, address(kiss), address(krETH), kiss.balanceOf(user0), 0),
-            rsPayload
+        bytes memory swapData3 = abi.encodeWithSelector(
+            kresko.swapSCDP.selector,
+            SwapArgs(user0, address(kiss), address(krETH), kiss.balanceOf(user0), 0, updateData)
         );
         uint256 gasSwap3 = gasleft();
         (success, ) = address(kresko).call(swapData3);
@@ -404,7 +406,6 @@ contract SCDPTest is Tested, Deploy {
     function _liquidate(uint256 times, uint256, uint256 liquidateAmount) internal repranked(getAddr(0)) {
         for (uint256 i; i < times; i++) {
             _setETHPrice(uint256(90000e8));
-            rsStatic(kresko.getCollateralRatioSCDP.selector).clg("CR-before");
             if (i > 40) {
                 liquidateAmount = liquidateAmount.percentMul(0.50e4);
             }
@@ -416,16 +417,15 @@ contract SCDPTest is Tested, Deploy {
     function _swapAndLiquidate(uint256 times, uint256 swapAmount, uint256 liquidateAmount) internal repranked(getAddr(0)) {
         for (uint256 i; i < times; i++) {
             _setETHPrice(uint256(2000e8));
-            (uint256 amountOut, , ) = _previewSwap(address(kiss), address(krETH), swapAmount, 0);
-            rsCall(kresko.swapSCDP.selector, getAddr(0), address(kiss), krETHAddr, swapAmount, 0);
+            (uint256 amountOut, , ) = kresko.previewSwapSCDP(address(kiss), address(krETH), swapAmount);
+            kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, swapAmount, 0, updateData));
             _setETHPrice(uint256(90000e8));
-            rsStatic(kresko.getCollateralRatioSCDP.selector).clg("CR-before");
             if (i > 40) {
                 liquidateAmount = liquidateAmount.percentMul(0.50e4);
             }
             _liquidate(krETHAddr, liquidateAmount.percentMul(1e4 - (100 * i)), address(kiss));
             _setETHPrice(uint256(2000e8));
-            rsCall(kresko.swapSCDP.selector, getAddr(0), krETHAddr, address(kiss), amountOut, 0);
+            kresko.swapSCDP(SwapArgs(getAddr(0), krETHAddr, address(kiss), amountOut, 0, updateData));
         }
     }
 
@@ -433,17 +433,17 @@ contract SCDPTest is Tested, Deploy {
         prank(admin);
         kresko.setFeeAssetSCDP(asset);
         prank(user);
-        rsCall(kresko.depositSCDP.selector, user, asset, amount);
+        kresko.depositSCDP(user, asset, amount);
         prank(admin);
         kresko.setFeeAssetSCDP(address(kiss));
     }
 
     function _poolWithdraw(address user, address asset, uint256 amount) internal repranked(user) {
-        rsCall(kresko.withdrawSCDP.selector, user, asset, amount, user);
+        kresko.withdrawSCDP(SCDPWithdrawArgs(user, asset, amount, user), updateData);
     }
 
     function _swap(address user, address assetIn, uint256 amount, address assetOut) internal repranked(user) {
-        rsCall(kresko.swapSCDP.selector, user, assetIn, assetOut, amount, 0);
+        kresko.swapSCDP(SwapArgs(user, assetIn, assetOut, amount, 0, updateData));
     }
 
     function _liquidate(
@@ -451,16 +451,8 @@ contract SCDPTest is Tested, Deploy {
         uint256 _repayAmount,
         address _seizeAsset
     ) internal repranked(liquidator) returns (uint256 crAfter, uint256 debtValAfter, uint256 debtAmountAfter) {
-        rsCall(kresko.liquidateSCDP.selector, _repayAsset, _repayAmount, _seizeAsset);
-        return (
-            rsStatic(kresko.getCollateralRatioSCDP.selector),
-            rsStatic(kresko.getDebtValueSCDP.selector, _repayAsset, true),
-            kresko.getDebtSCDP(_repayAsset)
-        );
-    }
-
-    function _cover(address asset, uint256 amount) internal {
-        rsCall(kresko.coverSCDP.selector, asset, amount);
+        kresko.liquidateSCDP(SCDPLiquidationArgs(_repayAsset, _repayAmount, _seizeAsset, updateData));
+        return (kresko.getCollateralRatioSCDP(), kresko.getDebtValueSCDP(_repayAsset, true), kresko.getDebtSCDP(_repayAsset));
     }
 
     function _approvals(address user) internal pranked(user) {
@@ -471,20 +463,16 @@ contract SCDPTest is Tested, Deploy {
     }
 
     function _printInfo(string memory prefix) internal {
-        __printInfo(prefix, rsPrices);
-    }
-
-    function __printInfo(string memory prefix, string memory) internal {
         prefix = prefix.and(" | ");
         prefix.and("*****************").clg();
-        uint256 sdiPrice = rsStatic(kresko.getSDIPrice.selector);
-        uint256 sdiTotalSupply = rsStatic(kresko.totalSDI.selector);
-        uint256 totalCover = rsStatic(kresko.getSDICoverAmount.selector);
-        uint256 collateralUSD = rsStatic(kresko.getTotalCollateralValueSCDP.selector, false);
-        uint256 debtUSD = rsStatic(kresko.getTotalDebtValueSCDP.selector, false);
+        uint256 sdiPrice = kresko.getSDIPrice();
+        uint256 sdiTotalSupply = kresko.totalSDI();
+        uint256 totalCover = kresko.getSDICoverAmount();
+        uint256 collateralUSD = kresko.getTotalCollateralValueSCDP(false);
+        uint256 debtUSD = kresko.getTotalDebtValueSCDP(false);
 
-        uint256 effectiveDebt = rsStatic(kresko.getEffectiveSDIDebt.selector);
-        uint256 effectiveDebtValue = rsStatic(kresko.getEffectiveSDIDebtUSD.selector);
+        uint256 effectiveDebt = kresko.getEffectiveSDIDebt();
+        uint256 effectiveDebtValue = kresko.getEffectiveSDIDebtUSD();
 
         sdiPrice.dlg(prefix.and("SDI Price"));
         sdiTotalSupply.dlg(prefix.and("SDI totalSupply"));
@@ -497,28 +485,18 @@ contract SCDPTest is Tested, Deploy {
         effectiveDebtValue.dlg(prefix.and("SCDP SDI Debt USD"), 8);
         totalCover.mulWad(sdiPrice).dlg(prefix.and("SCDP SDI Cover USD"));
 
-        rsStatic(kresko.getCollateralRatioSCDP.selector).pct(prefix.and("SCDP CR %"));
+        kresko.getCollateralRatioSCDP().pct(prefix.and("SCDP CR %"));
     }
 
     function _setETHPrice(uint256 price) internal repranked(admin) {
-        rsInit("ETH:".and((price / 1e8).str().and(":8")));
-        // MockOracle(kresko.get(address(krETH))).setPrice(price);
-        MockOracle(kresko.getFeedForId(bytes32("ETH"), Enums.OracleType.Chainlink)).setPrice(price);
-    }
-
-    function _previewSwap(
-        address _assetIn,
-        address _assetOut,
-        uint256 _amountIn,
-        uint256 _minAmountOut
-    ) internal view returns (uint256, uint256, uint256) {
-        (bool success, bytes memory data) = address(kresko).staticcall(
-            abi.encodePacked(
-                abi.encodeWithSelector(kresko.previewSwapSCDP.selector, _assetIn, _assetOut, _amountIn, _minAmountOut),
-                rsPayload
-            )
-        );
-        if (!success) _revert(data);
-        return abi.decode(data, (uint256, uint256, uint256));
+        MockOracle(kresko.getOracleOfTicker(bytes32("ETH"), Enums.OracleType.Chainlink).feed).setPrice(price);
+        JSON.Config memory cfg = JSON.getConfig("test", "test-clean");
+        for (uint256 i = 0; i < cfg.assets.tickers.length; i++) {
+            if (cfg.assets.tickers[i].ticker.equals("ETH")) {
+                cfg.assets.tickers[i].mockPrice = price;
+            }
+        }
+        updateData = getPythData(cfg);
+        pythEp.updatePriceFeeds(updateData);
     }
 }

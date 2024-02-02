@@ -1,9 +1,17 @@
 import type { HardhatUserConfig } from 'hardhat/config'
 
-const DEPLOYER_INDEX = process.env.DEPLOYER_INDEX == null ? 0 : parseInt(process.env.DEPLOYER_INDEX)
+const validateEnv = (env: any) => {
+  if (env === '' || env == null) {
+    return false
+  }
+  return true
+}
+
+const DEPLOYER_INDEX = validateEnv(process.env.DEPLOYER_INDEX) ? parseInt(process.env.DEPLOYER_INDEX!) : 0
+
 export const hardhatUsers = {
   admin: {
-    default: !process.env.ADMIN ? DEPLOYER_INDEX : process.env.ADMIN,
+    default: validateEnv(process.env.ADMIN) ? process.env.ADMIN! : DEPLOYER_INDEX,
   },
   deployer: {
     default: DEPLOYER_INDEX,
@@ -20,7 +28,7 @@ export const hardhatUsers = {
     421613: '0x83b92b8A21d56941cB9d056B36E0cC2aDa15f1E1',
   },
   treasury: {
-    default: !process.env.TREASURY ? 10 : process.env.TREASURY,
+    default: validateEnv(process.env.TREASURY) ? process.env.TREASURY! : 10,
   },
   /* ------------------------------- test users ------------------------------- */
   liquidator: {

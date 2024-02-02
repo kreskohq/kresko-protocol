@@ -32,7 +32,7 @@ describe('Minter - Liquidations', function () {
       expect(f.initialDeposits.mul(10).gt(minCollateralUSD))
       expect(initialCanLiquidate).to.equal(false)
 
-      f.Collateral.setPrice(7.5)
+      await f.Collateral.setPrice(7.5)
       expect(await hre.Diamond.getAccountLiquidatable(f.user1.address)).to.equal(true)
     })
   })
@@ -74,7 +74,7 @@ describe('Minter - Liquidations', function () {
         asset: f.Collateral8Dec,
       })
 
-      f.Collateral.setPrice(7.5)
+      await f.Collateral.setPrice(7.5)
       expect(await hre.Diamond.getAccountLiquidatable(f.user1.address)).to.be.true
 
       const [maxLiq, maxLiq8Dec] = await Promise.all([
@@ -90,7 +90,7 @@ describe('Minter - Liquidations', function () {
   describe('#liquidation', () => {
     describe('#liquidate', () => {
       beforeEach(async function () {
-        f.Collateral.setPrice(7.5)
+        await f.Collateral.setPrice(7.5)
       })
 
       it('should allow unhealthy accounts to be liquidated', async function () {
@@ -110,6 +110,7 @@ describe('Minter - Liquidations', function () {
           seizeAssetAddr: f.Collateral.address,
           repayAssetIndex: optimized.getAccountMintIndex(f.user1.address, f.KrAsset.address),
           seizeAssetIndex: optimized.getAccountDepositIndex(f.user1.address, f.Collateral.address),
+          prices: await hre.updateData(),
         })
 
         // Confirm that the liquidated user's debt amount has decreased by the repaid amount
@@ -144,6 +145,7 @@ describe('Minter - Liquidations', function () {
           seizeAssetAddr: f.Collateral.address,
           repayAssetIndex: maxLiq.repayAssetIndex,
           seizeAssetIndex: maxLiq.seizeAssetIndex,
+          prices: await hre.updateData(),
         })
 
         expect(await hre.Diamond.getAccountCollateralRatio(f.user1.address)).to.be.eq(
@@ -160,8 +162,8 @@ describe('Minter - Liquidations', function () {
           asset: f.Collateral8Dec,
         })
 
-        f.Collateral.setPrice(5.5)
-        f.Collateral8Dec.setPrice(6)
+        await f.Collateral.setPrice(5.5)
+        await f.Collateral8Dec.setPrice(6)
 
         await hre.Diamond.setAssetCFactor(f.Collateral.address, 0.9754e4)
         await hre.Diamond.setAssetKFactor(f.KrAsset.address, 1.05e4)
@@ -187,6 +189,7 @@ describe('Minter - Liquidations', function () {
           seizeAssetAddr: f.Collateral.address,
           repayAssetIndex: optimized.getAccountMintIndex(f.user1.address, f.KrAsset.address),
           seizeAssetIndex: optimized.getAccountDepositIndex(f.user1.address, f.Collateral.address),
+          prices: await hre.updateData(),
         })
 
         const event = await getNamedEvent<LiquidationOccurredEvent>(tx, 'LiquidationOccurred')
@@ -199,7 +202,7 @@ describe('Minter - Liquidations', function () {
       })
 
       it('should not allow liquidations of healthy accounts', async function () {
-        f.Collateral.setPrice(10)
+        await f.Collateral.setPrice(10)
         const repayAmount = 10
         const mintedKreskoAssetIndex = 0
         const depositedCollateralAssetIndex = 0
@@ -211,6 +214,7 @@ describe('Minter - Liquidations', function () {
             seizeAssetAddr: f.Collateral.address,
             repayAssetIndex: mintedKreskoAssetIndex,
             seizeAssetIndex: depositedCollateralAssetIndex,
+            prices: await hre.updateData(),
           }),
         )
           .to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE_HEALTHY_ACCOUNT')
@@ -228,6 +232,7 @@ describe('Minter - Liquidations', function () {
             seizeAssetAddr: f.Collateral.address,
             repayAssetIndex: 0,
             seizeAssetIndex: 0,
+            prices: await hre.updateData(),
           }),
         )
           .to.be.revertedWithCustomError(Errors(hre), 'LIQUIDATION_VALUE_IS_ZERO')
@@ -255,6 +260,7 @@ describe('Minter - Liquidations', function () {
           seizeAssetAddr: f.Collateral.address,
           repayAssetIndex: 0,
           seizeAssetIndex: 0,
+          prices: await hre.updateData(),
         })
         const event = await getNamedEvent<LiquidationOccurredEvent>(tx, 'LiquidationOccurred')
         const liquidatorBalanceAfter = await f.KrAsset.balanceOf(f.liquidatorTwo.address)
@@ -275,7 +281,7 @@ describe('Minter - Liquidations', function () {
       })
 
       it('should not allow liquidations when account is under MCR but not under liquidation threshold', async function () {
-        f.Collateral.setPrice(f.Collateral.config!.args.price!)
+        await f.Collateral.setPrice(f.Collateral.config!.args.price!)
 
         expect(await hre.Diamond.getAccountLiquidatable(f.user1.address)).to.be.false
 
@@ -287,7 +293,7 @@ describe('Minter - Liquidations', function () {
           f.user1.address,
           optimized.getLiquidationThresholdMinter(),
         )
-        f.Collateral.setPrice(9.9)
+        await f.Collateral.setPrice(9.9)
 
         const accountCollateralValue = await hre.Diamond.getAccountTotalCollateralValue(f.user1.address)
 
@@ -308,6 +314,7 @@ describe('Minter - Liquidations', function () {
           seizeAssetAddr: f.Collateral.address,
           repayAssetIndex: 0,
           seizeAssetIndex: 0,
+          prices: await hre.updateData(),
         })
 
         // Confirm that f.liquidator's token approval is still 0
@@ -329,6 +336,7 @@ describe('Minter - Liquidations', function () {
             seizeAssetAddr: f.Collateral.address,
             repayAssetIndex: 0,
             seizeAssetIndex: 0,
+            prices: await hre.updateData(),
           }),
         ).not.to.be.reverted
 
@@ -347,11 +355,12 @@ describe('Minter - Liquidations', function () {
             seizeAssetAddr: f.Collateral.address,
             repayAssetIndex: 0,
             seizeAssetIndex: 0,
+            prices: await hre.updateData(),
           }),
         ).to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE_SELF')
       })
       it.skip('should error on seize underflow', async function () {
-        f.Collateral.setPrice(8)
+        await f.Collateral.setPrice(8)
 
         const liqAmount = await getLiqAmount(f.user1, f.KrAsset, f.Collateral)
         // const allowSeizeUnderflow = false;
@@ -364,6 +373,7 @@ describe('Minter - Liquidations', function () {
             seizeAssetAddr: f.Collateral.address,
             repayAssetIndex: optimized.getAccountMintIndex(f.user1.address, f.KrAsset.address),
             seizeAssetIndex: optimized.getAccountDepositIndex(f.user1.address, f.Collateral.address),
+            prices: await hre.updateData(),
           }),
         ).to.be.revertedWithCustomError(Errors(hre), 'LIQUIDATION_SEIZED_LESS_THAN_EXPECTED')
       })
@@ -391,7 +401,7 @@ describe('Minter - Liquidations', function () {
         const positive = true
         const rebasePrice = 1 / denominator
 
-        f.KrAsset.setPrice(rebasePrice)
+        await f.KrAsset.setPrice(rebasePrice)
         await f.KrAsset.contract.rebase(toBig(denominator), positive, [])
         await expect(
           f.Liquidator.liquidate({
@@ -401,6 +411,7 @@ describe('Minter - Liquidations', function () {
             seizeAssetAddr: f.Collateral.address,
             repayAssetIndex: optimized.getAccountMintIndex(f.user4.address, f.KrAsset.address),
             seizeAssetIndex: optimized.getAccountDepositIndex(f.user4.address, f.Collateral.address),
+            prices: await hre.updateData(),
           }),
         )
           .to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE_HEALTHY_ACCOUNT')
@@ -412,7 +423,7 @@ describe('Minter - Liquidations', function () {
         const positive = false
         const rebasePrice = 1 * denominator
 
-        f.KrAsset.setPrice(rebasePrice)
+        await f.KrAsset.setPrice(rebasePrice)
         await f.KrAsset.contract.rebase(toBig(denominator), positive, [])
 
         await expect(
@@ -423,6 +434,7 @@ describe('Minter - Liquidations', function () {
             seizeAssetAddr: f.Collateral.address,
             repayAssetIndex: optimized.getAccountMintIndex(f.user4.address, f.KrAsset.address),
             seizeAssetIndex: optimized.getAccountDepositIndex(f.user4.address, f.Collateral.address),
+            prices: await hre.updateData(),
           }),
         )
           .to.be.revertedWithCustomError(Errors(hre), 'CANNOT_LIQUIDATE_HEALTHY_ACCOUNT')
@@ -433,12 +445,12 @@ describe('Minter - Liquidations', function () {
         const positive = true
         const rebasePrice = 1 / denominator
 
-        f.KrAsset.setPrice(rebasePrice)
+        await f.KrAsset.setPrice(rebasePrice)
         await f.KrAsset.contract.rebase(toBig(denominator), positive, [])
 
         expect(await hre.Diamond.getAccountLiquidatable(f.user4.address)).to.be.false
 
-        f.Collateral.setPrice(7.5)
+        await f.Collateral.setPrice(7.5)
 
         expect(await hre.Diamond.getAccountLiquidatable(f.user4.address)).to.be.true
         await liquidate(f.user4, f.KrAsset, f.Collateral, true)
@@ -449,16 +461,16 @@ describe('Minter - Liquidations', function () {
         const positive = false
         const rebasePrice = 1 * denominator
 
-        f.KrAsset.setPrice(rebasePrice)
+        await f.KrAsset.setPrice(rebasePrice)
         await f.KrAsset.contract.rebase(toBig(denominator), positive, [])
 
         expect(await hre.Diamond.getAccountLiquidatable(f.user4.address)).to.be.false
-        f.KrAsset.setPrice(rebasePrice + 1)
+        await f.KrAsset.setPrice(rebasePrice + 1)
         expect(await hre.Diamond.getAccountLiquidatable(f.user4.address)).to.be.true
         await expect(liquidate(f.user4, f.KrAsset, f.Collateral, true)).to.not.be.reverted
       })
       it('should liquidate krAsset collaterals up to min amount', async function () {
-        f.KrAssetCollateral.setPrice(100)
+        await f.KrAssetCollateral.setPrice(100)
         await hre.Diamond.setAssetCFactor(f.KrAssetCollateral.address, 0.99e4)
         await hre.Diamond.setAssetKFactor(f.KrAssetCollateral.address, 1e4)
 
@@ -476,6 +488,7 @@ describe('Minter - Liquidations', function () {
           seizeAssetAddr: f.KrAssetCollateral.address,
           repayAssetIndex: maxLiq.repayAssetIndex,
           seizeAssetIndex: maxLiq.seizeAssetIndex,
+          prices: await hre.updateData(),
         })
 
         const depositsAfter = await hre.Diamond.getAccountCollateralAmount(f.user3.address, f.KrAssetCollateral.address)
@@ -483,7 +496,7 @@ describe('Minter - Liquidations', function () {
         expect(depositsAfter).to.equal((1e12).toString())
       })
       it('should liquidate to 0', async function () {
-        f.KrAssetCollateral.setPrice(100)
+        await f.KrAssetCollateral.setPrice(100)
         await hre.Diamond.setAssetCFactor(f.KrAssetCollateral.address, 1e4)
         await hre.Diamond.setAssetKFactor(f.KrAssetCollateral.address, 1e4)
 
@@ -503,6 +516,7 @@ describe('Minter - Liquidations', function () {
           seizeAssetAddr: f.KrAssetCollateral.address,
           repayAssetIndex: maxLiq.repayAssetIndex,
           seizeAssetIndex: maxLiq.seizeAssetIndex,
+          prices: await hre.updateData(),
         })
 
         const depositsAfter = await hre.Diamond.getAccountCollateralAmount(f.user3.address, f.KrAssetCollateral.address)
@@ -512,7 +526,7 @@ describe('Minter - Liquidations', function () {
 
       it('should liquidate correct amount of krAssets after a positive rebase', async function () {
         const newPrice = 1.2
-        f.KrAsset.setPrice(newPrice)
+        await f.KrAsset.setPrice(newPrice)
 
         const results = {
           collateralSeized: 0,
@@ -540,7 +554,7 @@ describe('Minter - Liquidations', function () {
         const rebasePrice = newPrice / denominator
 
         // Rebase
-        f.KrAsset.setPrice(rebasePrice)
+        await f.KrAsset.setPrice(rebasePrice)
         await f.KrAsset.contract.rebase(toBig(denominator), positive, [])
 
         expect(await hre.Diamond.getAccountLiquidatable(f.user5.address)).to.be.true
@@ -561,7 +575,7 @@ describe('Minter - Liquidations', function () {
       })
       it('should liquidate correct amount of assets after a negative rebase', async function () {
         const newPrice = 1.2
-        f.KrAsset.setPrice(newPrice)
+        await f.KrAsset.setPrice(newPrice)
 
         const results = {
           collateralSeized: 0,
@@ -590,7 +604,7 @@ describe('Minter - Liquidations', function () {
         const rebasePrice = newPrice * denominator
 
         // Rebase
-        f.KrAsset.setPrice(rebasePrice)
+        await f.KrAsset.setPrice(rebasePrice)
         await f.KrAsset.contract.rebase(toBig(denominator), positive, [])
 
         expect(await hre.Diamond.getAccountLiquidatable(f.user5.address)).to.be.true

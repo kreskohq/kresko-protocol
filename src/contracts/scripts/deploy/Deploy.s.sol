@@ -4,27 +4,29 @@ pragma solidity 0.8.23;
 
 import {DeployBase} from "scripts/deploy/DeployBase.s.sol";
 import {Scripted} from "kresko-lib/utils/Scripted.s.sol";
-import {RsScript} from "kresko-lib/utils/ffi/RsScript.s.sol";
-import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
-import {LibDeployMocks} from "scripts/deploy/libs/LibDeployMocks.s.sol";
+import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
+import {LibMocks} from "scripts/deploy/libs/LibMocks.s.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {LibDeployUtils} from "scripts/deploy/libs/LibDeployUtils.s.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {Ownable} from "@oz/access/Ownable.sol";
-import "scripts/deploy/libs/JSON.s.sol" as JSON;
+import "scripts/deploy/JSON.s.sol" as JSON;
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
-import {Role} from "common/Constants.sol";
+import {Enums, Role} from "common/Constants.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import {Asset} from "common/Types.sol";
+import {Asset, FeedConfiguration} from "common/Types.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
+import {IPyth} from "vendor/pyth/IPyth.sol";
+import {getPythData} from "vendor/pyth/PythScript.sol";
+import {MintArgs} from "common/Args.sol";
 
-contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
-    using LibDeployConfig for *;
-    using LibDeployMocks for *;
+contract Deploy is Scripted, DeployBase {
+    using LibJSON for *;
+    using LibMocks for *;
     using LibDeploy for *;
     using Deployed for *;
     using LibDeployUtils for *;
@@ -33,67 +35,8 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     mapping(bytes32 => bool) tickerExists;
     mapping(bytes32 => bool) routeExists;
     SwapRouteSetter[] routeCache;
-
-    function deploy(
-        string memory network,
-        string memory mnemonicEnv,
-        uint32 deployer,
-        bool saveOutput,
-        bool disableLog
-    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory) {
-        return deploy(network, network, mnemonicEnv, deployer, saveOutput, disableLog);
-    }
-
-    function deploy(
-        string memory network,
-        string memory configId,
-        string memory mnemonicEnv,
-        uint32 deployer,
-        bool saveOutput,
-        bool disableLog
-    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
-        if (disableLog) LibDeploy.disableLog();
-        else Log.clg(network.and(":").and(configId), "Deploying");
-        if (saveOutput) LibDeploy.initOutputJSON(configId);
-
-        json = exec(JSON.getConfig(network, configId), getAddr(deployer), disableLog);
-
-        if (saveOutput) LibDeploy.writeOutputJSON();
-    }
-
-    function deployTest(uint32 deployer) public returns (JSON.Config memory) {
-        return deploy("test", "test-base", "MNEMONIC_DEVNET", deployer, false, true);
-    }
-
-    function deployTest(string memory mnemonic, string memory configId, uint32 deployer) public returns (JSON.Config memory) {
-        return deploy("test", configId, mnemonic, deployer, false, true);
-    }
-
-    function deployFrom(
-        string memory dir,
-        string memory configId,
-        string memory mnemonicEnv,
-        uint32 deployer,
-        bool saveOutput,
-        bool disableLog
-    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
-        if (disableLog) LibDeploy.disableLog();
-        else Log.clg(dir.and(configId), "Deploying from");
-        if (saveOutput) LibDeploy.initOutputJSON(configId);
-
-        json = exec(JSON.getConfigFrom(dir, configId), getAddr(deployer), disableLog);
-
-        if (saveOutput) LibDeploy.writeOutputJSON();
-    }
-
-    function deployFromTest(
-        string memory mnemonic,
-        string memory dir,
-        string memory configId,
-        uint32 deployer
-    ) public returns (JSON.Config memory) {
-        return deployFrom(dir, configId, mnemonic, deployer, false, true);
-    }
+    bytes[] updateData;
+    uint256 updateFee;
 
     function exec(
         JSON.Config memory json,
@@ -109,6 +52,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
         // Create configured mocks, updates the received config with addresses.
         json = json.createMocks(deployer);
+        pythEp = IPyth(json.params.common.pythEp);
         weth = json.assets.wNative.token;
         // Set tokens to cache as we know them at this point.
         json.cacheExtTokens();
@@ -121,7 +65,6 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
 
         // Create base contracts
         address diamond = super.deployDiamond(json, deployer);
-        super.rsInit(diamond, json.assets.rsPrices);
 
         vault = json.createVault(deployer);
         kiss = json.createKISS(diamond, address(vault));
@@ -149,7 +92,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         delete routeCache;
 
         /* ---------------------------- Periphery --------------------------- */
-        multicall = json.createMulticall(diamond, address(kiss));
+        multicall = json.createMulticall(diamond, address(kiss), address(pythEp));
         dataV1 = json.createDataV1(diamond, address(vault), address(kiss));
 
         /* ------------------------------ Users ----------------------------- */
@@ -182,12 +125,23 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     }
 
     function _addKISS(JSON.Config memory json) private {
-        address[2] memory kissFeeds = [address(vault), address(0)];
         json
             .assets
             .kiss
             .symbol
-            .cache(kresko.addAsset(address(kiss), json.assets.kiss.config.toAsset(json.assets.kiss.symbol), kissFeeds))
+            .cache(
+                kresko.addAsset(
+                    address(kiss),
+                    json.assets.kiss.config.toAsset(json.assets.kiss.symbol),
+                    FeedConfiguration(
+                        [Enums.OracleType.Vault, Enums.OracleType.Empty],
+                        [address(vault), address(0)],
+                        [uint256(0), 0],
+                        bytes32(0),
+                        false
+                    )
+                )
+            )
             .logAsset(address(kresko), address(kiss));
         kresko.setFeeAssetSCDP(address(kiss));
     }
@@ -203,14 +157,14 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         for (uint256 i; i < json.assets.extAssets.length; i++) {
             JSON.ExtAsset memory eAsset = json.assets.extAssets[i];
             Asset memory assetConfig = eAsset.config.toAsset(eAsset.symbol);
-            address[2] memory feeds = [address(0), address(0)];
+            FeedConfiguration memory feedConfig;
             if (!tickerExists[assetConfig.ticker]) {
-                feeds = json.getFeeds(eAsset.config.ticker, eAsset.config.oracles);
+                feedConfig = json.getFeeds(eAsset.config.ticker, eAsset.config.oracles);
                 tickerExists[assetConfig.ticker] = true;
             }
 
             tickerExists[assetConfig.ticker] = true;
-            eAsset.symbol.cache(kresko.addAsset(eAsset.addr, assetConfig, feeds)).logAsset(diamond, eAsset.addr);
+            eAsset.symbol.cache(kresko.addAsset(eAsset.addr, assetConfig, feedConfig)).logAsset(diamond, eAsset.addr);
         }
     }
 
@@ -219,14 +173,14 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
             JSON.KrAssetConfig memory krAsset = json.assets.kreskoAssets[i];
 
             Asset memory assetConfig = krAsset.config.toAsset(krAsset.symbol);
-            address[2] memory feeds = [address(0), address(0)];
+            FeedConfiguration memory feedConfig;
             if (!tickerExists[assetConfig.ticker]) {
-                feeds = json.getFeeds(krAsset.config.ticker, krAsset.config.oracles);
+                feedConfig = json.getFeeds(krAsset.config.ticker, krAsset.config.oracles);
                 tickerExists[assetConfig.ticker] = true;
             }
 
             address assetAddr = krAsset.symbol.cached();
-            krAsset.symbol.cache(kresko.addAsset(assetAddr, assetConfig, feeds)).logAsset(diamond, assetAddr);
+            krAsset.symbol.cache(kresko.addAsset(assetAddr, assetConfig, feedConfig)).logAsset(diamond, assetAddr);
         }
     }
 
@@ -235,6 +189,8 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
     /* ---------------------------------------------------------------------- */
 
     function setupUsers(JSON.Config memory json, address deployer, bool disableLog) private reclearCallers {
+        updateData = getPythData(json);
+        updateFee = pythEp.getUpdateFee(updateData);
         setupBalances(json.users, json.assets);
         setupSCDP(json.users, json.assets);
         setupMinter(json.users, json.assets);
@@ -346,7 +302,14 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
         }
 
         if (pos.mintAmount == 0) return;
-        rsCall(kresko.mintKreskoAsset.selector, user, pos.mintSymbol.cached(), pos.mintAmount, user);
+        if (user.balance < 0.005 ether) {
+            vm.deal(getAddr(0), 0.01 ether);
+            broadcastWith(0);
+            payable(user).transfer(0.005 ether);
+            broadcastWith(user);
+        }
+        kresko.mintKreskoAsset{value: updateFee}(MintArgs(user, pos.mintSymbol.cached(), pos.mintAmount, user), updateData);
+        // rsCall(kresko.mintKreskoAsset.selector, user, pos.mintSymbol.cached(), pos.mintAmount, user);
     }
 
     function setupKISSBalance(
@@ -400,7 +363,7 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
             address user = users.get(i);
             if (users.nfts.useMocks) {
                 if (i < 5) {
-                    okNFT.mint(user, 0, 1, "");
+                    okNFT.mint(user, 0, 3, "");
                 }
                 if (i < 3) {
                     qfkNFT.mint(user, 0, 1, "");
@@ -446,5 +409,66 @@ contract Deploy is Scripted, DeployBase, RsScript("./utils/rsPayload.js") {
 
     function _transfer(address from, address to, address token, uint256 amount) internal rebroadcasted(from) {
         MockERC20(token).transfer(to, amount);
+    }
+
+    function deploy(
+        string memory network,
+        string memory mnemonicEnv,
+        uint32 deployer,
+        bool saveOutput,
+        bool disableLog
+    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory) {
+        return deploy(network, network, mnemonicEnv, deployer, saveOutput, disableLog);
+    }
+
+    function deploy(
+        string memory network,
+        string memory configId,
+        string memory mnemonicEnv,
+        uint32 deployer,
+        bool saveOutput,
+        bool disableLog
+    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
+        if (disableLog) LibDeploy.disableLog();
+        else Log.clg(network.and(":").and(configId), "Deploying");
+        if (saveOutput) LibDeploy.initOutputJSON(configId);
+
+        json = exec(JSON.getConfig(network, configId), getAddr(deployer), disableLog);
+
+        if (saveOutput) LibDeploy.writeOutputJSON();
+    }
+
+    function deployTest(uint32 deployer) public returns (JSON.Config memory) {
+        return deploy("test", "test-base", "MNEMONIC_DEVNET", deployer, true, true);
+    }
+
+    function deployTest(string memory mnemonic, string memory configId, uint32 deployer) public returns (JSON.Config memory) {
+        return deploy("test", configId, mnemonic, deployer, true, true);
+    }
+
+    function deployFrom(
+        string memory dir,
+        string memory configId,
+        string memory mnemonicEnv,
+        uint32 deployer,
+        bool saveOutput,
+        bool disableLog
+    ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
+        if (disableLog) LibDeploy.disableLog();
+        else Log.clg(dir.and(configId), "Deploying from");
+        if (saveOutput) LibDeploy.initOutputJSON(configId);
+
+        json = exec(JSON.getConfigFrom(dir, configId), getAddr(deployer), disableLog);
+
+        if (saveOutput) LibDeploy.writeOutputJSON();
+    }
+
+    function deployFromTest(
+        string memory mnemonic,
+        string memory dir,
+        string memory configId,
+        uint32 deployer
+    ) public returns (JSON.Config memory) {
+        return deployFrom(dir, configId, mnemonic, deployer, false, true);
     }
 }

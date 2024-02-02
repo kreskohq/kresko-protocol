@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 import {Deployment, DeploymentFactory} from "factory/DeploymentFactory.sol";
-import {LibDeployConfig} from "scripts/deploy/libs/LibDeployConfig.s.sol";
-import "scripts/deploy/libs/JSON.s.sol" as JSON;
 import {Vault} from "vault/Vault.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 import {Conversions} from "libs/Utils.sol";
@@ -17,15 +15,18 @@ import {IKresko} from "periphery/IKresko.sol";
 import {Help, Log, VM} from "kresko-lib/utils/Libs.s.sol";
 import {GatingManager} from "periphery/GatingManager.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import {CONST} from "scripts/deploy/libs/CONST.s.sol";
+import {CONST} from "scripts/deploy/CONST.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
+import {MockPyth} from "mocks/MockPyth.sol";
+import {getPythViewData, getMockPythPayload, PythView} from "vendor/pyth/PythScript.sol";
+import {LibJSON, JSON} from "scripts/deploy/libs/LibJSON.s.sol";
 
 library LibDeploy {
     using Conversions for bytes[];
     using Log for *;
     using Help for *;
     using Deployed for *;
-    using LibDeployConfig for string;
+    using LibJSON for string;
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
 
@@ -46,6 +47,20 @@ library LibDeploy {
         return GatingManager(implementation.d3("", CONST.GM_SALT).implementation);
     }
 
+    function createMockPythEP(JSON.Config memory json, bool _realPrices) internal saveOutput("MockPythEP") returns (MockPyth) {
+        (bytes32[] memory ids, int64[] memory prices) = json.getMockPrices();
+
+        if (_realPrices) {
+            PythView memory data = getPythViewData(ids);
+            for (uint256 i; i < data.ids.length; i++) {
+                prices[i] = data.prices[i].price;
+            }
+        }
+
+        bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(getMockPythPayload(ids, prices)));
+        return MockPyth(implementation.d3("", CONST.PYTH_MOCK_SALT).implementation);
+    }
+
     function createKISS(
         JSON.Config memory json,
         address kresko,
@@ -53,9 +68,10 @@ library LibDeploy {
     ) internal saveOutput("KISS") returns (KISS result) {
         require(kresko != address(0), "deployKISS: !Kresko");
         require(vault != address(0), "deployKISS: !Vault");
+        string memory name = CONST.KISS_PREFIX.and(json.assets.kiss.name);
         bytes memory initializer = abi.encodeCall(
             KISS.initialize,
-            (CONST.KISS_PREFIX.and(json.assets.kiss.name), json.assets.kiss.symbol, 18, json.params.common.admin, kresko, vault)
+            (name, json.assets.kiss.symbol, 18, json.params.common.admin, kresko, vault)
         );
         result = KISS(address(type(KISS).creationCode.p3(initializer, CONST.KISS_SALT).proxy));
         json.assets.kiss.symbol.cache(address(result));
@@ -85,10 +101,11 @@ library LibDeploy {
     function createMulticall(
         JSON.Config memory json,
         address _kresko,
-        address _kiss
+        address _kiss,
+        address _pythEp
     ) internal saveOutput("Multicall") returns (KrMulticall) {
         bytes memory implementation = type(KrMulticall).creationCode.ctor(
-            abi.encode(_kresko, _kiss, json.params.periphery.v3Router, json.assets.wNative.token)
+            abi.encode(_kresko, _kiss, json.params.periphery.v3Router, json.assets.wNative.token, _pythEp)
         );
         address multicall = implementation.d3("", CONST.MC_SALT).implementation;
         IKresko(_kresko).grantRole(Role.MANAGER, multicall);
@@ -99,9 +116,10 @@ library LibDeploy {
         JSON.Config memory json,
         address _kresko,
         address _vault,
-        address _kiss
+        address _kiss,
+        address _pythEp
     ) internal returns (DataV1, KrMulticall) {
-        return (createDataV1(json, _kresko, _vault, _kiss), createMulticall(json, _kresko, _kiss));
+        return (createDataV1(json, _kresko, _vault, _kiss), createMulticall(json, _kresko, _kiss, _pythEp));
     }
 
     function createKrAssets(JSON.Config memory json, address kresko) internal returns (JSON.Config memory) {
@@ -122,13 +140,13 @@ library LibDeploy {
         address kresko
     ) internal returns (DeployedKrAsset memory result) {
         JSONKey(asset.symbol);
-        LibDeployConfig.KrAssetMetadata memory meta = asset.metadata();
+        LibJSON.KrAssetMetadata memory meta = asset.metadata();
         address underlying = !asset.underlyingSymbol.isEmpty() ? asset.underlyingSymbol.cached() : address(0);
         bytes memory KR_ASSET_INITIALIZER = abi.encodeCall(
             KreskoAsset.initialize,
             (
-                asset.name,
-                asset.symbol,
+                meta.name,
+                meta.symbol,
                 18,
                 json.params.common.admin,
                 kresko,

@@ -27,7 +27,9 @@
       "types",
       "deployments",
       "docs",
-      "pnpm-lock.yaml"
+      "pnpm-lock.yaml",
+      "yarn.lock",
+      "bun.lockb"
     ]
   },
   "formatter": {
@@ -47,7 +49,7 @@
   },
   "json": {
     "formatter": {
-      "enabled": true
+      "enabled": false
     },
     "parser": {
       "allowComments": true
@@ -75,7 +77,8 @@
       },
       "complexity": {
         "noForEach": "off",
-        "noBannedTypes": "off"
+        "noBannedTypes": "off",
+        "useArrowFunction": "off"
       },
       "correctness": {
         "useExhaustiveDependencies": "off"

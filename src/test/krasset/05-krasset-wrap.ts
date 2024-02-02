@@ -1,4 +1,4 @@
-import type { WETH9 } from '@/types/typechain'
+import type { WETH } from '@/types/typechain'
 import { expect } from '@test/chai'
 import { kreskoAssetFixture } from '@utils/test/fixtures'
 import { Role } from '@utils/test/roles'
@@ -6,7 +6,7 @@ import { toBig } from '@utils/values'
 
 describe('KreskoAsset', () => {
   let KreskoAsset: KreskoAsset
-  let WETH: WETH9
+  let wNative: WETH
   let operator: SignerWithAddress
   let user: SignerWithAddress
   let treasury: string
@@ -20,14 +20,14 @@ describe('KreskoAsset', () => {
     }))
 
     // Deploy WETH
-    WETH = (await hre.ethers.deployContract('WETH9')) as WETH9
+    wNative = (await hre.ethers.deployContract('WETH')) as WETH
     // Give WETH to deployer
-    await WETH.connect(user).deposit({ value: toBig(100) })
+    await wNative.connect(user).deposit({ value: toBig(100) })
 
     await KreskoAsset.connect(hre.users.deployer).grantRole(Role.OPERATOR, operator.address)
-    await KreskoAsset.connect(hre.users.deployer).setUnderlying(WETH.address)
+    await KreskoAsset.connect(hre.users.deployer).setUnderlying(wNative.address)
     // Approve WETH for KreskoAsset
-    await WETH.connect(user).approve(KreskoAsset.address, hre.ethers.constants.MaxUint256)
+    await wNative.connect(user).approve(KreskoAsset.address, hre.ethers.constants.MaxUint256)
   })
 
   describe('Deposit / Wrap', () => {
@@ -58,12 +58,12 @@ describe('KreskoAsset', () => {
       await KreskoAsset.connect(operator).enableNativeUnderlying(true)
 
       let prevBalanceDevOne = await KreskoAsset.balanceOf(user.address)
-      const treasuryWETHBal = await WETH.balanceOf(treasury)
+      const treasuryWETHBal = await wNative.balanceOf(treasury)
 
       await KreskoAsset.connect(user).wrap(user.address, toBig(10))
 
       let currentBalanceDevOne = await KreskoAsset.balanceOf(user.address)
-      const currentWETHBalanceTreasury = await WETH.balanceOf(treasury)
+      const currentWETHBalanceTreasury = await wNative.balanceOf(treasury)
       expect(currentBalanceDevOne.sub(prevBalanceDevOne)).to.equal(toBig(9))
       expect(currentWETHBalanceTreasury.sub(treasuryWETHBal)).to.equal(toBig(1))
 
@@ -96,9 +96,9 @@ describe('KreskoAsset', () => {
       await KreskoAsset.connect(operator).unpause()
     })
     it('can withdraw', async function () {
-      const prevBalance = await WETH.balanceOf(user.address)
+      const prevBalance = await wNative.balanceOf(user.address)
       await KreskoAsset.connect(user).unwrap(user.address, toBig(1), false)
-      const currentBalance = await WETH.balanceOf(user.address)
+      const currentBalance = await wNative.balanceOf(user.address)
       expect(currentBalance).to.equal(toBig(1).add(prevBalance))
     })
     it('can withdraw native token if enabled', async function () {
@@ -112,11 +112,11 @@ describe('KreskoAsset', () => {
       // set close fee to 10%
       await KreskoAsset.connect(operator).setCloseFee(0.1e4)
 
-      const prevBalanceDevOne = await WETH.balanceOf(user.address)
-      let prevBalanceTreasury = await WETH.balanceOf(treasury)
+      const prevBalanceDevOne = await wNative.balanceOf(user.address)
+      let prevBalanceTreasury = await wNative.balanceOf(treasury)
       await KreskoAsset.connect(user).unwrap(user.address, toBig(9), false)
-      const currentBalanceDevOne = await WETH.balanceOf(user.address)
-      let currentBalanceTreasury = await WETH.balanceOf(treasury)
+      const currentBalanceDevOne = await wNative.balanceOf(user.address)
+      let currentBalanceTreasury = await wNative.balanceOf(treasury)
       expect(currentBalanceDevOne.sub(prevBalanceDevOne)).to.equal(toBig(8.1))
       expect(currentBalanceTreasury.sub(prevBalanceTreasury)).to.equal(toBig(0.9))
 

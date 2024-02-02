@@ -11,6 +11,13 @@ import {BitmapLib, SignatureLib, RedstoneError, RedstoneDefaultsLib} from "./Red
 // SIG - Signature
 
 library Redstone {
+    struct CalldataExtract {
+        bytes32[] dataFeedIds;
+        uint256[] uniqueSignerCountForDataFeedIds;
+        uint256[] signersBitmapForDataFeedIds;
+        uint256[][] valuesForDataFeeds;
+        uint256 calldataNegativeOffset;
+    }
     // Solidity and YUL constants
     uint256 internal constant STANDARD_SLOT_BS = 32;
     uint256 internal constant FREE_MEMORY_PTR = 0x40;
@@ -60,10 +67,10 @@ library Redstone {
      * @param dataFeedId bytes32 value that uniquely identifies the data feed
      * @return Extracted and verified numeric oracle value for the given data feed id
      */
-    function getPrice(bytes32 dataFeedId) internal view returns (uint256) {
+    function getPrice(bytes32 dataFeedId, uint256 _staleTime) internal view returns (uint256) {
         bytes32[] memory dataFeedIds = new bytes32[](1);
         dataFeedIds[0] = dataFeedId;
-        return _securelyExtractOracleValuesFromTxMsg(dataFeedIds)[0];
+        return _securelyExtractOracleValuesFromTxMsg(dataFeedIds, _staleTime)[0];
     }
 
     function getAuthorisedSignerIndex(address signerAddress) internal pure returns (uint8) {
@@ -88,8 +95,8 @@ library Redstone {
      * @return An array of the extracted and verified oracle values in the same order
      * as they are requested in the dataFeedIds array
      */
-    function getPrices(bytes32[] memory dataFeedIds) internal view returns (uint256[] memory) {
-        return _securelyExtractOracleValuesFromTxMsg(dataFeedIds);
+    function getPrices(bytes32[] memory dataFeedIds, uint256 _staleTime) internal view returns (uint256[] memory) {
+        return _securelyExtractOracleValuesFromTxMsg(dataFeedIds, _staleTime);
     }
 
     /**
@@ -97,8 +104,16 @@ library Redstone {
      * It should validate the timestamp against the current time (block.timestamp)
      * It should revert with a helpful message if the timestamp is not valid
      * @param receivedTimestampMilliseconds Timestamp extracted from calldata
+     * @param _staleTime Stale time
      */
-    function validateTimestamp(uint256 receivedTimestampMilliseconds) internal view {
+    function validateTimestamp(uint256 receivedTimestampMilliseconds, uint256 _staleTime) internal view {
+        if (receivedTimestampMilliseconds == 0) {
+            revert RedstoneError.Timestamp(receivedTimestampMilliseconds, block.timestamp);
+        }
+
+        if ((block.timestamp * 1000 - receivedTimestampMilliseconds) > _staleTime * 1000) {
+            revert RedstoneError.Timestamp(block.timestamp * 1000 - receivedTimestampMilliseconds, _staleTime * 1000);
+        }
         // For testing this function is disabled
         // Uncomment this line to enable timestamp validation in prod
         // RedstoneDefaultsLib.validateTimestamp(receivedTimestampMilliseconds);
@@ -137,16 +152,21 @@ library Redstone {
      * @return An array of the extracted and verified oracle values in the same order
      * as they are requested in dataFeedIds array
      */
-    function _securelyExtractOracleValuesFromTxMsg(bytes32[] memory dataFeedIds) private view returns (uint256[] memory) {
+    function _securelyExtractOracleValuesFromTxMsg(
+        bytes32[] memory dataFeedIds,
+        uint256 _staleTime
+    ) private view returns (uint256[] memory) {
+        CalldataExtract memory args;
         // Initializing helpful variables and allocating memory
-        uint256[] memory uniqueSignerCountForDataFeedIds = new uint256[](dataFeedIds.length);
-        uint256[] memory signersBitmapForDataFeedIds = new uint256[](dataFeedIds.length);
-        uint256[][] memory valuesForDataFeeds = new uint256[][](dataFeedIds.length);
+        args.dataFeedIds = dataFeedIds;
+        args.uniqueSignerCountForDataFeedIds = new uint256[](dataFeedIds.length);
+        args.signersBitmapForDataFeedIds = new uint256[](dataFeedIds.length);
+        args.valuesForDataFeeds = new uint256[][](dataFeedIds.length);
         for (uint256 i; i < dataFeedIds.length; ) {
             // The line below is commented because newly allocated arrays are filled with zeros
             // But we left it for better readability
             // signersBitmapForDataFeedIds[i] = 0; // <- setting to an empty bitmap
-            valuesForDataFeeds[i] = new uint256[](getUniqueSignersThreshold());
+            args.valuesForDataFeeds[i] = new uint256[](getUniqueSignersThreshold());
 
             unchecked {
                 i++;
@@ -154,10 +174,10 @@ library Redstone {
         }
 
         // Extracting the number of data packages from calldata
-        uint256 calldataNegativeOffset = _extractByteSizeOfUnsignedMetadata();
-        uint256 dataPackagesCount = _extractDataPackagesCountFromCalldata(calldataNegativeOffset);
+        args.calldataNegativeOffset = _extractByteSizeOfUnsignedMetadata();
+        uint256 dataPackagesCount = _extractDataPackagesCountFromCalldata(args.calldataNegativeOffset);
         unchecked {
-            calldataNegativeOffset += DATA_PACKAGES_COUNT_BS;
+            args.calldataNegativeOffset += DATA_PACKAGES_COUNT_BS;
         }
 
         // Saving current free memory pointer
@@ -169,15 +189,11 @@ library Redstone {
         // Data packages extraction in a loop
         for (uint256 dataPackageIndex; dataPackageIndex < dataPackagesCount; ) {
             // Extract data package details and update calldata offset
-            uint256 dataPackageByteSize = _extractDataPackage(
-                dataFeedIds,
-                uniqueSignerCountForDataFeedIds,
-                signersBitmapForDataFeedIds,
-                valuesForDataFeeds,
-                calldataNegativeOffset
-            );
+            (uint256 dataPackageByteSize, uint256 timestamp) = _extractDataPackage(args);
+            // Validating timestamp
+            validateTimestamp(timestamp, _staleTime);
             unchecked {
-                calldataNegativeOffset += dataPackageByteSize;
+                args.calldataNegativeOffset += dataPackageByteSize;
             }
 
             // Shifting memory pointer back to the "safe" value
@@ -191,7 +207,7 @@ library Redstone {
         }
 
         // Validating numbers of unique signers and calculating aggregated values for each dataFeedId
-        return _getAggregatedValues(valuesForDataFeeds, uniqueSignerCountForDataFeedIds);
+        return _getAggregatedValues(args.valuesForDataFeeds, args.uniqueSignerCountForDataFeedIds);
     }
 
     /**
@@ -199,46 +215,33 @@ library Redstone {
      * on the given negative calldata offset, verifies them, and in the case of successful
      * verification updates the corresponding data package values in memory
      *
-     * @param dataFeedIds an array of unique data feed identifiers
-     * @param uniqueSignerCountForDataFeedIds an array with the numbers of unique signers
-     * for each data feed
-     * @param signersBitmapForDataFeedIds an array of signer bitmaps for data feeds
-     * @param valuesForDataFeeds 2-dimensional array, valuesForDataFeeds[i][j] contains
-     * j-th value for the i-th data feed
-     * @param calldataNegativeOffset negative calldata offset for the given data package
+     * @param args CalldataExtract struct with all the necessary data for the extraction
      *
      * @return An array of the aggregated values
      */
-    function _extractDataPackage(
-        bytes32[] memory dataFeedIds,
-        uint256[] memory uniqueSignerCountForDataFeedIds,
-        uint256[] memory signersBitmapForDataFeedIds,
-        uint256[][] memory valuesForDataFeeds,
-        uint256 calldataNegativeOffset
-    ) private view returns (uint256) {
-        uint256 signerIndex;
-
+    function _extractDataPackage(CalldataExtract memory args) private pure returns (uint256, uint256) {
         (uint256 dataPointsCount, uint256 eachDataPointValueByteSize) = _extractDataPointsDetailsForDataPackage(
-            calldataNegativeOffset
+            args.calldataNegativeOffset
         );
 
         // We use scopes to resolve problem with too deep stack
+        uint256 timeMillis;
+        uint256 signerIndex;
+
         {
-            uint48 extractedTimestamp;
-            address signerAddress;
             bytes32 signedHash;
-            bytes memory signedMessage;
-            uint256 signedMessageBytesCount = dataPointsCount *
-                (eachDataPointValueByteSize + DATA_POINT_SYMBOL_BS) +
-                DATA_PACKAGE_WITHOUT_DATA_POINTS_AND_SIG_BS; //DATA_POINT_VALUE_BYTE_SIZE_BS + TIMESTAMP_BS + DATA_POINTS_COUNT_BS
 
             unchecked {
+                bytes memory signedMessage;
+                uint256 signedMessageBytesCount = dataPointsCount *
+                    (eachDataPointValueByteSize + DATA_POINT_SYMBOL_BS) +
+                    DATA_PACKAGE_WITHOUT_DATA_POINTS_AND_SIG_BS; //DATA_POINT_VALUE_BYTE_SIZE_BS + TIMESTAMP_BS + DATA_POINTS_COUNT_BS
                 uint256 timestampCalldataOffset = msg.data.length.sub(
-                    calldataNegativeOffset + TIMESTAMP_NEGATIVE_OFFSET_IN_DATA_PACKAGE_WITH_STANDARD_SLOT_BS
+                    args.calldataNegativeOffset + TIMESTAMP_NEGATIVE_OFFSET_IN_DATA_PACKAGE_WITH_STANDARD_SLOT_BS
                 );
 
                 uint256 signedMessageCalldataOffset = msg.data.length.sub(
-                    calldataNegativeOffset + SIG_BS + signedMessageBytesCount
+                    args.calldataNegativeOffset + SIG_BS + signedMessageBytesCount
                 );
 
                 assembly {
@@ -249,7 +252,7 @@ library Redstone {
                     signedHash := keccak256(add(signedMessage, BYTES_ARR_LEN_VAR_BS), signedMessageBytesCount)
 
                     // Extracting timestamp
-                    extractedTimestamp := calldataload(timestampCalldataOffset)
+                    timeMillis := calldataload(timestampCalldataOffset)
 
                     function initByteArray(bytesCount) -> ptr {
                         ptr := mload(FREE_MEMORY_PTR)
@@ -265,12 +268,11 @@ library Redstone {
                     }
                 }
             }
-            // Validating timestamp
-            validateTimestamp(extractedTimestamp);
 
             // Verifying the off-chain signature against on-chain hashed data
-            signerAddress = SignatureLib.recoverSignerAddress(signedHash, calldataNegativeOffset + SIG_BS);
-            signerIndex = getAuthorisedSignerIndex(signerAddress);
+            signerIndex = getAuthorisedSignerIndex(
+                SignatureLib.recoverSignerAddress(signedHash, args.calldataNegativeOffset + SIG_BS)
+            );
         }
 
         // Updating helpful arrays
@@ -280,33 +282,33 @@ library Redstone {
             for (uint256 dataPointIndex; dataPointIndex < dataPointsCount; ) {
                 // Extracting data feed id and value for the current data point
                 (dataPointDataFeedId, dataPointValue) = _extractDataPointValueAndDataFeedId(
-                    calldataNegativeOffset,
+                    args.calldataNegativeOffset,
                     eachDataPointValueByteSize,
                     dataPointIndex
                 );
 
-                for (uint256 dataFeedIdIndex; dataFeedIdIndex < dataFeedIds.length; ) {
-                    if (dataPointDataFeedId == dataFeedIds[dataFeedIdIndex]) {
-                        uint256 bitmapSignersForDataFeedId = signersBitmapForDataFeedIds[dataFeedIdIndex];
+                for (uint256 dataFeedIdIndex; dataFeedIdIndex < args.dataFeedIds.length; ) {
+                    if (dataPointDataFeedId == args.dataFeedIds[dataFeedIdIndex]) {
+                        uint256 bitmapSignersForDataFeedId = args.signersBitmapForDataFeedIds[dataFeedIdIndex];
 
                         if (
                             !BitmapLib.getBitFromBitmap(
                                 bitmapSignersForDataFeedId,
                                 signerIndex
                             ) /* current signer was not counted for current dataFeedId */ &&
-                            uniqueSignerCountForDataFeedIds[dataFeedIdIndex] < getUniqueSignersThreshold()
+                            args.uniqueSignerCountForDataFeedIds[dataFeedIdIndex] < getUniqueSignersThreshold()
                         ) {
                             unchecked {
                                 // Increase unique signer counter
-                                uniqueSignerCountForDataFeedIds[dataFeedIdIndex]++;
+                                args.uniqueSignerCountForDataFeedIds[dataFeedIdIndex]++;
 
                                 // Add new value
-                                valuesForDataFeeds[dataFeedIdIndex][
-                                    uniqueSignerCountForDataFeedIds[dataFeedIdIndex] - 1
+                                args.valuesForDataFeeds[dataFeedIdIndex][
+                                    args.uniqueSignerCountForDataFeedIds[dataFeedIdIndex] - 1
                                 ] = dataPointValue;
                             }
                             // Update signers bitmap
-                            signersBitmapForDataFeedIds[dataFeedIdIndex] = BitmapLib.setBitInBitmap(
+                            args.signersBitmapForDataFeedIds[dataFeedIdIndex] = BitmapLib.setBitInBitmap(
                                 bitmapSignersForDataFeedId,
                                 signerIndex
                             );
@@ -327,7 +329,10 @@ library Redstone {
 
         // Return total data package byte size
         unchecked {
-            return DATA_PACKAGE_WITHOUT_DATA_POINTS_BS + (eachDataPointValueByteSize + DATA_POINT_SYMBOL_BS) * dataPointsCount;
+            return (
+                DATA_PACKAGE_WITHOUT_DATA_POINTS_BS + (eachDataPointValueByteSize + DATA_POINT_SYMBOL_BS) * dataPointsCount,
+                timeMillis
+            );
         }
     }
 

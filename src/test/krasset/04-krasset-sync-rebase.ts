@@ -5,7 +5,6 @@ import { defaultMintAmount, testCollateralConfig } from '@utils/test/mocks'
 import { Role } from '@utils/test/roles'
 import { toBig } from '@utils/values'
 import { expect } from 'chai'
-import hre from 'hardhat'
 
 describe.skip('Test KreskoAsset with Rebase and sync', () => {
   let KreskoAsset: TestKrAsset

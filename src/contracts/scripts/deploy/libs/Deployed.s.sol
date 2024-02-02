@@ -25,7 +25,7 @@ library Deployed {
 
     function addr(string memory name, uint256 chainId) internal returns (address) {
         string[] memory args = new string[](5);
-        args[0] = "node";
+        args[0] = "bun";
         args[1] = SCRIPT_LOCATION;
         args[2] = "getDeployment";
         args[3] = name;
