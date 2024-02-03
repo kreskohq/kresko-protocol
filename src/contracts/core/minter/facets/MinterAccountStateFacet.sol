@@ -10,7 +10,7 @@ import {cs} from "common/State.sol";
 import {Enums} from "common/Constants.sol";
 import {Asset} from "common/Types.sol";
 import {fromWad} from "common/funcs/Math.sol";
-import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
+import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Utils.sol";
 
 import {MinterAccountState} from "minter/MTypes.sol";
 import {ms} from "minter/MState.sol";

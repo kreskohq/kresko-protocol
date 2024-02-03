@@ -12,7 +12,6 @@ import {IMinterDepositWithdrawFacet} from "minter/interfaces/IMinterDepositWithd
 import {ICollateralReceiver} from "minter/interfaces/ICollateralReceiver.sol";
 import {ms} from "minter/MState.sol";
 import {UncheckedWithdrawArgs, WithdrawArgs} from "common/Args.sol";
-import {console2} from "forge-std/console2.sol";
 
 /**
  * @author Kresko
@@ -34,7 +33,6 @@ contract MinterDepositWithdrawFacet is Modifiers, IMinterDepositWithdrawFacet {
     ) external payable nonReentrant gate(_account) {
         Asset storage asset = cs().onlyMinterCollateral(_collateralAsset, Enums.Action.Deposit);
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
-        console2.log("Transfering tokens from %s to %s", msg.sender, address(this));
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _depositAmount);
         // Record the collateral deposit.
         ms().handleDeposit(asset, _account, _collateralAsset, _depositAmount);

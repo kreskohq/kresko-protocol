@@ -7,7 +7,7 @@ import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
 import {Strings} from "libs/Strings.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {Asset} from "common/Types.sol";
-import {Log} from "kresko-lib/utils/Libs.s.sol";
+import {PLog} from "kresko-lib/utils/PLog.s.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
@@ -20,7 +20,7 @@ string constant CONFIG_ID = "test-clean";
 // solhint-disable
 contract ICDPTest is Tested, Deploy {
     using ShortAssert for *;
-    using Log for *;
+    using PLog for *;
     using Strings for uint256;
     using PercentageMath for *;
     using Deployed for *;
@@ -151,7 +151,7 @@ contract ICDPTest is Tested, Deploy {
 
         uint256 gasDeposit = gasleft();
         kresko.depositCollateral(user0, address(usdc), depositAmount);
-        Log.clg("gasDepositCollateral", gasDeposit - gasleft());
+        PLog.clg(gasDeposit - gasleft(), "gasDepositCollateral");
 
         bytes memory mintData = abi.encodeWithSelector(
             kresko.mintKreskoAsset.selector,
@@ -160,7 +160,7 @@ contract ICDPTest is Tested, Deploy {
         );
         uint256 gasMint = gasleft();
         (success, ) = address(kresko).call(mintData);
-        Log.clg("gasMintKreskoAsset", gasMint - gasleft());
+        PLog.clg(gasMint - gasleft(), "gasMintKreskoAsset");
         require(success, "!success");
 
         bytes memory burnData = abi.encodeWithSelector(
@@ -170,7 +170,7 @@ contract ICDPTest is Tested, Deploy {
         );
         uint256 gasBurn = gasleft();
         (success, ) = address(kresko).call(burnData);
-        Log.clg("gasBurnKreskoAsset", gasBurn - gasleft());
+        PLog.clg(gasBurn - gasleft(), "gasBurnKreskoAsset");
         require(success, "!success");
 
         bytes memory withdrawData = abi.encodeWithSelector(
@@ -180,7 +180,7 @@ contract ICDPTest is Tested, Deploy {
         );
         uint256 gasWithdraw = gasleft();
         (success, ) = address(kresko).call(withdrawData);
-        Log.clg("gasWithdrawCollateral", gasWithdraw - gasleft());
+        PLog.clg(gasWithdraw - gasleft(), "gasWithdrawCollateral");
         require(success, "!success");
     }
 }

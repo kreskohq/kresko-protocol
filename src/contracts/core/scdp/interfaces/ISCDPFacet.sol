@@ -49,7 +49,7 @@ interface ISCDPFacet {
      * @notice Adjusts everyones deposits if swap deposits do not cover the seized amount.
      * @param _args LiquidationArgs struct containing liquidation data.
      */
-    function liquidateSCDP(SCDPLiquidationArgs memory _args) external payable;
+    function liquidateSCDP(SCDPLiquidationArgs memory _args, bytes[] calldata _updateData) external payable;
 
     /**
      * @dev Calculates the total value that is allowed to be liquidated from SCDP (if it is liquidatable)

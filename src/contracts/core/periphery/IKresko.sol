@@ -23,6 +23,7 @@ import {IDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
 import {IDiamondStateFacet} from "diamond/interfaces/IDiamondStateFacet.sol";
 import {IViewDataFacet} from "periphery/interfaces/IViewDataFacet.sol";
+import {IBatchFacet} from "common/interfaces/IBatchFacet.sol";
 
 // solhint-disable-next-line no-empty-blocks
 interface IKresko is
@@ -47,7 +48,8 @@ interface IKresko is
     IMinterDepositWithdrawFacet,
     IMinterAccountStateFacet,
     IMinterLiquidationFacet,
-    IViewDataFacet
+    IViewDataFacet,
+    IBatchFacet
 {
 
 }

@@ -8,10 +8,12 @@ import {SCDPState} from "scdp/SState.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {SCDPSeizeData} from "scdp/STypes.sol";
 import {SEvent} from "scdp/SEvent.sol";
+import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
 
 library SDeposits {
     using WadRay for uint256;
     using WadRay for uint128;
+    using SafeTransfer for IERC20;
 
     /**
      * @notice Records a deposit of collateral asset.
@@ -150,9 +152,10 @@ library SDeposits {
                 feeIndex: self.assetIndexes[_assetAddr].currFeeIndex,
                 liqIndex: self.assetIndexes[_assetAddr].currLiqIndex
             });
-
-            return (prevLiqIndex, self.assetIndexes[_assetAddr].currLiqIndex);
         }
+
+        IERC20(_assetAddr).safeTransfer(msg.sender, _seizeAmount);
+        return (prevLiqIndex, self.assetIndexes[_assetAddr].currLiqIndex);
     }
 
     /**

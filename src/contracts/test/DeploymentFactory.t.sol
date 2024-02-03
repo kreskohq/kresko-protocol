@@ -9,7 +9,7 @@ import {Ownable} from "@oz/access/Ownable.sol";
 import {Tested} from "kresko-lib/utils/Tested.t.sol";
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
 import {stdStorage, StdStorage} from "forge-std/StdStorage.sol";
-import {console2} from "forge-std/console2.sol";
+import {PLog} from "kresko-lib/utils/PLog.s.sol";
 import {Conversions, Deploys, Proxies} from "libs/Utils.sol";
 import {LogicA, LogicB} from "mocks-misc/MockLogic.sol";
 import {DeploymentFactory, IDeploymentFactory, Deployment, TransparentUpgradeableProxy} from "factory/DeploymentFactory.sol";
@@ -22,6 +22,7 @@ bytes32 constant EIP1967_IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98
 contract DeploymentFactoryTest is Tested {
     using stdStorage for StdStorage;
     using ShortAssert for *;
+    using PLog for *;
     using Proxies for *;
     using Conversions for *;
 
