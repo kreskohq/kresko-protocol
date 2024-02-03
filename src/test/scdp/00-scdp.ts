@@ -1012,12 +1012,14 @@ describe('SCDP', async function () {
       await f.KrAsset2.setBalance(hre.users.liquidator, toBig(1_000_000))
 
       await expect(
-        f.KreskoLiquidator.liquidateSCDP({
-          repayAsset: f.KrAsset2.address,
-          repayAmount: toBig(7.7),
-          seizeAsset: f.Collateral8Dec.address,
-          prices: await hre.updateData(),
-        }),
+        f.KreskoLiquidator.liquidateSCDP(
+          {
+            repayAsset: f.KrAsset2.address,
+            repayAmount: toBig(7.7),
+            seizeAsset: f.Collateral8Dec.address,
+          },
+          await hre.updateData(),
+        ),
       ).to.be.revertedWithCustomError(Errors(hre), 'COLLATERAL_VALUE_GREATER_THAN_REQUIRED')
     })
 
@@ -1071,12 +1073,14 @@ describe('SCDP', async function () {
       expect(scdpBefore.totals.cr).to.gt(1e4)
 
       // Liquidate the shared CDP
-      const tx = await f.KreskoLiquidator.liquidateSCDP({
-        repayAsset: f.KrAsset2.address,
-        repayAmount,
-        seizeAsset: f.Collateral8Dec.address,
-        prices: await hre.updateData(),
-      })
+      const tx = await f.KreskoLiquidator.liquidateSCDP(
+        {
+          repayAsset: f.KrAsset2.address,
+          repayAmount,
+          seizeAsset: f.Collateral8Dec.address,
+        },
+        await hre.updateData(),
+      )
 
       // Check the state after liquidation
       const [{ scdp: scdpAfter }, liquidatableAfter] = await Promise.all([
@@ -1090,12 +1094,14 @@ describe('SCDP', async function () {
 
       // Shared CDP should not be liquidatable since it is above the threshold
       await expect(
-        f.KreskoLiquidator.liquidateSCDP({
-          repayAsset: f.KrAsset2.address,
-          repayAmount,
-          seizeAsset: f.Collateral8Dec.address,
-          prices: await hre.updateData(),
-        }),
+        f.KreskoLiquidator.liquidateSCDP(
+          {
+            repayAsset: f.KrAsset2.address,
+            repayAmount,
+            seizeAsset: f.Collateral8Dec.address,
+          },
+          await hre.updateData(),
+        ),
       ).to.be.revertedWithCustomError(Errors(hre), 'COLLATERAL_VALUE_GREATER_THAN_REQUIRED')
 
       // Check what was emitted in the event
