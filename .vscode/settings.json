@@ -30,7 +30,7 @@
   },
   "editor.formatOnSave": true,
   "solidity.linter.type": "solhint",
-  "solidity.test.executeOnSave": false,
+  "solidity.test.executeOnSave": true,
   "solidity.compiler.version.remote": "v0.8.23+commit.f704f362",
   "solidity.compiler.outDir": "build/vsc",
   "solidity.compiler.location": "Extension",

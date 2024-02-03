@@ -5,11 +5,11 @@ import {__revert} from "kresko-lib/utils/Base.s.sol";
 import {Errors} from "common/Errors.sol";
 import {Modifiers} from "common/Modifiers.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
-import {cs} from "common/State.sol";
 
 // solhint-disable no-empty-blocks, reason-string
 
 contract BatchFacet is IBatchFacet, Modifiers {
+    /// @inheritdoc IBatchFacet
     function batchCall(bytes[] calldata _calls, bytes[] calldata _updateData) external payable usePyth(_updateData) {
         for (uint256 i; i < _calls.length; i++) {
             (bool success, bytes memory retData) = address(this).delegatecall(_calls[i]);
@@ -19,11 +19,12 @@ contract BatchFacet is IBatchFacet, Modifiers {
         }
     }
 
+    /// @inheritdoc IBatchFacet
     function batchStaticCall(
         bytes[] calldata _staticCalls,
         bytes[] calldata _updateData
     ) external payable returns (uint256 timestamp, bytes[] memory results) {
-        try this.batchStaticCallToError{value: IPyth(cs().pythEp).getUpdateFee(_updateData)}(_staticCalls, _updateData) {
+        try this.batchCallToError(_staticCalls, _updateData) {
             revert();
         } catch Error(string memory reason) {
             revert(reason);
@@ -35,18 +36,15 @@ contract BatchFacet is IBatchFacet, Modifiers {
         }
     }
 
-    function decodeErrorData(bytes calldata _errorData) external pure returns (uint256, bytes[] memory) {
-        return abi.decode(_errorData[4:], (uint256, bytes[]));
-    }
-
-    function batchStaticCallToError(
-        bytes[] calldata _staticCalls,
+    /// @inheritdoc IBatchFacet
+    function batchCallToError(
+        bytes[] calldata _calls,
         bytes[] calldata _updateData
     ) external payable usePyth(_updateData) returns (uint256, bytes[] memory results) {
-        results = new bytes[](_staticCalls.length);
+        results = new bytes[](_calls.length);
 
-        for (uint256 i; i < _staticCalls.length; i++) {
-            (bool success, bytes memory returnData) = address(this).staticcall(_staticCalls[i]);
+        for (uint256 i; i < _calls.length; i++) {
+            (bool success, bytes memory returnData) = address(this).delegatecall(_calls[i]);
             if (!success) {
                 __revert(returnData);
             }
@@ -54,5 +52,10 @@ contract BatchFacet is IBatchFacet, Modifiers {
         }
 
         revert Errors.BatchResult(block.timestamp, results);
+    }
+
+    /// @inheritdoc IBatchFacet
+    function decodeErrorData(bytes calldata _errorData) external pure returns (uint256 timestamp, bytes[] memory results) {
+        return abi.decode(_errorData[4:], (uint256, bytes[]));
     }
 }
