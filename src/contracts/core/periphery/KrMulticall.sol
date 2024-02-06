@@ -84,8 +84,7 @@ contract KrMulticall is IKrMulticall, Ownable {
                     }
                 }
 
-                (bool success, bytes memory returndata) = _handleOp(op, _updateData, value != msg.value);
-                if (!success) _handleRevert(returndata);
+                _handleOp(op, _updateData, value != msg.value);
 
                 if (
                     op.data.tokensInMode != TokensInMode.None &&
@@ -199,7 +198,12 @@ contract KrMulticall is IKrMulticall, Ownable {
         }
     }
 
-    function _handleOp(
+    function _handleOp(Operation memory _op, bytes[] calldata _updateData, bool _didUpdate) internal {
+        (bool success, bytes memory returndata) = _call(_op, _updateData, _didUpdate);
+        if (!success) _handleRevert(returndata);
+    }
+
+    function _call(
         Operation memory _op,
         bytes[] calldata _updateData,
         bool _didUpdate
