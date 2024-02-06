@@ -48,12 +48,10 @@ contract KrMulticall is IKrMulticall, Ownable {
         bytes[] calldata _updateData
     ) external payable returns (Result[] memory results) {
         uint256 value = msg.value;
-        bool didUpdate;
         if (msg.value > 0 && _updateData.length > 0) {
             uint256 updateFee = pythEp.getUpdateFee(_updateData);
             pythEp.updatePriceFeeds{value: updateFee}(_updateData);
             value -= updateFee;
-            didUpdate = true;
         }
 
         unchecked {
@@ -86,7 +84,7 @@ contract KrMulticall is IKrMulticall, Ownable {
                     }
                 }
 
-                (bool success, bytes memory returndata) = _handleOp(op, _updateData, didUpdate);
+                (bool success, bytes memory returndata) = _handleOp(op, _updateData, value != msg.value);
                 if (!success) _handleRevert(returndata);
 
                 if (
