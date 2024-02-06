@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {Strings} from "libs/Strings.sol";
 import {SDIPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
-import {Role} from "common/Constants.sol";
+import {Role, Enums} from "common/Constants.sol";
 import {Modifiers} from "common/Modifiers.sol";
 import {Errors} from "common/Errors.sol";
 import {Validations} from "common/Validations.sol";
@@ -80,6 +80,8 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
         uint256 _coverAmount,
         bytes[] calldata _updateData
     ) external payable returns (uint256 value) {
+        cs().onlyUnpaused(_assetAddr, Enums.Action.SCDPCover);
+
         value = cs().onlyCoverAsset(_assetAddr).assetUSD(_coverAmount);
         sdi().cover(_assetAddr, _coverAmount, value);
     }
@@ -90,6 +92,8 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
         address _seizeAssetAddr,
         bytes[] calldata _updateData
     ) external payable returns (uint256 value, uint256 seizedAmount) {
+        cs().onlyUnpaused(_assetAddr, Enums.Action.SCDPCover);
+
         Asset storage asset = cs().onlyCoverAsset(_assetAddr);
         Asset storage seizeAsset = cs().onlyFeeAccumulatingCollateral(_seizeAssetAddr);
 
