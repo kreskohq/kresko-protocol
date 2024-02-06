@@ -29,12 +29,13 @@ deploy-local:
 	-vvv
 
 
-dry-arbitrum-sepolia:
+deploy-arbitrum-sepolia:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
-	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "arbitrum-sepolia" "MNEMONIC_DEVNET" 0 false true) \
+	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "arbitrum-sepolia" "MNEMONIC_DEVNET" 0 true false) \
 	--with-gas-price 100000000 \
 	--evm-version "paris" \
 	--skip-simulation \
+	--broadcast \
 	--fork-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
 	--ffi \
 	-vvv
