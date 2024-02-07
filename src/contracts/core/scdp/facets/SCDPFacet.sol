@@ -34,7 +34,6 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         address _collateralAsset,
         uint256 _amount
     ) external payable nonReentrant gate(_account) {
-        cs().onlyUnpaused(_collateralAsset, Enums.Action.SCDPDeposit);
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -44,7 +43,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
             _account,
             _collateralAsset,
             _amount,
-            scdp().handleDepositSCDP(cs().onlyFeeAccumulatingCollateral(_collateralAsset), _account, _collateralAsset, _amount),
+            scdp().handleDepositSCDP(cs().onlyFeeAccumulatingCollateral(_collateralAsset, Enums.Action.SCDPDeposit), _account, _collateralAsset, _amount),
             block.timestamp
         );
     }
@@ -54,14 +53,12 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         SCDPWithdrawArgs memory _args,
         bytes[] calldata _updateData
     ) external payable onlyRoleIf(_args.account != msg.sender, Role.MANAGER) nonReentrant usePyth(_updateData) {
-        cs().onlyUnpaused(_args.asset, Enums.Action.SCDPWithdraw);
-        
         SCDPState storage s = scdp();
         _args.receiver = _args.receiver == address(0) ? _args.account : _args.receiver;
 
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
         uint256 feeIndex = s.handleWithdrawSCDP(
-            cs().onlyActiveSharedCollateral(_args.asset),
+            cs().onlyActiveSharedCollateral(_args.asset, Enums.Action.SCDPWithdraw),
             _args.account,
             _args.asset,
             _args.amount,
@@ -92,14 +89,12 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         SCDPWithdrawArgs memory _args,
         bytes[] calldata _updateData
     ) external payable onlyRoleIf(_args.account != msg.sender, Role.MANAGER) nonReentrant usePyth(_updateData) {
-        cs().onlyUnpaused(_args.asset, Enums.Action.SCDPWithdraw);
-        
         SCDPState storage s = scdp();
         _args.receiver = _args.receiver == address(0) ? _args.account : _args.receiver;
 
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
         uint256 feeIndex = s.handleWithdrawSCDP(
-            cs().onlyActiveSharedCollateral(_args.asset),
+            cs().onlyActiveSharedCollateral(_args.asset, Enums.Action.SCDPWithdraw),
             _args.account,
             _args.asset,
             _args.amount,
@@ -131,10 +126,8 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         address _collateralAsset,
         address _receiver
     ) external payable onlyRoleIf(_account != msg.sender, Role.MANAGER) returns (uint256 feeAmount) {
-        cs().onlyUnpaused(_collateralAsset, Enums.Action.SCDPFeeClaim);
-        
         feeAmount = scdp().handleFeeClaim(
-            cs().onlyFeeAccumulatingCollateral(_collateralAsset),
+            cs().onlyFeeAccumulatingCollateral(_collateralAsset, Enums.Action.SCDPFeeClaim),
             _account,
             _collateralAsset,
             _receiver == address(0) ? _account : _receiver,
@@ -145,10 +138,8 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
 
     /// @inheritdoc ISCDPFacet
     function repaySCDP(SCDPRepayArgs calldata _args) external payable nonReentrant gate(tx.origin) usePyth(_args.prices) {
-        cs().onlyUnpaused(_args.repayAsset, Enums.Action.SCDPRepay);
-
-        Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset);
-        Asset storage seizeAsset = cs().onlySwapMintable(_args.seizeAsset);
+        Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset, Enums.Action.SCDPRepay);
+        Asset storage seizeAsset = cs().onlySwapMintable(_args.seizeAsset, Enums.Action.SCDPRepay);
 
         SCDPAssetData storage repayAssetData = scdp().assetData[_args.repayAsset];
         SCDPAssetData storage seizeAssetData = scdp().assetData[_args.seizeAsset];
@@ -226,13 +217,11 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
     function liquidateSCDP(
         SCDPLiquidationArgs memory _args
     ) external payable nonReentrant gate(tx.origin) usePythMem(_args.prices) {
-        cs().onlyUnpaused(_args.repayAsset, Enums.Action.SCDPLiquidation);
-
         SCDPState storage s = scdp();
         s.ensureLiquidatableSCDP();
 
-        Asset storage seizeAsset = cs().onlyActiveSharedCollateral(_args.seizeAsset);
-        Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset);
+        Asset storage seizeAsset = cs().onlyActiveSharedCollateral(_args.seizeAsset, Enums.Action.SCDPLiquidation);
+        Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset, Enums.Action.SCDPLiquidation);
         SCDPAssetData storage repayAssetData = s.assetData[_args.repayAsset];
 
         uint256 existingDebt = repayAsset.toRebasingAmount(repayAssetData.debt);

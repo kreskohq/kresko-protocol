@@ -497,11 +497,31 @@ contract SCDPTest is Tested, Deploy {
 
         assertGt(krETH.balanceOf(user0), 0);
 
-        SCDPRepayArgs memory Repay = SCDPRepayArgs(address(krETH), krETH.balanceOf(user0), address(kiss), updateData);
+        SCDPRepayArgs memory repay = SCDPRepayArgs(address(krETH), krETH.balanceOf(user0), address(kiss), updateData);
         vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPRepay));
-        kresko.repaySCDP(Repay);
+        kresko.repaySCDP(repay);
+
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPRepay, false);
+
+        repay = SCDPRepayArgs(address(krETH), krETH.balanceOf(user0), address(kiss), updateData);
+        prank(user0);
+        kresko.repaySCDP(repay);
     }
 
+    function test_coverSCDP_Paused() public {   
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPCover, true);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPCover));
+        kresko.coverSCDP(address(krETH), 1000e18, updateData);
+    }
+
+    function test_coverWithIncentiveSCDP_Paused() public {
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPCover, true);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPCover));
+        kresko.coverWithIncentiveSCDP(address(kiss), 1000e18, address(krETH), updateData);
+    }
+    
     /* -------------------------------------------------------------------------- */
     /*                                   helpers                                  */
     /* -------------------------------------------------------------------------- */

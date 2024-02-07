@@ -111,6 +111,20 @@ library LibModifiers {
         }
     }
 
+    function onlyFeeAccumulatingCollateral(
+        CommonState storage self,
+        address _assetAddr,
+        Enums.Action _action
+    ) internal view returns (Asset storage asset) {
+        asset = onlyUnpaused(self, _assetAddr, _action);
+        if (
+            !asset.isSharedCollateral ||
+            (_assetAddr != scdp().feeAsset && scdp().assetIndexes[_assetAddr].currFeeIndex <= WadRay.RAY)
+        ) {
+            revert Errors.ASSET_NOT_FEE_ACCUMULATING_ASSET(Errors.id(_assetAddr));
+        }
+    }
+
     /**
      * @notice Reverts if address is not swappable Kresko Asset.
      * @param _assetAddr The address of the asset.
@@ -118,6 +132,17 @@ library LibModifiers {
      */
     function onlySwapMintable(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
         asset = self.assets[_assetAddr];
+        if (!asset.isSwapMintable) {
+            revert Errors.ASSET_NOT_SWAPPABLE(Errors.id(_assetAddr));
+        }
+    }
+
+    function onlySwapMintable(
+        CommonState storage self,
+        address _assetAddr,
+        Enums.Action _action
+    ) internal view returns (Asset storage asset) {
+        asset = onlyUnpaused(self, _assetAddr, _action);
         if (!asset.isSwapMintable) {
             revert Errors.ASSET_NOT_SWAPPABLE(Errors.id(_assetAddr));
         }
@@ -139,8 +164,30 @@ library LibModifiers {
         }
     }
 
+    function onlyActiveSharedCollateral(
+        CommonState storage self,
+        address _assetAddr,
+        Enums.Action _action
+    ) internal view returns (Asset storage asset) {
+        asset = onlyUnpaused(self, _assetAddr, _action);
+        if (scdp().assetIndexes[_assetAddr].currFeeIndex == 0) {
+            revert Errors.ASSET_DOES_NOT_HAVE_DEPOSITS(Errors.id(_assetAddr));
+        }
+    }
+
     function onlyCoverAsset(CommonState storage self, address _assetAddr) internal view returns (Asset storage asset) {
         asset = self.assets[_assetAddr];
+        if (!asset.isCoverAsset) {
+            revert Errors.ASSET_CANNOT_BE_USED_TO_COVER(Errors.id(_assetAddr));
+        }
+    }
+
+    function onlyCoverAsset(
+        CommonState storage self,
+        address _assetAddr,
+        Enums.Action _action
+    ) internal view returns (Asset storage asset) {
+        asset = onlyUnpaused(self, _assetAddr, _action);
         if (!asset.isCoverAsset) {
             revert Errors.ASSET_CANNOT_BE_USED_TO_COVER(Errors.id(_assetAddr));
         }

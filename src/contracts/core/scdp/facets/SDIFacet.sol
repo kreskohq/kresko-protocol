@@ -80,9 +80,7 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
         uint256 _coverAmount,
         bytes[] calldata _updateData
     ) external payable returns (uint256 value) {
-        cs().onlyUnpaused(_assetAddr, Enums.Action.SCDPCover);
-
-        value = cs().onlyCoverAsset(_assetAddr).assetUSD(_coverAmount);
+        value = cs().onlyCoverAsset(_assetAddr, Enums.Action.SCDPCover).assetUSD(_coverAmount);
         sdi().cover(_assetAddr, _coverAmount, value);
     }
 
@@ -92,10 +90,8 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
         address _seizeAssetAddr,
         bytes[] calldata _updateData
     ) external payable returns (uint256 value, uint256 seizedAmount) {
-        cs().onlyUnpaused(_assetAddr, Enums.Action.SCDPCover);
-
-        Asset storage asset = cs().onlyCoverAsset(_assetAddr);
-        Asset storage seizeAsset = cs().onlyFeeAccumulatingCollateral(_seizeAssetAddr);
+        Asset storage asset = cs().onlyCoverAsset(_assetAddr, Enums.Action.SCDPCover);
+        Asset storage seizeAsset = cs().onlyFeeAccumulatingCollateral(_seizeAssetAddr, Enums.Action.SCDPCover);
 
         (value, _coverAmount) = asset.boundRepayValue(_getMaxCoverValue(asset, seizeAsset, _seizeAssetAddr), _coverAmount);
         sdi().cover(_assetAddr, _coverAmount, value);
