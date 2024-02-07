@@ -8,7 +8,7 @@ import {WadRay} from "libs/WadRay.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {Modifiers} from "common/Modifiers.sol";
 import {cs} from "common/State.sol";
-import {Asset} from "common/Types.sol";
+import {Asset, Enums} from "common/Types.sol";
 import {Errors} from "common/Errors.sol";
 import {Validations} from "common/Validations.sol";
 
@@ -67,7 +67,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
         address receiver = _args.receiver == address(0) ? msg.sender : _args.receiver;
         IERC20(_args.assetIn).safeTransferFrom(msg.sender, address(this), _args.amountIn);
 
-        Asset storage assetIn = cs().onlySwapMintable(_args.assetIn);
+        Asset storage assetIn = cs().onlySwapMintable(_args.assetIn, Enums.Action.SCDPSwap);
         emit SEvent.Swap(
             msg.sender,
             _args.assetIn,
@@ -99,7 +99,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
     ) private returns (uint256 amountOut) {
         Validations.ensureUnique(_assetInAddr, _assetOutAddr);
         Validations.validateRoute(_assetInAddr, _assetOutAddr);
-        Asset storage assetOut = cs().onlySwapMintable(_assetOutAddr);
+        Asset storage assetOut = cs().onlySwapMintable(_assetOutAddr, Enums.Action.SCDPSwap);
         // Check that assets can be swapped, get the fee percentages.
 
         (uint256 feePercentage, uint256 protocolFee) = getSwapFees(_assetIn, assetOut);
@@ -140,7 +140,7 @@ contract SCDPSwapFacet is ISCDPSwapFacet, Modifiers {
         uint256 _amountOutMin
     ) private returns (uint256 amountOut) {
         address assetOutAddr = scdp().feeAsset;
-        Asset storage assetOut = cs().assets[assetOutAddr];
+        Asset storage assetOut = cs().onlySwapMintable(assetOutAddr, Enums.Action.SCDPSwap);
         // Check that assets can be swapped, get the fee percentages.
         Validations.ensureUnique(_assetInAddr, assetOutAddr);
         Validations.validateRoute(_assetInAddr, assetOutAddr);

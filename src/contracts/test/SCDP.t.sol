@@ -508,6 +508,28 @@ contract SCDPTest is Tested, Deploy {
         kresko.repaySCDP(repay);
     }
 
+    function test_swapSCDP_Paused() public {
+        _poolDeposit(deployer, address(kiss), 10000e18);
+        _toggleActionPaused(address(kiss), Enums.Action.SCDPSwap, true);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(kiss)), Enums.Action.SCDPSwap));
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+
+        _toggleActionPaused(address(kiss), Enums.Action.SCDPSwap, false);
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPSwap, true);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPSwap));
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPSwap, false);
+        
+        assertEq(krETH.balanceOf(user0), 0);
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        assertGt(krETH.balanceOf(user0), 0);
+        _swap(user0, address(krETH), krETH.balanceOf(user0), address(kiss));
+        assertEq(krETH.balanceOf(user0), 0);
+    }
+
     function test_coverSCDP_Paused() public {   
         _toggleActionPaused(address(krETH), Enums.Action.SCDPCover, true);
 
