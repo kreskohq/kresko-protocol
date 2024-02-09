@@ -91,9 +91,7 @@ library SAccounts {
                 if (previousSeize.feeIndex < accountIndexes.lastFeeIndex) {
                     previousSeize.feeIndex = accountIndexes.lastFeeIndex;
                 }
-                // if (previousSeize.feeIndex <= 1e27) break;
                 uint256 feePct = latestSeize.feeIndex - previousSeize.feeIndex;
-                // console2.log("latestSeize.feeIndex", latestSeize.feeIndex);
                 if (feePct > 0) {
                     // Get the historical balance according to liquidation index at the time
                     // Then we simply multiply by fee index difference to get the fees accrued.
