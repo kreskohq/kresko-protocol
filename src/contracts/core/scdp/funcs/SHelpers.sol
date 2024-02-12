@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {Asset} from "common/Types.sol";
-import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
+import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Utils.sol";
 import {cs} from "common/State.sol";
 import {scdp} from "scdp/SState.sol";
 

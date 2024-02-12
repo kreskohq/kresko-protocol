@@ -3,7 +3,8 @@
 pragma solidity ^0.8.0;
 
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import {Log, Help} from "kresko-lib/utils/Libs.s.sol";
+import {Help} from "kresko-lib/utils/Libs.s.sol";
+import {PLog} from "kresko-lib/utils/PLog.s.sol";
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
 import {Tested} from "kresko-lib/utils/Tested.t.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
@@ -13,7 +14,7 @@ import {createMockPyth} from "mocks/MockPyth.sol";
 contract PythTest is Tested {
     bytes32 constant PYTH_ETH = 0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace;
 
-    using Log for *;
+    using PLog for *;
     using Help for *;
     using Deployed for *;
     using ShortAssert for *;

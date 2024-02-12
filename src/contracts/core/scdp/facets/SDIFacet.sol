@@ -79,7 +79,7 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
         address _assetAddr,
         uint256 _coverAmount,
         bytes[] calldata _updateData
-    ) external payable returns (uint256 value) {
+    ) external payable usePyth(_updateData) returns (uint256 value) {
         value = cs().onlyCoverAsset(_assetAddr, Enums.Action.SCDPCover).assetUSD(_coverAmount);
         sdi().cover(_assetAddr, _coverAmount, value);
     }
@@ -89,7 +89,7 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
         uint256 _coverAmount,
         address _seizeAssetAddr,
         bytes[] calldata _updateData
-    ) external payable returns (uint256 value, uint256 seizedAmount) {
+    ) external payable usePyth(_updateData) returns (uint256 value, uint256 seizedAmount) {
         Asset storage asset = cs().onlyCoverAsset(_assetAddr, Enums.Action.SCDPCover);
         Asset storage seizeAsset = cs().onlyFeeAccumulatingCollateral(_seizeAssetAddr, Enums.Action.SCDPCover);
 
@@ -103,7 +103,7 @@ contract SDIFacet is ISDIFacet, DSModifiers, Modifiers {
         }
 
         (uint128 prevLiqIndex, uint128 nextLiqIndex) = scdp().handleSeizeSCDP(seizeAsset, _seizeAssetAddr, seizedAmount);
-        IERC20(_seizeAssetAddr).safeTransfer(msg.sender, seizedAmount);
+
         emit SEvent.SCDPCoverOccured(
             // solhint-disable-next-line avoid-tx-origin
             tx.origin,

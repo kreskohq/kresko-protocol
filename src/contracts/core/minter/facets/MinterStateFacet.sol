@@ -5,7 +5,7 @@ import {ms} from "minter/MState.sol";
 import {cs} from "common/State.sol";
 import {IMinterStateFacet} from "minter/interfaces/IMinterStateFacet.sol";
 import {MinterParams} from "minter/MTypes.sol";
-import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Helpers.sol";
+import {collateralAmountToValues, debtAmountToValues} from "common/funcs/Utils.sol";
 
 /**
  * @author Kresko

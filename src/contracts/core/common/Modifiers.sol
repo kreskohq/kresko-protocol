@@ -10,6 +10,7 @@ import {cs, gm, CommonState} from "common/State.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {scdp} from "scdp/SState.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
+import {handlePythUpdate} from "common/funcs/Utils.sol";
 
 library LibModifiers {
     /// @dev Simple check for the enabled flag
@@ -258,17 +259,7 @@ contract Modifiers {
     }
 
     modifier usePyth(bytes[] calldata _updateData) {
-        if (_updateData.length > 0) {
-            IPyth pyth = IPyth(cs().pythEp);
-            pyth.updatePriceFeeds{value: pyth.getUpdateFee(_updateData)}(_updateData);
-        }
-        _;
-    }
-    modifier usePythMem(bytes[] memory _updateData) {
-        if (_updateData.length > 0) {
-            IPyth pyth = IPyth(cs().pythEp);
-            pyth.updatePriceFeeds{value: pyth.getUpdateFee(_updateData)}(_updateData);
-        }
+        handlePythUpdate(_updateData);
         _;
     }
 }

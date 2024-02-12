@@ -10,7 +10,7 @@ import {Errors} from "common/Errors.sol";
 import {burnSCDP} from "common/funcs/Actions.sol";
 import {fromWad, valueToAmount} from "common/funcs/Math.sol";
 import {Modifiers, Enums} from "common/Modifiers.sol";
-import {cs} from "common/State.sol";
+import {cs, gm} from "common/State.sol";
 import {Asset, MaxLiqInfo} from "common/Types.sol";
 
 import {SEvent} from "scdp/SEvent.sol";
@@ -19,6 +19,7 @@ import {ISCDPFacet} from "scdp/interfaces/ISCDPFacet.sol";
 import {scdp, sdi, SCDPState} from "scdp/SState.sol";
 import {Role} from "common/Constants.sol";
 import {SCDPLiquidationArgs, SCDPRepayArgs, SCDPWithdrawArgs} from "common/Args.sol";
+import {handlePythUpdate} from "common/funcs/Utils.sol";
 
 using PercentageMath for uint256;
 using PercentageMath for uint16;
@@ -37,13 +38,16 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
-        // Record the collateral deposit.
-
         emit SEvent.SCDPDeposit(
             _account,
             _collateralAsset,
             _amount,
-            scdp().handleDepositSCDP(cs().onlyFeeAccumulatingCollateral(_collateralAsset, Enums.Action.SCDPDeposit), _account, _collateralAsset, _amount),
+            scdp().handleDepositSCDP(
+                cs().onlyFeeAccumulatingCollateral(_collateralAsset, Enums.Action.SCDPDeposit),
+                _account,
+                _collateralAsset,
+                _amount
+            ),
             block.timestamp
         );
     }
@@ -137,7 +141,8 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
     }
 
     /// @inheritdoc ISCDPFacet
-    function repaySCDP(SCDPRepayArgs calldata _args) external payable nonReentrant gate(tx.origin) usePyth(_args.prices) {
+    function repaySCDP(SCDPRepayArgs calldata _args) external payable nonReentrant gate(tx.origin) {
+        handlePythUpdate(_args.prices);
         Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset, Enums.Action.SCDPRepay);
         Asset storage seizeAsset = cs().onlySwapMintable(_args.seizeAsset, Enums.Action.SCDPRepay);
 
@@ -183,10 +188,12 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         emit SEvent.SCDPRepay(tx.origin, _args.repayAsset, _args.repayAmount, _args.seizeAsset, seizedAmount, block.timestamp);
     }
 
+    /// @inheritdoc ISCDPFacet
     function getLiquidatableSCDP() external view returns (bool) {
         return scdp().totalCollateralValueSCDP(false) < sdi().effectiveDebtValue().percentMul(scdp().liquidationThreshold);
     }
 
+    /// @inheritdoc ISCDPFacet
     function getMaxLiqValueSCDP(address _repayAssetAddr, address _seizeAssetAddr) external view returns (MaxLiqInfo memory) {
         Asset storage repayAsset = cs().onlySwapMintable(_repayAssetAddr);
         Asset storage seizeAsset = cs().onlySharedCollateral(_seizeAssetAddr);
@@ -214,19 +221,28 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
     }
 
     /// @inheritdoc ISCDPFacet
-    function liquidateSCDP(
-        SCDPLiquidationArgs memory _args
-    ) external payable nonReentrant gate(tx.origin) usePythMem(_args.prices) {
-        SCDPState storage s = scdp();
-        s.ensureLiquidatableSCDP();
+    function liquidateSCDP(SCDPLiquidationArgs memory _args, bytes[] calldata _updateData) external payable nonReentrant {
+        // inlined modifier (for stack)
+        if (address(gm().manager) != address(0)) {
+            gm().manager.check(tx.origin);
+        }
+
+        // inlined modifier (for stack)
+        handlePythUpdate(_updateData);
+
+        // begin liquidation logic
+        scdp().ensureLiquidatableSCDP();
 
         Asset storage seizeAsset = cs().onlyActiveSharedCollateral(_args.seizeAsset, Enums.Action.SCDPLiquidation);
         Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset, Enums.Action.SCDPLiquidation);
-        SCDPAssetData storage repayAssetData = s.assetData[_args.repayAsset];
+        SCDPAssetData storage repayAssetData = scdp().assetData[_args.repayAsset];
 
-        uint256 existingDebt = repayAsset.toRebasingAmount(repayAssetData.debt);
-        if (_args.repayAmount > existingDebt) {
-            revert Errors.LIQUIDATION_AMOUNT_GREATER_THAN_DEBT(Errors.id(_args.repayAsset), _args.repayAmount, existingDebt);
+        if (_args.repayAmount > repayAsset.toRebasingAmount(repayAssetData.debt)) {
+            revert Errors.LIQUIDATION_AMOUNT_GREATER_THAN_DEBT(
+                Errors.id(_args.repayAsset),
+                _args.repayAmount,
+                repayAsset.toRebasingAmount(repayAssetData.debt)
+            );
         }
 
         uint256 repayValue = _getMaxLiqValue(repayAsset, seizeAsset, _args.seizeAsset);
@@ -242,10 +258,8 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
             seizeAsset.decimals
         );
 
-        s.assetData[_args.repayAsset].debt -= burnSCDP(repayAsset, _args.repayAmount, msg.sender);
-        (uint128 prevLiqIndex, uint128 nextLiqIndex) = s.handleSeizeSCDP(seizeAsset, _args.seizeAsset, seizedAmount);
-
-        IERC20(_args.seizeAsset).safeTransfer(msg.sender, seizedAmount);
+        repayAssetData.debt -= burnSCDP(repayAsset, _args.repayAmount, msg.sender);
+        (uint128 prevLiqIndex, uint128 nextLiqIndex) = scdp().handleSeizeSCDP(seizeAsset, _args.seizeAsset, seizedAmount);
 
         emit SEvent.SCDPLiquidationOccured(
             // solhint-disable-next-line avoid-tx-origin

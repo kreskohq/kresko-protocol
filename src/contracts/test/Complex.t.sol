@@ -650,7 +650,7 @@ contract ComplexTest is Deploy {
         uint256 _repayAmount,
         address _seizeAsset
     ) internal returns (uint256 crAfter, uint256 debtValAfter, uint256 debtAmountAfter) {
-        kresko.liquidateSCDP(SCDPLiquidationArgs(_repayAsset, _repayAmount, _seizeAsset, updateData));
+        kresko.liquidateSCDP(SCDPLiquidationArgs(_repayAsset, _repayAmount, _seizeAsset), updateData);
         return (kresko.getCollateralRatioSCDP(), kresko.getDebtValueSCDP(_repayAsset, true), kresko.getDebtSCDP(_repayAsset));
     }
 

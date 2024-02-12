@@ -33,7 +33,6 @@ struct SCDPLiquidationArgs {
     address repayAsset;
     uint256 repayAmount;
     address seizeAsset;
-    bytes[] prices;
 }
 
 /**

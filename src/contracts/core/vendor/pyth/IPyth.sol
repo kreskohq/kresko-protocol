@@ -13,7 +13,7 @@ interface IPyth {
 
     function getPriceUnsafe(bytes32 _id) external view returns (Price memory);
 
-    function getUpdateFee(bytes[] memory _updateData) external returns (uint256);
+    function getUpdateFee(bytes[] memory _updateData) external view returns (uint256);
 
     function updatePriceFeeds(bytes[] memory _updateData) external payable;
 

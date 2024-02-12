@@ -188,4 +188,11 @@ library Errors {
     error ZERO_REPAY(ID, uint256 repayAmount, uint256 seizeAmount);
     error ZERO_BURN(ID);
     error ZERO_DEBT(ID);
+    error UPDATE_FEE_OVERFLOW(uint256 sent, uint256 required);
+    error BatchResult(uint256 timestamp, bytes[] results);
+    /**
+     * @notice Cannot directly rethrow or redeclare panic errors in try/catch - so using a similar error instead.
+     * @param code The panic code received.
+     */
+    error Panicked(uint256 code);
 }
