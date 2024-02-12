@@ -16,8 +16,9 @@ import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {MockOracle} from "mocks/MockOracle.sol";
 import {Enums} from "common/Constants.sol";
-import {SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs} from "common/Args.sol";
+import {SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs, SCDPRepayArgs} from "common/Args.sol";
 import {getPythData} from "vendor/pyth/PythScript.sol";
+import {Errors} from "common/Errors.sol";
 
 contract SCDPTest is Tested, Deploy {
     using ShortAssert for *;
@@ -40,6 +41,7 @@ contract SCDPTest is Tested, Deploy {
     address deployer;
     address feeRecipient;
     address liquidator;
+    address council;
 
     address krETHAddr;
     address kissAddr;
@@ -75,6 +77,9 @@ contract SCDPTest is Tested, Deploy {
         usdc.mint(user0, 1000e6);
         prank(getAddr(0));
         kiss.transfer(user0, 2000e18);
+
+        council = kresko.getRoleMember(keccak256("kresko.roles.minter.safety.council"), 0);
+        assertNotEq(council, address(0));
     }
 
     modifier withDeposits() {
@@ -399,6 +404,146 @@ contract SCDPTest is Tested, Deploy {
         (gasSwap3 - gasleft()).clg("gasPoolSwap3");
     }
 
+    function testSCDPDeposit_Paused() public {
+        // Pause SCDPDeposit for USDC
+        _toggleActionPaused(address(usdc), Enums.Action.SCDPDeposit, true);
+
+        prank(user0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(usdc)), Enums.Action.SCDPDeposit));
+        kresko.depositSCDP(user0, address(usdc), 1000e6);
+
+        // Unpause SCDPDeposit for USDC
+        _toggleActionPaused(address(usdc), Enums.Action.SCDPDeposit, false);
+
+        _poolDeposit(user0, address(usdc), 1000e6);
+        usdc.balanceOf(user0).eq(0, "usdc balance should be 0");
+        usdc.balanceOf(address(kresko)).eq(1000e6, "usdc-bal-kresko");
+    }
+
+    function testSCDPWithdraw_Paused() public {
+        _poolDeposit(user0, address(usdc), 1000e6);
+
+        // Pause SCDPWithdraw for USDC
+        _toggleActionPaused(address(usdc), Enums.Action.SCDPWithdraw, true);
+
+        prank(user0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(usdc)), Enums.Action.SCDPWithdraw));
+        kresko.withdrawSCDP(SCDPWithdrawArgs(user0, address(usdc), 1000e6, user0), updateData);
+
+        // Unpause SCDPWithdraw for USDC
+        _toggleActionPaused(address(usdc), Enums.Action.SCDPWithdraw, false);
+
+        _poolWithdraw(user0, address(usdc), 1000e6);
+        kresko.getTotalCollateralValueSCDP(true).eq(0, "collateral value should be 0");
+        usdc.balanceOf(user0).eq(1000e6, "usdc balance should be 1000");
+        usdc.balanceOf(address(kresko)).eq(0, "usdc balance should be 0");
+    }
+
+    function testSCDPEmergencyWithdraw_Paused() public {
+        prank(deployer);
+
+        _poolDeposit(deployer, address(kiss), 50000e18);
+        _swapAndLiquidate(75, 1000e18, 0.01e18);
+
+        uint256 fees = kresko.getAccountFeesSCDP(deployer, address(kiss));
+        fees.gt(0, "fees");
+        uint256 kissBalBefore = kiss.balanceOf(deployer);
+        _toggleActionPaused(address(kiss), Enums.Action.SCDPWithdraw, true);
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(kiss)), Enums.Action.SCDPWithdraw));
+        kresko.emergencyWithdrawSCDP(SCDPWithdrawArgs(deployer, address(kiss), 1000e18, deployer), updateData);
+
+        _toggleActionPaused(address(kiss), Enums.Action.SCDPWithdraw, false);
+        kresko.emergencyWithdrawSCDP(SCDPWithdrawArgs(deployer, address(kiss), 1000e18, deployer), updateData);
+        (kiss.balanceOf(deployer) - kissBalBefore).eq(1000e18, "received-withdraw");
+        kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(0, "fees-after");
+    }
+
+    function test_claimFees_Paused() public {
+        prank(deployer);
+        _poolDeposit(deployer, address(kiss), 50000e18);
+        _swapAndLiquidate(75, 1000e18, 0.01e18);
+
+        uint256 fees = kresko.getAccountFeesSCDP(deployer, address(kiss));
+        uint256 kissBalBefore = kiss.balanceOf(deployer);
+        
+        _toggleActionPaused(address(kiss), Enums.Action.SCDPFeeClaim, true);
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(kiss)), Enums.Action.SCDPFeeClaim));
+        kresko.claimFeesSCDP(deployer, address(kiss), deployer);
+
+        _toggleActionPaused(address(kiss), Enums.Action.SCDPFeeClaim, false);
+        kresko.claimFeesSCDP(deployer, address(kiss), deployer);
+
+        (kiss.balanceOf(deployer) - kissBalBefore).eq(fees, "received-fees");
+    }
+
+    function test_liquidateSCPD_Paused() public {
+        _poolDeposit(deployer, address(kiss), 10000e18);
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+
+        _setETHPrice(18000e8);
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPLiquidation, true);
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPLiquidation));
+        _liquidate(address(krETH), 0.1e18, address(kiss));
+
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPLiquidation, false);
+        _liquidate(address(krETH), 0.1e18, address(kiss));
+    }
+
+    function test_repaySCPD_Paused() public {
+        _poolDeposit(deployer, address(kiss), 10000e18);
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPRepay, true);
+
+        assertGt(krETH.balanceOf(user0), 0);
+
+        SCDPRepayArgs memory repay = SCDPRepayArgs(address(krETH), krETH.balanceOf(user0), address(kiss), updateData);
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPRepay));
+        kresko.repaySCDP(repay);
+
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPRepay, false);
+
+        repay = SCDPRepayArgs(address(krETH), krETH.balanceOf(user0), address(kiss), updateData);
+        prank(user0);
+        kresko.repaySCDP(repay);
+    }
+
+    function test_swapSCDP_Paused() public {
+        _poolDeposit(deployer, address(kiss), 10000e18);
+        _toggleActionPaused(address(kiss), Enums.Action.SCDPSwap, true);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(kiss)), Enums.Action.SCDPSwap));
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+
+        _toggleActionPaused(address(kiss), Enums.Action.SCDPSwap, false);
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPSwap, true);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPSwap));
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPSwap, false);
+        
+        assertEq(krETH.balanceOf(user0), 0);
+        _swap(user0, address(kiss), 1000e18, address(krETH));
+        assertGt(krETH.balanceOf(user0), 0);
+        _swap(user0, address(krETH), krETH.balanceOf(user0), address(kiss));
+        assertEq(krETH.balanceOf(user0), 0);
+    }
+
+    function test_coverSCDP_Paused() public {   
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPCover, true);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPCover));
+        kresko.coverSCDP(address(krETH), 1000e18, updateData);
+    }
+
+    function test_coverWithIncentiveSCDP_Paused() public {
+        _toggleActionPaused(address(krETH), Enums.Action.SCDPCover, true);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPCover));
+        kresko.coverWithIncentiveSCDP(address(kiss), 1000e18, address(krETH), updateData);
+    }
+    
     /* -------------------------------------------------------------------------- */
     /*                                   helpers                                  */
     /* -------------------------------------------------------------------------- */
@@ -498,5 +643,12 @@ contract SCDPTest is Tested, Deploy {
         }
         updateData = getPythData(cfg);
         pythEp.updatePriceFeeds(updateData);
+    }
+
+    function _toggleActionPaused(address asset, Enums.Action action, bool paused) internal repranked(council) {
+        address[] memory assets = new address[](1);
+        assets[0] = asset;
+        kresko.toggleAssetsPaused(assets, action, false, 0);
+        assertTrue(kresko.assetActionPaused(action, asset) == paused, "paused");
     }
 }

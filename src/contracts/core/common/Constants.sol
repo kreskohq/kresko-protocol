@@ -53,6 +53,8 @@ library Enums {
      * SCDPWithdraw = 7,
      * SCDPRepay = 8,
      * SCDPLiquidation = 9
+     * SCDPFeeClaim = 10
+     * SCDPCover = 11
      */
     enum Action {
         Deposit,
@@ -64,7 +66,9 @@ library Enums {
         SCDPSwap,
         SCDPWithdraw,
         SCDPRepay,
-        SCDPLiquidation
+        SCDPLiquidation,
+        SCDPFeeClaim,
+        SCDPCover
     }
 }
 
