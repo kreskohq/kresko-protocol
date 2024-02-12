@@ -9,7 +9,7 @@ import {PercentageMath} from "libs/PercentageMath.sol";
 import {Errors} from "common/Errors.sol";
 import {burnSCDP} from "common/funcs/Actions.sol";
 import {fromWad, valueToAmount} from "common/funcs/Math.sol";
-import {Modifiers} from "common/Modifiers.sol";
+import {Modifiers, Enums} from "common/Modifiers.sol";
 import {cs, gm} from "common/State.sol";
 import {Asset, MaxLiqInfo} from "common/Types.sol";
 
@@ -42,8 +42,12 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
             _account,
             _collateralAsset,
             _amount,
-            // Record the collateral deposit.
-            scdp().handleDepositSCDP(cs().onlyFeeAccumulatingCollateral(_collateralAsset), _account, _collateralAsset, _amount),
+            scdp().handleDepositSCDP(
+                cs().onlyFeeAccumulatingCollateral(_collateralAsset, Enums.Action.SCDPDeposit),
+                _account,
+                _collateralAsset,
+                _amount
+            ),
             block.timestamp
         );
     }
@@ -58,7 +62,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
 
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
         uint256 feeIndex = s.handleWithdrawSCDP(
-            cs().onlyActiveSharedCollateral(_args.asset),
+            cs().onlyActiveSharedCollateral(_args.asset, Enums.Action.SCDPWithdraw),
             _args.account,
             _args.asset,
             _args.amount,
@@ -94,7 +98,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
 
         // When principal deposits are less or equal to requested amount. We send full deposit + fees in this case.
         uint256 feeIndex = s.handleWithdrawSCDP(
-            cs().onlyActiveSharedCollateral(_args.asset),
+            cs().onlyActiveSharedCollateral(_args.asset, Enums.Action.SCDPWithdraw),
             _args.account,
             _args.asset,
             _args.amount,
@@ -127,7 +131,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         address _receiver
     ) external payable onlyRoleIf(_account != msg.sender, Role.MANAGER) returns (uint256 feeAmount) {
         feeAmount = scdp().handleFeeClaim(
-            cs().onlyFeeAccumulatingCollateral(_collateralAsset),
+            cs().onlyFeeAccumulatingCollateral(_collateralAsset, Enums.Action.SCDPFeeClaim),
             _account,
             _collateralAsset,
             _receiver == address(0) ? _account : _receiver,
@@ -138,11 +142,9 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
 
     /// @inheritdoc ISCDPFacet
     function repaySCDP(SCDPRepayArgs calldata _args) external payable nonReentrant gate(tx.origin) {
-        // inlined modifier (for stack)
         handlePythUpdate(_args.prices);
-
-        Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset);
-        Asset storage seizeAsset = cs().onlySwapMintable(_args.seizeAsset);
+        Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset, Enums.Action.SCDPRepay);
+        Asset storage seizeAsset = cs().onlySwapMintable(_args.seizeAsset, Enums.Action.SCDPRepay);
 
         SCDPAssetData storage repayAssetData = scdp().assetData[_args.repayAsset];
         SCDPAssetData storage seizeAssetData = scdp().assetData[_args.seizeAsset];
@@ -231,8 +233,8 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
         // begin liquidation logic
         scdp().ensureLiquidatableSCDP();
 
-        Asset storage seizeAsset = cs().onlyActiveSharedCollateral(_args.seizeAsset);
-        Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset);
+        Asset storage seizeAsset = cs().onlyActiveSharedCollateral(_args.seizeAsset, Enums.Action.SCDPLiquidation);
+        Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset, Enums.Action.SCDPLiquidation);
         SCDPAssetData storage repayAssetData = scdp().assetData[_args.repayAsset];
 
         if (_args.repayAmount > repayAsset.toRebasingAmount(repayAssetData.debt)) {
