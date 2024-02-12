@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {Asset} from "common/Types.sol";
 import {toWad} from "common/funcs/Math.sol";
-import {viewPrice} from "common/funcs/Prices.sol";
+import {pushPrice, viewPrice} from "common/funcs/Prices.sol";
 import {MinterState} from "minter/MState.sol";
 import {cs} from "common/State.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
@@ -73,7 +73,9 @@ library ViewHelpers {
     }
 
     function getViewPrice(Asset storage self, PythView calldata prices) internal view returns (uint256 price_) {
-        price_ = uint256(viewPrice(self.ticker, prices).answer);
+        price_ = uint256(
+            prices.ids.length == 0 ? pushPrice(self.oracles, self.ticker).answer : viewPrice(self.ticker, prices).answer
+        );
     }
 
     /**

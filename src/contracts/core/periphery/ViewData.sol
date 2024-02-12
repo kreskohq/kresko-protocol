@@ -8,7 +8,7 @@ import {View} from "periphery/ViewTypes.sol";
 import {isSequencerUp} from "common/funcs/Utils.sol";
 import {Asset, RawPrice} from "common/Types.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {viewPrice} from "common/funcs/Prices.sol";
+import {pushPrice, viewPrice} from "common/funcs/Prices.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {MinterState, ms} from "minter/MState.sol";
 import {Arrays} from "libs/Arrays.sol";
@@ -218,7 +218,9 @@ library ViewFuncs {
     function viewAsset(PythView calldata prices, address addr) internal view returns (View.AssetView memory) {
         Asset storage asset = cs().assets[addr];
         IERC20 token = IERC20(addr);
-        RawPrice memory price = viewPrice(asset.ticker, prices);
+        RawPrice memory price = prices.ids.length > 0
+            ? viewPrice(asset.ticker, prices)
+            : pushPrice(asset.oracles, asset.ticker);
         string memory symbol = _symbol(address(token));
 
         IKreskoAsset.Wrapping memory synthwrap;

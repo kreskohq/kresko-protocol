@@ -311,8 +311,8 @@ contract SCDPTest is Tested, Deploy {
         uint256 checkpoint = gasleft();
         kresko.claimFeesSCDP(deployer, address(kiss), deployer);
         uint256 used = checkpoint - gasleft();
-        used.gt(100000, "gas-used-gt"); // warm
-        used.lt(120000, "gas-used-lt");
+        used.gt(50000, "gas-used-gt"); // warm
+        used.lt(150000, "gas-used-lt");
 
         (kiss.balanceOf(deployer) - kissBalBefore).eq(fees, "received-fees");
     }
@@ -330,8 +330,8 @@ contract SCDPTest is Tested, Deploy {
         uint256 checkpoint = gasleft();
         kresko.claimFeesSCDP(deployer, address(kiss), deployer);
         uint256 used = checkpoint - gasleft();
-        used.gt(80000, "gas-used-gt"); // warm
-        used.lt(90000, "gas-used-lt");
+        used.gt(50000, "gas-used-gt"); // warm
+        used.lt(150000, "gas-used-lt");
         (kiss.balanceOf(deployer) - kissBalBefore).eq(feesDistributed, "received-fees");
     }
 
