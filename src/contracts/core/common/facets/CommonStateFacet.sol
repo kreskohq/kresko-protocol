@@ -57,7 +57,7 @@ contract CommonStateFacet is ICommonStateFacet {
 
     /// @inheritdoc ICommonStateFacet
     function getPythPrice(bytes32 _ticker) external view returns (uint256) {
-        Oracle memory oracle = getOracleOfTicker(_ticker, Enums.OracleType.Redstone);
+        Oracle memory oracle = getOracleOfTicker(_ticker, Enums.OracleType.Pyth);
         return pythPrice(oracle.pythId, oracle.invertPyth, oracle.staleTime);
     }
 
