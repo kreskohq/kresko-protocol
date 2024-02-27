@@ -41,8 +41,8 @@ contract MinterLiquidationFacet is Modifiers, IMinterLiquidationFacet {
     function liquidate(LiquidationArgs calldata _args) external payable usePyth(_args.prices) nonReentrant {
         if (msg.sender == _args.account) revert Errors.CANNOT_LIQUIDATE_SELF();
 
-        Asset storage repayAsset = cs().onlyMinterMintable(_args.repayAssetAddr);
-        Asset storage seizeAsset = cs().onlyMinterCollateral(_args.seizeAssetAddr);
+        Asset storage repayAsset = cs().onlyMinterMintable(_args.repayAssetAddr, Enums.Action.Liquidation);
+        Asset storage seizeAsset = cs().onlyMinterCollateral(_args.seizeAssetAddr, Enums.Action.Liquidation);
 
         MinterState storage s = ms();
         // The obvious check
