@@ -120,8 +120,6 @@ library Auth {
     function setupSecurityCouncil(address _councilAddress) internal {
         if (getRoleMemberCount(Role.SAFETY_COUNCIL) != 0)
             revert Errors.SAFETY_COUNCIL_ALREADY_EXISTS(_councilAddress, getRoleMember(Role.SAFETY_COUNCIL, 0));
-        if (!IGnosisSafeL2(_councilAddress).isOwner(ds().contractOwner))
-            revert Errors.SAFETY_COUNCIL_SETTER_IS_NOT_ITS_OWNER(_councilAddress);
 
         cs()._roles[Role.SAFETY_COUNCIL].members[_councilAddress] = true;
         cs()._roleMembers[Role.SAFETY_COUNCIL].add(_councilAddress);
