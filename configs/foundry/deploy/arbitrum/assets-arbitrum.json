@@ -21,7 +21,7 @@
           5,
           2
         ],
-        "04_factor": 1e4,
+        "04_factor": 0.95e4,
         "05_kFactor": 0,
         "06_openFee": 0,
         "07_closeFee": 0,
