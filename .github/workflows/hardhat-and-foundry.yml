@@ -1,4 +1,4 @@
-name: tests
+name: hardhat-and-foundry
 on: [push]
 jobs:
   foundry:
