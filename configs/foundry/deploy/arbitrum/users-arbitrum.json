@@ -1,16 +1,7 @@
 {
   "00_configId": "arbitrum",
   "01_mnemonicEnv": "MNEMONIC_DEPLOY",
-  "02_users": [
-    {
-      "00_mnemonicIdx": 0,
-      "01_addr": "0x0000000000000000000000000000000000000000"
-    },
-    {
-      "00_mnemonicIdx": 1,
-      "01_addr": "0x0000000000000000000000000000000000000000"
-    }
-  ],
+  "02_users": [],
   "03_external_balances": [
     {
       "00_user": 0,

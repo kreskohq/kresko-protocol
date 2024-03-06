@@ -71,7 +71,6 @@ dry-arbitrum:
 	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "arbitrum" "MNEMONIC_DEPLOY" 0 true false) \
 	--fork-url "$RPC_ARBITRUM_INFURA" \
 	--with-gas-price 100000000 \
-	--skip-simulation \
 	--ffi \
 	-vvv
 	
