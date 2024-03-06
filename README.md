@@ -2,7 +2,9 @@
 
 This repository contains the code for the Kresko Protocol. Kresko Protocol supports creating and managing crypto-backed synthetic assets. Prices for synthetic assets are derived from combination of oracle providers (on-demand/push).
 
-Protocol uses the [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535) architecture. It enables composability through flexibile storage patterns while allowing users to access all core functionality with a single contract address. This is a usage and integration guide that assumes familiarity with Solidity (and EIP-2535), Foundry, Hardhat and [core concepts](https://kresko.gitbook.io/kresko-docs/) of Kresko.
+Protocol uses the [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535) architecture. It enables composability through flexibile storage patterns while allowing users to access all core functionality with a single contract address.
+
+This readme is a usage/integration guide that assumes understanding of Solidity (especially EIP-2535), Foundry, Hardhat and [core concepts](https://kresko.gitbook.io/kresko-docs/) of Kresko.
 
 ![hardhat & foundry tests](https://github.com/kreskohq/kresko-protocol/actions/workflows/hardhat-and-foundry.yml/badge.svg?branch=main)
 
