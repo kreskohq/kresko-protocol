@@ -1,22 +1,22 @@
-import { getLogger } from "@kreskolabs/lib";
-import { task } from "hardhat/config";
-import { TASK_UPGRADE_DIAMOND } from "./names";
-import { updateFacets } from "@scripts/update-facets";
-import { minterFacets } from "@deploy-config/shared";
+import { minterFacets } from '@config/hardhat/deploy'
+import { updateFacets } from '@scripts/update-facets'
+import { getLogger } from '@utils/logging'
+import { task } from 'hardhat/config'
+import { TASK_UPGRADE_DIAMOND } from './names'
 
-const logger = getLogger(TASK_UPGRADE_DIAMOND);
+const logger = getLogger(TASK_UPGRADE_DIAMOND)
 
-task(TASK_UPGRADE_DIAMOND, "Upgrade diamond").setAction(async function (args, hre) {
-    logger.log("Upgrading diamond..");
-    const [initializer] = await hre.deploy("FacetUpgrade16052023");
+task(TASK_UPGRADE_DIAMOND, 'Upgrade diamond').setAction(async function (args, hre) {
+  logger.log('Upgrading diamond..')
+  const [initializer] = await hre.deploy('CommonConfigFacet')
 
-    await updateFacets({
-        multisig: true,
-        facetNames: minterFacets,
-        initializer: {
-            contract: initializer,
-            func: "initialize",
-            args: [],
-        },
-    });
-});
+  await updateFacets({
+    multisig: true,
+    facetNames: minterFacets,
+    initializer: {
+      contract: initializer,
+      func: 'initializeCommon',
+      args: [],
+    },
+  })
+})

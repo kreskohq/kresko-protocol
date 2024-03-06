@@ -1,131 +1,98 @@
-import { MockContract, smock } from "@defi-wonderland/smock";
-import { fromBig, toBig } from "@kreskolabs/lib";
-import hre, { ethers } from "hardhat";
-import { FluxPriceFeed__factory, Kresko, SmockCollateralReceiver } from "types/typechain";
-import { defaultCloseFee, defaultOracleDecimals, defaultOraclePrice } from "../mocks";
-import { getCollateralConfig } from "./collaterals";
-import { getKrAssetConfig } from "./krassets";
-import { BigNumber } from "ethers";
-import { WrapperBuilder } from "@redstone-finance/evm-connector";
+import { type AssetArgs, type AssetConfig, OracleType } from '@/types'
+import type { MockERC20 } from '@/types/typechain'
+import type {
+  AssetStruct,
+  FeedConfigurationStruct,
+} from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
+import { formatBytesString } from '@utils/values'
+import { zeroAddress } from 'viem'
+import { toBytes } from './oracle'
 
 /* -------------------------------------------------------------------------- */
 /*                                  GENERAL                                   */
 /* -------------------------------------------------------------------------- */
-
-export const wrapContractWithSigner = (contract: any, signer: Signer) =>
-    WrapperBuilder.wrap(contract.connect(signer)).usingSimpleNumericMock({
-        mockSignersCount: 1,
-        timestampMilliseconds: Date.now(),
-        dataPoints: [
-            { dataFeedId: "DAI", value: 0 },
-            { dataFeedId: "USDC", value: 0 },
-            { dataFeedId: "TSLA", value: 0 },
-            { dataFeedId: "ETH", value: 0 },
-            { dataFeedId: "BTC", value: 0 },
-        ],
-    });
-
-export const getHealthFactor = async (user: SignerWithAddress) => {
-    const accountKrAssetValue = fromBig(await hre.Diamond.getAccountKrAssetValue(user.address), 8);
-    const accountCollateral = fromBig(await hre.Diamond.getAccountCollateralValue(user.address), 8);
-
-    return accountCollateral / accountKrAssetValue;
-};
-
-export const leverageKrAsset = async (
-    user: SignerWithAddress,
-    krAsset: TestKrAsset,
-    collateralToUse: TestCollateral,
-    amount: BigNumber,
+export const updateTestAsset = async <T extends MockERC20 | KreskoAsset>(
+  asset: TestAsset<T, 'mock'>,
+  args: TestAssetUpdate,
 ) => {
-    await collateralToUse.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
-    await krAsset.contract.connect(user).approve(hre.Diamond.address, hre.ethers.constants.MaxUint256);
+  const { deployer } = await hre.ethers.getNamedSigners()
+  const { newPrice, ...assetStruct } = args
+  if (newPrice) {
+    await asset.setPrice(newPrice)
+    asset.config.args.price = newPrice
+  }
+  const newAssetConfig = { ...asset.config.assetStruct, ...assetStruct }
+  await hre.Diamond.connect(deployer).updateAsset(asset.address, newAssetConfig)
+  asset.config.assetStruct = newAssetConfig
+  return asset
+}
+export const getAssetConfig = async (
+  asset: { symbol: Function; decimals: Function },
+  config: AssetArgs,
+): Promise<AssetConfig> => {
+  if (!config.krAssetConfig && !config.collateralConfig && !config.scdpDepositConfig && !config.scdpKrAssetConfig)
+    throw new Error('No config provided')
+  const [decimals, symbol] = await Promise.all([asset.decimals(), asset.symbol()])
 
-    const krAssetValue = fromBig(await hre.Diamond.getKrAssetValue(krAsset.address, amount, false), 8);
-    const MCR = fromBig(await hre.Diamond.minimumCollateralizationRatio());
-    const collateralValueRequired = krAssetValue * MCR;
+  const assetStruct: AssetStruct = {
+    ticker: formatBytesString(config.ticker, 32),
+    oracles: (config.oracleIds as any) ?? [OracleType.Pyth, OracleType.Chainlink],
+    isMinterCollateral: !!config.collateralConfig,
+    isSharedCollateral: !!config.scdpDepositConfig,
+    isSwapMintable: !!config.scdpKrAssetConfig,
+    isMinterMintable: !!config.krAssetConfig,
+    factor: config.collateralConfig?.cFactor ?? 0,
+    liqIncentive: config.collateralConfig?.liqIncentive ?? 0,
+    maxDebtSCDP: config.scdpKrAssetConfig?.maxDebtSCDP ?? 0,
+    depositLimitSCDP: config.scdpDepositConfig?.depositLimitSCDP ?? 0,
+    swapInFeeSCDP: config.scdpKrAssetConfig?.swapInFeeSCDP ?? 0,
+    swapOutFeeSCDP: config.scdpKrAssetConfig?.swapOutFeeSCDP ?? 0,
+    liqIncentiveSCDP: config.scdpKrAssetConfig?.liqIncentiveSCDP ?? 0,
+    protocolFeeShareSCDP: config.scdpKrAssetConfig?.protocolFeeShareSCDP ?? 0,
+    kFactor: config.krAssetConfig?.kFactor ?? 0,
+    maxDebtMinter: config.krAssetConfig?.maxDebtMinter ?? 0,
+    closeFee: config.krAssetConfig?.closeFee ?? 0,
+    openFee: config.krAssetConfig?.openFee ?? 0,
+    anchor: config.krAssetConfig?.anchor ?? zeroAddress,
+    decimals: decimals,
+    isSharedOrSwappedCollateral: !!config.scdpDepositConfig || !!config.scdpKrAssetConfig,
+    isCoverAsset: false,
+  }
 
-    const [collateralValue] = await hre.Diamond.getCollateralValueAndOraclePrice(
-        collateralToUse.address,
-        toBig(1),
-        false,
-    );
-
-    const price = fromBig(collateralValue, 8);
-    const collateralAmount = collateralValueRequired / price;
-
-    await collateralToUse.mocks?.contract.setVariable("_balances", {
-        [user.address]: toBig(collateralAmount),
-    });
-    if (!(await hre.Diamond.collateralAsset(collateralToUse.address)).exists) {
-        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
-            collateralToUse.address,
-            await getCollateralConfig(
-                collateralToUse.contract,
-                collateralToUse.anchor ? collateralToUse.anchor.address : ethers.constants.AddressZero,
-                toBig(1),
-                toBig(process.env.LIQUIDATION_INCENTIVE!),
-                collateralToUse.priceFeed.address,
-                collateralToUse.priceFeed.address,
-            ),
-        );
+  if (assetStruct.isMinterMintable) {
+    if (assetStruct.anchor == zeroAddress || assetStruct.anchor == null) {
+      throw new Error('KrAsset anchor cannot be zero address')
     }
-    await wrapContractWithSigner(hre.Diamond, user).depositCollateral(
-        user.address,
-        collateralToUse.address,
-        toBig(collateralAmount),
-    );
-    if (!(await hre.Diamond.kreskoAsset(krAsset.address)).exists) {
-        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addKreskoAsset(
-            krAsset.address,
-            await getKrAssetConfig(
-                krAsset.contract,
-                krAsset.anchor.address,
-                toBig(1),
-                krAsset.priceFeed.address,
-                krAsset.priceFeed.address,
-                toBig(1_000_000),
-                toBig(defaultCloseFee),
-                BigNumber.from(0),
-            ),
-        );
+    if (assetStruct.kFactor === 0) {
+      throw new Error('KrAsset kFactor cannot be zero')
     }
-    await wrapContractWithSigner(hre.Diamond, user).mintKreskoAsset(user.address, krAsset.address, amount);
+  }
 
-    if (!(await hre.Diamond.collateralAsset(krAsset.address)).exists) {
-        await wrapContractWithSigner(hre.Diamond, hre.users.deployer).addCollateralAsset(
-            krAsset.address,
-            await getCollateralConfig(
-                krAsset.contract,
-                krAsset.anchor.address,
-                toBig(1),
-                toBig(process.env.LIQUIDATION_INCENTIVE!),
-                krAsset.priceFeed.address,
-                krAsset.priceFeed.address,
-            ),
-        );
+  if (assetStruct.isMinterCollateral) {
+    if (assetStruct.factor === 0) {
+      throw new Error('Colalteral factor cannot be zero')
     }
-    await wrapContractWithSigner(hre.Diamond, user).depositCollateral(user.address, krAsset.address, amount);
-
-    // Deposit krAsset and withdraw other collateral to bare minimum of within healthy range
-    const accountMinCollateralRequired = await hre.Diamond.getAccountMinimumCollateralValueAtRatio(
-        user.address,
-        hre.Diamond.minimumCollateralizationRatio(),
-    );
-    const accountCollateral = await hre.Diamond.getAccountCollateralValue(user.address);
-
-    const withdrawAmount = fromBig(accountCollateral.sub(accountMinCollateralRequired), 8) / price - 0.1;
-    const amountToWithdraw = toBig(withdrawAmount).rayDiv(await hre.Diamond.getDebtIndexForAsset(krAsset.address));
-
-    if (amountToWithdraw.gt(0)) {
-        await wrapContractWithSigner(hre.Diamond, user).withdrawCollateral(
-            user.address,
-            collateralToUse.address,
-            amountToWithdraw,
-            await hre.Diamond.getDepositedCollateralAssetIndex(user.address, collateralToUse.address),
-        );
-
-        // "burn" collateral not needed
-        await collateralToUse.contract.connect(user).transfer(hre.ethers.constants.AddressZero, amountToWithdraw);
+    if (assetStruct.liqIncentive === 0) {
+      throw new Error('Collateral liquidation incentive cannot be zero')
     }
-};
+  }
+
+  if (assetStruct.isSwapMintable) {
+    if (assetStruct.liqIncentiveSCDP === 0) {
+      throw new Error('KrAsset liquidation incentive cannot be zero')
+    }
+  }
+
+  if (!config.feed) {
+    throw new Error('No feed provided')
+  }
+
+  const feedConfig: FeedConfigurationStruct = {
+    oracleIds: assetStruct.oracles,
+    pythId: toBytes(config.pyth.id),
+    invertPyth: config.pyth.invert,
+    staleTimes: config.staleTimes ?? [10000, 86401],
+    feeds: assetStruct.oracles[0] === OracleType.Pyth ? [zeroAddress, config.feed] : [config.feed, zeroAddress],
+  }
+  return { args: config, assetStruct, feedConfig, extendedInfo: { decimals, symbol } }
+}

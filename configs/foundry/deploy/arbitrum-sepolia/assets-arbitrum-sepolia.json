@@ -1,0 +1,511 @@
+{
+  "00_configId": "arbitrum-sepolia",
+  "01_mockFeeds": false,
+  "02_nativeWrapper": {
+    "00_mocked": false,
+    "01_name": "",
+    "02_symbol": "WETH",
+    "03_address": "0x0091f4e75a03C11cB9be8E3717219005eb780D89"
+  },
+  "03_externalAssets": [
+    {
+      "00_mocked": false,
+      "01_isVaultAsset": false,
+      "02_name": "",
+      "03_symbol": "WETH",
+      "04_address": "0x0091f4e75a03C11cB9be8E3717219005eb780D89",
+      "05_config": {
+        "00_ticker": "ETH",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 1e4,
+        "05_kFactor": 0,
+        "06_openFee": 0,
+        "07_closeFee": 0,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 0,
+        "10_maxDebtSCDP": 0,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 0,
+        "13_swapOutFeeSCDP": 0,
+        "14_protocolFeeShareSCDP": 0,
+        "15_liqIncentiveSCDP": 0,
+        "16_decimals": 18,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": false,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": false,
+        "21_isSharedOrSwappedCollateral": false,
+        "22_isCoverAsset": false
+      },
+      "06_vaultConfig": {
+        "00_feed": [],
+        "01_staleTime": 0,
+        "03_depositFee": 0,
+        "04_withdrawFee": 0,
+        "05_maxDeposits": 0,
+        "06_enabled": false
+      }
+    },
+    {
+      "00_mocked": false,
+      "01_isVaultAsset": false,
+      "02_name": "",
+      "03_symbol": "WBTC",
+      "04_address": "0xf4FF66F2128695f71C26CD6d427f16140Ec3D26B",
+      "05_config": {
+        "00_ticker": "BTC",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 1e4,
+        "05_kFactor": 0,
+        "06_openFee": 0,
+        "07_closeFee": 0,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 0,
+        "10_maxDebtSCDP": 0,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 0,
+        "13_swapOutFeeSCDP": 0,
+        "14_protocolFeeShareSCDP": 0,
+        "15_liqIncentiveSCDP": 0,
+        "16_decimals": 8,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": false,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": false,
+        "21_isSharedOrSwappedCollateral": false,
+        "22_isCoverAsset": false
+      },
+      "06_vaultConfig": {
+        "00_feed": [],
+        "01_staleTime": 0,
+        "03_depositFee": 0,
+        "04_withdrawFee": 0,
+        "05_maxDeposits": 0,
+        "06_enabled": false
+      }
+    },
+    {
+      "00_mocked": false,
+      "01_isVaultAsset": true,
+      "02_name": "",
+      "03_symbol": "USDC",
+      "04_address": "0xa6b98b891b9F780b52d21fE6d51055CD553C28c2",
+      "05_config": {
+        "00_ticker": "USDC",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 1e4,
+        "05_kFactor": 0,
+        "06_openFee": 0,
+        "07_closeFee": 0,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 0,
+        "10_maxDebtSCDP": 0,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 0,
+        "13_swapOutFeeSCDP": 0,
+        "14_protocolFeeShareSCDP": 0,
+        "15_liqIncentiveSCDP": 0,
+        "16_decimals": 6,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": false,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": false,
+        "21_isSharedOrSwappedCollateral": false,
+        "22_isCoverAsset": false
+      },
+      "06_vaultConfig": {
+        "00_feed": [
+          "USDC",
+          "chainlink"
+        ],
+        "01_staleTime": 86401,
+        "02_depositFee": 2,
+        "03_withdrawFee": 3,
+        "04_maxDeposits": 340282366920938463463374607431768211455,
+        "05_enabled": true
+      }
+    },
+    {
+      "00_mocked": false,
+      "01_isVaultAsset": true,
+      "02_name": "",
+      "03_symbol": "USDC.e",
+      "04_address": "0x4b54D82B1BEda5fFe478b11fC1aB122438598022",
+      "05_config": {
+        "00_ticker": "USDC",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 1e4,
+        "05_kFactor": 0,
+        "06_openFee": 0,
+        "07_closeFee": 0,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 0,
+        "10_maxDebtSCDP": 0,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 0,
+        "13_swapOutFeeSCDP": 0,
+        "14_protocolFeeShareSCDP": 0,
+        "15_liqIncentiveSCDP": 0,
+        "16_decimals": 6,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": false,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": false,
+        "21_isSharedOrSwappedCollateral": false,
+        "22_isCoverAsset": false
+      },
+      "06_vaultConfig": {
+        "00_feed": [
+          "USDC",
+          "chainlink"
+        ],
+        "01_staleTime": 86401,
+        "02_depositFee": 2,
+        "03_withdrawFee": 3,
+        "04_maxDeposits": 340282366920938463463374607431768211455,
+        "05_enabled": true
+      }
+    },
+    {
+      "00_mocked": false,
+      "01_isVaultAsset": false,
+      "02_name": "",
+      "03_symbol": "DAI",
+      "04_address": "0x2880900E93eA590d2fD43914ADC9370299e45d36",
+      "05_config": {
+        "00_ticker": "DAI",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 1e4,
+        "05_kFactor": 0,
+        "06_openFee": 0,
+        "07_closeFee": 0,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 0,
+        "10_maxDebtSCDP": 0,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 0,
+        "13_swapOutFeeSCDP": 0,
+        "14_protocolFeeShareSCDP": 0,
+        "15_liqIncentiveSCDP": 0,
+        "16_decimals": 18,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": false,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": false,
+        "21_isSharedOrSwappedCollateral": false,
+        "22_isCoverAsset": false
+      },
+      "06_vaultConfig": {
+        "00_feed": [],
+        "01_staleTime": 0,
+        "02_depositFee": 0,
+        "03_withdrawFee": 0,
+        "04_maxDeposits": 0,
+        "05_enabled": false
+      }
+    }
+  ],
+  "04_kreskoAssets": [
+    {
+      "00_name": "Ether",
+      "01_symbol": "krETH",
+      "02_underlying": "WETH",
+      "03_wrapFee": 20,
+      "04_unwrapFee": 50,
+      "05_config": {
+        "00_ticker": "ETH",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 1e4,
+        "05_kFactor": 1.05e4,
+        "06_openFee": 0,
+        "07_closeFee": 50,
+        "08_liqIncentive": 1.06e4,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 10,
+        "13_swapOutFeeSCDP": 15,
+        "14_protocolFeeShareSCDP": 0.2e4,
+        "15_liqIncentiveSCDP": 1.035e4,
+        "16_decimals": 0,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": true,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": true,
+        "21_isSharedOrSwappedCollateral": true,
+        "22_isCoverAsset": false
+      }
+    },
+    {
+      "00_name": "Bitcoin",
+      "01_symbol": "krBTC",
+      "02_underlying": "WBTC",
+      "03_wrapFee": 20,
+      "04_unwrapFee": 50,
+      "05_config": {
+        "00_ticker": "BTC",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 1e4,
+        "05_kFactor": 1.05e4,
+        "06_openFee": 0,
+        "07_closeFee": 50,
+        "08_liqIncentive": 1.06e4,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 10,
+        "13_swapOutFeeSCDP": 15,
+        "14_protocolFeeShareSCDP": 0.2e4,
+        "15_liqIncentiveSCDP": 1.035e4,
+        "16_decimals": 0,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": true,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": true,
+        "21_isSharedOrSwappedCollateral": true,
+        "22_isCoverAsset": false
+      }
+    },
+    {
+      "00_name": "Arbitrum",
+      "01_symbol": "krARB",
+      "02_underlying": "",
+      "03_wrapFee": 0,
+      "04_unwrapFee": 0,
+      "05_config": {
+        "00_ticker": "ARB",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 0.95e4,
+        "05_kFactor": 1.01e4,
+        "06_openFee": 0,
+        "07_closeFee": 50,
+        "08_liqIncentive": 1.075e4,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 20,
+        "13_swapOutFeeSCDP": 25,
+        "14_protocolFeeShareSCDP": 0.25e4,
+        "15_liqIncentiveSCDP": 1.035e4,
+        "16_decimals": 0,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": true,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": true,
+        "21_isSharedOrSwappedCollateral": true,
+        "22_isCoverAsset": false
+      }
+    },
+    {
+      "00_name": "SPDR S&P 500 ETF Trust",
+      "01_symbol": "krSPY",
+      "02_underlying": "",
+      "03_wrapFee": 0,
+      "04_unwrapFee": 0,
+      "05_config": {
+        "00_ticker": "SPY",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 1e4,
+        "05_kFactor": 1.01e4,
+        "06_openFee": 0,
+        "07_closeFee": 50,
+        "08_liqIncentive": 1.075e4,
+        "09_maxDebtMinter": 340282366920938463463374607431768211455,
+        "10_maxDebtSCDP": 340282366920938463463374607431768211455,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 20,
+        "13_swapOutFeeSCDP": 25,
+        "14_protocolFeeShareSCDP": 0.25e4,
+        "15_liqIncentiveSCDP": 1.035e4,
+        "16_decimals": 0,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": true,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": true,
+        "21_isSharedOrSwappedCollateral": true,
+        "22_isCoverAsset": false
+      }
+    }
+  ],
+  "05_kiss": {
+    "00_name": "KISS",
+    "01_symbol": "KISS",
+    "02_config": {
+      "00_ticker": "KISS",
+      "02_anchor": "0x0000000000000000000000000000000000000000",
+      "03_oracles": [
+        4,
+        0
+      ],
+      "04_factor": 1e4,
+      "05_kFactor": 1e4,
+      "06_openFee": 0,
+      "07_closeFee": 0,
+      "08_liqIncentive": 1.05e4,
+      "09_maxDebtMinter": 0,
+      "10_maxDebtSCDP": 340282366920938463463374607431768211455,
+      "11_depositLimitSCDP": 340282366920938463463374607431768211455,
+      "12_swapInFeeSCDP": 10,
+      "13_swapOutFeeSCDP": 10,
+      "14_protocolFeeShareSCDP": 0.3e4,
+      "15_liqIncentiveSCDP": 1.05e4,
+      "16_decimals": 0,
+      "17_isMinterCollateral": true,
+      "18_isMinterMintable": false,
+      "19_isSharedCollateral": true,
+      "20_isSwapMintable": true,
+      "21_isSharedOrSwappedCollateral": true,
+      "22_isCoverAsset": true
+    }
+  },
+  "06_tickers": [
+    {
+      "00_ticker": "KISS",
+      "01_mockPrice": 1e18,
+      "02_priceDecimals": 18,
+      "03_chainlink": "0x0000000000000000000000000000000000000000",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "07_staleTimePyth": 0,
+      "08_staleTimeAPI3": 0,
+      "09_staleTimeChainlink": 0,
+      "10_staleTimeRedstone": 0,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    },
+    {
+      "00_ticker": "ETH",
+      "01_mockPrice": 2190e8,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+      "07_staleTimePyth": 10080,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    },
+    {
+      "00_ticker": "BTC",
+      "01_mockPrice": 41759e8,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
+      "07_staleTimePyth": 10080,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    },
+    {
+      "00_ticker": "ARB",
+      "01_mockPrice": 1.14e8,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0xD1092a65338d049DB68D7Be6bD89d17a0929945e",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0x3fa4252848f9f0a1480be62745a4629d9eb1322aebab8a791e344b3b9c1adcf5",
+      "07_staleTimePyth": 10080,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    },
+    {
+      "00_ticker": "DAI",
+      "01_mockPrice": 1e18,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0xb113F5A928BCfF189C998ab20d753a47F9dE5A61",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0xb0948a5e5313200c632b51bb5ca32f6de0d36e9950a942d19751e833f70dabfd",
+      "07_staleTimePyth": 10080,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    },
+    {
+      "00_ticker": "USDC",
+      "01_mockPrice": 1e18,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0x0153002d20B96532C639313c2d54c3dA09109309",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+      "07_staleTimePyth": 10080,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    },
+    {
+      "00_ticker": "SPY",
+      "01_mockPrice": 462.39e8,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0x4fB44FC4FA132d1a846Bd4143CcdC5a9f1870b06",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0x19e09bb805456ada3979a7d1cbb4b6d63babc3a0f8e8a9509f68afa5c4c11cd5",
+      "07_staleTimePyth": 10080,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 300,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    }
+  ],
+  "07_customTradeRoutes": [
+    {
+      "00_assetA": "krSPY",
+      "01_assetB": "krARB",
+      "02_enabled": false
+    }
+  ]
+}

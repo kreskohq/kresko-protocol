@@ -1,0 +1,32 @@
+{
+  "00_configId": "localhost",
+  "01_deploymentFactory": "0x0000000000000000000000000000000000000000",
+  "02_common": {
+    "00_admin": "0x0000000000000000000000000000000000000000",
+    "01_council": "0x0000000000000000000000000000000000000000",
+    "02_treasury": "0x6cF4Fe1d046C26e3c2d9A1ED1Ee248aAda244ad2",
+    "03_maxPriceDeviationPct": 5e2,
+    "04_oracleDecimals": 8,
+    "05_sequencerGracePeriodTime": 3600,
+    "06_sequencerUptimeFeed": "0x0000000000000000000000000000000000000000",
+    "07_gatingManager": "0x0000000000000000000000000000000000000000",
+    "08_pythEndpoint": "0x0000000000000000000000000000000000000000"
+  },
+  "03_scdp": {
+    "00_minCollateralRatio": 250e2,
+    "01_liquidationThreshold": 150e2,
+    "02_coverThreshold": 160e2,
+    "03_coverIncentive": 1.01e4
+  },
+  "04_minter": {
+    "00_liquidationThreshold": 140e2,
+    "01_minCollateralRatio": 150e2,
+    "02_minDebtValue": 10e8
+  },
+  "05_periphery": {
+    "00_officiallyKreskianNFT": "0x5CA81744a379c8E984b2E09d73F427E215615716",
+    "01_questForKreskNFT": "0xDF01B2D0cBd99DbeECd1fE3f7F42C8307A0c3B5a",
+    "02_V3SwapRouter02": "0x0000000000000000000000000000000000000000"
+  },
+  "06_gatingPhase": 0
+}

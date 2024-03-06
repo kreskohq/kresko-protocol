@@ -1,0 +1,141 @@
+{
+  "00_configId": "test-audit",
+  "01_mnemonicEnv": "MNEMONIC_DEVNET",
+  "02_users": [
+    {
+      "00_mnemonicIdx": 0,
+      "01_addr": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_mnemonicIdx": 1,
+      "01_addr": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_mnemonicIdx": 2,
+      "01_addr": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_mnemonicIdx": 3,
+      "01_addr": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_mnemonicIdx": 4,
+      "01_addr": "0x0000000000000000000000000000000000000000"
+    }
+  ],
+  "03_external_balances": [
+    {
+      "00_user": 9999,
+      "01_addr": "WETH",
+      "02_amount": 5e18,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_user": 9999,
+      "01_asset": "WBTC",
+      "02_amount": 0.253333e8,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_user": 0,
+      "01_asset": "WBTC",
+      "02_amount": 0.5e8,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_user": 9999,
+      "01_asset": "USDC",
+      "02_amount": 100000e6,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_user": 9999,
+      "01_asset": "USDC.e",
+      "02_amount": 17500e6,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_user": 9999,
+      "01_asset": "USDT",
+      "02_amount": 5000e6,
+      "03_from": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "00_user": 9999,
+      "01_asset": "DAI",
+      "02_amount": 25000e18,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000"
+    }
+  ],
+  "04_scdp": [
+    {
+      "00_user": 0,
+      "01_kissDeposits": 50000e18,
+      "02_vaultAsset": "USDC.e",
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000"
+    }
+  ],
+  "05_minter": [
+    {
+      "00_user": 0,
+      "01_deposit": "USDC.e",
+      "02_depositAmount": 5000e6,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000",
+      "04_krAsset": "KISS",
+      "05_mintAmount": 0
+    },
+    {
+      "00_user": 9999,
+      "01_deposit": "USDC.e",
+      "02_depositAmount": 0,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000",
+      "04_krAsset": "KISS",
+      "05_mintAmount": 10000e18
+    },
+    {
+      "00_user": 9999,
+      "01_deposit": "DAI",
+      "02_depositAmount": 15000e18,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000",
+      "04_mint": "krETH",
+      "05_mintAmount": 1e18
+    },
+    {
+      "00_user": 9999,
+      "01_deposit": "USDC",
+      "02_depositAmount": 4000e6,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000",
+      "04_mint": "krXAU",
+      "05_mintAmount": 0.25e18
+    },
+    {
+      "00_user": 9999,
+      "01_deposit": "WETH",
+      "02_depositAmount": 2e18,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000",
+      "04_mint": "krJPY",
+      "05_mintAmount": 1009000e18
+    },
+    {
+      "00_user": 0,
+      "01_deposit": "DAI",
+      "02_depositAmount": 10000e18,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000000",
+      "04_mint": "krETH",
+      "05_mintAmount": 1.5e18
+    },
+    {
+      "00_user": 9999,
+      "01_deposit": "krETH",
+      "02_depositAmount": 0.5e18,
+      "03_assetsFrom": "0x0000000000000000000000000000000000000001",
+      "04_mint": "krETH",
+      "05_mintAmount": 0
+    }
+  ],
+  "06_nfts": {
+    "00_useMocks": true,
+    "01_nftsFrom": "0x0000000000000000000000000000000000000000",
+    "02_userCount": 5
+  }
+}

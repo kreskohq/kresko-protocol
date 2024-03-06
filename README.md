@@ -1,124 +1,214 @@
 # Kresko Protocol
 
-This repository contains the core smart contract code for Kresko protocol, which supports the creation and management of crypto-backed synthetic assets. Prices for synthetic assets are committed on chain by trusted oracles. Kresko uses a proxy system so that contract upgrades are not disruptive to protocol functionality. This is a usage and integration guide that assumes familiarity with the basic economic mechanics as described in the litepaper.
+This repository contains the code for the Kresko Protocol. Kresko Protocol supports creating and managing crypto-backed synthetic assets. Prices for synthetic assets are derived from combination of oracle providers (on-demand/push). Protocol uses the [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535) architecture. It enables composability through flexibile storage patterns while allowing users to access all core functionality with a single contract address. This is a usage and integration guide that assumes familiarity with Solidity (and EIP-2535), Foundry, Hardhat and [core concepts](https://kresko.gitbook.io/kresko-docs/) of Kresko.
 
-[![run test suite](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml/badge.svg)](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml)
+[![run test suite](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml/badge.svg?branch=develop)](https://github.com/kreskohq/kresko-protocol/actions/workflows/run-test-suite.yml?branch=develop)
 
-## Usage
+# Usage
 
-### Setup
+A [justfile](https://github.com/casey/just) exists for running things.
 
-<b>_You need a authorized npm token in .npmrc to install required internal dependencies, this will be lifted later on._</b> <br/>
+### Using just commands
 
-Install dependencies with an authorized .npmrc:
+just installed: `just <command>`.
+
+just not installed: `npx just <command>`.
+
+# Setup
+
+## Quick Setup
+
+Install missing tools (bun, foundry, pm2), forge dependencies and run dry deploy
 
 ```sh
-pnpm i
+just setup
 ```
 
-### Testing
+Only tools & deps can be installed with
 
-Create local .env file:
+```sh
+just deps
+```
+
+## Manual Setup
+
+Create .env file from example
 
 ```sh
 cp .env.example .env
 ```
 
-Minimum required values:
+### Tools
+
+#### bun
 
 ```sh
-MNEMONIC=some mnemonic
-LIQUIDATION_INCENTIVE=1.05
-LIQUIDATION_THRESHOLD=1.4
-MINIMUM_COLLATERALIZATION_RATIO=1.5
-MINIMUM_DEBT_VALUE=10
-ALCHEMY_API_KEY=alchemy api key
-TWELVE_DATA_API_KEY=twelve data api key
-TREASURY=0x0000000000000000000000000000000000000001
-MULTISIG=0x0000000000000000000000000000000000000002
-OPERATOR=0x0000000000000000000000000000000000000003
-ADMIN=0x0000000000000000000000000000000000000004
-FEED_VALIDATOR=0x0000000000000000000000000000000000000005
-FEED_VALIDATOR_PK=some private key
-FUNDER=0x0000000000000000000000000000000000000006
-
+curl -fsSL https://bun.sh/install | bash
 ```
 
-Ensure a working setup by performing a dry-run of the local deployment setup:
+PM2 is required for anvil & forge development network
 
 ```sh
-pnpm run deploy --tags local
+bun a -g pm2
 ```
 
-Run tests with against a local deployment fixture:
+#### Foundry
+
+Install foundry:
 
 ```sh
-pnpm test
+curl -L https://foundry.paradigm.xyz | bash
+```
+
+and
+
+```sh
+foundryup
+```
+
+### Dependencies
+
+Install forge dependencies
+
+```sh
+forge install
+```
+
+Install node dependencies
+
+```sh
+bun install --yarn
+```
+
+### Compiling
+
+#### Foundry
+
+Compile the contracts
+
+```sh
+forge build
+```
+
+Check your setup by running the forge deployment script
+
+```sh
+bun f:dry
+```
+
+or
+
+```sh
+just d
+```
+
+#### Hardhat
+
+Compile the contracts
+
+```sh
+bun hh:compile
+```
+
+Check your setup by running the hardhat deployment script
+
+```sh
+bun hh:dry
+```
+
+### Testing
+
+**NOTE:** Primary test coverage uses hardhat. Forge tests are a work in progress
+
+#### Hardhat
+
+Run tests with against a local deployment fixture
+
+```sh
+bun hh:test
+```
+
+#### Foundry
+
+```sh
+forge test
 ```
 
 ### Deployment
 
-To local network:
+#### Hardhat
+
+Spins up hardhat node and runs deployment
 
 ```sh
-pnpm local
+bun hh:dev
 ```
 
-To live network:
+#### Foundry
+
+(requires PM2: `bun a -g pm2`)
+
+Spins up anvil and runs deployment
 
 ```sh
-pnpm deploy --network <network>
+just l
 ```
 
-### Forking
-
--   value of `process.env.FORKING` maps to network key and it's setup within `hardhat-configs/networks`
--   set a specific block with `process.env.FORKING_BLOCKNUMBER`
--   HRE is extended with helpers to get live deployments within the forked network (https://github.com/wighawag/hardhat-deploy#companionnetworks)
-
-Run deploy in fork
+Observe deployment script logs
 
 ```sh
-pnpm fork:deploy
+pm2 logs 1
 ```
 
-Run tests with `--grep Forking`
+Restart the network
 
 ```sh
-pnpm fork:test
+just r
 ```
 
-## Notes about the usage of [ERC-2535](https://eips.ethereum.org/EIPS/eip-2535) (Diamond)
+Stop the network
+
+```sh
+just k
+```
+
+## VSCode extensions
+
+- Patterns in this repository have broken lsp support with these extensions: [hardhat](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity), [solidity](https://marketplace.visualstudio.com/items?itemName=JuanBlanco.solidity).
+
+- Recommendation is to rather use this fork: [vsc-solidity](https://marketplace.visualstudio.com/items?itemName=0xp.vsc-solidity).
+
+## About [ERC-2535](https://eips.ethereum.org/EIPS/eip-2535) (Diamonds) and things
 
 ### General
 
--   All external functions are contained in the facets, `hardhat-diamond-abi` will combine their ABI to a separate artifact (Kresko.json) after compile.
+- External functionality lives in Facets, Use IKresko.sol or the artifact generated using `hardhat-diamond-abi` for aggregate ABI.
 
--   Core logic is mostly defined inside library functions. These internal functions are attached to the minter storage struct for ease of use.
+- Logic (mostly) lives inside internal library functions. These libraries are then attached globally to structs for convenience.
 
--   Storage is used through a inline assembly pointer inside free function. To access the storage (+ attached internal lib functions) simply call the free function anywhere within the diamond.
+- Storage is accessed with inline assembly slot pointer assignment. To access the storage (+ attached library functions) simply call these storage getter functions anywhere.
 
--   Note that Staking, AMM and KreskoAsset contracts do not live inside the diamond scope.
+- Vault, Factory and KreskoAsset contracts do not live inside the diamond scope.
 
 ### State
 
 #### Nay
 
--   Do not add new state variables to the beginning or middle of structs. Doing this makes the new state variable overwrite existing state variable data and all state variables after the new state variable reference the wrong storage location.
+- Do not add new state variables to the beginning or middle of structs. Doing this makes the new state variable overwrite existing state variable data and all state variables after the new state variable reference the wrong storage location.
 
--   Do not put structs directly in structs unless you don’t plan on ever adding more state variables to the inner structs. You won't be able to add new state variables to inner structs in upgrades. This makes sense because a struct uses a fixed number of storage locations. Adding a new state variable to an inner struct would cause the next state variable after the inner struct to be overwritten. Structs that are in mappings can be extended in upgrades, because those structs are stored in random locations based on keccak256 hashing.
+- Do not put structs directly in structs unless you don’t plan on ever adding more state variables to the inner structs. You won't be able to add new state variables to inner structs in upgrades. This makes sense because a struct uses a fixed number of storage locations. Adding a new state variable to an inner struct would cause the next state variable after the inner struct to be overwritten. Structs that are in mappings can be extended in upgrades, because those structs are stored in random locations based on keccak256 hashing.
 
--   Do not add new state variables to structs that are used in arrays.
+- Do not add new state variables to structs that are used in arrays.
 
--   Do not use the same namespace string for different structs. This is obvious. Two different structs at the same location will overwrite each other.
+- Do not use the same namespace string for different structs. This is obvious. Two different structs at the same location will overwrite each other.
 
 #### Yay
 
--   To add new state variables to DiamondStorage pattern in eg. MinterStorage (ms), add them to the end of the struct. This makes sense because it is not possible for existing facets to overwrite state variables at new storage locations.
+- To add new state variables to the DiamondStorage pattern (eg. MinterState or ms), add them to the end of the struct so it is not possible for existing functions to overwrite state variables at new storage locations.
 
--   New state variables can be added to the ends of structs that are used in mappings.
+- Above also applies to structs inside mappings.
 
--   The names of state variables can be changed, but that might be confusing if different facets are using different names for the same storage locations.
+- State variable names can be changed - but it might be confusing if different facets use different names for the same storage.
 
 _Learning references_
 
@@ -130,7 +220,7 @@ _https://eip2535diamonds.substack.com/p/how-eip2535-diamonds-reduces-gas_
 
 ### Contributions
 
-Contributions to Kresko Protocol are encouraged, feel free to open an issue or pull request. <br/> All contributions are licensed under BUSL1.1.
+Contributions to Kresko Protocol are encouraged, feel free to open an issue or pull request. <br/> All contributions are licensed under BUSL-1.1.
 
 ### Contact
 

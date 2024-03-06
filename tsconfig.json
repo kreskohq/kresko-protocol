@@ -1,33 +1,37 @@
 {
-    "exclude": ["temp", "mochawesome-report", "node_modules/**/*.ts", "cache/**/*"],
-    "include": ["hardhat.config.ts", "types", "src"],
-    "compilerOptions": {
-        "noErrorTruncation": true,
-        "forceConsistentCasingInFileNames": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "skipDefaultLibCheck": true,
-        "module": "CommonJS",
-        "allowJs": true,
-        "moduleResolution": "node",
-        "noImplicitAny": true,
-        "target": "ES2020",
-        "lib": ["ES2018", "DOM", "DOM.Iterable", "ES2019.Array", "ES2019.Object", "ESNext"],
-        "resolveJsonModule": true,
-        "strict": true,
-        "esModuleInterop": true,
-        "baseUrl": "./",
-        "paths": {
-            "@configs": ["hardhat-configs"],
-            "@deploy-config/*": ["src/deploy-config/*"],
-            "@utils": ["src/utils"],
-            "@utils/*": ["src/utils/*"],
-            "@tasks": ["src/tasks"],
-            "@test/*": ["src/test/*"],
-            "@scripts/*": ["src/scripts/*"],
-            "@test-utils": ["src/utils/test"],
-            "tslib": ["node_modules/tslib/tslib.d.ts"]
-        }
-    },
-    "ts-node": { "files": true, "transpileOnly": true, "swc": true }
+  "compilerOptions": {
+    "module": "nodenext",
+    "target": "esnext",
+    "moduleResolution": "nodenext",
+    "lib": ["dom", "esnext"],
+    "noErrorTruncation": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipDefaultLibCheck": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "noImplicitAny": true,
+    "noEmit": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "baseUrl": "./",
+    "paths": {
+      "@/types": ["src/types"],
+      "@/types/*": ["src/types/*"],
+      "@config/*": ["configs/*"],
+      "@utils": ["src/utils"],
+      "@utils/*": ["src/utils/*"],
+      "@tasks": ["src/tasks"],
+      "@test/*": ["src/test/*"],
+      "@scripts/*": ["src/scripts/*"],
+      "@test-utils": ["src/utils/test"]
+    }
+  },
+  "exclude": ["temp", "docs", "node_modules", "cache", "out", "lib", "artifacts", "broadcast"],
+  "include": ["hardhat.config.ts", "src", "configs", "utils"],
+  "ts-node": {
+    "files": true,
+    "transpileOnly": true,
+    "swc": true,
+    "esm": true
+  }
 }

@@ -1,120 +1,85 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // Deployment
-import { HardhatUserConfig } from "hardhat/config";
-import { resolve } from "path";
-import "tsconfig-paths/register";
+import '@nomicfoundation/hardhat-foundry'
+import type { HardhatUserConfig } from 'hardhat/config'
+import 'tsconfig-paths/register'
 /* -------------------------------------------------------------------------- */
 /*                                   Plugins                                  */
 /* -------------------------------------------------------------------------- */
 
-import "hardhat-diamond-abi";
-// note: hardhat-diamond-abi should always be exported before typechain if used together
-import "@typechain/hardhat";
-import "@nomiclabs/hardhat-ethers";
-import "hardhat-deploy";
-import "hardhat-deploy-ethers";
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-web3";
-import "hardhat-contract-sizer";
-import "hardhat-interface-generator";
-import "solidity-coverage";
-import * as tdly from "@tenderly/hardhat-tenderly";
-tdly.setup();
-
-// import "hardhat-preprocessor";
-// import "hardhat-watcher";
-// import "hardhat-gas-reporter";
+// note: hardhat-diamond-abi should always be imported before typechain - if used together
+import '@nomiclabs/hardhat-ethers'
+import 'hardhat-diamond-abi'
+import '@typechain/hardhat'
+import '@nomicfoundation/hardhat-chai-matchers'
+import 'hardhat-deploy'
+import 'hardhat-deploy-ethers'
 
 /* -------------------------------------------------------------------------- */
 /*                                   Dotenv                                   */
 /* -------------------------------------------------------------------------- */
-import { config as dotenvConfig } from "dotenv";
+import { configDotenv } from 'dotenv'
+configDotenv()
+process.env.HARDHAT = 'true'
 
-dotenvConfig({ path: resolve(__dirname, "./.env") });
-const mnemonic = process.env.MNEMONIC;
-if (!mnemonic) {
-    throw new Error("No mnemonic set");
-}
-const isExport = process.env.EXPORT;
-let exportUtil: any;
+const mnemonic = process.env.MNEMONIC_DEVNET || 'test test test test test test test test test test test junk'
 
-/* -------------------------------------------------------------------------- */
-/*                                    Tasks                                   */
-/* -------------------------------------------------------------------------- */
-import "./src/tasks";
 /* -------------------------------------------------------------------------- */
 /*                                Config helpers                              */
 /* -------------------------------------------------------------------------- */
-import { compilers, handleForking, networks, users, diamondAbiConfig } from "hardhat-configs";
+import { compilers, diamondAbiConfig, handleForking, networks, users } from '@config/hardhat'
 /* -------------------------------------------------------------------------- */
 /*                              Extensions To HRE                             */
 /* -------------------------------------------------------------------------- */
-import "hardhat-configs/extensions";
+// import '@config/hardhat/extensions'
+/* -------------------------------------------------------------------------- */
+/*                                    Tasks                                   */
+/* -------------------------------------------------------------------------- */
+// import 'src/tasks'
 
 /* -------------------------------------------------------------------------- */
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 
-let externalArtifacts = [];
-let outDir = "types/typechain";
-
-if (isExport) {
-    console.log("isExport", isExport);
-    exportUtil = require("./src/utils/export");
-    externalArtifacts = exportUtil.externalArtifacts();
-    outDir = "packages/contracts/src/types/";
+if (process.env.EXPORT) {
+  console.log('exporting..')
 }
 
 const config: HardhatUserConfig = {
-    solidity: { compilers },
-    networks: handleForking(networks(mnemonic)),
-    namedAccounts: users,
-    mocha: {
-        reporter: "mochawesome",
-        timeout: process.env.CI ? 45000 : process.env.FORKING ? 300000 : 15000,
-    },
-    paths: {
-        artifacts: "artifacts",
-        cache: "cache",
-        sources: "src/contracts",
-        tests: "src/test",
-        deploy: "src/deploy",
-        deployments: "deployments",
-    },
-    external: {
-        contracts: [
-            {
-                artifacts: "./node_modules/@kreskolabs/gnosis-safe-contracts/build/artifacts",
-            },
-        ],
-    },
-    diamondAbi: diamondAbiConfig,
-    typechain: {
-        outDir,
-        target: "ethers-v5",
-        alwaysGenerateOverloads: false,
-        dontOverrideCompile: false,
-        discriminateTypes: true,
-        tsNocheck: true,
-        externalArtifacts,
-    },
-    contractSizer: {
-        alphaSort: true,
-        disambiguatePaths: false,
-        runOnCompile: false,
-        except: ["vendor"],
-    },
-    etherscan: {
-        apiKey: {
-            optimisticGoerli: process.env.ETHERSCAN_API_KEY!,
+  solidity: compilers,
+  networks: handleForking(networks(mnemonic)),
+  namedAccounts: users,
+  mocha: {
+    reporter: process.env.CI ? 'spec' : 'mochawesome',
+    reporterOptions: process.env.CI
+      ? undefined
+      : {
+          reportDir: 'docs/test-report',
+          assetsDir: 'docs/test-report/assets',
+          reportTitle: 'Kresko Protocol Hardhat Test Report',
+          reportPageTitle: 'Kresko Protocol Hardhat Test Report',
         },
-    },
-    tenderly: {
-        project: "protocol",
-        username: "kresko",
-        privateVerification: true,
-    },
-};
+    timeout: process.env.CI ? 45000 : process.env.FORKING ? 300000 : 30000,
+  },
+  paths: {
+    artifacts: 'build/hardhat/artifacts',
+    cache: 'build/hardhat/cache',
+    tests: 'src/test',
+    sources: 'src/contracts/core',
+    deploy: 'src/deploy',
+    deployments: 'out/hardhat/deploy',
+  },
+  diamondAbi: diamondAbiConfig,
+  typechain: {
+    outDir: 'src/types/typechain',
+    target: 'ethers-v5',
+    alwaysGenerateOverloads: false,
+    dontOverrideCompile: false,
+    discriminateTypes: true,
+    tsNocheck: true,
+    externalArtifacts: [],
+  },
+}
 
-export default config;
+export default config

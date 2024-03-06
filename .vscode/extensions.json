@@ -1,14 +1,9 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
-    // Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
+  // See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
+  // Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
 
-    // List of extensions which should be recommended for users of this workspace.
-    "recommendations": [
-        "NomicFoundation.hardhat-solidity",
-        "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint",
-        "stackbreak.comment-divider",
-    ],
-    // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
-    "unwantedRecommendations": ["JuanBlanco.solidity", "tanzx97.solidity-lite"]
+  // List of extensions which should be recommended for users of this workspace.
+  "recommendations": ["esbenp.prettier-vscode", "biomejs.biome", "stackbreak.comment-divider", "0xp.vsc-solidity"],
+  // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
+  "unwantedRecommendations": ["dbaeumer.vscode-eslint", "NomicFoundation.hardhat-solidity", "JuanBlanco.solidity"]
 }

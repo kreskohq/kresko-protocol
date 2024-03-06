@@ -1,30 +1,62 @@
-import type { DeployFunction } from "hardhat-deploy/types";
-import { getLogger } from "@kreskolabs/lib";
-import { addMockCollateralAsset } from "@utils/test/helpers/collaterals";
-import { addMockKreskoAsset } from "@utils/test/helpers/krassets";
+import { getLogger } from '@utils/logging'
+import { addMockExtAsset } from '@utils/test/helpers/collaterals'
+import { addMockKreskoAsset } from '@utils/test/helpers/krassets'
+import { testCollateralConfig, testKrAssetConfig } from '@utils/test/mocks'
+import type { DeployFunction } from 'hardhat-deploy/types'
 
 const func: DeployFunction = async function (hre) {
-    const logger = getLogger("deploy-oracle");
-    if (!hre.Diamond) {
-        throw new Error("No diamond deployed");
-    }
+  const logger = getLogger('mock-assets')
+  if (!hre.Diamond) {
+    throw new Error('No diamond deployed')
+  }
 
-    const { deployer, feedValidator } = await hre.ethers.getNamedSigners();
+  await addMockExtAsset()
+  await addMockExtAsset({
+    ...testCollateralConfig,
+    ticker: 'Collateral2',
+    symbol: 'Collateral2',
+    pyth: {
+      id: 'Collateral2',
+      invert: false,
+    },
+    decimals: 18,
+  })
+  await addMockExtAsset({
+    ...testCollateralConfig,
+    ticker: 'Coll8Dec',
+    symbol: 'Coll8Dec',
+    pyth: {
+      id: 'Coll8Dec',
+      invert: false,
+    },
+    decimals: 8,
+  })
+  await addMockKreskoAsset()
+  await addMockKreskoAsset({
+    ...testKrAssetConfig,
+    ticker: 'KrAsset2',
+    symbol: 'KrAsset2',
+    pyth: {
+      id: 'KrAsset2',
+      invert: false,
+    },
+  })
+  await addMockKreskoAsset({
+    ...testKrAssetConfig,
+    ticker: 'KrAsset3',
+    symbol: 'KrAsset3',
+    pyth: {
+      id: 'KrAsset3',
+      invert: false,
+    },
+    collateralConfig: testCollateralConfig.collateralConfig,
+  })
 
-    if (hre.network.name === "hardhat" && (await hre.ethers.provider.getBalance(feedValidator.address)).eq(0)) {
-        await deployer.sendTransaction({
-            to: feedValidator.address,
-            value: hre.ethers.utils.parseEther("10"),
-        });
-    }
-    await addMockCollateralAsset();
-    await addMockKreskoAsset();
+  logger.log('Added mock assets')
+}
 
-    logger.log("Added mock assets");
-};
+func.tags = ['local', 'minter-test', 'mock-assets']
+func.dependencies = ['minter-init']
 
-func.tags = ["local", "minter-test", "mock-assets"];
-func.dependencies = ["minter-init"];
-
-func.skip = async hre => hre.network.name !== "hardhat";
-export default func;
+func.skip = async hre => hre.network.name !== 'hardhat'
+export default func
