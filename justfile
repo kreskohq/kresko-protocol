@@ -18,6 +18,8 @@ dry-local:
 	--skip-simulation \
 	-vvv
 
+
+
 deploy-local:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "localhost" "MNEMONIC_DEVNET" 0 true false) \
@@ -64,6 +66,14 @@ deploy-arbitrum-fork:
 	--ffi \
 	-vvv
 
+dry-arbitrum:
+	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
+	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "arbitrum" "MNEMONIC_DEPLOY" 0 true false) \
+	--fork-url "$RPC_ARBITRUM_INFURA" \
+	--with-gas-price 100000000 \
+	--ffi \
+	-vvv
+	
 test-impersonate:
 	forge script src/contracts/scripts/deploy/Impersonated.s.sol \
 	--sig "example()" \
