@@ -63,7 +63,7 @@
           5,
           2
         ],
-        "04_factor": 1e4,
+        "04_factor": 0.95e4,
         "05_kFactor": 0,
         "06_openFee": 0,
         "07_closeFee": 0,
@@ -131,9 +131,9 @@
           "chainlink"
         ],
         "01_staleTime": 86401,
-        "02_depositFee": 5,
-        "03_withdrawFee": 5,
-        "04_maxDeposits": 25000e6,
+        "02_depositFee": 2,
+        "03_withdrawFee": 2,
+        "04_maxDeposits": 40000e6,
         "05_enabled": true
       }
     },
@@ -176,9 +176,9 @@
           "chainlink"
         ],
         "01_staleTime": 86401,
-        "02_depositFee": 5,
-        "03_withdrawFee": 5,
-        "04_maxDeposits": 25000e6,
+        "02_depositFee": 2,
+        "03_withdrawFee": 2,
+        "04_maxDeposits": 60000e6,
         "05_enabled": true
       }
     }
@@ -188,7 +188,7 @@
       "00_name": "Ether",
       "01_symbol": "krETH",
       "02_underlying": "WETH",
-      "03_wrapFee": 20,
+      "03_wrapFee": 5,
       "04_unwrapFee": 50,
       "05_config": {
         "00_ticker": "ETH",
@@ -197,7 +197,7 @@
           5,
           2
         ],
-        "04_factor": 1e4,
+        "04_factor": 0.95e4,
         "05_kFactor": 1.05e4,
         "06_openFee": 0,
         "07_closeFee": 50,
@@ -205,8 +205,8 @@
         "09_maxDebtMinter": 20e18,
         "10_maxDebtSCDP": 10e18,
         "11_depositLimitSCDP": 0,
-        "12_swapInFeeSCDP": 15,
-        "13_swapOutFeeSCDP": 15,
+        "12_swapInFeeSCDP": 9,
+        "13_swapOutFeeSCDP": 14,
         "14_protocolFeeShareSCDP": 0.3e4,
         "15_liqIncentiveSCDP": 1.035e4,
         "16_decimals": 0,
@@ -235,10 +235,10 @@
       "07_closeFee": 0,
       "08_liqIncentive": 1.05e4,
       "09_maxDebtMinter": 0,
-      "10_maxDebtSCDP": 25000e18,
-      "11_depositLimitSCDP": 30000e18,
-      "12_swapInFeeSCDP": 10,
-      "13_swapOutFeeSCDP": 10,
+      "10_maxDebtSCDP": 12500e18,
+      "11_depositLimitSCDP": 50000e18,
+      "12_swapInFeeSCDP": 1,
+      "13_swapOutFeeSCDP": 1,
       "14_protocolFeeShareSCDP": 0.3e4,
       "15_liqIncentiveSCDP": 1.05e4,
       "16_decimals": 0,
