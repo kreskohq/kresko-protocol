@@ -5,7 +5,7 @@
     "00_admin": "0x389297F0d8C489954D65e04ff0690FC54E57Dad6",
     "01_council": "0x389297F0d8C489954D65e04ff0690FC54E57Dad6",
     "02_treasury": "0x389297F0d8C489954D65e04ff0690FC54E57Dad6",
-    "03_maxPriceDeviationPct": 5e2,
+    "03_maxPriceDeviationPct": 0.5e2,
     "04_oracleDecimals": 8,
     "05_sequencerGracePeriodTime": 3600,
     "06_sequencerUptimeFeed": "0xFdB631F5EE196F0ed6FAa767959853A9F217697D",
