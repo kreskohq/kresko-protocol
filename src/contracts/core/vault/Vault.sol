@@ -331,7 +331,7 @@ contract Vault is IVault, ERC20 {
         tAssets = totalAssets();
 
         if (tSupply == 0 || tAssets == 0) {
-            tSupply = TARGET_PRICE;
+            tSupply = 1 ether;
             tAssets = TARGET_PRICE;
         }
     }

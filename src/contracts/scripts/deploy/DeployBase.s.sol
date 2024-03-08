@@ -25,6 +25,7 @@ import {CONST} from "scripts/deploy/CONST.s.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {create1, getFacetsAndSelectors} from "scripts/deploy/DeployFuncs.s.sol";
+import {console2} from "forge-std/console2.sol";
 
 abstract contract DeployBase {
     using LibDeploy for bytes;
@@ -52,20 +53,25 @@ abstract contract DeployBase {
         return address(gatingManager = json.createGatingManager(_deployer));
     }
 
-    function deployDiamond(JSON.Config memory json, address _deployer) internal returns (address) {
+    function deployDiamond(JSON.Config memory json, address _deployer, bytes32 salt) internal returns (address) {
         paramsJSON = json.params;
         require(address(LibDeploy.state().factory) != address(0), "deployDiamond: No factory");
         (FacetCut[] memory facets, Initializer[] memory initializers) = deployFacets(json);
         LibDeploy.JSONKey("Kresko");
-        kresko = IKresko(
-            type(Diamond)
-                .creationCode
-                .ctor(abi.encode(_deployer, facets, initializers))
-                .d3("", CONST.DIAMOND_SALT)
-                .implementation
-        );
+
+        bytes memory initCode = type(Diamond).creationCode.ctor(abi.encode(_deployer, facets, initializers));
+        console2.log("initcode-diamond");
+        console2.logBytes32(keccak256(initCode));
+        kresko = IKresko(initCode.d2("", salt).implementation);
         LibDeploy.saveJSONKey();
         return address(kresko);
+    }
+
+    function diamondCtor(JSON.Config memory json, address _deployer) internal returns (bytes32) {
+        paramsJSON = json.params;
+        require(address(LibDeploy.state().factory) != address(0), "deployDiamond: No factory");
+        (FacetCut[] memory facets, Initializer[] memory initializers) = deployFacets(json);
+        return keccak256(abi.encodePacked(type(Diamond).creationCode, abi.encode(_deployer, facets, initializers)));
     }
 
     function deployFacets(JSON.Config memory json) private returns (FacetCut[] memory cuts, Initializer[] memory inits) {

@@ -30,7 +30,14 @@ contract KrMulticall is IKrMulticall, Ownable {
     ISwapRouter public v3Router;
     IWETH9 public wNative;
 
-    constructor(address _kresko, address _kiss, address _v3Router, address _wNative, address _pythEp) Ownable(msg.sender) {
+    constructor(
+        address _kresko,
+        address _kiss,
+        address _v3Router,
+        address _wNative,
+        address _pythEp,
+        address _owner
+    ) Ownable(_owner) {
         kresko = _kresko;
         kiss = _kiss;
         v3Router = ISwapRouter(_v3Router);

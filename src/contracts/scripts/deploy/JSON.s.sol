@@ -21,6 +21,16 @@ function getConfig(string memory network, string memory configId) returns (Confi
     return getConfigFrom(dir, configId);
 }
 
+function getSalts(string memory network, string memory configId) returns (Salts memory) {
+    string memory dir = string.concat(CONST.CONFIG_DIR, network, "/");
+    string memory location = string.concat(dir, "salts-", configId, ".json");
+    if (!mvm.exists(location)) {
+        return Salts({kresko: bytes32("Kresko"), multicall: bytes32("Multicall")});
+    }
+
+    return abi.decode(mvm.parseJson(mvm.readFile(location)), (Salts));
+}
+
 function getConfigFrom(string memory dir, string memory configId) returns (Config memory json) {
     Files memory files;
 
@@ -61,6 +71,11 @@ function getAssetConfigFrom(string memory dir, string memory configId) returns (
     }
 
     return abi.decode(mvm.parseJson(mvm.readFile(files.assets)), (Assets));
+}
+
+struct Salts {
+    bytes32 kresko;
+    bytes32 multicall;
 }
 
 struct Config {

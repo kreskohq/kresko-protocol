@@ -192,25 +192,18 @@ flats:
 verify-proxy-contract:
 	forge verify-contract 0x \
 	src/contracts/core/factory/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy \
-	--chain arbitrum-sepolia \
+	--chain arbitrum \
+	--watch \
 	--constructor-args "0x"
 
 verify-contract:
 	forge verify-contract 0x \
-	DataV1 \
-	--chain arbitrum-sepolia \
+	KrMulticall \
+	--chain arbitrum \
 	--watch \
 	--constructor-args "0x"
 	
-verify-arbitrum-sepolia:
-	forge script src/contracts/scripts/deploy/ArbitrumSepolia.s.sol \
-	--mnemonics "$MNEMONIC_DEVNET" \
-	--rpc-url "$RPC_ARBITRUM_SEPOLIA_ALCHEMY" \
-	--evm-version "paris" \
-	--verify \
-	--resume \
-	--ffi \
-	-vvv
+
 
 
 @setup:

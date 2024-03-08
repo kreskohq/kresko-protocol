@@ -1,6 +1,6 @@
 {
   "00_configId": "arbitrum",
-  "01_deploymentFactory": "0x0000000000000000000000000000000000000000",
+  "01_deploymentFactory": "0x000000000070AB95211e32fdA3B706589D3482D5",
   "02_common": {
     "00_admin": "0x266489Bde85ff0dfe1ebF9f0a7e6Fed3a973cEc3",
     "01_council": "0x266489Bde85ff0dfe1ebF9f0a7e6Fed3a973cEc3",
@@ -9,7 +9,7 @@
     "04_oracleDecimals": 8,
     "05_sequencerGracePeriodTime": 3600,
     "06_sequencerUptimeFeed": "0xFdB631F5EE196F0ed6FAa767959853A9F217697D",
-    "07_gatingManager": "0x0000000000000000000000000000000000000000",
+    "07_gatingManager": "0x00000000685B935476005E6A7ed5E1Bf3C000B12",
     "08_pythEndpoint": "0xff1a0f4744e8582DF1aE09D5611b887B6a12925C"
   },
   "03_scdp": {

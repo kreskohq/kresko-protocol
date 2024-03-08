@@ -35,7 +35,7 @@ contract KreskoAsset is ERC20Upgradeable, AccessControlEnumerableUpgradeable, Pa
     Wrapping private wrapping;
 
     constructor() {
-        // _disableInitializers();
+        _disableInitializers();
     }
 
     function initialize(

@@ -20,6 +20,7 @@ import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {MockPyth} from "mocks/MockPyth.sol";
 import {getPythViewData, getMockPythPayload, PythView} from "vendor/pyth/PythScript.sol";
 import {LibJSON, JSON} from "scripts/deploy/libs/LibJSON.s.sol";
+import {console2} from "forge-std/console2.sol";
 
 library LibDeploy {
     using Conversions for bytes[];
@@ -102,24 +103,17 @@ library LibDeploy {
         JSON.Config memory json,
         address _kresko,
         address _kiss,
-        address _pythEp
+        address _pythEp,
+        bytes32 _salt
     ) internal saveOutput("Multicall") returns (KrMulticall) {
         bytes memory implementation = type(KrMulticall).creationCode.ctor(
             abi.encode(_kresko, _kiss, json.params.periphery.v3Router, json.assets.wNative.token, _pythEp)
         );
-        address multicall = implementation.d3("", CONST.MC_SALT).implementation;
+        console2.log("initcode-multicall");
+        console2.logBytes32(keccak256(implementation));
+        address multicall = implementation.d2("", _salt).implementation;
         IKresko(_kresko).grantRole(Role.MANAGER, multicall);
         return KrMulticall(payable(multicall));
-    }
-
-    function createPeriphery(
-        JSON.Config memory json,
-        address _kresko,
-        address _vault,
-        address _kiss,
-        address _pythEp
-    ) internal returns (DataV1, KrMulticall) {
-        return (createDataV1(json, _kresko, _vault, _kiss), createMulticall(json, _kresko, _kiss, _pythEp));
     }
 
     function createKrAssets(JSON.Config memory json, address kresko) internal returns (JSON.Config memory) {
@@ -199,6 +193,11 @@ library LibDeploy {
     function ctor(bytes memory bcode, bytes memory args) internal returns (bytes memory ccode) {
         setJsonBytes("ctor", args);
         return abi.encodePacked(bcode, args);
+    }
+
+    function d2(bytes memory ccode, bytes memory _init, bytes32 _salt) internal returns (Deployment memory result) {
+        result = factory().deployCreate2(ccode, _init, _salt);
+        setJsonAddr("address", result.implementation);
     }
 
     function d3(bytes memory ccode, bytes memory _init, bytes32 _salt) internal returns (Deployment memory result) {
