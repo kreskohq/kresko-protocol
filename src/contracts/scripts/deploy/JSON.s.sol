@@ -98,6 +98,7 @@ struct Periphery {
     address okNFT;
     address qfkNFT;
     address v3Router;
+    address quoterv2;
 }
 
 struct Assets {

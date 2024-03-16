@@ -10,16 +10,6 @@ hasBun := `bun --help | grep -q 'Usage: bun' && echo true || echo false`
 hasFoundry := `forge --version | grep -q 'forge' && echo true || echo false`
 hasPM2 := `bunx pm2 | grep -q 'usage: pm2' && echo true || echo false`
 
-dry-local:
-	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
-	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "localhost" "MNEMONIC_DEVNET" 0 true false) \
-	--with-gas-price 100000000 \
-	--ffi \
-	--skip-simulation \
-	-vvv
-
-
-
 deploy-local:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "localhost" "MNEMONIC_DEVNET" 0 true false) \
@@ -42,16 +32,6 @@ deploy-arbitrum-sepolia:
 	--ffi \
 	-vvv
 
-dry-arbitrum-fork:
-	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
-	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "arbitrum-fork" "MNEMONIC_DEVNET" 0 true false) \
-	--fork-url "$RPC_ARBITRUM_INFURA" \
-	--with-gas-price 100000000 \
-	--skip-simulation \
-	--evm-version "paris" \
-	--ffi \
-	-vvv
-
 deploy-arbitrum-fork:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "arbitrum-fork" "MNEMONIC_DEVNET" 0 true false) \
@@ -66,6 +46,15 @@ deploy-arbitrum-fork:
 	--ffi \
 	-vvv
 
+dry-local:
+	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
+	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "localhost" "MNEMONIC_DEVNET" 0 true false) \
+	--with-gas-price 100000000 \
+	--ffi \
+	--skip-simulation \
+	-vvv
+
+
 dry-arbitrum:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "arbitrum" "MNEMONIC_DEPLOY" 0 true false) \
@@ -73,21 +62,27 @@ dry-arbitrum:
 	--with-gas-price 100000000 \
 	--ffi \
 	-vvv
-	
-test-impersonate:
-	forge script src/contracts/scripts/deploy/Impersonated.s.sol \
-	--sig "example()" \
+
+dry-arbitrum-fork:
+	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
+	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "arbitrum-fork" "MNEMONIC_DEVNET" 0 true false) \
+	--fork-url "$RPC_ARBITRUM_INFURA" \
+	--with-gas-price 100000000 \
+	--skip-simulation \
+	--evm-version "paris" \
+	--ffi \
+	-vvv
+
+balances-live-arbitrum-fork: 
+	forge script src/contracts/scripts/fork/Fork.s.sol:ArbFork \
+	--sig $(cast calldata  "withDefaultBalances(string)" "MNEMONIC_DEVNET") \
 	--fork-url "$RPC_LOCAL" \
-	--broadcast \
+	--sender "0x4bb7f4c3d47C4b431cb0658F44287d52006fb506" \
+	--unlocked \
+	--skip-simulation \
+	--with-gas-price 100000000 \
 	--ffi \
 	-vvvv
-
-
-arbitrum-fork-users: 
-	just arbitrum-fork-balances-token && \
-	just arbitrum-fork-balances-wbtc && \
-	just arbitrum-fork-balances-nft
-
 
 local:
 	pm2 ping
@@ -107,7 +102,7 @@ arbitrum-fork:
 	@echo "/* -------------------------------------------------------------------------- */"
 	@echo "/*                                 LAUNCHING                                  */"
 	@echo "/* -------------------------------------------------------------------------- */"
-	pm2 start utils/pm2.config.js --only anvil-fork
+	pm2 start utils/pm2.config.js --only anvil-arbitrum-fork
 	sleep 5
 	pm2 start utils/pm2.config.js --only deploy-arbitrum-fork
 	pm2 save
@@ -115,65 +110,18 @@ arbitrum-fork:
 	@echo "/*                                  LAUNCHED                                  */"
 	@echo "/* -------------------------------------------------------------------------- */"
 
-
-
-kill: 
-	pm2 delete all && pm2 cleardump && pm2 flush && pm2 kill 
-
-restart:
-	pm2 restart all --update-env
-
-arbitrum-fork-balances-token:
-	forge script src/contracts/scripts/deploy/Impersonated.s.sol \
-	--sig "setupArbForkBalances()" \
-	--mnemonics "$MNEMONIC_DEVNET" \
-	--sender "0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D" \
-	--unlocked \
-	--fork-url "$RPC_LOCAL" \
-	--broadcast \
-	--ffi \
-	-vvv
-
-arbitrum-fork-balances-wbtc:
-	forge script src/contracts/scripts/deploy/Impersonated.s.sol \
-	--sig "setupArbForkWBTC()" \
-	--mnemonics "$MNEMONIC_DEVNET" \
-	--sender "0x4bb7f4c3d47C4b431cb0658F44287d52006fb506" \
-	--unlocked \
-	--fork-url "$RPC_LOCAL" \
-	--broadcast \
-	--ffi \
-	-vvv
-
-arbitrum-fork-balances-nft:
-	forge script src/contracts/scripts/deploy/Impersonated.s.sol \
-	--sig "setupArbForkNFTs()" \
-	--mnemonics "$MNEMONIC_DEVNET" \
-	--sender "0x99999A0B66AF30f6FEf832938a5038644a72180a" \
-	--unlocked \
-	--fork-url "$RPC_LOCAL" \
-	--broadcast \
-	--ffi \
-	-vvv
-
-arbitrum-fork-minter-setup:
-	forge script src/contracts/scripts/deploy/Impersonated.s.sol \
-	--sig "setupArbForkUsers()" \
-	--mnemonics "$MNEMONIC_DEVNET" \
-	--fork-url "$RPC_LOCAL" \
-	--broadcast \
-	--skip-simulation \
-	--ffi \
-	-vvv
-
-anvil-fork:
-	anvil -m "$MNEMONIC_DEVNET" \
-	--auto-impersonate \
-	--code-size-limit "100000000000000000" \
-	--chain-id 41337 \
-	--hardfork "paris" \
-	--fork-url "$RPC_ARBITRUM_INFURA" \
-	--fork-block-number 159492977
+arbitrum-fork-live:
+	pm2 ping
+	@echo "/* -------------------------------------------------------------------------- */"
+	@echo "/*                                 LAUNCHING                                  */"
+	@echo "/* -------------------------------------------------------------------------- */"
+	pm2 start utils/pm2.config.js --only anvil-live-arbitrum-fork
+	sleep 5
+	pm2 start utils/pm2.config.js --only balances-live-arbitrum-fork
+	pm2 save
+	@echo "/* -------------------------------------------------------------------------- */"
+	@echo "/*                                  LAUNCHED                                  */"
+	@echo "/* -------------------------------------------------------------------------- */"
 
 anvil-local:
 	anvil -m "$MNEMONIC_DEVNET" \
@@ -182,12 +130,27 @@ anvil-local:
 	--chain-id 1337 \
 	--gas-limit "100000000"
 
+anvil-arbitrum-fork:
+	anvil -m "$MNEMONIC_DEVNET" \
+	--auto-impersonate \
+	--code-size-limit "100000000000000000" \
+	--chain-id 41337 \
+	--hardfork "paris" \
+	--fork-url "$RPC_ARBITRUM_INFURA" \
+	--fork-block-number 188474553
+
+anvil-live-arbitrum-fork:
+	anvil -m "$MNEMONIC_DEVNET" \
+	--auto-impersonate \
+	--code-size-limit "100000000000000000" \
+	--chain-id 41337 \
+	--fork-url "$RPC_ARBITRUM_INFURA"
+
 flats: 
-	forge flatten src/contracts/periphery/IKresko.sol > out/IKresko.sol && \
+	forge flatten src/contracts/core/periphery/IKresko.sol > out/IKresko.sol && \
 	forge flatten src/contracts/core/kiss/interfaces/IKISS.sol > out/IKISS.sol && \
 	forge flatten src/contracts/core/vault/interfaces/IVault.sol > out/IVault.sol && \
 	forge flatten src/contracts/core/vault/interfaces/IVaultRateProvider.sol > out/IVaultRateProvider.sol 
-
 
 verify-proxy-contract:
 	forge verify-contract 0x \
@@ -198,13 +161,10 @@ verify-proxy-contract:
 
 verify-contract:
 	forge verify-contract 0x \
-	KrMulticall \
+	DataV1 \
 	--chain arbitrum \
 	--watch \
 	--constructor-args "0x"
-	
-
-
 
 @setup:
 	just deps
@@ -220,3 +180,9 @@ verify-contract:
 	echo "*** kresko: Installing npm dependencies..." && bun install --yarn && echo "*** kresko: NPM dependencies installed"
 	{{ if hasPM2 == "true" { "echo '***' kresko: PM2 exists, skipping install.." } else { "echo '***' kresko: Installing PM2 && bun a -g pm2 && echo '***' kresko: PM2 installed" } }}
 	echo "*** kresko: Finished installing dependencies"
+
+kill: 
+	pm2 delete all && pm2 cleardump && pm2 flush && pm2 kill 
+
+restart:
+	pm2 restart all --update-env

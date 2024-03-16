@@ -16,7 +16,28 @@ const outputParams = parseAbiParameters([
   'struct Price { int64 price; uint64 conf; int32 exp; uint256 timestamp; }',
 ])
 
-const getPrices = async (assets, isString) => {
+// const getPrices = async (assets, isString) => {
+//   if (assets.length === 0) {
+//     error('You have to provide at least one feed')
+//   }
+
+//   const query = assets.reduce((res, asset) => {
+//     const id = !isString ? asset : PYTH_STABLE[asset.toUpperCase()]
+//     if (!id) error(`Asset ${asset} not found`)
+
+//     return res.concat(`&ids[]=${id}`)
+//   }, '')
+
+//   const response = await fetch(`https://hermes.pyth.network/api/latest_price_feeds?${query.slice(1)}&binary=true`)
+//   const data = await response.json()
+//   return encodeAbiParameters(outputParams, [
+//     data.map(({ id }) => `0x${id}`),
+//     data.map(({ vaa }) => `0x${Buffer.from(vaa, 'base64').toString('hex')}`),
+//     data.map(({ price }) => Object.values(price)),
+//   ])
+// }
+
+async function getPrices(assets, isString) {
   if (assets.length === 0) {
     error('You have to provide at least one feed')
   }
@@ -28,12 +49,14 @@ const getPrices = async (assets, isString) => {
     return res.concat(`&ids[]=${id}`)
   }, '')
 
-  const response = await fetch(`https://hermes.pyth.network/api/latest_price_feeds?${query.slice(1)}&binary=true`)
-  const data = await response.json()
+  const data = await fetch(`https://hermes.pyth.network/v2/updates/price/latest?${query.slice(1)}&binary=true`).then(
+    r => r.json(),
+  )
+
   return encodeAbiParameters(outputParams, [
-    data.map(({ id }) => `0x${id}`),
-    data.map(({ vaa }) => `0x${Buffer.from(vaa, 'base64').toString('hex')}`),
-    data.map(({ price }) => Object.values(price)),
+    data.parsed.map(({ id }) => `0x${id}`),
+    data.binary.data.map(d => `0x${d}`),
+    data.parsed.map(({ price }) => Object.values(price)),
   ])
 }
 

@@ -6,6 +6,12 @@ import {VaultAsset} from "vault/VTypes.sol";
 import {PythView} from "vendor/pyth/PythScript.sol";
 
 interface IDataV1 {
+    struct PreviewWithdrawArgs {
+        address vaultAsset;
+        uint256 outputAmount;
+        bytes path;
+    }
+
     struct ExternalTokenArgs {
         address token;
         address feed;
@@ -81,6 +87,13 @@ interface IDataV1 {
         uint8 phase;
         uint256 chainId;
     }
+
+    function getTradeFees(
+        address _assetIn,
+        address _assetOut
+    ) external view returns (uint256 feePercentage, uint256 depositorFee, uint256 protocolFee);
+
+    function previewWithdraw(PreviewWithdrawArgs calldata args) external payable returns (uint256 withdrawAmount, uint256 fee);
 
     function getGlobals(PythView calldata prices) external view returns (DGlobal memory);
 

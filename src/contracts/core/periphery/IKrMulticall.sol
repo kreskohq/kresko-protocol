@@ -9,7 +9,42 @@ interface ISwapRouter {
         uint256 amountOutMinimum;
     }
 
-    function exactInput(ExactInputParams memory params) external returns (uint256 amountOut);
+    struct ExactOutputParams {
+        bytes path;
+        address recipient;
+        uint256 amountOut;
+        uint256 amountInMaximum;
+    }
+
+    function WETH9() external view returns (address);
+
+    function quoteExactInput(
+        bytes memory path,
+        uint256 amountIn
+    )
+        external
+        returns (
+            uint256 amountOut,
+            uint160[] memory sqrtPriceX96AfterList,
+            uint32[] memory initializedTicksCrossedList,
+            uint256 gasEstimate
+        );
+
+    function quoteExactOutput(
+        bytes memory path,
+        uint256 amountOut
+    )
+        external
+        returns (
+            uint256 amountIn,
+            uint160[] memory sqrtPriceX96AfterList,
+            uint32[] memory initializedTicksCrossedList,
+            uint256 gasEstimate
+        );
+
+    function exactInput(ExactInputParams calldata params) external returns (uint256 amountOut);
+
+    function exactOutput(ExactOutputParams calldata params) external returns (uint256 amountIn);
 }
 
 interface IKrMulticall {

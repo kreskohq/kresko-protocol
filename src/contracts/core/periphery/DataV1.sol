@@ -8,33 +8,72 @@ import {IVault} from "vault/interfaces/IVault.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {Enums} from "common/Constants.sol";
-import {RawPrice} from "common/Types.sol";
+import {Asset, RawPrice} from "common/Types.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {IViewDataFacet} from "periphery/interfaces/IViewDataFacet.sol";
 import {PythView} from "vendor/pyth/PythScript.sol";
+import {ISwapRouter} from "periphery/IKrMulticall.sol";
+import {ISCDPSwapFacet} from "scdp/interfaces/ISCDPSwapFacet.sol";
+import {IAssetStateFacet} from "common/interfaces/IAssetStateFacet.sol";
+import {PercentageMath} from "libs/PercentageMath.sol";
+import {IPyth} from "vendor/pyth/IPyth.sol";
+import {IBatchFacet} from "common/interfaces/IBatchFacet.sol";
 
 // solhint-disable avoid-low-level-calls, var-name-mixedcase
 
 contract DataV1 is IDataV1 {
     using WadRay for uint256;
+    using PercentageMath for uint256;
 
     address public immutable VAULT;
     IViewDataFacet public immutable DIAMOND;
     address public immutable KISS;
+    IPyth public immutable PYTH_EP;
+    ISwapRouter public QUOTER;
 
-    uint256 public constant QUEST_FOR_KRESK_LAST_TOKEN_ID = 7;
-    uint256 public constant KRESKIAN_LAST_TOKEN_ID = 1;
+    uint256 public constant QUEST_FOR_KRESK_TOKEN_COUNT = 8;
+    uint256 public constant KRESKIAN_LAST_TOKEN_COUNT = 1;
     address public immutable KRESKIAN_COLLECTION;
     address public immutable QUEST_FOR_KRESK_COLLECTION;
 
-    constructor(address _diamond, address _vault, address _KISS, address _kreskian, address _questForKresk) {
+    constructor(
+        address _diamond,
+        address _vault,
+        address _KISS,
+        address _uniQuoter,
+        address _kreskian,
+        address _questForKresk
+    ) {
         VAULT = _vault;
         DIAMOND = IViewDataFacet(address(_diamond));
         KISS = _KISS;
         KRESKIAN_COLLECTION = _kreskian;
         QUEST_FOR_KRESK_COLLECTION = _questForKresk;
+        QUOTER = ISwapRouter(_uniQuoter);
+    }
+
+    function getTradeFees(
+        address _assetIn,
+        address _assetOut
+    ) public view returns (uint256 feePercentage, uint256 depositorFee, uint256 protocolFee) {
+        Asset memory assetIn = IAssetStateFacet(address(DIAMOND)).getAsset(_assetIn);
+        Asset memory assetOut = IAssetStateFacet(address(DIAMOND)).getAsset(_assetOut);
+        unchecked {
+            feePercentage = assetIn.swapInFeeSCDP + assetOut.swapOutFeeSCDP;
+            protocolFee = assetIn.protocolFeeShareSCDP + assetOut.protocolFeeShareSCDP;
+            depositorFee = feePercentage - protocolFee;
+        }
+    }
+
+    function previewWithdraw(PreviewWithdrawArgs calldata args) external payable returns (uint256 withdrawAmount, uint256 fee) {
+        bool isVaultToAMM = args.vaultAsset != address(0) && args.path.length > 0;
+        uint256 vaultAssetAmount = !isVaultToAMM ? 0 : args.outputAmount;
+        if (isVaultToAMM) {
+            (vaultAssetAmount, , , ) = QUOTER.quoteExactOutput(args.path, args.outputAmount);
+        }
+        (withdrawAmount, fee) = IVault(VAULT).previewWithdraw(args.vaultAsset, vaultAssetAmount);
     }
 
     function getGlobals(PythView calldata _prices) external view returns (DGlobal memory result) {
@@ -139,7 +178,7 @@ contract DataV1 is IDataV1 {
         address _account,
         address _collectionAddr
     ) public view returns (DCollectionItem[] memory result) {
-        uint256 totalItems = _collectionAddr == KRESKIAN_COLLECTION ? KRESKIAN_LAST_TOKEN_ID : QUEST_FOR_KRESK_LAST_TOKEN_ID;
+        uint256 totalItems = _collectionAddr == KRESKIAN_COLLECTION ? KRESKIAN_LAST_TOKEN_COUNT : QUEST_FOR_KRESK_TOKEN_COUNT;
         result = new DCollectionItem[](totalItems);
 
         for (uint256 i; i < totalItems; i++) {

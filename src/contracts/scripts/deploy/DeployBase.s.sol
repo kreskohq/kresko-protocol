@@ -25,7 +25,7 @@ import {CONST} from "scripts/deploy/CONST.s.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {create1, getFacetsAndSelectors} from "scripts/deploy/DeployFuncs.s.sol";
-import {console2} from "forge-std/console2.sol";
+import {PLog} from "kresko-lib/utils/PLog.s.sol";
 
 abstract contract DeployBase {
     using LibDeploy for bytes;
@@ -60,8 +60,7 @@ abstract contract DeployBase {
         LibDeploy.JSONKey("Kresko");
 
         bytes memory initCode = type(Diamond).creationCode.ctor(abi.encode(_deployer, facets, initializers));
-        console2.log("initcode-diamond");
-        console2.logBytes32(keccak256(initCode));
+        LibDeploy.setJsonBytes("INIT_CODE_HASH", bytes.concat(keccak256(initCode)));
         kresko = IKresko(initCode.d2("", salt).implementation);
         LibDeploy.saveJSONKey();
         return address(kresko);

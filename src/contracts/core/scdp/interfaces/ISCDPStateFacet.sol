@@ -64,6 +64,11 @@ interface ISCDPStateFacet {
     function getTotalCollateralValueSCDP(bool _ignoreFactors) external view returns (uint256);
 
     /**
+     * @notice Get all pool collateral assets
+     */
+    function getCollateralsSCDP() external view returns (address[] memory);
+
+    /**
      * @notice Get all pool KreskoAssets
      */
     function getKreskoAssetsSCDP() external view returns (address[] memory);

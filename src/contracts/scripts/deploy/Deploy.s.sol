@@ -31,6 +31,7 @@ contract Deploy is Scripted, DeployBase {
     using Deployed for *;
     using LibDeployUtils for *;
     using Help for *;
+    using Log for *;
 
     mapping(bytes32 => bool) tickerExists;
     mapping(bytes32 => bool) routeExists;
@@ -94,8 +95,6 @@ contract Deploy is Scripted, DeployBase {
 
         /* ---------------------------- Periphery --------------------------- */
         multicall = json.createMulticall(diamond, address(kiss), address(pythEp), salts.multicall);
-        Log.clg(diamond, "initcode-diamond-addr");
-        Log.clg(address(multicall), "initcode-multicall-addr");
         dataV1 = json.createDataV1(diamond, address(vault), address(kiss));
 
         /* ------------------------------ Users ----------------------------- */

@@ -47,7 +47,7 @@ function getPythData(JSON.Config memory cfg) returns (bytes[] memory) {
     return updatedata;
 }
 
-function getPythData(string memory _ids) returns (bytes[] memory) {
+function getPythData(string memory _ids) returns (bytes[] memory, PythView memory) {
     string[] memory args = new string[](4);
 
     args[0] = "bun";
@@ -55,8 +55,11 @@ function getPythData(string memory _ids) returns (bytes[] memory) {
     args[2] = "utils/pythPayload.js";
     args[3] = _ids;
 
-    (, bytes[] memory updatedata, ) = abi.decode(VM.ffi(args), (bytes32[], bytes[], IPyth.Price[]));
-    return updatedata;
+    (bytes32[] memory ids, bytes[] memory updatedata, IPyth.Price[] memory prices) = abi.decode(
+        VM.ffi(args),
+        (bytes32[], bytes[], IPyth.Price[])
+    );
+    return (updatedata, PythView(ids, prices));
 }
 
 function getMockPythPayload(bytes32[] memory _ids, int64[] memory _prices) view returns (bytes[] memory) {

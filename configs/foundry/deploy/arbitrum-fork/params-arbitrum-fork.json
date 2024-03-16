@@ -26,7 +26,8 @@
   "05_periphery": {
     "00_officiallyKreskianNFT": "0xAbDb949a18d27367118573A217E5353EDe5A0f1E",
     "01_questForKreskNFT": "0x1C04925779805f2dF7BbD0433ABE92Ea74829bF6",
-    "02_V3SwapRouter02": "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
+    "02_V3SwapRouter02": "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+    "03_UniswapQuoterV2": "0x61fFE014bA17989E743c5F6cB21bF9697530B21e"
   },
   "06_gatingPhase": 0
 }

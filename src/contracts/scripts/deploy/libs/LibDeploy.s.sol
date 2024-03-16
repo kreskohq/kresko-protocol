@@ -20,7 +20,6 @@ import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {MockPyth} from "mocks/MockPyth.sol";
 import {getPythViewData, getMockPythPayload, PythView} from "vendor/pyth/PythScript.sol";
 import {LibJSON, JSON} from "scripts/deploy/libs/LibJSON.s.sol";
-import {console2} from "forge-std/console2.sol";
 
 library LibDeploy {
     using Conversions for bytes[];
@@ -94,7 +93,14 @@ library LibDeploy {
         address _kiss
     ) internal saveOutput("DataV1") returns (DataV1) {
         bytes memory implementation = type(DataV1).creationCode.ctor(
-            abi.encode(_kresko, _vault, _kiss, json.params.periphery.okNFT, json.params.periphery.qfkNFT)
+            abi.encode(
+                _kresko,
+                _vault,
+                _kiss,
+                json.params.periphery.quoterv2,
+                json.params.periphery.okNFT,
+                json.params.periphery.qfkNFT
+            )
         );
         return DataV1(implementation.d3("", CONST.D1_SALT).implementation);
     }
@@ -107,12 +113,18 @@ library LibDeploy {
         bytes32 _salt
     ) internal saveOutput("Multicall") returns (KrMulticall) {
         bytes memory implementation = type(KrMulticall).creationCode.ctor(
-            abi.encode(_kresko, _kiss, json.params.periphery.v3Router, json.assets.wNative.token, _pythEp)
+            abi.encode(
+                _kresko,
+                _kiss,
+                json.params.periphery.v3Router,
+                json.assets.wNative.token,
+                _pythEp,
+                json.params.common.admin
+            )
         );
-        console2.log("initcode-multicall");
-        console2.logBytes32(keccak256(implementation));
         address multicall = implementation.d2("", _salt).implementation;
         IKresko(_kresko).grantRole(Role.MANAGER, multicall);
+        LibDeploy.setJsonBytes("INIT_CODE_HASH", bytes.concat(keccak256(implementation)));
         return KrMulticall(payable(multicall));
     }
 
