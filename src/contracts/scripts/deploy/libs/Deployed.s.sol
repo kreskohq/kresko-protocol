@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {VM, Help} from "kresko-lib/utils/Libs.s.sol";
+import {Help, mvm} from "kresko-lib/utils/Libs.s.sol";
 import {Asset} from "common/Types.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 
@@ -31,7 +31,7 @@ library Deployed {
         args[3] = name;
         args[4] = chainId.str();
 
-        return VM.ffi(args).str().toAddr();
+        return mvm.ffi(args).str().toAddr();
     }
 
     function cache(string memory id, address _addr) internal returns (address) {

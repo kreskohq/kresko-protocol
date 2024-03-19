@@ -12,7 +12,7 @@ import {DataV1} from "periphery/DataV1.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {Help, Log, VM} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Log, mvm} from "kresko-lib/utils/Libs.s.sol";
 import {GatingManager} from "periphery/GatingManager.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {CONST} from "scripts/deploy/CONST.s.sol";
@@ -267,8 +267,8 @@ library LibDeploy {
     }
 
     function initOutputJSON(string memory configId) internal {
-        string memory outputDir = string.concat("./out/foundry/deploy/", VM.toString(block.chainid), "/");
-        if (!VM.exists(outputDir)) VM.createDir(outputDir, true);
+        string memory outputDir = string.concat("./out/foundry/deploy/", mvm.toString(block.chainid), "/");
+        if (!mvm.exists(outputDir)) mvm.createDir(outputDir, true);
         state().id = configId;
         state().outputLocation = outputDir;
         state().outputJson = configId;
@@ -276,9 +276,9 @@ library LibDeploy {
 
     function writeOutputJSON() internal {
         string memory runsDir = string.concat(state().outputLocation, "runs/");
-        if (!VM.exists(runsDir)) VM.createDir(runsDir, true);
-        VM.writeFile(string.concat(runsDir, state().id, "-", VM.toString(VM.unixTime()), ".json"), state().outputJson);
-        VM.writeFile(string.concat(state().outputLocation, state().id, "-", "latest", ".json"), state().outputJson);
+        if (!mvm.exists(runsDir)) mvm.createDir(runsDir, true);
+        mvm.writeFile(string.concat(runsDir, state().id, "-", mvm.toString(mvm.unixTime()), ".json"), state().outputJson);
+        mvm.writeFile(string.concat(state().outputLocation, state().id, "-", "latest", ".json"), state().outputJson);
     }
 
     function state() internal pure returns (DeployState storage ds) {
@@ -300,23 +300,23 @@ library LibDeploy {
     }
 
     function setJsonAddr(string memory key, address val) internal {
-        state().currentJson = VM.serializeAddress(state().currentKey, key, val);
+        state().currentJson = mvm.serializeAddress(state().currentKey, key, val);
     }
 
     function setJsonBool(string memory key, bool val) internal {
-        state().currentJson = VM.serializeBool(state().currentKey, key, val);
+        state().currentJson = mvm.serializeBool(state().currentKey, key, val);
     }
 
     function setJsonNumber(string memory key, uint256 val) internal {
-        state().currentJson = VM.serializeUint(state().currentKey, key, val);
+        state().currentJson = mvm.serializeUint(state().currentKey, key, val);
     }
 
     function setJsonBytes(string memory key, bytes memory val) internal {
-        state().currentJson = VM.serializeBytes(state().currentKey, key, val);
+        state().currentJson = mvm.serializeBytes(state().currentKey, key, val);
     }
 
     function saveJSONKey() internal {
-        state().outputJson = VM.serializeString("out", state().currentKey, state().currentJson);
+        state().outputJson = mvm.serializeString("out", state().currentKey, state().currentJson);
     }
 
     function disableLog() internal {

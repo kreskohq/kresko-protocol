@@ -3,21 +3,10 @@ pragma solidity ^0.8.0;
 
 // solhint-disable state-visibility, quotes
 
-import {Scripted} from "kresko-lib/utils/Scripted.s.sol";
-import {IWETH9} from "kresko-lib/token/IWETH9.sol";
-import "scripts/deploy/JSON.s.sol" as JSON;
-
 import {PLog} from "kresko-lib/utils/PLog.s.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {IVault} from "vault/interfaces/IVault.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import {IGatingManager} from "periphery/IGatingManager.sol";
-import {IERC1155} from "common/interfaces/IERC1155.sol";
-import {IAccess} from "kresko-lib/vendor/IAccess.sol";
-import {Anvil} from "scripts/utils/Utils.s.sol";
 import {ArbScript} from "scripts/utils/ArbScript.s.sol";
-import {Enums} from "common/Constants.sol";
-import {IKrMulticall} from "periphery/IKrMulticall.sol";
 
 contract ArbFork is ArbScript {
     using Deployed for string;

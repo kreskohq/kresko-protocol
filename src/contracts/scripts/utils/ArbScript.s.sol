@@ -5,6 +5,7 @@ import {Scripted} from "kresko-lib/utils/Scripted.s.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
+import {Anvil} from "kresko-lib/utils/Anvil.s.sol";
 
 import {IGatingManager} from "periphery/IGatingManager.sol";
 import {IERC1155} from "common/interfaces/IERC1155.sol";
@@ -19,34 +20,13 @@ import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Asset, Enums, Oracle, RawPrice} from "common/Types.sol";
-import {View} from "periphery/ViewTypes.sol";
-import {Anvil} from "scripts/utils/Utils.s.sol";
+import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
-contract ArbScript is Scripted {
+contract ArbScript is Scripted, ArbDeployAddr {
     using Log for *;
     using Help for *;
-
-    address kissAddr = 0x6A1D6D2f4aF6915e6bBa8F2db46F442d18dB5C9b;
-    address kreskoAddr = 0x0000000000177abD99485DCaea3eFaa91db3fe72;
-    address multicallAddr = 0x0000000084C577a3563a531C00c7257FF44C3052;
-    address factoryAddr = 0x000000000070AB95211e32fdA3B706589D3482D5;
-    address vaultAddr = 0x2dF01c1e472eaF880e3520C456b9078A5658b04c;
-
-    address USDCAddr = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831;
-    address ARBAddr = 0x912CE59144191C1204E64559FE8253a0e49E6548;
-    address USDCeAddr = 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8;
-    address WBTCAddr = 0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f;
-    address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
-    address krETHAddr = 0x24dDC92AA342e92f26b4A676568D04d2E3Ea0abc;
-    address akrETHAddr = 0x3103570A28ca026e818c79608F1FF804F4Bde284;
-    address DAIAddr = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
-
-    address stash = 0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D;
-    address safe = 0x266489Bde85ff0dfe1ebF9f0a7e6Fed3a973cEc3;
-    address nftMultisig = 0x389297F0d8C489954D65e04ff0690FC54E57Dad6;
-    address deployer = 0x5a6B3E907b83DE2AbD9010509429683CF5ad5984;
 
     IKresko kresko = IKresko(kreskoAddr);
     IKrMulticall multicall = IKrMulticall(multicallAddr);
@@ -55,12 +35,6 @@ contract ArbScript is Scripted {
 
     IKreskoAsset krETH = IKreskoAsset(krETHAddr);
     IKreskoAssetAnchor akrETH = IKreskoAssetAnchor(akrETHAddr);
-
-    IWETH9 weth = IWETH9(wethAddr);
-    IERC20 USDC = IERC20(USDCAddr);
-    IERC20 USDCe = IERC20(USDCeAddr);
-    IERC20 WBTC = IERC20(WBTCAddr);
-    IERC20 ARB = IERC20(ARBAddr);
 
     IDeploymentFactory factory = IDeploymentFactory(factoryAddr);
     IDataV1 dataV1 = IDataV1(0x0D7412df8E363EA76bd29625Fb8c481bcD28611B);
