@@ -20,6 +20,7 @@ import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Asset, Enums, Oracle, RawPrice} from "common/Types.sol";
 import {View} from "periphery/ViewTypes.sol";
+import {Anvil} from "scripts/utils/Utils.s.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
@@ -40,6 +41,7 @@ contract ArbScript is Scripted {
     address wethAddr = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
     address krETHAddr = 0x24dDC92AA342e92f26b4A676568D04d2E3Ea0abc;
     address akrETHAddr = 0x3103570A28ca026e818c79608F1FF804F4Bde284;
+    address DAIAddr = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
 
     address stash = 0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D;
     address safe = 0x266489Bde85ff0dfe1ebF9f0a7e6Fed3a973cEc3;
@@ -71,7 +73,8 @@ contract ArbScript is Scripted {
 
     bytes[] pythUpdate;
     PythView pythView;
-    string allPyth = "ETH,USDC,BTC";
+    address[] clAssets = [USDCAddr, WBTCAddr, wethAddr];
+    string pythAssets = "ETH,USDC,BTC,ARB";
 
     function initialize(string memory mnemonic) public {
         useMnemonic(mnemonic);
@@ -83,10 +86,31 @@ contract ArbScript is Scripted {
         vm.createSelectFork("arbitrum");
     }
 
-    function initialize(uint256 blockNr, bool sync) public {
+    function initFork(address sender) internal returns (uint256 forkId) {
+        forkId = vm.createSelectFork("localhost");
+        Anvil.syncTime(0);
+        vm.makePersistent(address(pythEP));
+        broadcastWith(sender);
+        fetchPythAndUpdate();
+        vm.stopBroadcast();
+        syncForkPrices();
+    }
+
+    function syncForkPrices() internal {
+        uint256[] memory prices = new uint256[](clAssets.length);
+        for (uint256 i; i < clAssets.length; i++) {
+            prices[i] = kresko.getPythPrice(kresko.getAsset(clAssets[i]).ticker);
+        }
+
+        for (uint256 i; i < clAssets.length; i++) {
+            Anvil.setCLPrice(kresko.getFeedForAddress(clAssets[i], Enums.OracleType.Chainlink), prices[i]);
+        }
+    }
+
+    function initLocal(uint256 blockNr, bool sync) public {
         useMnemonic("MNEMONIC_DEPLOY");
         vm.createSelectFork("arbitrum", blockNr);
-        if (sync) syncTime();
+        if (sync) syncTimeLocal();
     }
 
     function fetchPyth(string memory assets) internal {
@@ -100,7 +124,7 @@ contract ArbScript is Scripted {
     }
 
     function fetchPyth() internal {
-        fetchPyth(allPyth);
+        fetchPyth(pythAssets);
     }
 
     function fetchPythAndUpdate() internal {
@@ -108,7 +132,7 @@ contract ArbScript is Scripted {
         pythEP.updatePriceFeeds{value: pythEP.getUpdateFee(pythUpdate)}(pythUpdate);
     }
 
-    function syncTime() internal {
+    function syncTimeLocal() internal {
         vm.warp((vm.unixTime() / 1000) - 5);
     }
 
@@ -197,7 +221,7 @@ contract ArbScript is Scripted {
         return (amount, assets, fees);
     }
 
-    function states_noVaultFees() internal repranked(safe) {
+    function states_noVaultFees() internal {
         if (vault.getConfig().pendingGovernance != address(0)) vault.acceptGovernance();
         vault.setDepositFee(USDCeAddr, 0);
         vault.setWithdrawFee(USDCeAddr, 0);
@@ -205,7 +229,7 @@ contract ArbScript is Scripted {
         vault.setWithdrawFee(USDCAddr, 0);
     }
 
-    function states_noFactorsNoFees() internal repranked(safe) {
+    function states_noFactorsNoFees() internal {
         kresko.setAssetCFactor(wethAddr, 1e4);
         kresko.setAssetCFactor(WBTCAddr, 1e4);
         kresko.setAssetCFactor(USDCAddr, 1e4);
@@ -403,6 +427,10 @@ contract ArbScript is Scripted {
         );
 
         vm.writeJson(val, file);
+    }
+
+    function getTime() internal returns (uint256) {
+        return uint256((vm.unixTime() / 1000));
     }
 
     struct ValQuery {

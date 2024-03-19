@@ -39,5 +39,12 @@ module.exports = {
       name: 'balances-live-arbitrum-fork',
       script: 'just balances-live-arbitrum-fork',
     },
+    {
+      watch: false,
+      autorestart: false,
+      wait_ready: true,
+      name: 'sync-prices-arbitrum-fork',
+      script: 'just sync-prices-arbitrum-fork',
+    },
   ],
 }

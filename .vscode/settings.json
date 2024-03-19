@@ -49,6 +49,6 @@
   "solidity.validation.onSave": true,
   "solidity.validation.onChange": true,
   "solidity.validation.onOpen": false,
-  "solidity.test.verbosity": 5,
+  "solidity.test.verbosity": 2,
   "inline-bookmarks.view.showVisibleFilesOnly": false
 }

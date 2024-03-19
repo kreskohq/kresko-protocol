@@ -4,6 +4,8 @@ alias d := dry-local
 alias l := local
 alias r := restart
 alias k := kill
+alias bal := balances-live-arbitrum-fork
+alias aal := anvil-live-arbitrum-fork
 
 hasEnv := path_exists(absolute_path("./.env"))
 hasBun := `bun --help | grep -q 'Usage: bun' && echo true || echo false`
@@ -77,12 +79,15 @@ balances-live-arbitrum-fork:
 	forge script src/contracts/scripts/fork/Fork.s.sol:ArbFork \
 	--sig $(cast calldata  "withDefaultBalances(string)" "MNEMONIC_DEVNET") \
 	--fork-url "$RPC_LOCAL" \
+	--broadcast \
+	--with-gas-price 100000000 \
 	--sender "0x4bb7f4c3d47C4b431cb0658F44287d52006fb506" \
 	--unlocked \
-	--skip-simulation \
-	--with-gas-price 100000000 \
 	--ffi \
 	-vvvv
+
+sync-prices-arbitrum-fork:
+	forge script ArbFork --broadcast --sig "updatePrices()"
 
 local:
 	pm2 ping
@@ -117,7 +122,7 @@ arbitrum-fork-live:
 	@echo "/* -------------------------------------------------------------------------- */"
 	pm2 start utils/pm2.config.js --only anvil-live-arbitrum-fork
 	sleep 5
-	pm2 start utils/pm2.config.js --only balances-live-arbitrum-fork
+	pm2 start utils/pm2.config.js --only sync-prices-arbitrum-fork
 	pm2 save
 	@echo "/* -------------------------------------------------------------------------- */"
 	@echo "/*                                  LAUNCHED                                  */"
@@ -142,8 +147,12 @@ anvil-arbitrum-fork:
 anvil-live-arbitrum-fork:
 	anvil -m "$MNEMONIC_DEVNET" \
 	--auto-impersonate \
-	--code-size-limit "100000000000000000" \
+	--no-cors \
 	--chain-id 41337 \
+	--no-rate-limit \
+	--fork-block-number "$ANVIL_FORK_BLOCK" \
+	--load-state out/anvil-fork.json \
+	--code-size-limit "100000000000000000" \
 	--fork-url "$RPC_ARBITRUM_INFURA"
 
 flats: 
