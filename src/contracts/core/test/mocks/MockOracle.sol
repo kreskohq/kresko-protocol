@@ -23,7 +23,7 @@ contract MockOracle is IAggregatorV3 {
         return uint256(initialAnswer);
     }
 
-    function latestAnswer() external view override returns (int256) {
+    function latestAnswer() external view returns (int256) {
         return initialAnswer;
     }
 
