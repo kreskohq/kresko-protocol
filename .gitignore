@@ -52,3 +52,4 @@ packages/contracts/src/types/**/*
 .openzeppelin/unknown-*.json
 .openzeppelin/.session
 anvil-config.json
+docs/test-report

@@ -31,16 +31,20 @@ contract ArbTask is ArbScript {
         LibDeploy.writeOutputJSON();
     }
 
-    function execWith(address sender) external {
-        broadcastWith(sender);
+    function execWith() external fork("arbitrum") {
+        broadcastWith(safe);
         JSON.Config memory json = beforeRun();
-        addKrAsset(json, "krBTC");
+        (Asset memory krBTC, LibDeploy.DeployedKrAsset memory deployInfo) = addKrAsset(json, "krBTC");
+
+        executeParams(deployInfo.addr);
+        Asset memory arb = addExtAsset(json, "ARB");
     }
 
     function executeParams(address krBTCAddr) public {
         vault.setMaxDeposits(USDCAddr, 100_000e6);
-        vault.setMaxDeposits(USDCeAddr, 100_000e8);
+        vault.setMaxDeposits(USDCeAddr, 100_000e6);
         ParamPayload payload = new ParamPayload(address(krBTCAddr));
+        address(payload).clg("Payload Address");
         IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(address(payload), abi.encodeCall(payload.executePayload, ()));
     }
 

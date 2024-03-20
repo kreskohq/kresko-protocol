@@ -10,7 +10,7 @@ import {ParamPayload} from "scripts/ParamPayload.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
-import {BurnArgs, MintArgs} from "common/Args.sol";
+import {BurnArgs, MintArgs, SwapArgs} from "common/Args.sol";
 import {JSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
@@ -36,6 +36,7 @@ contract ArbTaskTest is Tested, ArbTask {
 
         JSON.Config memory json = ArbTask.beforeRun();
         (Asset memory krBTCCfg, LibDeploy.DeployedKrAsset memory deployment) = ArbTask.addKrAsset(json, "krBTC");
+        ArbTask.executeParams(deployment.addr);
         Asset memory ARBCfg = ArbTask.addExtAsset(json, "ARB");
 
         krBTCResult = krBTCCfg;
@@ -49,24 +50,88 @@ contract ArbTaskTest is Tested, ArbTask {
 
         prank(binance);
         approvals();
+        krBTC.approve(address(kresko), type(uint256).max);
 
         prank(wbtcHolder);
         approvals();
+        krBTC.approve(address(kresko), type(uint256).max);
         WBTC.approve(address(krBTC), type(uint256).max);
     }
 
     function test_paramPayload() public {
-        prank(safe);
-        executeParams(address(krBTC));
         kresko.getSwapEnabledSCDP(address(krBTC), kissAddr).eq(true, "krBTC-swap-enabled");
         kresko.getSwapEnabledSCDP(kissAddr, address(krBTC)).eq(true, "kiss-swap-enabled");
 
         kresko.getSwapEnabledSCDP(krETHAddr, address(krBTC)).eq(true, "krETH-BTC-swap-enabled");
         kresko.getSwapEnabledSCDP(address(krBTC), krETHAddr).eq(true, "krBTC-ETH-swap-enabled");
+        vault.maxDeposit(USDCAddr).eq(100000e6 - USDC.balanceOf(vaultAddr), "USDC-max-deposit");
+        vault.maxDeposit(USDCeAddr).eq(100000e6 - USDCe.balanceOf(vaultAddr), "USDCe-max-deposit");
 
         prank(binance);
-        getKISSM(binance, 50000 ether);
-        kresko.depositSCDP(binance, kissAddr, 50000 ether);
+        uint256 kissAmount = 50000 ether;
+        getKISSM(binance, kissAmount);
+
+        uint256 kissDepositAmount = 40000 ether;
+        kresko.depositSCDP(binance, kissAddr, kissDepositAmount);
+
+        uint256 kissSwapAmount = kissAmount - kissDepositAmount;
+        kresko.swapSCDP(
+            SwapArgs({
+                receiver: binance,
+                assetIn: kissAddr,
+                assetOut: address(krBTC),
+                amountIn: kissSwapAmount,
+                amountOutMin: 0,
+                prices: pythUpdate
+            })
+        );
+        uint256 krBTCbal = krBTC.balanceOf(binance);
+        krBTCbal.gt(0, "1-krBTC-balance");
+        kresko.getDebtSCDP(address(krBTC)).eq(krBTCbal, "1-krBTC-debt");
+        kresko.swapSCDP(
+            SwapArgs({
+                receiver: binance,
+                assetIn: address(krBTC),
+                assetOut: krETHAddr,
+                amountIn: krBTCbal,
+                amountOutMin: 0,
+                prices: pythUpdate
+            })
+        );
+
+        uint256 krETHbal = krETH.balanceOf(binance);
+        krETHbal.gt(0, "2-krETH-balance");
+        kresko.getDebtSCDP(address(krBTC)).eq(0, "2-krBTC-debt");
+        kresko.swapSCDP(
+            SwapArgs({
+                receiver: binance,
+                assetIn: krETHAddr,
+                amountIn: krETHbal,
+                assetOut: address(krBTC),
+                amountOutMin: 0,
+                prices: pythUpdate
+            })
+        );
+
+        krBTCbal = krBTC.balanceOf(binance);
+        krBTCbal.gt(0, "3-krBTC-balance");
+        kresko.getDebtSCDP(address(krBTC)).eq(krBTCbal, "3-krBTC-debt");
+        kresko.swapSCDP(
+            SwapArgs({
+                receiver: binance,
+                assetIn: address(krBTC),
+                assetOut: kissAddr,
+                amountIn: krBTCbal,
+                amountOutMin: 0,
+                prices: pythUpdate
+            })
+        );
+
+        uint256 kissBalAfter = kiss.balanceOf(binance);
+        kissBalAfter.gt(0, "4-kiss-balance-zero");
+        kissBalAfter.lt(kissSwapAmount, "4-KISS-balance-lt-start");
+        kresko.getDebtSCDP(address(krBTC)).eq(0, "4-krBTC-debt");
+        krBTC.totalSupply().eq(0, "4-krBTC-total-supply");
     }
 
     function test_krBTCMinter() public pranked(binance) {
