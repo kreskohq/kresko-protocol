@@ -7,6 +7,8 @@ import {PLog} from "kresko-lib/utils/PLog.s.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {ArbScript} from "scripts/utils/ArbScript.s.sol";
+import {IPyth} from "vendor/pyth/IPyth.sol";
+import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 
 contract ArbFork is ArbScript {
     using Deployed for string;
@@ -20,9 +22,24 @@ contract ArbFork is ArbScript {
     }
     address sender;
 
-    function updatePrices() external mnemonic("MNEMONIC_DEVNET") {
+    function updatePrices() public mnemonic("MNEMONIC_DEVNET") {
         sender = getAddr(0);
         initFork(sender);
+    }
+
+    function check() public fork("localhost") {
+        block.timestamp.clg("timestamp");
+        IPyth.Price memory pythPrice = pythEP.getPriceUnsafe(
+            0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a
+        );
+        pythPrice.price.clg("pythPrice.price");
+        pythPrice.timestamp.clg("pythPrice.timestamp");
+        (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) = IAggregatorV3(
+            0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3
+        ).latestRoundData();
+
+        updatedAt.clg("updatedAt");
+        answer.clg("clPrice");
     }
 
     function withDefaultBalances(string memory mnemonicEnv) public mnemonic(mnemonicEnv) {

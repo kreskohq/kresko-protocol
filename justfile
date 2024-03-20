@@ -4,8 +4,11 @@ alias d := dry-local
 alias l := local
 alias r := restart
 alias k := kill
+
+alias psync := sync-prices-arbitrum-fork
 alias bal := balances-live-arbitrum-fork
 alias aal := anvil-live-arbitrum-fork
+alias arbfork := arbitrum-fork-live
 
 hasEnv := path_exists(absolute_path("./.env"))
 hasBun := `bun --help | grep -q 'Usage: bun' && echo true || echo false`
@@ -87,7 +90,7 @@ balances-live-arbitrum-fork:
 	-vvvv
 
 sync-prices-arbitrum-fork:
-	forge script ArbFork --broadcast --sig "updatePrices()"
+	forge script ArbFork --broadcast --fork-url "$RPC_LOCAL" --sig "updatePrices()"
 
 local:
 	pm2 ping
@@ -121,7 +124,7 @@ arbitrum-fork-live:
 	@echo "/*                                 LAUNCHING                                  */"
 	@echo "/* -------------------------------------------------------------------------- */"
 	pm2 start utils/pm2.config.js --only anvil-live-arbitrum-fork
-	sleep 5
+	sleep 20
 	pm2 start utils/pm2.config.js --only sync-prices-arbitrum-fork
 	pm2 save
 	@echo "/* -------------------------------------------------------------------------- */"
@@ -150,8 +153,8 @@ anvil-live-arbitrum-fork:
 	--no-cors \
 	--chain-id 41337 \
 	--no-rate-limit \
-	--fork-block-number "$ANVIL_FORK_BLOCK" \
 	--load-state out/anvil-fork.json \
+	--fork-block-number "$ANVIL_FORK_BLOCK" \
 	--code-size-limit "100000000000000000" \
 	--fork-url "$RPC_ARBITRUM_INFURA"
 
@@ -174,7 +177,7 @@ verify-contract:
 	--chain arbitrum \
 	--watch \
 	--constructor-args "0x"
-
+	
 @setup:
 	just deps
 	just dry-local
