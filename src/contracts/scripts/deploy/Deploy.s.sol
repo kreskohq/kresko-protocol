@@ -311,7 +311,6 @@ contract Deploy is Scripted, DeployBase {
             broadcastWith(user);
         }
         kresko.mintKreskoAsset{value: updateFee}(MintArgs(user, pos.mintSymbol.cached(), pos.mintAmount, user), updateData);
-        // rsCall(kresko.mintKreskoAsset.selector, user, pos.mintSymbol.cached(), pos.mintAmount, user);
     }
 
     function setupKISSBalance(

@@ -20,7 +20,7 @@ import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Asset, Enums, Oracle, RawPrice} from "common/Types.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
-import {Anvil} from "./Anv.s.sol";
+import {Anvil} from "./Anvil.s.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
@@ -158,6 +158,7 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
         weth.approve(spender, allowance);
         krETH.approve(spender, allowance);
         akrETH.approve(spender, allowance);
+        ARB.approve(spender, allowance);
         kiss.approve(spender, allowance);
         IERC20(vaultAddr).approve(spender, allowance);
     }

@@ -132,9 +132,6 @@ library LibDeploy {
         for (uint256 i; i < json.assets.kreskoAssets.length; i++) {
             DeployedKrAsset memory deployed = deployKrAsset(json, json.assets.kreskoAssets[i], kresko);
             json.assets.kreskoAssets[i].config.anchor = deployed.anchorAddr;
-
-            json.assets.kreskoAssets[i].symbol.cache(deployed.addr);
-            deployed.anchorSymbol.cache(deployed.anchorAddr);
         }
 
         return json;
@@ -187,6 +184,8 @@ library LibDeploy {
         result.addr = address(proxies[0].proxy);
         result.anchorAddr = address(proxies[1].proxy);
         result.anchorSymbol = meta.anchorSymbol;
+        asset.symbol.cache(result.addr);
+        result.anchorSymbol.cache(result.anchorAddr);
         setJsonAddr("address", result.anchorAddr);
         setJsonBytes("initializer", abi.encode(proxies[1].implementation, address(factory()), ANCHOR_INITIALIZER));
         setJsonAddr("implementation", proxies[1].implementation);

@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.23;
-import {CommonInitArgs} from "common/Types.sol";
+import {Asset, CommonInitArgs} from "common/Types.sol";
 import {SCDPInitArgs} from "scdp/STypes.sol";
 import {MinterInitArgs} from "minter/MTypes.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {Enums} from "common/Constants.sol";
 import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
-import {mAddr} from "kresko-lib/utils/MinVm.s.sol";
-import {mvm} from "kresko-lib/utils/MinVm.s.sol";
+import {mAddr, mvm} from "kresko-lib/utils/MinVm.s.sol";
+import {Help} from "kresko-lib/utils/Libs.s.sol";
 import {CONST} from "scripts/deploy/CONST.s.sol";
-
+import {PLog} from "kresko-lib/utils/PLog.s.sol";
 struct Files {
     string params;
     string assets;
     string users;
 }
+
+using Help for string;
 
 function getConfig(string memory network, string memory configId) returns (Config memory json) {
     string memory dir = string.concat(CONST.CONFIG_DIR, network, "/");
@@ -71,6 +73,53 @@ function getAssetConfigFrom(string memory dir, string memory configId) returns (
     }
 
     return abi.decode(mvm.parseJson(mvm.readFile(files.assets)), (Assets));
+}
+
+function getKrAsset(Config memory cfg, string memory symbol) pure returns (KrAssetParams memory result) {
+    for (uint256 i; i < cfg.assets.kreskoAssets.length; i++) {
+        if (cfg.assets.kreskoAssets[i].symbol.equals(symbol)) {
+            result.json = cfg.assets.kreskoAssets[i];
+            break;
+        }
+    }
+
+    for (uint256 i; i < cfg.assets.extAssets.length; i++) {
+        if (cfg.assets.extAssets[i].symbol.equals(result.json.underlyingSymbol)) {
+            result.underlying = cfg.assets.extAssets[i];
+            break;
+        }
+    }
+    for (uint256 i; i < cfg.assets.tickers.length; i++) {
+        if (cfg.assets.tickers[i].ticker.equals(result.json.config.ticker)) {
+            result.ticker = cfg.assets.tickers[i];
+            break;
+        }
+    }
+}
+
+function getExtAsset(Config memory cfg, string memory symbol) pure returns (ExtAssetParams memory result) {
+    for (uint256 i; i < cfg.assets.extAssets.length; i++) {
+        if (cfg.assets.extAssets[i].symbol.equals(symbol)) {
+            result.json = cfg.assets.extAssets[i];
+            break;
+        }
+    }
+    for (uint256 i; i < cfg.assets.tickers.length; i++) {
+        if (cfg.assets.tickers[i].ticker.equals(result.json.config.ticker)) {
+            result.ticker = cfg.assets.tickers[i];
+            break;
+        }
+    }
+}
+
+struct KrAssetParams {
+    KrAssetConfig json;
+    ExtAsset underlying;
+    TickerConfig ticker;
+}
+struct ExtAssetParams {
+    ExtAsset json;
+    TickerConfig ticker;
 }
 
 struct Salts {
