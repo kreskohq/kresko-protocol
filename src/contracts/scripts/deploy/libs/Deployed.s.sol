@@ -8,9 +8,9 @@ import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 
 library Deployed {
     using Help for *;
-    string constant SCRIPT_LOCATION = "utils/deployUtils.js";
 
     struct Cache {
+        string deployId;
         mapping(string => address) cache;
         mapping(string => Asset) assets;
     }
@@ -24,12 +24,15 @@ library Deployed {
     }
 
     function addr(string memory name, uint256 chainId) internal returns (address) {
-        string[] memory args = new string[](5);
+        require(!state().deployId.isEmpty(), "deployId is empty");
+
+        string[] memory args = new string[](6);
         args[0] = "bun";
-        args[1] = SCRIPT_LOCATION;
+        args[1] = "utils/ffi.ts";
         args[2] = "getDeployment";
         args[3] = name;
         args[4] = chainId.str();
+        args[5] = state().deployId;
 
         return mvm.ffi(args).str().toAddr();
     }
@@ -54,7 +57,13 @@ library Deployed {
     }
 
     function ensureAddr(string memory id, address _addr) internal pure {
-        if (_addr == address(0)) revert(string.concat("!exists: ", id));
+        if (_addr == address(0)) {
+            revert(string.concat("!exists: ", id));
+        }
+    }
+
+    function init(string memory deployId) internal {
+        state().deployId = deployId;
     }
 
     function state() internal pure returns (Cache storage ds) {

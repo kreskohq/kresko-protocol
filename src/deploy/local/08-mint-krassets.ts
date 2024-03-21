@@ -3,7 +3,7 @@ import { TASK_MINT_OPTIMAL } from '@tasks'
 import { getLogger } from '@utils/logging'
 import { fromBig, toBig } from '@utils/values'
 import type { DeployFunction } from 'hardhat-deploy/dist/types'
-import { getPayloadHardhat } from 'utils/pythPayload'
+import { getPayloadHardhat } from 'utils/ffi-pyth'
 
 const logger = getLogger('mint-krassets')
 

@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {cs} from "common/State.sol";
 import {scdp} from "scdp/SState.sol";
 
-contract ParamPayload {
+contract Payload0001 {
     address internal constant KISSAddr = 0x6A1D6D2f4aF6915e6bBa8F2db46F442d18dB5C9b;
     address internal constant krETHAddr = 0x24dDC92AA342e92f26b4A676568D04d2E3Ea0abc;
     address public immutable krBTCAddr;

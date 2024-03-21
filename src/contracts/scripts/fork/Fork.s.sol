@@ -34,9 +34,7 @@ contract ArbFork is ArbScript {
         );
         pythPrice.price.clg("pythPrice.price");
         pythPrice.timestamp.clg("pythPrice.timestamp");
-        (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) = IAggregatorV3(
-            0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3
-        ).latestRoundData();
+        (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3).latestRoundData();
 
         updatedAt.clg("updatedAt");
         answer.clg("clPrice");

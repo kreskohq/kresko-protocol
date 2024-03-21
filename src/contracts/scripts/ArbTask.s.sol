@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ArbScript, Asset} from "scripts/utils/ArbScript.s.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Log, mvm} from "kresko-lib/utils/Libs.s.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
@@ -11,8 +11,9 @@ import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {cs} from "common/State.sol";
 import {scdp} from "scdp/SState.sol";
-import {ParamPayload} from "scripts/ParamPayload.sol";
+import {Payload0001} from "scripts/payloads/Payload0001.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
+import {deployPayload} from "scripts/payloads/Payloads.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
@@ -20,6 +21,7 @@ contract ArbTask is ArbScript {
     using Log for *;
     using Help for *;
     using LibDeploy for JSON.Config;
+    using LibDeploy for bytes;
     using LibJSON for JSON.Config;
     using LibJSON for JSON.AssetJSON;
 
@@ -31,35 +33,35 @@ contract ArbTask is ArbScript {
         LibDeploy.writeOutputJSON();
     }
 
-    function execWith() external fork("arbitrum") {
-        broadcastWith(safe);
-        JSON.Config memory json = beforeRun();
-        (Asset memory krBTC, LibDeploy.DeployedKrAsset memory deployInfo) = addKrAsset(json, "krBTC");
-
-        executeParams(deployInfo.addr);
-        Asset memory arb = addExtAsset(json, "ARB");
-    }
-
-    function executeParams(address krBTCAddr) public {
-        vault.setMaxDeposits(USDCAddr, 100_000e6);
-        vault.setMaxDeposits(USDCeAddr, 100_000e6);
-        ParamPayload payload = new ParamPayload(address(krBTCAddr));
-        address(payload).clg("Payload Address");
-        IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(address(payload), abi.encodeCall(payload.executePayload, ()));
-    }
-
     function beforeRun() public returns (JSON.Config memory) {
         fetchPythAndUpdate();
         Deployed.cache("WBTC", WBTCAddr);
         Deployed.cache("USDC", USDCAddr);
-        Deployed.cache("USDC.e", USDCeAddr);
+        Deployed.cache("USDCe", USDCeAddr);
         return JSON.getConfig("arbitrum", "arbitrum");
+    }
+
+    function payload0001() external fork("arbitrum") {
+        JSON.Config memory json = beforeRun();
+
+        broadcastWith(safe);
+        (, LibDeploy.DeployedKrAsset memory deployInfo) = addKrAsset(json, "krBTC");
+
+        executeParams(deployInfo.addr);
+        addExtAsset(json, "ARB");
+    }
+
+    function executeParams(address krBTCAddr) public jsonOut("Payload0001") {
+        vault.setMaxDeposits(USDCAddr, 100_000e6);
+        vault.setMaxDeposits(USDCeAddr, 100_000e6);
+        address payload = deployPayload(type(Payload0001).creationCode, abi.encode(krBTCAddr), 1);
+        IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(payload, abi.encodeCall(Payload0001.executePayload, ()));
     }
 
     function addKrAsset(
         JSON.Config memory json,
         string memory symbol
-    ) public jsonOut(symbol.and("-deployment")) returns (Asset memory config, LibDeploy.DeployedKrAsset memory deployInfo) {
+    ) public jsonOut(symbol) returns (Asset memory config, LibDeploy.DeployedKrAsset memory deployInfo) {
         symbol.clg("Asset Symbol");
         json.assets.kreskoAssets.length.clg("KrAssets Configured");
 

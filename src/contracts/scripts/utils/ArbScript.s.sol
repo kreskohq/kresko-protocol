@@ -20,12 +20,12 @@ import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Asset, Enums, Oracle, RawPrice} from "common/Types.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
-import {Anvil} from "./Anvil.s.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
+import {Anvil} from "kresko-lib/utils/Anvil.s.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
-contract ArbScript is Anvil, Scripted, ArbDeployAddr {
+contract ArbScript is Scripted, ArbDeployAddr {
     using Log for *;
     using Help for *;
 
@@ -80,7 +80,7 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
         for (uint256 i; i < clAssets.length; i++) {
             address feed = kresko.getFeedForAddress(clAssets[i], Enums.OracleType.Chainlink);
             IAggregatorV3(feed).latestAnswer().clg("Chainlink Price");
-            setCLPrice(feed, prices[i]);
+            Anvil.setCLPrice(feed, prices[i]);
         }
     }
 

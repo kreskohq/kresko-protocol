@@ -10,6 +10,7 @@ import {mAddr, mvm} from "kresko-lib/utils/MinVm.s.sol";
 import {Help} from "kresko-lib/utils/Libs.s.sol";
 import {CONST} from "scripts/deploy/CONST.s.sol";
 import {PLog} from "kresko-lib/utils/PLog.s.sol";
+import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 struct Files {
     string params;
     string assets;
@@ -20,6 +21,7 @@ using Help for string;
 
 function getConfig(string memory network, string memory configId) returns (Config memory json) {
     string memory dir = string.concat(CONST.CONFIG_DIR, network, "/");
+
     return getConfigFrom(dir, configId);
 }
 
@@ -56,6 +58,8 @@ function getConfigFrom(string memory dir, string memory configId) returns (Confi
     if (json.params.common.admin == address(0)) {
         json.params.common.admin = mAddr("MNEMONIC_DEVNET", 0);
     }
+
+    Deployed.init(configId);
 }
 
 // stacks too deep so need to split assets into separate function
