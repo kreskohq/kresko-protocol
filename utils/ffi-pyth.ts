@@ -17,7 +17,7 @@ export async function getPythPrices(assets?: any[], isString?: boolean) {
     assets = isPythIds ? process.argv.slice(3) : items.split(',')
     if (assets.length === 0) error('You have to provide at least one feed')
   }
-  console.log('assets', assets)
+
   const query = assets.reduce((res, asset: PYTH_IDS) => {
     const id = !isString ? asset : PYTH_STABLE[asset]
     if (!id) error(`Asset ${asset} not found`)
