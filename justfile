@@ -190,7 +190,7 @@ set positional-arguments
 
 @safe-file batchfile:
 	echo "-> Sending $1.." && \
-	bun utils/ffi.ts proposeBatch $1 && \
+	bun utils/ffi.ts proposeBatch $1 true && \
 	echo "-> Sent!"
 
 @safe-del safeTxHash:

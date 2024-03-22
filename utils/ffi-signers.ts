@@ -22,21 +22,21 @@ export const signHash = (hash?: string) =>
   ({
     [Signer.Trezor]: trezor.signHash,
     [Signer.Frame]: frame('eth_sign'),
-    [Signer.Cast]: cast('eth_sign'),
+    [Signer.Ledger]: cast('eth_sign'),
   })[SIGNER](getArg(hash))
 
 export const signMessage = (message?: string) =>
   ({
     [Signer.Trezor]: trezor.signMessage,
     [Signer.Frame]: frame('personal_sign'),
-    [Signer.Cast]: cast('personal_sign'),
+    [Signer.Ledger]: cast('personal_sign'),
   })[SIGNER](getArg(message))
 
 export const signData = (data?: any) =>
   ({
     [Signer.Trezor]: trezor.signData,
     [Signer.Frame]: frame('eth_signTypedData_v4'),
-    [Signer.Cast]: cast('eth_signTypedData_v4'),
+    [Signer.Ledger]: cast('eth_signTypedData_v4'),
   })[SIGNER](getArg(data))
 
 const frame =
@@ -51,19 +51,17 @@ const frame =
 const cast =
   (method: Method = 'personal_sign') =>
   async (input: string) => {
-    const address = (await $`cast wallet address --private-key $PRIVATE_KEY`.text()) as Address
+    const address = (await $`cast wallet address --ledger`.text()).trim() as Address
     if (method === 'eth_signTypedData_v4') {
-      const signature = (await $`cast wallet sign --private-key $PRIVATE_KEY --data ${JSON.stringify(
-        input,
-      )}`.text()) as Hex
-      return [signature, address]
+      const signature = (await $`cast wallet sign --ledger --data ${JSON.stringify(input)}`.text()) as Hex
+      return [signature.trim(), address] as SignResult
     }
     if (input?.startsWith('0x')) {
-      const signature = (await $`cast wallet sign --private-key $PRIVATE_KEY --no-hash ${input}`.text()) as Hex
-      return [signature, address]
+      const signature = (await $`cast wallet sign --ledger ${input}`.text()) as Hex
+      return [signature.trim(), address] as SignResult
     }
-    const signature = (await $`cast wallet sign --private-key $PRIVATE_KEY ${input}`.text()) as Hex
-    return [signature, address]
+    const signature = (await $`cast wallet sign --ledger ${input}`.text()) as Hex
+    return [signature.trim(), address] as SignResult
   }
 
 const trezor = {

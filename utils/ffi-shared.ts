@@ -124,7 +124,7 @@ export function error(str: string) {
 export enum Signer {
   Trezor,
   Frame,
-  Cast,
+  Ledger,
 }
 export type Method = 'personal_sign' | 'eth_sign' | 'eth_signTypedData_v4'
 
