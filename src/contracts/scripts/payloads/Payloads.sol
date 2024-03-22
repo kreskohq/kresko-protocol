@@ -12,6 +12,6 @@ function payloadSalt(uint256 _id) view returns (bytes32) {
 
 function deployPayload(bytes memory _code, bytes memory _ctor, uint256 _id) returns (address result) {
     LibDeploy.JSONKey(string.concat("Payload", vmFFI.toString(_id)));
-    result = _code.ctor(_ctor).d2("", payloadSalt(_id)).implementation;
+    result = _code.ctor(_ctor).d3("", payloadSalt(_id)).implementation;
     LibDeploy.saveJSONKey();
 }
