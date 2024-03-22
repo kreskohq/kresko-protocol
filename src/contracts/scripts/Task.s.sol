@@ -9,15 +9,13 @@ import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {FeedConfiguration, Oracle} from "common/Types.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import {cs} from "common/State.sol";
-import {scdp} from "scdp/SState.sol";
 import {Payload0001} from "scripts/payloads/Payload0001.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
-contract ArbTask is ArbScript {
+contract Task is ArbScript {
     using Log for *;
     using Help for *;
     using LibDeploy for JSON.Config;

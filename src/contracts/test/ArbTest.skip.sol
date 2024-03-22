@@ -5,7 +5,7 @@ import {Asset} from "scripts/utils/ArbScript.s.sol";
 import {Tested} from "kresko-lib/utils/Tested.t.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
-import {ArbTask} from "scripts/ArbTask.s.sol";
+import {Task} from "scripts/Task.s.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";

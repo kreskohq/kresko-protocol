@@ -1,6 +1,15 @@
 import { getDeployment, getLatestBroadcastedDeployment } from './ffi-deploy'
 import { getPythPrices } from './ffi-pyth'
-import { getSafePayloads, proposeBatch, signBatch } from './ffi-safe'
+import {
+  deleteBatch,
+  getSafePayloads,
+  proposeBatch,
+  safeSign,
+  signBatch,
+  signData,
+  signHash,
+  signMessage,
+} from './ffi-safe'
 import { error, success } from './ffi-shared'
 
 const commands = {
@@ -16,6 +25,11 @@ const commands = {
   signBatch,
   // -> getPythPrices SYMBOL1,SYMBOL2,SYMBOL3 || getPythPrices 0xPYTH_ID,0xPYTH_ID,0xPYTH_ID
   getPythPrices,
+  safeSign,
+  signData,
+  signHash,
+  signMessage,
+  deleteBatch,
 }
 
 type Commands = keyof typeof commands
@@ -33,7 +47,7 @@ if (command in commands) {
       // @ts-expect-error
       result = await result
     }
-    result ? success(result) : error(`No result for command ${command}`)
+    result ? success(result as string | any[]) : error(`No result for command ${command}`)
   } catch (e: unknown) {
     error(`${command} -> ${e}`)
   }

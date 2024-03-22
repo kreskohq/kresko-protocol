@@ -21,11 +21,11 @@ import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Asset, Enums, Oracle, RawPrice} from "common/Types.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
-import {Anvil} from "kresko-lib/utils/Anvil.s.sol";
+import {Anvil} from "./Anvil.s.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
-contract ArbScript is Scripted, ArbDeployAddr {
+contract ArbScript is Anvil, Scripted, ArbDeployAddr {
     using Log for *;
     using Help for *;
 

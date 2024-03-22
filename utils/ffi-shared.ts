@@ -87,15 +87,19 @@ export const deploysBroadcasts = `${root}/out/foundry`
 
 export const signaturesPath = `${process.cwd()}/temp/sign/`
 
-export function success(str: string) {
+export function success(str: string | any[]) {
   if (!str?.length) process.exit(0)
-
-  if (str.startsWith('0x')) {
-    process.stdout.write(str)
+  if (Array.isArray(str)) {
+    process.stdout.write(str.join('\n'))
   } else {
-    process.stdout.write(Buffer.from(str).toString('utf-8'))
+    if (str.startsWith('0x')) {
+      process.stdout.write(str)
+    } else {
+      process.stdout.write(Buffer.from(str).toString('utf-8'))
+    }
   }
-  process.exitCode = 0
+
+  process.exit(0)
 }
 
 export function error(str: string) {
@@ -107,4 +111,5 @@ export function error(str: string) {
     process.stderr.write(Buffer.from(str).toString('utf-8'))
   }
   process.exitCode = 1
+  setTimeout(() => process.exit(1), 1)
 }

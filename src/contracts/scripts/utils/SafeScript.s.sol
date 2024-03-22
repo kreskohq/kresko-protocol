@@ -48,9 +48,19 @@ contract SafeScript {
     bytes[] transactions;
     string[] argsFFI;
 
-    function simulateAndPropose(string memory broadcastId) public {
-        mvm.createSelectFork("arbitrum");
-        signBatch(simulate(broadcastId));
+    function sendBatch(string memory broadcastId) public {
+        mvm.createSelectFork(NETWORK);
+        (, string memory fileName) = simulateAndSign(broadcastId);
+        proposeBatch(fileName);
+    }
+
+    function simulateAndSign(string memory broadcastId) public returns (bytes32 safeTxHash, string memory fileName) {
+        (bytes32 txHash, string memory file, bytes memory sig, address signer) = signBatch(simulate(broadcastId));
+        string.concat("Batch signed by: ", signer.str()).clg();
+        string.concat("Signature: ", sig.str()).clg();
+        string.concat("Safe Tx Hash: ", txHash.str()).clg();
+        string.concat("Output written to: ", file).clg();
+        return (txHash, file);
     }
 
     function simulate(string memory broadcastId) public returns (Batch memory batch) {
@@ -65,7 +75,7 @@ contract SafeScript {
     }
 
     // Encodes the stored encoded transactions into a single Multisend transaction
-    function createBatch(Payloads memory data) internal pure returns (Batch memory batch) {
+    function createBatch(Payloads memory data) private pure returns (Batch memory batch) {
         batch.to = MULTI_SEND_ADDRESS;
         batch.value = 0;
         batch.operation = Operation.DELEGATECALL;
@@ -90,7 +100,6 @@ contract SafeScript {
     }
 
     function _simulate(Payloads memory payloads) private returns (Batch memory batch) {
-        mvm.writeFile("temp/ctor.json", mvm.serializeBytes("", "ctor", abi.encode(SAFE_ADDRESS, payloads.payloads)));
         batch = createBatch(payloads);
         bytes32 fromSafe = getSafeTxHash(batch);
         string
@@ -173,23 +182,16 @@ contract SafeScript {
         return abi.decode(returnData, (bytes32));
     }
 
-    function getPayloads(string memory broadcastId) internal returns (Payloads memory) {
-        argsFFI = [
-            "bun",
-            "--no-warnings",
-            "utils/ffi.ts",
-            "getSafePayloads",
-            broadcastId,
-            mvm.toString(CHAIN_ID),
-            mvm.toString(SAFE_ADDRESS)
-        ];
+    function getPayloads(string memory broadcastId) public returns (Payloads memory) {
+        argsFFI = ["bun", "utils/ffi.ts", "getSafePayloads", broadcastId, mvm.toString(CHAIN_ID), mvm.toString(SAFE_ADDRESS)];
         return abi.decode(mvm.ffi(argsFFI), (Payloads));
     }
 
-    function signBatch(Batch memory batch) internal returns (string memory fileName, bytes memory signature, address signer) {
+    function signBatch(
+        Batch memory batch
+    ) internal returns (bytes32 txHash, string memory fileName, bytes memory signature, address signer) {
         argsFFI = [
             "bun",
-            "--no-warnings",
             "utils/ffi.ts",
             "signBatch",
             mvm.toString(SAFE_ADDRESS),
@@ -198,18 +200,49 @@ contract SafeScript {
         ];
 
         (fileName, signature, signer) = abi.decode(mvm.ffi(argsFFI), (string, bytes, address));
+        txHash = batch.txHash;
     }
 
-    function writeOutput(string memory broadcastId, Batch memory data, Payload[] memory payloads) internal {
+    function proposeBatch(string memory fileName) public returns (string memory response, string memory json) {
+        argsFFI = ["bun", "utils/ffi.ts", "proposeBatch", fileName];
+        (response, json) = abi.decode(mvm.ffi(argsFFI), (string, string));
+
+        response.clg();
+        json.clg();
+    }
+
+    function deleteProposal(bytes32 safeTxHash, string memory filename) public {
+        deleteTx(safeTxHash);
+        (bool success, bytes memory ret) = address(mvm).call(abi.encodeWithSignature("removeFile(string)", filename));
+        if (!success) {
+            __revert(ret);
+        }
+        string.concat("Removed Safe Tx: ", safeTxHash.str()).clg();
+        string.concat("Deleted file: ", filename).clg();
+    }
+
+    function deleteProposal(bytes32 safeTxHash) public {
+        deleteTx(safeTxHash);
+        string.concat("Removed Safe Tx: ", safeTxHash.str()).clg();
+    }
+
+    function deleteTx(bytes32 txHash) private {
+        argsFFI = ["bun", "utils/ffi.ts", "deleteBatch", txHash.str()];
+        mvm.ffi(argsFFI);
+    }
+
+    function writeOutput(string memory broadcastId, Batch memory data, Payload[] memory payloads) private {
         string memory path = "temp/batch/";
         string memory fileName = string.concat(path, broadcastId, "-", SAFE_ADDRESS.str(), "-", CHAIN_ID.str(), ".json");
         if (!mvm.exists(path)) {
             mvm.createDir(path, true);
         }
         string memory out = "values";
+        mvm.serializeBytes(out, "id", abi.encode(broadcastId));
         mvm.serializeBytes(out, "batch", abi.encode(data));
         mvm.serializeAddress(out, "multisendAddr", MULTI_SEND_ADDRESS);
         mvm.writeFile(fileName, mvm.serializeBytes(out, "payloads", abi.encode(payloads)));
+        string.concat("Output written to: ", fileName).clg();
     }
 
     function printPayloads(Payloads memory payloads) public pure {
@@ -231,7 +264,7 @@ contract SafeScript {
         }
     }
 
-    function join(string[] memory arr) public pure returns (string memory result) {
+    function join(string[] memory arr) private pure returns (string memory result) {
         for (uint256 i; i < arr.length; ++i) {
             uint256 len = bytes(arr[i]).length;
             string memory suffix = i == arr.length - 1 ? "" : ",";

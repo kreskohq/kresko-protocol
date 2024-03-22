@@ -1,5 +1,5 @@
 import { writeFileSync } from 'node:fs'
-import ethProvider from 'eth-provider'
+import TrezorConnect from '@trezor/connect'
 import { glob } from 'glob'
 import {
   Address,
@@ -15,6 +15,7 @@ import type { BroadcastJSON, SafeInfoResponse } from './ffi-shared'
 import { deploysBroadcasts, signaturesPath } from './ffi-shared'
 
 const SAFE_API = 'https://safe-transaction-arbitrum.safe.global/api/v1/safes/'
+const SAFE_API_V1 = 'https://safe-transaction-arbitrum.safe.global/api/v1/'
 
 const txPayloadOutput = parseAbiParameters([
   'Payloads result',
@@ -31,6 +32,7 @@ const signPayloadInput = parseAbiParameters([
 const signatureOutput = parseAbiParameters(['string,bytes,address'])
 const proposeOutput = parseAbiParameters(['string,string'])
 
+const DERIVATION_PATH = process.env.MNEMONIC_PATH || "m/44'/60'/0'/0/0"
 export const types = {
   EIP712Domain: [
     { name: 'verifyingContract', type: 'address' },
@@ -49,7 +51,15 @@ export const types = {
     { name: 'nonce', type: 'uint256' },
   ],
 }
-
+const get = async (op: (trezor: typeof TrezorConnect) => Promise<[signature: Hex, address: Address]>) => {
+  await TrezorConnect.init({
+    manifest: {
+      email: 'hello@kresko.fi',
+      appUrl: 'https://kresko.fi',
+    },
+  })
+  return op(TrezorConnect)
+}
 const typedData = (safe: Address, message: any) => ({
   types,
   domain: {
@@ -59,6 +69,18 @@ const typedData = (safe: Address, message: any) => ({
   primaryType: 'SafeTx' as const,
   message: message,
 })
+
+export async function getSafePayloads() {
+  const name = process.argv[3]
+  const chainId = process.argv[4]
+  const safeAddr = process.argv[5] as Address
+  const payloads = await parseBroadcast(name, Number(chainId), safeAddr)
+
+  if (!payloads.length) {
+    throw new Error(`No payloads found for ${name} on chain ${chainId}`)
+  }
+  return payloads
+}
 
 export async function signBatch() {
   const timestamp = Math.floor(Date.now() / 1000)
@@ -82,7 +104,7 @@ export async function signBatch() {
     nonce: Number(decoded.nonce),
   })
 
-  const [signature, signer] = await ethSign(decoded.txHash)
+  const [signature, signer] = await safeSign(decoded.txHash)
   const fileName = file('signed-batch')
   writeFileSync(
     fileName,
@@ -98,9 +120,12 @@ export async function signBatch() {
   return encodeAbiParameters(signatureOutput, [fileName, signature, signer])
 }
 
-export async function proposeBatch() {
-  const fileName = process.argv[3]
-  const tx = require(fileName)
+export async function proposeBatch(filename?: string) {
+  const file = getArg(filename)
+  const results = !file.startsWith(process.cwd()) ? glob.sync(`${signaturesPath}${file}.json`) : [file]
+  if (results.length !== 1) throw new Error(`Expected 1 file, got ${results.length} for ${file}`)
+  const tx = require(results[0])
+  const isCLI = process.argv[4] != null
 
   const response = await fetch(`${SAFE_API}${checksumAddress(tx.safe)}/multisig-transactions/`, {
     method: 'POST',
@@ -110,35 +135,78 @@ export async function proposeBatch() {
     body: JSON.stringify(tx),
   })
   const json = await response.json()
+  if (isCLI) {
+    console.log(json)
+    return
+  }
   return encodeAbiParameters(proposeOutput, [`${response.status}: ${response.statusText}`, json])
 }
 
-async function ethSign(txHash: Hex): Promise<[Hex, Address]> {
-  const connection = ethProvider('frame')
-  const accs = (await connection.enable()) as Address[]
-  if (!accs.length) {
-    throw new Error(`No accounts to sign with, does Frame exist?`)
-  }
-  const signer = accs[0]
-  return [
-    await connection.request({
-      method: 'eth_sign',
-      params: [signer, txHash],
-    }),
-    signer,
-  ]
+export async function deleteBatch(txHash?: Hex) {
+  const safeTxHash = getArg(txHash)
+  const [signature] = await signData(deleteData(safeTxHash))
+
+  const response = await fetch(`${SAFE_API_V1}transactions/${safeTxHash}/`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ signature, safeTxHash }),
+  })
+  if (!response.ok) throw new Error(await response.text())
+  return response.statusText
 }
 
-export async function getSafePayloads() {
-  const name = process.argv[3]
-  const chainId = process.argv[4]
-  const safeAddr = process.argv[5] as Address
-  const payloads = await parseBroadcast(name, Number(chainId), safeAddr)
+export async function safeSign(txHash?: Hex): Promise<[Hex, Address]> {
+  const [signature, signer] = await signHash(getArg(txHash))
+  const v1 = parseInt(signature.slice(-2), 16) + 4
+  return [`${signature.slice(0, -2)}${v1.toString(16)}` as Hex, signer]
+}
 
-  if (!payloads.length) {
-    throw new Error(`No payloads found for ${name} on chain ${chainId}`)
-  }
-  return payloads
+export function signHash(hash?: string) {
+  return get(async trezor => {
+    const result = await trezor.ethereumSignMessage({
+      message: getArg(hash),
+      hex: true,
+      path: DERIVATION_PATH,
+    })
+    if (!result.success) throw new Error(result.payload.error)
+    return [`0x${result.payload.signature}` as Hex, result.payload.address as Address]
+  })
+}
+
+export function signMessage(message?: string) {
+  return get(async trezor => {
+    const result = await trezor.ethereumSignMessage({
+      message: getArg(message),
+      hex: false,
+      path: DERIVATION_PATH,
+    })
+    if (!result.success) throw new Error(result.payload.error)
+    return [`0x${result.payload.signature}` as Hex, result.payload.address as Address]
+  })
+}
+
+export async function signData(data?: any) {
+  return get(async trezor => {
+    let arg = getArg(data)
+    if (typeof arg === 'string') {
+      arg = JSON.parse(arg)
+    }
+    const result = await trezor.ethereumSignTypedData({
+      path: DERIVATION_PATH,
+      data: arg,
+      metamask_v4_compat: true,
+    })
+    if (!result.success) throw new Error(result.payload.error)
+    return [`0x${result.payload.signature}` as Hex, result.payload.address as Address]
+  })
+}
+
+const getArg = <T>(arg?: T) => {
+  if (!arg) arg = process.argv[3] as T
+  if (!arg) throw new Error('No argument provided')
+  return arg
 }
 
 async function parseBroadcast(name: string, chainId: number, safeAddr: Address) {
@@ -189,3 +257,29 @@ async function parseBroadcast(name: string, chainId: number, safeAddr: Address) 
   }
   return encodeAbiParameters(txPayloadOutput, [metadata])
 }
+
+const deleteData = (txHash: Hex) => ({
+  types: {
+    EIP712Domain: [
+      { name: 'name', type: 'string' },
+      { name: 'version', type: 'string' },
+      { name: 'chainId', type: 'uint256' },
+      { name: 'verifyingContract', type: 'address' },
+    ],
+    DeleteRequest: [
+      { name: 'safeTxHash', type: 'bytes32' },
+      { name: 'totp', type: 'uint256' },
+    ],
+  },
+  primaryType: 'DeleteRequest',
+  domain: {
+    name: 'Safe Transaction Service',
+    version: '1.0',
+    chainId: 42161,
+    verifyingContract: '0x266489Bde85ff0dfe1ebF9f0a7e6Fed3a973cEc3',
+  },
+  message: {
+    safeTxHash: txHash,
+    totp: Math.floor(Date.now() / 1000 / 3600),
+  },
+})
