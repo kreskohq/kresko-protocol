@@ -1,3 +1,4 @@
+import { rmSync, writeFileSync } from 'node:fs'
 import TrezorConnect from '@trezor/connect'
 import { $ } from 'bun'
 import ethProvider from 'eth-provider'
@@ -50,17 +51,25 @@ const frame =
 
 const cast =
   (method: Method = 'personal_sign') =>
-  async (input: string) => {
-    const address = checksumAddress((await $`cast wallet address --ledger`.text()).trim() as Address)
+  async (input: any) => {
+    const address = checksumAddress(
+      (await $`cast wallet address --mnemnonic-derivation-path ${DERIVATION_PATH} --ledger`.text()).trim() as Address,
+    )
     if (method === 'eth_signTypedData_v4') {
-      const signature = (await $`cast wallet sign --ledger --data ${JSON.stringify(input)}`.text()) as Hex
+      const tempFile = `${process.cwd()}/temp-data.json`
+      writeFileSync(tempFile, JSON.stringify(input))
+      const signature =
+        (await $`cast wallet sign --mnemnonic-derivation-path ${DERIVATION_PATH} --ledger --data --from-file temp-data.json`.text()) as Hex
+      rmSync(tempFile)
       return [signature.trim(), address] as SignResult
     }
     if (input?.startsWith('0x')) {
-      const signature = (await $`cast wallet sign --ledger ${input}`.text()) as Hex
+      const signature =
+        (await $`cast wallet sign --mnemnonic-derivation-path ${DERIVATION_PATH} --ledger ${input}`.text()) as Hex
       return [signature.trim(), address] as SignResult
     }
-    const signature = (await $`cast wallet sign --ledger ${input}`.text()) as Hex
+    const signature =
+      (await $`cast wallet sign --mnemnonic-derivation-path ${DERIVATION_PATH} --ledger ${input}`.text()) as Hex
     return [signature.trim(), address] as SignResult
   }
 
