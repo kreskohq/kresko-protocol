@@ -1,5 +1,4 @@
 import { writeFileSync } from 'node:fs'
-import TrezorConnect from '@trezor/connect'
 import { glob } from 'glob'
 import {
   Address,
@@ -7,32 +6,26 @@ import {
   checksumAddress,
   decodeAbiParameters,
   encodeAbiParameters,
-  parseAbiParameters,
   toFunctionSelector,
   zeroAddress,
 } from 'viem'
 import type { BroadcastJSON, SafeInfoResponse } from './ffi-shared'
-import { deploysBroadcasts, signaturesPath } from './ffi-shared'
+import {
+  SAFE_API,
+  SAFE_API_V1,
+  deploysBroadcasts,
+  getArg,
+  proposeOutput,
+  signPayloadInput,
+  signatureOutput,
+  signaturesPath,
+  txPayloadOutput,
+} from './ffi-shared'
+import { signData, signHash } from './ffi-signers'
 
-const SAFE_API = 'https://safe-transaction-arbitrum.safe.global/api/v1/safes/'
-const SAFE_API_V1 = 'https://safe-transaction-arbitrum.safe.global/api/v1/'
+const SAFE_ADDRESS = '0x266489Bde85ff0dfe1ebF9f0a7e6Fed3a973cEc3'
+const CHAIN_ID = 42161
 
-const txPayloadOutput = parseAbiParameters([
-  'Payloads result',
-  'struct Payload { address to; uint256 value; bytes data; }',
-  'struct PayloadExtra { string name; address contractAddr; string transactionType; string func; string funcSig; string[] args; address[] creations; uint256 gas; }',
-  'struct Payloads { Payload[] payloads; PayloadExtra[] extras; uint256 txCount; uint256 creationCount; uint256 totalGas; uint256 safeNonce; string safeVersion; uint256 timestamp; uint256 chainId; }',
-])
-
-const signPayloadInput = parseAbiParameters([
-  'Batch batch',
-  'struct Batch { address to; uint256 value; bytes data; uint8 operation; uint256 safeTxGas; uint256 baseGas; uint256 gasPrice; address gasToken; address refundReceiver; uint256 nonce; bytes32 txHash; bytes signature; }',
-])
-
-const signatureOutput = parseAbiParameters(['string,bytes,address'])
-const proposeOutput = parseAbiParameters(['string,string'])
-
-const DERIVATION_PATH = process.env.MNEMONIC_PATH || "m/44'/60'/0'/0/0"
 export const types = {
   EIP712Domain: [
     { name: 'verifyingContract', type: 'address' },
@@ -51,20 +44,12 @@ export const types = {
     { name: 'nonce', type: 'uint256' },
   ],
 }
-const get = async (op: (trezor: typeof TrezorConnect) => Promise<[signature: Hex, address: Address]>) => {
-  await TrezorConnect.init({
-    manifest: {
-      email: 'hello@kresko.fi',
-      appUrl: 'https://kresko.fi',
-    },
-  })
-  return op(TrezorConnect)
-}
+
 const typedData = (safe: Address, message: any) => ({
   types,
   domain: {
     verifyingContract: safe,
-    chainId: 42161,
+    chainId: CHAIN_ID,
   },
   primaryType: 'SafeTx' as const,
   message: message,
@@ -158,55 +143,9 @@ export async function deleteBatch(txHash?: Hex) {
 }
 
 export async function safeSign(txHash?: Hex): Promise<[Hex, Address]> {
-  const [signature, signer] = await signHash(getArg(txHash))
+  const [signature, signer] = await signHash(txHash)
   const v1 = parseInt(signature.slice(-2), 16) + 4
   return [`${signature.slice(0, -2)}${v1.toString(16)}` as Hex, signer]
-}
-
-export function signHash(hash?: string) {
-  return get(async trezor => {
-    const result = await trezor.ethereumSignMessage({
-      message: getArg(hash),
-      hex: true,
-      path: DERIVATION_PATH,
-    })
-    if (!result.success) throw new Error(result.payload.error)
-    return [`0x${result.payload.signature}` as Hex, result.payload.address as Address]
-  })
-}
-
-export function signMessage(message?: string) {
-  return get(async trezor => {
-    const result = await trezor.ethereumSignMessage({
-      message: getArg(message),
-      hex: false,
-      path: DERIVATION_PATH,
-    })
-    if (!result.success) throw new Error(result.payload.error)
-    return [`0x${result.payload.signature}` as Hex, result.payload.address as Address]
-  })
-}
-
-export async function signData(data?: any) {
-  return get(async trezor => {
-    let arg = getArg(data)
-    if (typeof arg === 'string') {
-      arg = JSON.parse(arg)
-    }
-    const result = await trezor.ethereumSignTypedData({
-      path: DERIVATION_PATH,
-      data: arg,
-      metamask_v4_compat: true,
-    })
-    if (!result.success) throw new Error(result.payload.error)
-    return [`0x${result.payload.signature}` as Hex, result.payload.address as Address]
-  })
-}
-
-const getArg = <T>(arg?: T) => {
-  if (!arg) arg = process.argv[3] as T
-  if (!arg) throw new Error('No argument provided')
-  return arg
 }
 
 async function parseBroadcast(name: string, chainId: number, safeAddr: Address) {
@@ -275,8 +214,8 @@ const deleteData = (txHash: Hex) => ({
   domain: {
     name: 'Safe Transaction Service',
     version: '1.0',
-    chainId: 42161,
-    verifyingContract: '0x266489Bde85ff0dfe1ebF9f0a7e6Fed3a973cEc3',
+    chainId: CHAIN_ID,
+    verifyingContract: SAFE_ADDRESS,
   },
   message: {
     safeTxHash: txHash,

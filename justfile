@@ -188,7 +188,7 @@ set positional-arguments
 	forge script SafeScript --sig "sendBatch(string)" $2 --ffi -vvv && \
 	echo "-> Sent!"
 
-@safe-add batchfile:
+@safe-file batchfile:
 	echo "-> Sending $1.." && \
 	bun utils/ffi.ts proposeBatch $1 && \
 	echo "-> Sent!"

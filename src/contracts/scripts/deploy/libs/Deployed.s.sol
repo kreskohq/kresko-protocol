@@ -11,6 +11,7 @@ library Deployed {
 
     struct Cache {
         string deployId;
+        address factory;
         mapping(string => address) cache;
         mapping(string => Asset) assets;
     }
@@ -20,7 +21,14 @@ library Deployed {
     }
 
     function factory() internal returns (IDeploymentFactory) {
-        return IDeploymentFactory(addr("Factory"));
+        if (state().factory == address(0)) {
+            return IDeploymentFactory(addr("Factory"));
+        }
+        return IDeploymentFactory(state().factory);
+    }
+
+    function factory(address _factory) internal {
+        state().factory = _factory;
     }
 
     function addr(string memory name, uint256 chainId) internal returns (address) {

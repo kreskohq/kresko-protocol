@@ -1,6 +1,7 @@
 import path from 'path'
-import type { Address, Hex } from 'viem'
+import { type Address, type Hex, parseAbiParameters } from 'viem'
 
+export type SignResult = [signature: Hex, address: Address]
 type TxType = 'CALL' | 'CREATE' | 'CREATE2'
 type AdditionalContract = {
   transactionType: TxType
@@ -87,6 +88,12 @@ export const deploysBroadcasts = `${root}/out/foundry`
 
 export const signaturesPath = `${process.cwd()}/temp/sign/`
 
+export const getArg = <T>(arg?: T) => {
+  if (!arg) arg = process.argv[3] as T
+  if (!arg) throw new Error('No argument provided')
+  return arg
+}
+
 export function success(str: string | any[]) {
   if (!str?.length) process.exit(0)
   if (Array.isArray(str)) {
@@ -113,3 +120,28 @@ export function error(str: string) {
   process.exitCode = 1
   setTimeout(() => process.exit(1), 1)
 }
+
+export enum Signer {
+  Trezor,
+  Frame,
+  Cast,
+}
+export type Method = 'personal_sign' | 'eth_sign' | 'eth_signTypedData_v4'
+
+export const SAFE_API = 'https://safe-transaction-arbitrum.safe.global/api/v1/safes/'
+export const SAFE_API_V1 = 'https://safe-transaction-arbitrum.safe.global/api/v1/'
+
+export const txPayloadOutput = parseAbiParameters([
+  'Payloads result',
+  'struct Payload { address to; uint256 value; bytes data; }',
+  'struct PayloadExtra { string name; address contractAddr; string transactionType; string func; string funcSig; string[] args; address[] creations; uint256 gas; }',
+  'struct Payloads { Payload[] payloads; PayloadExtra[] extras; uint256 txCount; uint256 creationCount; uint256 totalGas; uint256 safeNonce; string safeVersion; uint256 timestamp; uint256 chainId; }',
+])
+
+export const signPayloadInput = parseAbiParameters([
+  'Batch batch',
+  'struct Batch { address to; uint256 value; bytes data; uint8 operation; uint256 safeTxGas; uint256 baseGas; uint256 gasPrice; address gasToken; address refundReceiver; uint256 nonce; bytes32 txHash; bytes signature; }',
+])
+
+export const signatureOutput = parseAbiParameters(['string,bytes,address'])
+export const proposeOutput = parseAbiParameters(['string,string'])

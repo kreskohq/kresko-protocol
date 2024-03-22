@@ -22,6 +22,7 @@ import {Asset, Enums, Oracle, RawPrice} from "common/Types.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {Anvil} from "./Anvil.s.sol";
+import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
@@ -54,15 +55,18 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
     function initialize(string memory mnemonic) public {
         useMnemonic(mnemonic);
         vm.createSelectFork("arbitrum");
+        Deployed.factory(factoryAddr);
     }
 
     function initialize() public {
         useMnemonic("MNEMONIC_DEPLOY");
         vm.createSelectFork("arbitrum");
+        Deployed.factory(factoryAddr);
     }
 
     function initFork(address sender) internal returns (uint256 forkId) {
         forkId = vm.createSelectFork("localhost");
+        Deployed.factory(factoryAddr);
         Anvil.syncTime(0);
         vm.makePersistent(address(pythEP));
         broadcastWith(sender);
@@ -86,6 +90,7 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
 
     function initLocal(uint256 blockNr, bool sync) public {
         useMnemonic("MNEMONIC_DEPLOY");
+        Deployed.factory(factoryAddr);
         vm.createSelectFork("arbitrum", blockNr);
         if (sync) syncTimeLocal();
     }

@@ -322,9 +322,9 @@ library LibDeploy {
         state().disableLog = true;
     }
 
-    function factory() internal returns (IDeploymentFactory) {
+    function factory() internal returns (IDeploymentFactory factory_) {
         if (address(state().factory) == address(0)) {
-            state().factory = IDeploymentFactory(Deployed.addr("Factory"));
+            state().factory = Deployed.factory();
         }
         return state().factory;
     }

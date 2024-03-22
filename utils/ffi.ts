@@ -1,16 +1,8 @@
 import { getDeployment, getLatestBroadcastedDeployment } from './ffi-deploy'
 import { getPythPrices } from './ffi-pyth'
-import {
-  deleteBatch,
-  getSafePayloads,
-  proposeBatch,
-  safeSign,
-  signBatch,
-  signData,
-  signHash,
-  signMessage,
-} from './ffi-safe'
+import { deleteBatch, getSafePayloads, proposeBatch, safeSign, signBatch } from './ffi-safe'
 import { error, success } from './ffi-shared'
+import { signData, signHash, signMessage } from './ffi-signers'
 
 const commands = {
   // -> getLatestBroadcastedDeployment NAME CHAIN_ID
