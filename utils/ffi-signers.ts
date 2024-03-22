@@ -1,7 +1,7 @@
 import TrezorConnect from '@trezor/connect'
 import { $ } from 'bun'
 import ethProvider from 'eth-provider'
-import { Address, Hex } from 'viem'
+import { Address, Hex, checksumAddress } from 'viem'
 import { Signer, getArg } from './ffi-shared'
 import { Method, SignResult } from './ffi-shared'
 
@@ -45,13 +45,13 @@ const frame =
     const provider = ethProvider('frame')
     const [account] = await provider.enable()
     const signature = await provider.send(method, [account, message])
-    return [signature as Hex, account as Address]
+    return [signature as Hex, checksumAddress(account as Address)]
   }
 
 const cast =
   (method: Method = 'personal_sign') =>
   async (input: string) => {
-    const address = (await $`cast wallet address --ledger`.text()).trim() as Address
+    const address = checksumAddress((await $`cast wallet address --ledger`.text()).trim() as Address)
     if (method === 'eth_signTypedData_v4') {
       const signature = (await $`cast wallet sign --ledger --data ${JSON.stringify(input)}`.text()) as Hex
       return [signature.trim(), address] as SignResult
@@ -73,7 +73,7 @@ const trezor = {
         path: DERIVATION_PATH,
       })
       if (!result.success) throw new Error(result.payload.error)
-      return [`0x${result.payload.signature}` as Hex, result.payload.address as Address]
+      return [`0x${result.payload.signature}` as Hex, checksumAddress(result.payload.address as Address)]
     })
   },
   signMessage: (message?: string) => {
@@ -84,7 +84,7 @@ const trezor = {
         path: DERIVATION_PATH,
       })
       if (!result.success) throw new Error(result.payload.error)
-      return [`0x${result.payload.signature}` as Hex, result.payload.address as Address]
+      return [`0x${result.payload.signature}` as Hex, checksumAddress(result.payload.address as Address)]
     })
   },
   signData: (data?: any) => {
@@ -99,7 +99,7 @@ const trezor = {
         metamask_v4_compat: true,
       })
       if (!result.success) throw new Error(result.payload.error)
-      return [`0x${result.payload.signature}` as Hex, result.payload.address as Address]
+      return [`0x${result.payload.signature}` as Hex, checksumAddress(result.payload.address as Address)]
     })
   },
 }
