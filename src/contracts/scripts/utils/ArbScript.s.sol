@@ -232,7 +232,7 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
         states_noVaultFees();
     }
 
-    function peekAccount(address account, bool fetch) internal {
+    function peekAccount(address account, bool fetch) public {
         if (fetch) fetchPyth();
         IDataV1.DAccount memory acc = dataV1.getAccount(pythView, account);
         Log.sr();
