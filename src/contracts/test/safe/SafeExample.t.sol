@@ -5,23 +5,20 @@ import {ArbScript} from "scripts/utils/ArbScript.s.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {scdp} from "scdp/SState.sol";
-import {Enums} from "common/Constants.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {ICommonConfigFacet} from "common/interfaces/ICommonConfigFacet.sol";
-
+import {Tested} from "kresko-lib/utils/Tested.t.sol";
+import {Enums} from "common/Constants.sol";
+import {Asset, Oracle} from "common/Types.sol";
+import {console} from "forge-std/console.sol";
+import "scripts/deploy/JSON.s.sol" as JSON;
+import {View} from "periphery/ViewTypes.sol";
+import {getMockPythViewPrices, PythView} from "vendor/pyth/PythScript.sol";
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
-contract ExamplePayload0002 is ArbDeployAddr {
-    function executePayload() public {
-        require(USDC.allowance(safe, kreskoAddr) == 0, "allowance not 0");
-        require(!scdp().isRoute[krETHAddr][kissAddr], "route is not disabled");
-        scdp().isRoute[krETHAddr][kissAddr] = true;
-    }
-}
-
-contract SafeExample is ArbScript {
+contract SafeExampleTest is ArbScript, Tested {
     using Log for *;
     using Help for *;
 
@@ -31,7 +28,9 @@ contract SafeExample is ArbScript {
         _;
     }
 
-    function payload0002() public setUp broadcasted(safe) {
+    function test_payload0003() public setUp broadcasted(safe) {
+        _checkStaleTime(60);
+
         bytes32[] memory tickers = new bytes32[](4);
         tickers[0] = "ETH";
         tickers[1] = "BTC";
@@ -53,5 +52,21 @@ contract SafeExample is ArbScript {
         });
 
         kresko.setPythFeeds(tickers, pythConfig);
+
+        _checkStaleTime(30);
+    }
+
+    function _checkStaleTime(uint256 staleTime) internal view {
+        address[] memory assets = new address[](4);
+        assets[0] = wethAddr;
+        assets[1] = WBTCAddr;
+        assets[2] = USDCAddr;
+        assets[3] = ARBAddr;
+
+        for (uint256 i; i < assets.length; i++) {
+            Asset memory config = kresko.getAsset(assets[i]);
+            Oracle memory primaryOracle = kresko.getOracleOfTicker(config.ticker, config.oracles[0]);
+            assertEq(primaryOracle.staleTime, staleTime);
+        }
     }
 }
