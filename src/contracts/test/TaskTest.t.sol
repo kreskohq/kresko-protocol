@@ -15,7 +15,7 @@ import {toWad} from "common/funcs/Math.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
-contract ArbTaskTest is Tested, Task {
+contract TaskTest is Tested, Task {
     using Log for *;
     using Help for *;
     using ShortAssert for *;
@@ -51,6 +51,7 @@ contract ArbTaskTest is Tested, Task {
         approvals();
         krAsset.approve(address(kresko), type(uint256).max);
         fetchPythAndUpdate();
+        syncTimeLocal();
     }
 
     function test_added_krAsset() public {
@@ -132,7 +133,7 @@ contract ArbTaskTest is Tested, Task {
     }
 
     function test_mint_krAsset() public pranked(binance) {
-        uint256 mintAmount = 0.01 ether;
+        uint256 mintAmount = 0.1 ether;
         uint256 usdcDeposit = 20000e6;
 
         uint256 mintValue = getValue(assetAddr, mintAmount);
