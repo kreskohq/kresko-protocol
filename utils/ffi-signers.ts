@@ -8,7 +8,7 @@ import { Method, SignResult } from './ffi-shared'
 
 const DERIVATION_PATH = process.env.MNEMONIC_PATH || "m/44'/60'/0'/0/0"
 const SIGNER = process.env.SIGNER_TYPE != null ? (Number(process.env.SIGNER_TYPE) as Signer) : Signer.Trezor
-
+const INDEX = process.env.SIGNER_INDEX != null ? Number(process.env.SIGNER_INDEX) : 0
 const connect = async (op: (trezor: typeof TrezorConnect) => Promise<SignResult>) => {
   await TrezorConnect.init({
     manifest: {
@@ -23,7 +23,7 @@ export const signHash = (hash?: string) =>
   ({
     [Signer.Trezor]: trezor.signHash,
     [Signer.Frame]: frame('eth_sign'),
-    [Signer.Ledger]: cast('eth_sign'),
+    [Signer.Ledger]: cast('personal_sign'),
   })[SIGNER](getArg(hash))
 
 export const signMessage = (message?: string) =>
@@ -53,23 +53,23 @@ const cast =
   (method: Method = 'personal_sign') =>
   async (input: any) => {
     const address = checksumAddress(
-      (await $`cast wallet address --mnemnonic-derivation-path ${DERIVATION_PATH} --ledger`.text()).trim() as Address,
+      (await $`cast wallet address --mnemonic-index ${INDEX} --ledger`.text()).trim() as Address,
     )
     if (method === 'eth_signTypedData_v4') {
       const tempFile = `${process.cwd()}/temp-data.json`
       writeFileSync(tempFile, JSON.stringify(input))
       const signature =
-        (await $`cast wallet sign --mnemnonic-derivation-path ${DERIVATION_PATH} --ledger --data --from-file temp-data.json`.text()) as Hex
+        (await $`cast wallet sign --mnemonic-index ${INDEX} --ledger --data --from-file temp-data.json`.text()) as Hex
       rmSync(tempFile)
       return [signature.trim(), address] as SignResult
     }
     if (input?.startsWith('0x')) {
       const signature =
-        (await $`cast wallet sign --mnemnonic-derivation-path ${DERIVATION_PATH} --ledger ${input}`.text()) as Hex
+        (await $`cast wallet sign --mnemonic-index ${INDEX} --ledger ${input}`.text()) as Hex
       return [signature.trim(), address] as SignResult
     }
     const signature =
-      (await $`cast wallet sign --mnemnonic-derivation-path ${DERIVATION_PATH} --ledger ${input}`.text()) as Hex
+      (await $`cast wallet sign --mnemonic-index ${INDEX} --ledger ${input}`.text()) as Hex
     return [signature.trim(), address] as SignResult
   }
 
