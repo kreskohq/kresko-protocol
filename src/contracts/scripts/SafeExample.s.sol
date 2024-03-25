@@ -10,7 +10,7 @@ import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {ICommonConfigFacet} from "common/interfaces/ICommonConfigFacet.sol";
-
+import {Oracle} from "common/Types.sol";
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
 contract ExamplePayload0002 is ArbDeployAddr {
@@ -25,6 +25,8 @@ contract SafeExample is ArbScript {
     using Log for *;
     using Help for *;
 
+    bytes32[] internal tickers = [bytes32("ETH"), bytes32("BTC"), bytes32("USDC"), bytes32("ARB")];
+
     modifier setUp() {
         ArbScript.initialize();
         fetchPythAndUpdate();
@@ -32,26 +34,18 @@ contract SafeExample is ArbScript {
     }
 
     function payload0002() public setUp broadcasted(safe) {
-        bytes32[] memory tickers = new bytes32[](4);
-        tickers[0] = "ETH";
-        tickers[1] = "BTC";
-        tickers[2] = "USDC";
-        tickers[3] = "ARB";
+        kresko.setPythFeeds(tickers, getPythConfig());
+    }
 
-        uint256[] memory staleTimes = new uint256[](4);
-        staleTimes[0] = 30;
-        staleTimes[1] = 30;
-        staleTimes[2] = 30;
-        staleTimes[3] = 30;
-
-        bool[] memory invertPyth = new bool[](4);
-
-        ICommonConfigFacet.PythConfig memory pythConfig = ICommonConfigFacet.PythConfig({
-            pythIds: tickers,
-            staleTimes: staleTimes,
-            invertPyth: invertPyth
-        });
-
-        kresko.setPythFeeds(tickers, pythConfig);
+    function getPythConfig() private view returns (ICommonConfigFacet.PythConfig memory pythConfig) {
+        pythConfig.pythIds = new bytes32[](tickers.length);
+        pythConfig.invertPyth = new bool[](tickers.length);
+        pythConfig.staleTimes = new uint256[](tickers.length);
+        for (uint256 i; i < tickers.length; i++) {
+            Oracle memory config = kresko.getOracleOfTicker(tickers[i], Enums.OracleType.Pyth);
+            pythConfig.pythIds[i] = config.pythId;
+            pythConfig.invertPyth[i] = config.invertPyth;
+            pythConfig.staleTimes[i] = 30;
+        }
     }
 }

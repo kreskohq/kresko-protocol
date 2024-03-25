@@ -16,57 +16,29 @@ import {console} from "forge-std/console.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {View} from "periphery/ViewTypes.sol";
 import {getMockPythViewPrices, PythView} from "vendor/pyth/PythScript.sol";
+import {SafeExample} from "scripts/SafeExample.s.sol";
+
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
-contract SafeExampleTest is ArbScript, Tested {
+contract SafeExampleTest is SafeExample, Tested {
     using Log for *;
     using Help for *;
 
-    modifier setUp() {
-        ArbScript.initialize();
+    bytes32 pyth_eth = 0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace;
+
+    function test_payload0002() public {
+        payload0002();
+
         fetchPythAndUpdate();
-        _;
-    }
-
-    function test_payload0003() public setUp broadcasted(safe) {
-        _checkStaleTime(60);
-
-        bytes32[] memory tickers = new bytes32[](4);
-        tickers[0] = "ETH";
-        tickers[1] = "BTC";
-        tickers[2] = "USDC";
-        tickers[3] = "ARB";
-
-        uint256[] memory staleTimes = new uint256[](4);
-        staleTimes[0] = 30;
-        staleTimes[1] = 30;
-        staleTimes[2] = 30;
-        staleTimes[3] = 30;
-
-        bool[] memory invertPyth = new bool[](4);
-
-        ICommonConfigFacet.PythConfig memory pythConfig = ICommonConfigFacet.PythConfig({
-            pythIds: tickers,
-            staleTimes: staleTimes,
-            invertPyth: invertPyth
-        });
-
-        kresko.setPythFeeds(tickers, pythConfig);
-
-        _checkStaleTime(30);
-    }
-
-    function _checkStaleTime(uint256 staleTime) internal view {
-        address[] memory assets = new address[](4);
-        assets[0] = wethAddr;
-        assets[1] = WBTCAddr;
-        assets[2] = USDCAddr;
-        assets[3] = ARBAddr;
-
-        for (uint256 i; i < assets.length; i++) {
-            Asset memory config = kresko.getAsset(assets[i]);
-            Oracle memory primaryOracle = kresko.getOracleOfTicker(config.ticker, config.oracles[0]);
-            assertEq(primaryOracle.staleTime, staleTime);
+        vm.warp(pythEP.getPriceUnsafe(pyth_eth).timestamp);
+        for (uint256 i; i < tickers.length; i++) {
+            uint256 price = kresko.getPythPrice(tickers[i]);
+            assertTrue(price > 0, "price is 0");
+        }
+        vm.warp(pythEP.getPriceUnsafe(pyth_eth).timestamp + 31);
+        for (uint256 i; i < tickers.length; i++) {
+            vm.expectRevert(0x19abf40e); // pyth StalePrice selector
+            kresko.getPythPrice(tickers[i]);
         }
     }
 }
