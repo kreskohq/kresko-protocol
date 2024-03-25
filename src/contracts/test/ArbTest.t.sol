@@ -21,7 +21,7 @@ contract ArbTaskTest is Tested, Task {
     using ShortAssert for *;
 
     address constant binance = 0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D;
-    address constant wbtcHolder = 0x4bb7f4c3d47C4b431cb0658F44287d52006fb506;
+    address constant underlyingHolder = 0x4bb7f4c3d47C4b431cb0658F44287d52006fb506;
     address assetAddr;
 
     Asset asset;
@@ -41,15 +41,22 @@ contract ArbTaskTest is Tested, Task {
         akrAsset = IKreskoAssetAnchor(asset.anchor);
 
         manager.whitelist(binance, true);
-        manager.whitelist(wbtcHolder, true);
+        manager.whitelist(underlyingHolder, true);
 
         prank(binance);
         approvals();
         krAsset.approve(address(kresko), type(uint256).max);
 
-        prank(wbtcHolder);
+        prank(underlyingHolder);
         approvals();
         krAsset.approve(address(kresko), type(uint256).max);
+        fetchPythAndUpdate();
+    }
+
+    function test_added_krAsset() public {
+        asset.anchor.notEq(address(0), "krAsset-anchor");
+        asset.kFactor.gt(0, "krAsset-kFactor");
+        asset.closeFee.gt(0, "krAsset-closeFee");
     }
 
     function test_trade_krAsset() public {
@@ -58,6 +65,9 @@ contract ArbTaskTest is Tested, Task {
 
         kresko.getSwapEnabledSCDP(krETHAddr, assetAddr).eq(true, "krETH-newKrAsset-swap-enabled");
         kresko.getSwapEnabledSCDP(assetAddr, krETHAddr).eq(true, "newKrAsset-krETH-swap-enabled");
+
+        kresko.getSwapEnabledSCDP(krBTCAddr, assetAddr).eq(true, "krETH-newKrAsset-swap-enabled");
+        kresko.getSwapEnabledSCDP(assetAddr, krBTCAddr).eq(true, "newKrAsset-krETH-swap-enabled");
 
         prank(binance);
         uint256 swapAmountKISS = 1000 ether;
@@ -158,17 +168,17 @@ contract ArbTaskTest is Tested, Task {
         usdcValAfter.closeTo(usdcValue - feeValue, 100, "usdc-value-after");
     }
 
-    // function test_krAssetWrap() public pranked(wbtcHolder) {
+    // function test_krAssetWrap() public pranked(underlyingHolder) {
     //     vm.skip(true);
     //     uint256 wrapAmount = 1e8;
     //     IKreskoAsset.Wrapping memory wrap = krAsset.wrappingInfo();
     //     wrap.feeRecipient.eq(safe, "krAsset-fee-recipient");
 
-    //     krAsset.wrap(wbtcHolder, wrapAmount);
+    //     krAsset.wrap(underlyingHolder, wrapAmount);
     //     uint256 amtAfterFees = wrapAmount.pctMul(1e4 - wrap.openFee);
     //     uint256 amtAfterFeesWad = toWad(amtAfterFees, 8);
 
-    //     krAsset.balanceOf(wbtcHolder).eq(amtAfterFeesWad, "krAsset-wrapped-amount");
+    //     krAsset.balanceOf(underlyingHolder).eq(amtAfterFeesWad, "krAsset-wrapped-amount");
 
     //     uint256 feesIn = wrapAmount - amtAfterFees;
     //     underlying.balanceOf(assetAddr).eq(amtAfterFees, "krAsset-underlying-amount");
@@ -178,11 +188,11 @@ contract ArbTaskTest is Tested, Task {
     //     akrAsset.totalSupply().eq(amtAfterFeesWad, "akrAsset-total-supply");
     //     krAsset.totalSupply().eq(amtAfterFeesWad, "krAsset-minted-amount");
 
-    //     krAsset.unwrap(wbtcHolder, amtAfterFees, false);
+    //     krAsset.unwrap(underlyingHolder, amtAfterFees, false);
 
     //     uint256 feesOut = amtAfterFees.pctMul(wrap.closeFee);
     //     underlying.balanceOf(assetAddr).eq(0, "krAsset-underlying-amount");
-    //     krAsset.balanceOf(wbtcHolder).eq(0, "krAsset-wrapped-amount");
+    //     krAsset.balanceOf(underlyingHolder).eq(0, "krAsset-wrapped-amount");
 
     //     underlying.balanceOf(safe).eq(feesIn + feesOut, "krAsset-underlying-amount");
     // }
