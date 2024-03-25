@@ -293,6 +293,40 @@
         "21_isSharedOrSwappedCollateral": true,
         "22_isCoverAsset": false
       }
+    },
+    {
+      "00_name": "Solana",
+      "01_symbol": "krSOL",
+      "02_underlying": "",
+      "03_wrapFee": 0,
+      "04_unwrapFee": 0,
+      "05_config": {
+        "00_ticker": "SOL",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 0.95e4,
+        "05_kFactor": 1.05e4,
+        "06_openFee": 0,
+        "07_closeFee": 50,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 1e18,
+        "10_maxDebtSCDP": 0.5e18,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 9,
+        "13_swapOutFeeSCDP": 14,
+        "14_protocolFeeShareSCDP": 7.5e2,
+        "15_liqIncentiveSCDP": 1.035e4,
+        "16_decimals": 0,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": true,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": true,
+        "21_isSharedOrSwappedCollateral": true,
+        "22_isCoverAsset": false
+      }
     }
   ],
   "05_kiss": {
@@ -396,6 +430,21 @@
       "05_vault": "0x0000000000000000000000000000000000000000",
       "06_pythId": "0x3fa4252848f9f0a1480be62745a4629d9eb1322aebab8a791e344b3b9c1adcf5",
       "07_staleTimePyth": 60,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 50,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    },
+    {
+      "00_ticker": "SOL",
+      "01_mockPrice": 0,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0x24ceA4b8ce57cdA5058b924B9B9987992450590c",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+      "07_staleTimePyth": 30,
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 50,
