@@ -11,6 +11,13 @@ contract Payload0004 {
     address internal constant krSOLAddr = 0x96084d2E3389B85f2Dc89E321Aaa3692Aed05eD2;
 
     function executePayload() external {
+        require(cs().assets[KISSAddr].depositLimitSCDP == 100_000 ether, "incorrect existing KISS depositLimitSCDP");
+        require(cs().assets[KISSAddr].maxDebtSCDP == 25_000 ether, "incorrect existing KISS maxDebtSCDP");
+        require(cs().assets[krETHAddr].maxDebtSCDP == 5 ether, "incorrect existing krETH maxDebtSCDP");
+        require(cs().assets[krBTCAddr].maxDebtSCDP == 0.5 ether, "incorrect existing krBTC maxDebtSCDP");
+        require(cs().assets[krSOLAddr].maxDebtSCDP == 200 ether, "incorrect existing krSOL maxDebtSCDP");
+        require(scdp().minCollateralRatio == 400e2, "incorrect existing minCollateralRatio");
+
         cs().assets[KISSAddr].depositLimitSCDP = 200_000 ether;
 
         cs().assets[KISSAddr].maxDebtSCDP = 60_000 ether;

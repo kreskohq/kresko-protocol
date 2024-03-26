@@ -18,17 +18,14 @@ import {IVault} from "vault/interfaces/IVault.sol";
 contract Task0004 is ArbScript {
     using Log for *;
     using Help for *;
-    using LibDeploy for JSON.Config;
-    using LibDeploy for bytes;
-    using LibJSON for JSON.Config;
-    using LibJSON for JSON.AssetJSON;
-    uint256 currentForkId;
+    uint256 internal currentForkId;
 
     function payload0004() public {
+        ArbScript.initialize();
         if (currentForkId == 0) {
             currentForkId = vm.createSelectFork("arbitrum");
         }
-        JSON.Config memory json = JSON.getConfig("arbitrum", "arbitrum");
+
         broadcastWith(safe);
 
         vault.setMaxDeposits(USDCAddr, 200_000e6);

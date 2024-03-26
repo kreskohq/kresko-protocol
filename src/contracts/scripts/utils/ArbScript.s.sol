@@ -36,6 +36,9 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
     IKISS kiss = IKISS(kissAddr);
 
     IKreskoAsset krETH = IKreskoAsset(krETHAddr);
+    IKreskoAsset krBTC = IKreskoAsset(krBTCAddr);
+    // IKreskoAsset krSOL = IKreskoAsset(krSOLAddr);
+
     IKreskoAssetAnchor akrETH = IKreskoAssetAnchor(akrETHAddr);
 
     IDeploymentFactory factory = IDeploymentFactory(factoryAddr);
@@ -162,6 +165,7 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
         WBTC.approve(spender, allowance);
         weth.approve(spender, allowance);
         krETH.approve(spender, allowance);
+        krBTC.approve(spender, allowance);
         akrETH.approve(spender, allowance);
         ARB.approve(spender, allowance);
         kiss.approve(spender, allowance);
