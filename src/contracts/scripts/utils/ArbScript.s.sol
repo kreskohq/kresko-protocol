@@ -37,7 +37,7 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
 
     IKreskoAsset krETH = IKreskoAsset(krETHAddr);
     IKreskoAsset krBTC = IKreskoAsset(krBTCAddr);
-    // IKreskoAsset krSOL = IKreskoAsset(krSOLAddr);
+    IKreskoAsset krSOL = IKreskoAsset(krSOLAddr);
 
     IKreskoAssetAnchor akrETH = IKreskoAssetAnchor(akrETHAddr);
 

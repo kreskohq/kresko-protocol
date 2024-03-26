@@ -22,10 +22,9 @@ contract Task0004Test is Tested, Task0004 {
     using Help for *;
     using ShortAssert for *;
 
-    address internal constant krSOLAddr = 0x96084d2E3389B85f2Dc89E321Aaa3692Aed05eD2;
     address constant binance = 0xB38e8c17e38363aF6EbdCb3dAE12e0243582891D;
     address constant underlyingHolder = 0x4bb7f4c3d47C4b431cb0658F44287d52006fb506;
-    IKreskoAsset krSOL = IKreskoAsset(krSOLAddr);
+
     function setUp() public {
         currentForkId = vm.createSelectFork("arbitrum");
         console.log(currentForkId, "in setup");
