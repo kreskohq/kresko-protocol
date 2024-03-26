@@ -21,8 +21,6 @@ contract Task0004Test is Tested, Task0004 {
     using Help for *;
     using ShortAssert for *;
 
-    address internal constant KISSAddr = 0x6A1D6D2f4aF6915e6bBa8F2db46F442d18dB5C9b;
-    address internal constant krBTCAddr = 0x11EF4EcF3ff1c8dB291bc3259f3A4aAC6e4d2325;
     address internal constant krSOLAddr = 0x96084d2E3389B85f2Dc89E321Aaa3692Aed05eD2;
 
     function setUp() public {
@@ -35,8 +33,8 @@ contract Task0004Test is Tested, Task0004 {
         uint prevAvailabilityUSDC = vault.maxDeposit(USDCAddr);
         uint prevAvailabilityUSDCe = vault.maxDeposit(USDCeAddr);
 
-        assertEq(kresko.getAsset(KISSAddr).maxDebtSCDP, 25_000 ether);
-        assertEq(kresko.getAsset(KISSAddr).depositLimitSCDP, 100_000 ether);
+        assertEq(kresko.getAsset(kissAddr).maxDebtSCDP, 25_000 ether);
+        assertEq(kresko.getAsset(kissAddr).depositLimitSCDP, 100_000 ether);
         assertEq(kresko.getAsset(krETHAddr).maxDebtSCDP, 5 ether);
         assertEq(kresko.getAsset(krBTCAddr).maxDebtSCDP, 0.5 ether);
         assertEq(kresko.getAsset(krSOLAddr).maxDebtSCDP, 200 ether);
@@ -45,8 +43,8 @@ contract Task0004Test is Tested, Task0004 {
 
         payload0004();
 
-        assertEq(kresko.getAsset(KISSAddr).maxDebtSCDP, 60_000 ether);
-        assertEq(kresko.getAsset(KISSAddr).depositLimitSCDP, 200_000 ether);
+        assertEq(kresko.getAsset(kissAddr).maxDebtSCDP, 60_000 ether);
+        assertEq(kresko.getAsset(kissAddr).depositLimitSCDP, 200_000 ether);
         assertEq(kresko.getAsset(krETHAddr).maxDebtSCDP, 16.5 ether);
         assertEq(kresko.getAsset(krBTCAddr).maxDebtSCDP, 0.85 ether);
         assertEq(kresko.getAsset(krSOLAddr).maxDebtSCDP, 310 ether);
