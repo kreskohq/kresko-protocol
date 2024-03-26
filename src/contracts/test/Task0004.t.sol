@@ -36,6 +36,7 @@ contract Task0004Test is Tested, Task0004 {
         uint prevAvailabilityUSDCe = vault.maxDeposit(USDCeAddr);
 
         assertEq(kresko.getAsset(KISSAddr).maxDebtSCDP, 25_000 ether);
+        assertEq(kresko.getAsset(KISSAddr).depositLimitSCDP, 100_000 ether);
         assertEq(kresko.getAsset(krETHAddr).maxDebtSCDP, 5 ether);
         assertEq(kresko.getAsset(krBTCAddr).maxDebtSCDP, 0.5 ether);
         assertEq(kresko.getAsset(krSOLAddr).maxDebtSCDP, 200 ether);
@@ -45,6 +46,7 @@ contract Task0004Test is Tested, Task0004 {
         payload0004();
 
         assertEq(kresko.getAsset(KISSAddr).maxDebtSCDP, 60_000 ether);
+        assertEq(kresko.getAsset(KISSAddr).depositLimitSCDP, 200_000 ether);
         assertEq(kresko.getAsset(krETHAddr).maxDebtSCDP, 16.5 ether);
         assertEq(kresko.getAsset(krBTCAddr).maxDebtSCDP, 0.85 ether);
         assertEq(kresko.getAsset(krSOLAddr).maxDebtSCDP, 310 ether);
