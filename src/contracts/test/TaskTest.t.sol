@@ -32,7 +32,7 @@ contract TaskTest is Tested, Task {
         prank(safe);
         deal(safe, 10 ether);
 
-        vm.createSelectFork("arbitrum");
+        currentForkId = vm.createSelectFork("arbitrum", 194356247);
 
         assetAddr = payload0003();
         asset = kresko.getAsset(assetAddr);

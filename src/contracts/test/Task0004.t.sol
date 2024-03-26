@@ -45,8 +45,9 @@ contract Task0004Test is Tested, Task0004 {
         uint256 prevAvailabilityUSDC = vault.maxDeposit(USDCAddr);
         uint256 prevAvailabilityUSDCe = vault.maxDeposit(USDCeAddr);
 
-        kresko.getAsset(kissAddr).maxDebtSCDP.eq(25_000 ether, "kiss max debt before");
-        kresko.getAsset(kissAddr).depositLimitSCDP.eq(100_000 ether, "kiss deposit limit before");
+        Asset memory kissAsset = kresko.getAsset(kissAddr);
+        kissAsset.maxDebtSCDP.eq(25_000 ether, "kiss max debt before");
+        kissAsset.depositLimitSCDP.eq(100_000 ether, "kiss deposit limit before");
         kresko.getAsset(krETHAddr).maxDebtSCDP.eq(5 ether, "krETH max debt before");
         kresko.getAsset(krBTCAddr).maxDebtSCDP.eq(0.5 ether, "krBTC max debt before");
         kresko.getAsset(krSOLAddr).maxDebtSCDP.eq(200 ether, "krSOL max debt before");
@@ -55,8 +56,9 @@ contract Task0004Test is Tested, Task0004 {
 
         payload0004();
 
-        kresko.getAsset(kissAddr).maxDebtSCDP.eq(60_000 ether, "kiss max debt after");
-        kresko.getAsset(kissAddr).depositLimitSCDP.eq(200_000 ether, "kiss deposit limit after");
+        kissAsset = kresko.getAsset(kissAddr);
+        kissAsset.maxDebtSCDP.eq(60_000 ether, "kiss max debt after");
+        kissAsset.depositLimitSCDP.eq(200_000 ether, "kiss deposit limit after");
         kresko.getAsset(krETHAddr).maxDebtSCDP.eq(16.5 ether, "krETH max debt after");
         kresko.getAsset(krBTCAddr).maxDebtSCDP.eq(0.85 ether, "krBTC max debt after");
         kresko.getAsset(krSOLAddr).maxDebtSCDP.eq(310 ether, "krSOL max debt after");
