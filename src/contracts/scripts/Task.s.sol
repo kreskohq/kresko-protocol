@@ -12,6 +12,7 @@ import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {Payload0001} from "scripts/payloads/Payload0001.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
+import {Payload0003} from "scripts/payloads/Payload0003.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
@@ -24,36 +25,24 @@ contract Task is ArbScript {
     using LibJSON for JSON.AssetJSON;
 
     FeedConfiguration NO_NEW_FEEDS;
-
+    uint256 currentForkId;
     modifier jsonOut(string memory id) {
         LibDeploy.initOutputJSON(id);
         _;
         LibDeploy.writeOutputJSON();
     }
 
-    function beforeRun() public returns (JSON.Config memory) {
-        fetchPythAndUpdate();
-        Deployed.cache("WBTC", WBTCAddr);
-        Deployed.cache("USDC", USDCAddr);
-        Deployed.cache("USDCe", USDCeAddr);
-        return JSON.getConfig("arbitrum", "arbitrum");
-    }
-
-    function payload0001() external fork("arbitrum") {
-        JSON.Config memory json = beforeRun();
-
+    function payload0003() public returns (address krSOLAddr) {
+        if (currentForkId == 0) {
+            currentForkId = vm.createSelectFork("arbitrum");
+        }
+        JSON.Config memory json = JSON.getConfig("arbitrum", "arbitrum");
         broadcastWith(safe);
-        (, LibDeploy.DeployedKrAsset memory deployInfo) = addKrAsset(json, "krBTC");
 
-        executeParams(deployInfo.addr);
-        addExtAsset(json, "ARB");
-    }
-
-    function executeParams(address krBTCAddr) public jsonOut("Payload0001") {
-        vault.setMaxDeposits(USDCAddr, 100_000e6);
-        vault.setMaxDeposits(USDCeAddr, 100_000e6);
-        address payload = deployPayload(type(Payload0001).creationCode, abi.encode(krBTCAddr), 1);
-        IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(payload, abi.encodeCall(Payload0001.executePayload, ()));
+        (, LibDeploy.DeployedKrAsset memory deployInfo) = addKrAsset(json, "krSOL");
+        address payload = deployPayload(type(Payload0003).creationCode, abi.encode(deployInfo.addr), 1);
+        IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(payload, abi.encodeCall(Payload0003.executePayload, ()));
+        return deployInfo.addr;
     }
 
     function addKrAsset(
