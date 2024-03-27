@@ -6,7 +6,7 @@ import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {scdp} from "scdp/SState.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
-import {deployPayload} from "scripts/locals/Payloads.sol";
+import {deployPayload} from "scripts/payloads/Payloads.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
