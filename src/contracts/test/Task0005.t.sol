@@ -44,20 +44,22 @@ contract Task0005Test is Tested, Task0005 {
     function test_executePayload0005() public {
         Asset memory kissAsset = kresko.getAsset(kissAddr);
 
-        kresko.getAsset(krETHAddr).maxDebtSCDP.eq(16.5 ether, "krETH max debt before");
         kissAsset.maxDebtMinter.eq(0, "kiss max debt minter before");
         kissAsset.isMinterMintable.eq(false, "kiss is minter mintable before");
         kissAsset.openFee.eq(0, "kiss open fee before");
         kissAsset.closeFee.eq(0, "kiss close fee before");
 
+        kresko.getAsset(krETHAddr).maxDebtMinter.eq(20 ether, "krETH max debt before");
+
         payload0005();
 
         kissAsset = kresko.getAsset(kissAddr);
-        kissAsset.maxDebtMinter.eq(40000 ether, "kiss max debt minter after");
+        kissAsset.maxDebtMinter.eq(140000 ether, "kiss max debt minter after");
         kissAsset.isMinterMintable.eq(true, "kiss is minter mintable after");
         kissAsset.openFee.eq(5, "kiss open fee after");
         kissAsset.closeFee.eq(50, "kiss close fee after");
-        kresko.getAsset(krETHAddr).maxDebtSCDP.eq(40 ether, "krETH max debt after");
+
+        kresko.getAsset(krETHAddr).maxDebtMinter.eq(40 ether, "krETH max debt after");
     }
 
     function test_ICDP_mint_KISS_and_fees() public {
@@ -105,24 +107,23 @@ contract Task0005Test is Tested, Task0005 {
         collateralAfterBurn.closeTo(collateralAfterMint - feeValue, 100, "total-collateral-value-after-burn");
     }
 
-    function test_SCDP_SWAPS_krETH() public {
-        uint256 amount = 42000 ether;
-        getKISSM(binance, amount);
-        kresko.depositSCDP(binance, address(kiss), amount);
+    function test_ICDP_mint_krETH() public {
+        bytes[] memory updateData;
+        prank(binance);
 
-        uint256 swapAmountKISS = 70000 ether;
-        getKISSM(binance, swapAmountKISS);
-        vm.expectRevert();
-        kresko.swapSCDP(
-            SwapArgs({
-                receiver: binance,
-                assetIn: kissAddr,
-                assetOut: krETHAddr,
-                amountIn: swapAmountKISS,
-                amountOutMin: 0,
-                prices: pythUpdate
-            })
-        );
+        uint usdcAmount = 20000e6;
+        uint krEthAmount = 2e18;
+
+        kresko.depositCollateral(binance, USDCAddr, usdcAmount);
+        vm.expectRevert( // Exceeds max minting limit
+                abi.encodeWithSelector(
+                    Errors.EXCEEDS_ASSET_MINTING_LIMIT.selector,
+                    Errors.ID({symbol: "krETH", addr: krETHAddr}),
+                    krETH.totalSupply() + krEthAmount,
+                    kresko.getAsset(krETHAddr).maxDebtMinter
+                )
+            );
+        kresko.mintKreskoAsset(MintArgs(binance, address(krETHAddr), krEthAmount, address(this)), updateData);
 
         payload0005();
 
@@ -135,22 +136,9 @@ contract Task0005Test is Tested, Task0005 {
         fetchPythAndUpdate();
         syncTimeLocal();
 
-        krETH.balanceOf(binance).eq(0, "krETH balance before swap");
+        kresko.depositCollateral(binance, USDCAddr, usdcAmount);
+        kresko.mintKreskoAsset(MintArgs(binance, address(krETHAddr), krEthAmount, address(this)), updateData);
 
-        getKISSM(binance, swapAmountKISS + amount);
-        kresko.depositSCDP(binance, address(kiss), amount);
-        // Swap KISS for krETH
-        kresko.swapSCDP(
-            SwapArgs({
-                receiver: binance,
-                assetIn: kissAddr,
-                assetOut: krETHAddr,
-                amountIn: swapAmountKISS,
-                amountOutMin: 0,
-                prices: pythUpdate
-            })
-        );
-
-        krETH.balanceOf(binance).gt(0, "krETH balance after swap");
+        krETH.balanceOf(address(this)).eq(krEthAmount, "krETH balance after mint");
     }
 }

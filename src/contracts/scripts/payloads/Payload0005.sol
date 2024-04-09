@@ -14,13 +14,14 @@ contract Payload0005 {
         require(cs().assets[KISSAddr].closeFee == 0, "incorrect existing KISS maxDebtSCDP");
         require(cs().assets[KISSAddr].isMinterMintable == false, "incorrect existing KISS isMinterMintable");
         require(cs().assets[KISSAddr].maxDebtMinter == 0, "incorrect existing KISS maxDebtMinter");
-        require(cs().assets[krETHAddr].maxDebtSCDP == 16.5 ether, "incorrect existing krETH maxDebtSCDP");
+
+        require(cs().assets[krETHAddr].maxDebtMinter == 20 ether, "incorrect existing krETH maxDebtMinter");
 
         cs().assets[KISSAddr].openFee = 5;
         cs().assets[KISSAddr].closeFee = 50;
         cs().assets[KISSAddr].isMinterMintable = true;
-        cs().assets[KISSAddr].maxDebtMinter = 40000 ether;
+        cs().assets[KISSAddr].maxDebtMinter = 140000 ether;
 
-        cs().assets[krETHAddr].maxDebtSCDP = 40 ether;
+        cs().assets[krETHAddr].maxDebtMinter = 40 ether;
     }
 }
