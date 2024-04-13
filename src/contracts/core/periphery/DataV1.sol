@@ -20,12 +20,15 @@ import {IAssetStateFacet} from "common/interfaces/IAssetStateFacet.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
 import {IBatchFacet} from "common/interfaces/IBatchFacet.sol";
+import {IKresko} from "periphery/IKresko.sol";
+import {Arrays} from "libs/Arrays.sol";
 
 // solhint-disable avoid-low-level-calls, var-name-mixedcase
 
 contract DataV1 is IDataV1 {
     using WadRay for uint256;
     using PercentageMath for uint256;
+    using Arrays for address[];
 
     address public immutable VAULT;
     IViewDataFacet public immutable DIAMOND;
@@ -47,7 +50,7 @@ contract DataV1 is IDataV1 {
         address _questForKresk
     ) {
         VAULT = _vault;
-        DIAMOND = IViewDataFacet(address(_diamond));
+        DIAMOND = IViewDataFacet(_diamond);
         KISS = _KISS;
         KRESKIAN_COLLECTION = _kreskian;
         QUEST_FOR_KRESK_COLLECTION = _questForKresk;
@@ -134,7 +137,7 @@ contract DataV1 is IDataV1 {
 
     function getAccount(PythView calldata _prices, address _account) external view returns (DAccount memory result) {
         result.protocol = DIAMOND.viewAccountData(_prices, _account);
-
+        result.protocol.minter.debts = kissFix(_account, _prices);
         result.vault.addr = VAULT;
         result.vault.name = IERC20(VAULT).name();
         result.vault.amount = IERC20(VAULT).balanceOf(_account);
@@ -146,6 +149,50 @@ contract DataV1 is IDataV1 {
         result.collections = getCollectionData(_account);
         (result.phase, result.eligible) = DIAMOND.viewAccountGatingPhase(_account);
         result.chainId = block.chainid;
+    }
+
+    function kissFix(address _account, PythView calldata _prices) internal view returns (View.Position[] memory result) {
+        IKresko kr = IKresko(address(DIAMOND));
+
+        View.AssetView[] memory assets = DIAMOND.viewProtocolData(_prices).assets;
+        address[] memory mintedAssets = kr.getAccountMintedAssets(_account);
+
+        View.Position[] memory found = new View.Position[](assets.length);
+        uint256 count;
+        for (uint256 i; i < assets.length; i++) {
+            View.AssetView memory asset = assets[i];
+            if (asset.config.isMinterMintable) {
+                found[i] = _getMinterPos(_account, asset, kr, mintedAssets);
+                ++count;
+            }
+        }
+
+        result = new View.Position[](count);
+        for (uint256 j; j < found.length; j++) {
+            if (found[j].addr != address(0)) result[--count] = found[j];
+        }
+    }
+
+    function _getMinterPos(
+        address _account,
+        View.AssetView memory _asset,
+        IKresko _kr,
+        address[] memory _mintedAssets
+    ) internal view returns (View.Position memory) {
+        uint256 debtAmount = _kr.getAccountDebtAmount(_account, _asset.addr);
+        uint256 val = debtAmount.wadMul(_asset.price);
+        return
+            View.Position({
+                addr: _asset.addr,
+                symbol: _asset.symbol,
+                amount: debtAmount,
+                amountAdj: 0,
+                val: val,
+                valAdj: val.percentMul(_asset.config.kFactor),
+                index: _mintedAssets.findIndex(_asset.addr),
+                price: _asset.price,
+                config: _asset.config
+            });
     }
 
     function getBalances(
