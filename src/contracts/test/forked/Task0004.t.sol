@@ -6,15 +6,9 @@ import {Tested} from "kresko-lib/utils/Tested.t.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
 import {Task0004} from "scripts/Task0004.s.sol";
-import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
-import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
-import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
-import {BurnArgs, MintArgs, SwapArgs} from "common/Args.sol";
-import {JSON} from "scripts/deploy/libs/LibJSON.s.sol";
-import {toWad} from "common/funcs/Math.sol";
-import {Vault} from "vault/Vault.sol";
+import {SwapArgs} from "common/Args.sol";
 import {Errors} from "common/Errors.sol";
-import {console} from "forge-std/console.sol";
+
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
 contract Task0004Test is Tested, Task0004 {
@@ -27,7 +21,6 @@ contract Task0004Test is Tested, Task0004 {
 
     function setUp() public {
         currentForkId = vm.createSelectFork("arbitrum");
-        console.log(currentForkId, "in setup");
 
         prank(safe);
         manager.whitelist(binance, true);
@@ -123,11 +116,11 @@ contract Task0004Test is Tested, Task0004 {
             )
         );
         kresko.depositSCDP(binance, address(kiss), amount);
-        console.log(currentForkId, "before");
+        currentForkId.clg("before");
 
         payload0004();
 
-        console.log(currentForkId, "after");
+        currentForkId.clg("after");
         prank(safe);
         manager.whitelist(binance, true);
 
@@ -224,7 +217,7 @@ contract Task0004Test is Tested, Task0004 {
             })
         );
         // Swap krETH for KISS
-        uint balBefore = kiss.balanceOf(binance);
+        uint256 balBefore = kiss.balanceOf(binance);
         kresko.swapSCDP(
             SwapArgs({
                 receiver: binance,

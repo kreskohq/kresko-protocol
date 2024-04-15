@@ -5,10 +5,8 @@ import {ArbScript} from "scripts/utils/ArbScript.s.sol";
 import {Tested} from "kresko-lib/utils/Tested.t.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
-import {toWad} from "common/funcs/Math.sol";
 import {IKrMulticall, KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
-import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
@@ -20,22 +18,27 @@ contract MulticallUpdate is Tested, ArbScript {
 
     function setUp() public {
         ArbScript.initialize();
-        fetchPythAndUpdate();
         sender = vm.createWallet("sender").addr;
+        deal(sender, 100 ether);
+        deal(USDCAddr, sender, 100e6);
 
         prank(sender);
-        approvals();
         multicall = new KrMulticall(kreskoAddr, kissAddr, address(swap), wethAddr, address(pythEP), safe);
+
+        USDC.approve(address(multicall), type(uint256).max);
+        krETH.approve(address(multicall), type(uint256).max);
+        approvals();
+
         prank(safe);
+        fetchPythAndUpdate();
         kresko.grantRole(Role.MANAGER, address(multicall));
     }
 
     function testSynthwrapsNative() public pranked(sender) {
-        IKreskoAsset.Wrapping memory info = krETH.wrappingInfo();
         uint256 amount = 1 ether;
 
-        IKrMulticall.Operation[] memory opsShort = new IKrMulticall.Operation[](2);
-        opsShort[0] = IKrMulticall.Operation({
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
+        ops[0] = IKrMulticall.Operation({
             action: IKrMulticall.Action.SynthwrapNative,
             data: IKrMulticall.Data({
                 tokenIn: wethAddr,
@@ -49,7 +52,7 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        opsShort[1] = IKrMulticall.Operation({
+        ops[1] = IKrMulticall.Operation({
             action: IKrMulticall.Action.SynthUnwrapNative,
             data: IKrMulticall.Data({
                 tokenIn: krETHAddr,
@@ -57,31 +60,34 @@ contract MulticallUpdate is Tested, ArbScript {
                 tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: wethAddr,
                 amountOut: 0,
-                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSenderNative,
                 amountOutMin: 0,
                 path: "",
                 index: 0
             })
         });
-        IKrMulticall.Result[] memory results = multicall.execute(opsShort, new bytes[](0));
-        results[0].amountIn.clg("SynthwrapNative-1");
-        results[0].amountOut.clg("SynthwrapNative-2");
-        results[1].amountIn.clg("SynthUnwrapNative-3");
-        results[1].amountOut.clg("SynthUnwrapNative-4");
+        exec(amount, ops, new bytes[](0));
+        sender.balance.lt(100 ether, "krETH-bal-1");
+        sender.balance.gt(99.9 ether, "krETH-bal-2");
     }
 
-    function testSynthwrapsNative() public pranked(sender) {
-        IKreskoAsset.Wrapping memory info = krETH.wrappingInfo();
+    function testSynthwrapsNative2() public pranked(sender) {
         uint256 amount = 1 ether;
 
-        IKrMulticall.Operation[] memory opsShort = new IKrMulticall.Operation[](2);
-        opsShort[0] = IKrMulticall.Operation({
-            action: IKrMulticall.Action.SynthwrapNative,
+        (bool s, ) = krETHAddr.call{value: amount}("");
+        s.eq(true, "wrap-in");
+
+        amount = krETH.balanceOf(sender);
+
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
+
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SynthUnwrapNative,
             data: IKrMulticall.Data({
-                tokenIn: wethAddr,
+                tokenIn: krETHAddr,
                 amountIn: uint96(amount),
-                tokensInMode: IKrMulticall.TokensInMode.Native,
-                tokenOut: krETHAddr,
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
+                tokenOut: wethAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
@@ -89,13 +95,13 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        opsShort[1] = IKrMulticall.Operation({
-            action: IKrMulticall.Action.SynthUnwrapNative,
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SynthwrapNative,
             data: IKrMulticall.Data({
-                tokenIn: krETHAddr,
+                tokenIn: wethAddr,
                 amountIn: 0,
-                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
-                tokenOut: wethAddr,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalanceNative,
+                tokenOut: krETHAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
@@ -103,22 +109,138 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        IKrMulticall.Result[] memory results = multicall.execute(opsShort, new bytes[](0));
-        results[0].amountIn.clg("SynthwrapNative-1");
-        results[0].amountOut.clg("SynthwrapNative-2");
-        results[1].amountIn.clg("SynthUnwrapNative-3");
-        results[1].amountOut.clg("SynthUnwrapNative-4");
+        exec(0, ops, new bytes[](0));
+        krETH.balanceOf(sender).eq(994005248750000000, "krETH-bal");
     }
 
-    function test_slot1() public {
+    function testAMMToWNativeToNative() public pranked(sender) {
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.AMMExactInput,
+            data: IKrMulticall.Data({
+                tokenIn: USDCAddr,
+                amountIn: uint96(100e6),
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
+                tokenOut: wethAddr,
+                amountOut: 0,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                path: abi.encodePacked(USDCAddr, uint24(500), wethAddr),
+                index: 0
+            })
+        });
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SynthwrapNative,
+            data: IKrMulticall.Data({
+                tokenIn: wethAddr,
+                amountIn: 0,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalanceUnwrapNative,
+                tokenOut: krETHAddr,
+                amountOut: 0,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+        exec(0, ops, new bytes[](0));
+        USDC.balanceOf(sender).eq(0, "USDC-bal-1");
+        krETH.balanceOf(sender).gt(0, "krETH-bal-1");
+    }
+
+    function testNativeToWnative() public pranked(sender) {
         uint256 amount = 1 ether;
-        ValQueryRes memory res = getValuePrice(krETHAddr, amount);
-        res.value.clg("Value");
-        res.price.clg("Price");
-        toWad(amount, 18).mulWad(res.price).clg("Calculated");
+
+        (bool s, ) = krETHAddr.call{value: amount}("");
+        s.eq(true, "wrap-in");
+
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SynthUnwrapNative,
+            data: IKrMulticall.Data({
+                tokenIn: krETHAddr,
+                amountIn: uint96(krETH.balanceOf(sender)),
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
+                tokenOut: wethAddr,
+                amountOut: 0,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SynthWrap,
+            data: IKrMulticall.Data({
+                tokenIn: wethAddr,
+                amountIn: 0,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalanceWrapNative,
+                tokenOut: krETHAddr,
+                amountOut: 0,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+        exec(0, ops, new bytes[](0));
+        krETH.balanceOf(sender).gt(0, "krETH-bal-1");
+        weth.balanceOf(sender).eq(0, "WETH-bal-1");
     }
 
-    function test_slot2() public pranked(sender) {
-        peekAsset(krETHAddr, true);
+    function testNativeToWnativeToAMM() public pranked(sender) {
+        uint256 amount = 1 ether;
+
+        (bool s, ) = krETHAddr.call{value: amount}("");
+        s.eq(true, "wrap-in");
+
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SynthUnwrapNative,
+            data: IKrMulticall.Data({
+                tokenIn: krETHAddr,
+                amountIn: uint96(krETH.balanceOf(sender)),
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
+                tokenOut: wethAddr,
+                amountOut: 0,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.AMMExactInput,
+            data: IKrMulticall.Data({
+                tokenIn: wethAddr,
+                amountIn: 0,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalanceWrapNative,
+                tokenOut: USDCAddr,
+                amountOut: 0,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
+                amountOutMin: 0,
+                path: abi.encodePacked(wethAddr, uint24(500), USDCAddr),
+                index: 0
+            })
+        });
+        exec(0, ops, new bytes[](0));
+        krETH.balanceOf(sender).eq(0, "krETH-bal-1");
+        USDC.balanceOf(sender).gt(0, "USDC-bal-1");
+    }
+
+    function exec(
+        uint256 val,
+        IKrMulticall.Operation[] memory ops,
+        bytes[] memory _updateData
+    ) internal returns (IKrMulticall.Result[] memory results) {
+        results = multicall.execute{value: val}(ops, _updateData);
+        for (uint256 i = 0; i < results.length; i++) {
+            Log.hr();
+            uint8(ops[i].action).clg("action");
+            results[i].tokenIn.clg("token-in");
+            results[i].amountIn.clg("amount-in");
+            results[i].tokenOut.clg("token-out");
+            results[i].amountOut.clg("amount-out");
+        }
     }
 }

@@ -134,8 +134,9 @@ interface IKrMulticall {
         PullFromSender,
         UseContractBalance,
         UseContractBalanceExactAmountIn,
-        UseContractBalanceUnwrapToNative,
-        UseContractBalanceWrapToNative
+        UseContractBalanceUnwrapNative,
+        UseContractBalanceWrapNative,
+        UseContractBalanceNative
     }
 
     /**

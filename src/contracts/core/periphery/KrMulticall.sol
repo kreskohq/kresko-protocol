@@ -151,8 +151,11 @@ contract KrMulticall is IKrMulticall, Ownable {
         if (_op.data.tokensInMode == TokensInMode.UseContractBalance) {
             return token.balanceOf(address(this));
         }
+        if (_op.data.tokensInMode == TokensInMode.UseContractBalanceNative) {
+            return address(this).balance;
+        }
 
-        if (_op.data.tokensInMode == TokensInMode.UseContractBalanceUnwrapToNative) {
+        if (_op.data.tokensInMode == TokensInMode.UseContractBalanceUnwrapNative) {
             if (_op.data.tokenIn != address(wNative)) {
                 revert INVALID_NATIVE_TOKEN_IN(_op.action, _op.data.tokenIn, wNative.symbol());
             }
@@ -160,7 +163,7 @@ contract KrMulticall is IKrMulticall, Ownable {
             return address(this).balance;
         }
 
-        if (_op.data.tokensInMode == TokensInMode.UseContractBalanceWrapToNative) {
+        if (_op.data.tokensInMode == TokensInMode.UseContractBalanceWrapNative) {
             if (_op.data.tokenIn != address(wNative)) {
                 revert INVALID_NATIVE_TOKEN_IN(_op.action, _op.data.tokenIn, wNative.symbol());
             }
@@ -177,7 +180,7 @@ contract KrMulticall is IKrMulticall, Ownable {
     function _handleTokensOut(Operation memory _op, uint256 balance) internal {
         if (_op.data.tokensOutMode == TokensOutMode.ReturnToSenderNative) {
             wNative.withdraw(balance);
-            payable(msg.sender).transfer(balance);
+            payable(msg.sender).transfer(address(this).balance);
             return;
         }
 
