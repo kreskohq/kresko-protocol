@@ -30,6 +30,7 @@ contract KrMulticall is IKrMulticall, Ownable {
     IPyth public pythEp;
     ISwapRouter public v3Router;
     IWETH9 public wNative;
+    event MulticallExecuted(Operation[] ops, Result[] results);
 
     constructor(
         address _kresko,
@@ -116,9 +117,15 @@ contract KrMulticall is IKrMulticall, Ownable {
                         results[i].amountOut = balanceAfter - results[i].amountOut;
                     }
                 }
+
+                if (i > 0 && results[i - 1].amountOut == 0) {
+                    results[i - 1].amountOut = results[i].amountIn;
+                }
             }
 
             _handleFinished(ops);
+
+            emit MulticallExecuted(ops, results);
         }
     }
 
