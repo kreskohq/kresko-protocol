@@ -27,14 +27,14 @@ contract Task0006Test is Tested, Task0006 {
         IGatingManager currentManager = IGatingManager(kresko.getGatingManager());
         currentManager.phase().eq(1);
         currentManager.isEligible(userNotElegible).eq(false);
+        currentManager.isEligible(acc1).eq(true);
         currentManager.isEligible(acc3).eq(true);
-
         prank(safe);
         currentManager.setPhase(2);
 
         currentManager.isEligible(userNotElegible).eq(false);
+        currentManager.isEligible(acc1).eq(true);
         currentManager.isEligible(acc3).eq(true);
-
         payload0006();
 
         _grantRoleAndMintToUser();
@@ -43,10 +43,12 @@ contract Task0006Test is Tested, Task0006 {
         IGatingManager newManager = IGatingManager(kresko.getGatingManager());
         newManager.phase().eq(1);
         newManager.isEligible(userNotElegible).eq(false);
+        newManager.isEligible(acc1).eq(true);
         newManager.isEligible(acc3).eq(true);
 
         newManager.setPhase(2);
         newManager.isEligible(userNotElegible).eq(true);
+        newManager.isEligible(acc1).eq(true);
         newManager.isEligible(acc3).eq(true);
     }
 
