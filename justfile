@@ -202,6 +202,10 @@ set positional-arguments
 	forge script $1 --sig "$2()" --ffi -vvv && \
 	echo "-> $1.$2() ran successfully"
 
+@fbcast script func: 
+	forge script $1 --sig "$2()" --ffi --broadcast --skip-simulation -vvv && \
+	echo "-> $1.$2() ran successfully"
+
 @ftest func: 
 	forge test --mt ".*$1.*" --ffi -vvv && \
 	echo "-> $1.$2() ran successfully"
