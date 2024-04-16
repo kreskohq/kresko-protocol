@@ -172,7 +172,7 @@ verify-proxy-contract:
 	--constructor-args "0x"
 
 verify-contract:
-	forge verify-contract 0xFFc08195d17c16a0585f2DA72210e1059f60C306 \
+	forge verify-contract 0xC35A7648B434f0A161c12BD144866bdf93c4a4FC \
 	KrMulticall \
 	--chain arbitrum \
 	--watch \

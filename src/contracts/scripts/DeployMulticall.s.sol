@@ -13,7 +13,7 @@ contract DeployMulticall is ArbScript {
     using Help for *;
 
     address sender;
-    address newMulticall = 0xFFc08195d17c16a0585f2DA72210e1059f60C306;
+    address newMulticall = 0xC35A7648B434f0A161c12BD144866bdf93c4a4FC;
 
     function deploy() public {
         ArbScript.initialize();

@@ -30,7 +30,7 @@ contract KrMulticall is IKrMulticall, Ownable {
     IPyth public pythEp;
     ISwapRouter public v3Router;
     IWETH9 public wNative;
-    event MulticallExecuted(Operation[] ops, Result[] results);
+    event MulticallExecuted(address _sender, Operation[] ops, Result[] results);
 
     constructor(
         address _kresko,
@@ -49,7 +49,7 @@ contract KrMulticall is IKrMulticall, Ownable {
 
     function rescue(address _token, uint256 _amount, address _receiver) external onlyOwner {
         if (_token == address(0)) payable(_receiver).transfer(_amount);
-        IERC20(_token).transfer(_receiver, _amount);
+        else IERC20(_token).transfer(_receiver, _amount);
     }
 
     function execute(
@@ -125,7 +125,7 @@ contract KrMulticall is IKrMulticall, Ownable {
 
             _handleFinished(ops);
 
-            emit MulticallExecuted(ops, results);
+            emit MulticallExecuted(msg.sender, ops, results);
         }
     }
 
