@@ -21,12 +21,16 @@ contract MulticallUpdate is Tested, ArbScript {
         sender = vm.createWallet("sender").addr;
         deal(sender, 100 ether);
         deal(USDCAddr, sender, 100e6);
+        deal(WBTCAddr, sender, 1e8);
 
         prank(sender);
-        multicall = new KrMulticall(kreskoAddr, kissAddr, address(swap), wethAddr, address(pythEP), safe);
+        multicall = KrMulticall(payable(0xFFc08195d17c16a0585f2DA72210e1059f60C306));
 
         USDC.approve(address(multicall), type(uint256).max);
         krETH.approve(address(multicall), type(uint256).max);
+        WBTC.approve(krBTCAddr, type(uint256).max);
+        krBTC.approve(address(multicall), type(uint256).max);
+        WBTC.approve(address(multicall), type(uint256).max);
         approvals();
 
         prank(safe);
@@ -111,6 +115,84 @@ contract MulticallUpdate is Tested, ArbScript {
         });
         exec(0, ops, new bytes[](0));
         krETH.balanceOf(sender).eq(994005248750000000, "krETH-bal");
+    }
+
+    function testSynthwraps() public pranked(sender) {
+        uint256 amount = 1e8;
+
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SynthWrap,
+            data: IKrMulticall.Data({
+                tokenIn: WBTCAddr,
+                amountIn: uint96(amount),
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
+                tokenOut: krBTCAddr,
+                amountOut: 0,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SynthUnwrap,
+            data: IKrMulticall.Data({
+                tokenIn: krBTCAddr,
+                amountIn: 0,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
+                tokenOut: WBTCAddr,
+                amountOut: 0,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+        exec(amount, ops, new bytes[](0));
+        krBTC.balanceOf(sender).eq(0, "krBTC-bal-1");
+        WBTC.balanceOf(sender).gt(0.98e8, "krETH-bal-2");
+        WBTC.balanceOf(sender).lt(1e8, "krETH-bal-2");
+    }
+
+    function testSynthunwraps() public pranked(sender) {
+        krBTC.wrap(sender, 1e8);
+
+        uint256 amount = krBTC.balanceOf(sender);
+
+        IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
+
+        ops[0] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SynthUnwrap,
+            data: IKrMulticall.Data({
+                tokenIn: krBTCAddr,
+                amountIn: uint96(amount),
+                tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
+                tokenOut: WBTCAddr,
+                amountOut: 0,
+                tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+        ops[1] = IKrMulticall.Operation({
+            action: IKrMulticall.Action.SynthWrap,
+            data: IKrMulticall.Data({
+                tokenIn: WBTCAddr,
+                amountIn: 0,
+                tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
+                tokenOut: krBTCAddr,
+                amountOut: 0,
+                tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
+                amountOutMin: 0,
+                path: "",
+                index: 0
+            })
+        });
+        exec(0, ops, new bytes[](0));
+        krBTC.balanceOf(sender).gt(0, "krBTC-bal-1");
+        WBTC.balanceOf(sender).eq(0, "WBTC-bal-1");
     }
 
     function testAMMToWNativeToNative() public pranked(sender) {
