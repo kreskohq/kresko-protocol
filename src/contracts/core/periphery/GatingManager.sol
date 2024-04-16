@@ -62,7 +62,7 @@ contract GatingManager is IGatingManager, Ownable {
         }
 
         uint256[] memory qfkBals = questForKresk.balanceOfBatch(_toArray(_account), _qfkNFTs);
-        bool validPhaseTwo = hasKreskian && qfkBals[0] != 0;
+        bool validPhaseTwo = qfkBals[0] != 0;
 
         if (currentPhase == 2) {
             return validPhaseTwo || whitelisted[_account];
@@ -90,7 +90,7 @@ contract GatingManager is IGatingManager, Ownable {
 
         uint256[] memory qfkBals = questForKresk.balanceOfBatch(_toArray(_account), _qfkNFTs);
 
-        bool validPhaseTwo = hasKreskian && qfkBals[0] != 0;
+        bool validPhaseTwo = qfkBals[0] != 0;
 
         if (currentPhase == 2) {
             if (!validPhaseTwo && !whitelisted[_account]) revert Errors.MISSING_PHASE_2_NFT();
