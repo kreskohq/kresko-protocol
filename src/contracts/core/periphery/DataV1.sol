@@ -15,11 +15,9 @@ import {WadRay} from "libs/WadRay.sol";
 import {IViewDataFacet} from "periphery/interfaces/IViewDataFacet.sol";
 import {PythView} from "vendor/pyth/PythScript.sol";
 import {ISwapRouter} from "periphery/IKrMulticall.sol";
-import {ISCDPSwapFacet} from "scdp/interfaces/ISCDPSwapFacet.sol";
 import {IAssetStateFacet} from "common/interfaces/IAssetStateFacet.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
-import {IBatchFacet} from "common/interfaces/IBatchFacet.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {Arrays} from "libs/Arrays.sol";
 
@@ -84,6 +82,36 @@ contract DataV1 is IDataV1 {
         result.protocol = DIAMOND.viewProtocolData(_prices);
         result.vault = getVault();
         result.collections = getCollectionData(address(1));
+        result.wraps = getWraps(result);
+    }
+
+    function getWraps(DGlobal memory _globals) internal view returns (DWrap[] memory result) {
+        uint256 count;
+        for (uint256 i; i < _globals.protocol.assets.length; i++) {
+            View.AssetView memory asset = _globals.protocol.assets[i];
+            if (asset.config.kFactor > 0 && asset.synthwrap.underlying != address(0)) ++count;
+        }
+        result = new DWrap[](count);
+        count = 0;
+        for (uint256 i; i < _globals.protocol.assets.length; i++) {
+            View.AssetView memory asset = _globals.protocol.assets[i];
+            if (asset.config.kFactor > 0 && asset.synthwrap.underlying != address(0)) {
+                uint256 nativeAmount = asset.synthwrap.nativeUnderlyingEnabled ? asset.synthwrap.underlying.balance : 0;
+                uint256 amount = IERC20(asset.synthwrap.underlying).balanceOf(asset.addr);
+                result[count] = DWrap({
+                    addr: asset.addr,
+                    underlying: asset.synthwrap.underlying,
+                    symbol: asset.symbol,
+                    price: asset.price,
+                    decimals: asset.config.decimals,
+                    val: toWad(amount, asset.synthwrap.underlyingDecimals).wadMul(asset.price),
+                    amount: amount,
+                    nativeAmount: nativeAmount,
+                    nativeVal: nativeAmount.wadMul(asset.price)
+                });
+                ++count;
+            }
+        }
     }
 
     function getExternalTokens(

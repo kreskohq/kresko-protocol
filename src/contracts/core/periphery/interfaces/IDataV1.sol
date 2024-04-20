@@ -63,6 +63,7 @@ interface IDataV1 {
         DVault vault;
         DCollection[] collections;
         uint256 chainId;
+        DWrap[] wraps;
     }
 
     struct DVTokenBalance {
@@ -86,6 +87,18 @@ interface IDataV1 {
         bool eligible;
         uint8 phase;
         uint256 chainId;
+    }
+
+    struct DWrap {
+        address addr;
+        address underlying;
+        string symbol;
+        uint256 price;
+        uint8 decimals;
+        uint256 amount;
+        uint256 nativeAmount;
+        uint256 val;
+        uint256 nativeVal;
     }
 
     function getTradeFees(
