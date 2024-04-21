@@ -88,6 +88,18 @@ interface IDataV1 {
         uint256 chainId;
     }
 
+    struct DWrap {
+        address addr;
+        address underlying;
+        string symbol;
+        uint256 price;
+        uint8 decimals;
+        uint256 amount;
+        uint256 nativeAmount;
+        uint256 val;
+        uint256 nativeVal;
+    }
+
     function getTradeFees(
         address _assetIn,
         address _assetOut
@@ -95,7 +107,7 @@ interface IDataV1 {
 
     function previewWithdraw(PreviewWithdrawArgs calldata args) external payable returns (uint256 withdrawAmount, uint256 fee);
 
-    function getGlobals(PythView calldata prices) external view returns (DGlobal memory);
+    function getGlobals(PythView calldata prices) external view returns (DGlobal memory, DWrap[] memory wraps);
 
     function getExternalTokens(
         ExternalTokenArgs[] memory tokens,

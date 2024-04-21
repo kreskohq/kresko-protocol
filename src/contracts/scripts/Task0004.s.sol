@@ -13,6 +13,7 @@ import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {Payload0004} from "scripts/payloads/Payload0004.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
+
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
 contract Task0004 is ArbScript {
