@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {VM} from "kresko-lib/utils/LibVm.s.sol";
+import {vmFFI} from "kresko-lib/utils/Base.s.sol";
+
 import {IPyth} from "vendor/pyth/IPyth.sol";
 import {JSON} from "scripts/deploy/libs/LibJSON.s.sol";
 
@@ -19,13 +20,13 @@ struct Output {
 function getPythData(bytes32[] memory _ids) returns (bytes[] memory) {
     string[] memory args = new string[](3 + _ids.length);
     args[0] = "bun";
-    args[1] = "--no-warnings";
-    args[2] = "utils/pythPayload.js";
+    args[1] = "utils/ffi.ts";
+    args[2] = "getPythPrices";
     for (uint256 i = 0; i < _ids.length; i++) {
-        args[i + 3] = VM.toString(_ids[i]);
+        args[i + 3] = vmFFI.toString(_ids[i]);
     }
 
-    (, bytes[] memory updatedata, ) = abi.decode(VM.ffi(args), (bytes32[], bytes[], IPyth.Price[]));
+    (, bytes[] memory updatedata, ) = abi.decode(vmFFI.ffi(args), (bytes32[], bytes[], IPyth.Price[]));
     return updatedata;
 }
 
@@ -37,26 +38,29 @@ function getPythData(JSON.Config memory cfg) returns (bytes[] memory) {
 
     string[] memory args = new string[](3 + _assets.length);
     args[0] = "bun";
-    args[1] = "--no-warnings";
-    args[2] = "utils/pythPayload.js";
+    args[1] = "utils/ffi.ts";
+    args[2] = "getPythPrices";
     for (uint256 i = 0; i < _assets.length; i++) {
-        args[i + 3] = VM.toString(_assets[i]);
+        args[i + 3] = vmFFI.toString(_assets[i]);
     }
 
-    (, bytes[] memory updatedata, ) = abi.decode(VM.ffi(args), (bytes32[], bytes[], IPyth.Price[]));
+    (, bytes[] memory updatedata, ) = abi.decode(vmFFI.ffi(args), (bytes32[], bytes[], IPyth.Price[]));
     return updatedata;
 }
 
-function getPythData(string memory _ids) returns (bytes[] memory) {
+function getPythData(string memory _ids) returns (bytes[] memory, PythView memory) {
     string[] memory args = new string[](4);
 
     args[0] = "bun";
-    args[1] = "--no-warnings";
-    args[2] = "utils/pythPayload.js";
+    args[1] = "utils/ffi.ts";
+    args[2] = "getPythPrices";
     args[3] = _ids;
 
-    (, bytes[] memory updatedata, ) = abi.decode(VM.ffi(args), (bytes32[], bytes[], IPyth.Price[]));
-    return updatedata;
+    (bytes32[] memory ids, bytes[] memory updatedata, IPyth.Price[] memory prices) = abi.decode(
+        vmFFI.ffi(args),
+        (bytes32[], bytes[], IPyth.Price[])
+    );
+    return (updatedata, PythView(ids, prices));
 }
 
 function getMockPythPayload(bytes32[] memory _ids, int64[] memory _prices) view returns (bytes[] memory) {
@@ -70,13 +74,13 @@ function getMockPythPayload(bytes32[] memory _ids, int64[] memory _prices) view 
 function getPythViewData(bytes32[] memory _ids) returns (PythView memory result) {
     string[] memory args = new string[](3 + _ids.length);
     args[0] = "bun";
-    args[1] = "--no-warnings";
-    args[2] = "utils/pythPayload.js";
+    args[1] = "utils/ffi.ts";
+    args[2] = "getPythPrices";
     for (uint256 i = 0; i < _ids.length; i++) {
-        args[i + 3] = VM.toString(_ids[i]);
+        args[i + 3] = vmFFI.toString(_ids[i]);
     }
 
-    (bytes32[] memory ids, , IPyth.Price[] memory prices) = abi.decode(VM.ffi(args), (bytes32[], bytes[], IPyth.Price[]));
+    (bytes32[] memory ids, , IPyth.Price[] memory prices) = abi.decode(vmFFI.ffi(args), (bytes32[], bytes[], IPyth.Price[]));
     return PythView(ids, prices);
 }
 
@@ -95,10 +99,10 @@ function getPythViewData(string memory _ids) returns (PythView memory result) {
     string[] memory args = new string[](4);
 
     args[0] = "bun";
-    args[1] = "--no-warnings";
-    args[2] = "utils/pythPayload.js";
+    args[1] = "utils/ffi.ts";
+    args[2] = "getPythPrices";
     args[3] = _ids;
 
-    (bytes32[] memory ids, , IPyth.Price[] memory prices) = abi.decode(VM.ffi(args), (bytes32[], bytes[], IPyth.Price[]));
+    (bytes32[] memory ids, , IPyth.Price[] memory prices) = abi.decode(vmFFI.ffi(args), (bytes32[], bytes[], IPyth.Price[]));
     return PythView(ids, prices);
 }

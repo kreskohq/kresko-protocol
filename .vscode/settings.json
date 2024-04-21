@@ -1,6 +1,11 @@
 {
-  "mochaExplorer.require": ["ts-node/register", "tsconfig-paths/register"],
-  "mochaExplorer.files": ["./src/test/**/*.ts"],
+  "mochaExplorer.require": [
+    "ts-node/register",
+    "tsconfig-paths/register"
+  ],
+  "mochaExplorer.files": [
+    "./src/test/**/*.ts"
+  ],
   "mochaExplorer.timeout": 120000,
   "mochaExplorer.multiFileSuites": true,
   "typescript.tsdk": "node_modules/typescript/lib",
@@ -30,18 +35,20 @@
   },
   "editor.formatOnSave": true,
   "solidity.linter.type": "solhint",
-  "solidity.test.executeOnSave": true,
-  "solidity.compiler.version.remote": "v0.8.23+commit.f704f362",
+  "solidity.test.executeOnSave": false,
+  "solidity.compiler.version.remote": "v0.8.25+commit.b61c2a91",
   "solidity.compiler.outDir": "build/vsc",
   "solidity.compiler.location": "Extension",
   "solidity.project.monorepo": false,
   "solidity.project.sources": "src/contracts",
   "solidity.validation.delay": 300,
-  "solidity.project.libs": ["lib"],
+  "solidity.project.libs": [
+    "lib"
+  ],
   "solidity.formatter": "prettier",
   "solidity.validation.onSave": true,
   "solidity.validation.onChange": true,
   "solidity.validation.onOpen": false,
-  "solidity.test.verbosity": 5,
+  "solidity.test.verbosity": 2,
   "inline-bookmarks.view.showVisibleFilesOnly": false
 }

@@ -10,9 +10,9 @@ fs_permissions = [{ access = "read-write", path = "./" }]
 ffi = true
 solc = '0.8.23'
 evm_version = 'paris'
-via_ir = false
+via_ir = true
 optimizer = true
-optimizer_runs = 1000
+optimizer_runs = 10000
 remappings = [
     '@openzeppelin/=lib/kresko-foundry-helpers/lib/openzeppelin-contracts/',
     '@oz-upgradeable/=lib/kresko-foundry-helpers/lib/openzeppelin-contracts-upgradeable/contracts/',

@@ -8,7 +8,7 @@ import {JSON, LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {LibSafe} from "kresko-lib/mocks/MockSafe.sol";
-import {VM} from "kresko-lib/utils/LibVm.s.sol";
+import {mvm} from "kresko-lib/utils/LibVm.s.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {MockERC1155} from "mocks/MockERC1155.sol";
 import {Help} from "kresko-lib/utils/Libs.s.sol";
@@ -51,7 +51,7 @@ library LibMocks {
 
         if (json.params.common.sequencerUptimeFeed == address(0)) {
             json.params.common.sequencerUptimeFeed = address(deploySeqFeed());
-            VM.warp(VM.unixTime());
+            mvm.warp(mvm.unixTime());
         }
 
         if (json.params.common.council == address(0)) {

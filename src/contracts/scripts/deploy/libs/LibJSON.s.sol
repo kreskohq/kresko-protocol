@@ -203,8 +203,8 @@ library LibJSON {
         string memory krAssetSymbol,
         string memory anchorSymbol
     ) internal pure returns (bytes32 krAssetSalt, bytes32 anchorSalt) {
-        krAssetSalt = bytes32(bytes.concat(bytes(krAssetSymbol), bytes(anchorSymbol)));
-        anchorSalt = bytes32(bytes.concat(bytes(anchorSymbol), bytes(krAssetSymbol)));
+        krAssetSalt = bytes32(bytes.concat(bytes(krAssetSymbol), bytes(anchorSymbol), CONST.SALT_ID));
+        anchorSalt = bytes32(bytes.concat(bytes(anchorSymbol), bytes(krAssetSymbol), CONST.SALT_ID));
     }
 
     function mockTokenSalt(string memory symbol) internal pure returns (bytes32) {

@@ -31,6 +31,7 @@ contract Deploy is Scripted, DeployBase {
     using Deployed for *;
     using LibDeployUtils for *;
     using Help for *;
+    using Log for *;
 
     mapping(bytes32 => bool) tickerExists;
     mapping(bytes32 => bool) routeExists;
@@ -40,6 +41,7 @@ contract Deploy is Scripted, DeployBase {
 
     function exec(
         JSON.Config memory json,
+        JSON.Salts memory salts,
         address deployer,
         bool disableLog
     ) private broadcasted(deployer) returns (JSON.Config memory) {
@@ -64,7 +66,7 @@ contract Deploy is Scripted, DeployBase {
         }
 
         // Create base contracts
-        address diamond = super.deployDiamond(json, deployer);
+        address diamond = super.deployDiamond(json, deployer, salts.kresko);
 
         vault = json.createVault(deployer);
         kiss = json.createKISS(diamond, address(vault));
@@ -92,7 +94,7 @@ contract Deploy is Scripted, DeployBase {
         delete routeCache;
 
         /* ---------------------------- Periphery --------------------------- */
-        multicall = json.createMulticall(diamond, address(kiss), address(pythEp));
+        multicall = json.createMulticall(diamond, address(kiss), address(pythEp), salts.multicall);
         dataV1 = json.createDataV1(diamond, address(vault), address(kiss));
 
         /* ------------------------------ Users ----------------------------- */
@@ -309,7 +311,6 @@ contract Deploy is Scripted, DeployBase {
             broadcastWith(user);
         }
         kresko.mintKreskoAsset{value: updateFee}(MintArgs(user, pos.mintSymbol.cached(), pos.mintAmount, user), updateData);
-        // rsCall(kresko.mintKreskoAsset.selector, user, pos.mintSymbol.cached(), pos.mintAmount, user);
     }
 
     function setupKISSBalance(
@@ -433,7 +434,7 @@ contract Deploy is Scripted, DeployBase {
         else Log.clg(network.and(":").and(configId), "Deploying");
         if (saveOutput) LibDeploy.initOutputJSON(configId);
 
-        json = exec(JSON.getConfig(network, configId), getAddr(deployer), disableLog);
+        json = exec(JSON.getConfig(network, configId), JSON.getSalts(network, configId), getAddr(deployer), disableLog);
 
         if (saveOutput) LibDeploy.writeOutputJSON();
     }
@@ -458,7 +459,12 @@ contract Deploy is Scripted, DeployBase {
         else Log.clg(dir.and(configId), "Deploying from");
         if (saveOutput) LibDeploy.initOutputJSON(configId);
 
-        json = exec(JSON.getConfigFrom(dir, configId), getAddr(deployer), disableLog);
+        json = exec(
+            JSON.getConfigFrom(dir, configId),
+            JSON.Salts(bytes32("Kresko"), bytes32("Multicall")),
+            getAddr(deployer),
+            disableLog
+        );
 
         if (saveOutput) LibDeploy.writeOutputJSON();
     }

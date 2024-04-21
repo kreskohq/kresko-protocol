@@ -56,8 +56,6 @@ describe('Gating', () => {
 
     await nft['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
     await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
-    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 1, 1)
-    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 2, 1)
 
     await expect(
       hre.Diamond.connect(this.depositArgsOne.user).depositCollateral(
@@ -71,8 +69,6 @@ describe('Gating', () => {
   it('should allow users to access in phase 1', async function () {
     await nft['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
     await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 0, 1)
-    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 1, 1)
-    await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 2, 1)
     await nft2['mint(address,uint256,uint256)'](this.depositArgsOne.user.address, 3, 1)
     await expect(
       hre.Diamond.connect(this.depositArgsOne.user).depositCollateral(

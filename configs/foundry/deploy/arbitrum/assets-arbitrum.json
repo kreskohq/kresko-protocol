@@ -133,7 +133,7 @@
         "01_staleTime": 86401,
         "02_depositFee": 2,
         "03_withdrawFee": 2,
-        "04_maxDeposits": 40000e6,
+        "04_maxDeposits": 100000e6,
         "05_enabled": true
       }
     },
@@ -178,8 +178,50 @@
         "01_staleTime": 86401,
         "02_depositFee": 2,
         "03_withdrawFee": 2,
-        "04_maxDeposits": 60000e6,
+        "04_maxDeposits": 100000e6,
         "05_enabled": true
+      }
+    },
+    {
+      "00_mocked": false,
+      "01_isVaultAsset": false,
+      "02_name": "",
+      "03_symbol": "ARB",
+      "04_address": "0x912CE59144191C1204E64559FE8253a0e49E6548",
+      "05_config": {
+        "00_ticker": "ARB",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 0.95e4,
+        "05_kFactor": 0,
+        "06_openFee": 0,
+        "07_closeFee": 0,
+        "08_liqIncentive": 1.075e4,
+        "09_maxDebtMinter": 0,
+        "10_maxDebtSCDP": 0,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 0,
+        "13_swapOutFeeSCDP": 0,
+        "14_protocolFeeShareSCDP": 0,
+        "15_liqIncentiveSCDP": 0,
+        "16_decimals": 18,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": false,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": false,
+        "21_isSharedOrSwappedCollateral": false,
+        "22_isCoverAsset": false
+      },
+      "06_vaultConfig": {
+        "00_feed": [],
+        "01_staleTime": 0,
+        "02_depositFee": 0,
+        "03_withdrawFee": 0,
+        "04_maxDeposits": 0,
+        "05_enabled": false
       }
     }
   ],
@@ -217,6 +259,74 @@
         "21_isSharedOrSwappedCollateral": true,
         "22_isCoverAsset": false
       }
+    },
+    {
+      "00_name": "Bitcoin",
+      "01_symbol": "krBTC",
+      "02_underlying": "WBTC",
+      "03_wrapFee": 5,
+      "04_unwrapFee": 50,
+      "05_config": {
+        "00_ticker": "BTC",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 0.95e4,
+        "05_kFactor": 1.05e4,
+        "06_openFee": 0,
+        "07_closeFee": 50,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 1e18,
+        "10_maxDebtSCDP": 0.5e18,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 9,
+        "13_swapOutFeeSCDP": 14,
+        "14_protocolFeeShareSCDP": 7.5e2,
+        "15_liqIncentiveSCDP": 1.035e4,
+        "16_decimals": 0,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": true,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": true,
+        "21_isSharedOrSwappedCollateral": true,
+        "22_isCoverAsset": false
+      }
+    },
+    {
+      "00_name": "Solana",
+      "01_symbol": "krSOL",
+      "02_underlying": "",
+      "03_wrapFee": 0,
+      "04_unwrapFee": 0,
+      "05_config": {
+        "00_ticker": "SOL",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 0.95e4,
+        "05_kFactor": 1.05e4,
+        "06_openFee": 0,
+        "07_closeFee": 50,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 400e18,
+        "10_maxDebtSCDP": 200e18,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 9,
+        "13_swapOutFeeSCDP": 14,
+        "14_protocolFeeShareSCDP": 7.5e2,
+        "15_liqIncentiveSCDP": 1.035e4,
+        "16_decimals": 0,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": true,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": true,
+        "21_isSharedOrSwappedCollateral": true,
+        "22_isCoverAsset": false
+      }
     }
   ],
   "05_kiss": {
@@ -235,8 +345,8 @@
       "07_closeFee": 0,
       "08_liqIncentive": 1.05e4,
       "09_maxDebtMinter": 0,
-      "10_maxDebtSCDP": 12500e18,
-      "11_depositLimitSCDP": 50000e18,
+      "10_maxDebtSCDP": 25000e18,
+      "11_depositLimitSCDP": 100000e18,
       "12_swapInFeeSCDP": 1,
       "13_swapOutFeeSCDP": 1,
       "14_protocolFeeShareSCDP": 7.5e2,
@@ -305,6 +415,36 @@
       "05_vault": "0x0000000000000000000000000000000000000000",
       "06_pythId": "0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
       "07_staleTimePyth": 60,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 50,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    },
+    {
+      "00_ticker": "ARB",
+      "01_mockPrice": 0,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0xb2A824043730FE05F3DA2efaFa1CBbe83fa548D6",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0x3fa4252848f9f0a1480be62745a4629d9eb1322aebab8a791e344b3b9c1adcf5",
+      "07_staleTimePyth": 60,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 50,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    },
+    {
+      "00_ticker": "SOL",
+      "01_mockPrice": 0,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0x24ceA4b8ce57cdA5058b924B9B9987992450590c",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+      "07_staleTimePyth": 30,
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 50,

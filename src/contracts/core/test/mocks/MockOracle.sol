@@ -23,6 +23,10 @@ contract MockOracle is IAggregatorV3 {
         return uint256(initialAnswer);
     }
 
+    function latestAnswer() external view returns (int256) {
+        return initialAnswer;
+    }
+
     function getRoundData(
         uint80
     )

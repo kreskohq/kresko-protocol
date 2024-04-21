@@ -24,6 +24,10 @@ contract AggregatorV3Normalizer is IAggregatorV3 {
         feedDecimals = feed.decimals();
     }
 
+    function latestAnswer() external view returns (int256) {
+        return normalized(feed.latestAnswer(), feedDecimals);
+    }
+
     function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80) {
         (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) = feed.latestRoundData();
         return (roundId, normalized(answer, feedDecimals), startedAt, updatedAt, answeredInRound);

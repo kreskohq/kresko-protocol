@@ -12,7 +12,7 @@ import {DataV1} from "periphery/DataV1.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {Help, Log, VM} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Log, mvm} from "kresko-lib/utils/Libs.s.sol";
 import {GatingManager} from "periphery/GatingManager.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {CONST} from "scripts/deploy/CONST.s.sol";
@@ -93,7 +93,14 @@ library LibDeploy {
         address _kiss
     ) internal saveOutput("DataV1") returns (DataV1) {
         bytes memory implementation = type(DataV1).creationCode.ctor(
-            abi.encode(_kresko, _vault, _kiss, json.params.periphery.okNFT, json.params.periphery.qfkNFT)
+            abi.encode(
+                _kresko,
+                _vault,
+                _kiss,
+                json.params.periphery.quoterv2,
+                json.params.periphery.okNFT,
+                json.params.periphery.qfkNFT
+            )
         );
         return DataV1(implementation.d3("", CONST.D1_SALT).implementation);
     }
@@ -102,33 +109,29 @@ library LibDeploy {
         JSON.Config memory json,
         address _kresko,
         address _kiss,
-        address _pythEp
+        address _pythEp,
+        bytes32 _salt
     ) internal saveOutput("Multicall") returns (KrMulticall) {
         bytes memory implementation = type(KrMulticall).creationCode.ctor(
-            abi.encode(_kresko, _kiss, json.params.periphery.v3Router, json.assets.wNative.token, _pythEp)
+            abi.encode(
+                _kresko,
+                _kiss,
+                json.params.periphery.v3Router,
+                json.assets.wNative.token,
+                _pythEp,
+                json.params.common.admin
+            )
         );
-        address multicall = implementation.d3("", CONST.MC_SALT).implementation;
+        address multicall = implementation.d2("", _salt).implementation;
         IKresko(_kresko).grantRole(Role.MANAGER, multicall);
+        LibDeploy.setJsonBytes("INIT_CODE_HASH", bytes.concat(keccak256(implementation)));
         return KrMulticall(payable(multicall));
-    }
-
-    function createPeriphery(
-        JSON.Config memory json,
-        address _kresko,
-        address _vault,
-        address _kiss,
-        address _pythEp
-    ) internal returns (DataV1, KrMulticall) {
-        return (createDataV1(json, _kresko, _vault, _kiss), createMulticall(json, _kresko, _kiss, _pythEp));
     }
 
     function createKrAssets(JSON.Config memory json, address kresko) internal returns (JSON.Config memory) {
         for (uint256 i; i < json.assets.kreskoAssets.length; i++) {
             DeployedKrAsset memory deployed = deployKrAsset(json, json.assets.kreskoAssets[i], kresko);
             json.assets.kreskoAssets[i].config.anchor = deployed.anchorAddr;
-
-            json.assets.kreskoAssets[i].symbol.cache(deployed.addr);
-            deployed.anchorSymbol.cache(deployed.anchorAddr);
         }
 
         return json;
@@ -181,6 +184,8 @@ library LibDeploy {
         result.addr = address(proxies[0].proxy);
         result.anchorAddr = address(proxies[1].proxy);
         result.anchorSymbol = meta.anchorSymbol;
+        asset.symbol.cache(result.addr);
+        result.anchorSymbol.cache(result.anchorAddr);
         setJsonAddr("address", result.anchorAddr);
         setJsonBytes("initializer", abi.encode(proxies[1].implementation, address(factory()), ANCHOR_INITIALIZER));
         setJsonAddr("implementation", proxies[1].implementation);
@@ -199,6 +204,11 @@ library LibDeploy {
     function ctor(bytes memory bcode, bytes memory args) internal returns (bytes memory ccode) {
         setJsonBytes("ctor", args);
         return abi.encodePacked(bcode, args);
+    }
+
+    function d2(bytes memory ccode, bytes memory _init, bytes32 _salt) internal returns (Deployment memory result) {
+        result = factory().deployCreate2(ccode, _init, _salt);
+        setJsonAddr("address", result.implementation);
     }
 
     function d3(bytes memory ccode, bytes memory _init, bytes32 _salt) internal returns (Deployment memory result) {
@@ -256,8 +266,8 @@ library LibDeploy {
     }
 
     function initOutputJSON(string memory configId) internal {
-        string memory outputDir = string.concat("./out/foundry/deploy/", VM.toString(block.chainid), "/");
-        if (!VM.exists(outputDir)) VM.createDir(outputDir, true);
+        string memory outputDir = string.concat("./out/foundry/deploy/", mvm.toString(block.chainid), "/");
+        if (!mvm.exists(outputDir)) mvm.createDir(outputDir, true);
         state().id = configId;
         state().outputLocation = outputDir;
         state().outputJson = configId;
@@ -265,9 +275,9 @@ library LibDeploy {
 
     function writeOutputJSON() internal {
         string memory runsDir = string.concat(state().outputLocation, "runs/");
-        if (!VM.exists(runsDir)) VM.createDir(runsDir, true);
-        VM.writeFile(string.concat(runsDir, state().id, "-", VM.toString(VM.unixTime()), ".json"), state().outputJson);
-        VM.writeFile(string.concat(state().outputLocation, state().id, "-", "latest", ".json"), state().outputJson);
+        if (!mvm.exists(runsDir)) mvm.createDir(runsDir, true);
+        mvm.writeFile(string.concat(runsDir, state().id, "-", mvm.toString(mvm.unixTime()), ".json"), state().outputJson);
+        mvm.writeFile(string.concat(state().outputLocation, state().id, "-", "latest", ".json"), state().outputJson);
     }
 
     function state() internal pure returns (DeployState storage ds) {
@@ -289,32 +299,32 @@ library LibDeploy {
     }
 
     function setJsonAddr(string memory key, address val) internal {
-        state().currentJson = VM.serializeAddress(state().currentKey, key, val);
+        state().currentJson = mvm.serializeAddress(state().currentKey, key, val);
     }
 
     function setJsonBool(string memory key, bool val) internal {
-        state().currentJson = VM.serializeBool(state().currentKey, key, val);
+        state().currentJson = mvm.serializeBool(state().currentKey, key, val);
     }
 
     function setJsonNumber(string memory key, uint256 val) internal {
-        state().currentJson = VM.serializeUint(state().currentKey, key, val);
+        state().currentJson = mvm.serializeUint(state().currentKey, key, val);
     }
 
     function setJsonBytes(string memory key, bytes memory val) internal {
-        state().currentJson = VM.serializeBytes(state().currentKey, key, val);
+        state().currentJson = mvm.serializeBytes(state().currentKey, key, val);
     }
 
     function saveJSONKey() internal {
-        state().outputJson = VM.serializeString("out", state().currentKey, state().currentJson);
+        state().outputJson = mvm.serializeString("out", state().currentKey, state().currentJson);
     }
 
     function disableLog() internal {
         state().disableLog = true;
     }
 
-    function factory() internal returns (IDeploymentFactory) {
+    function factory() internal returns (IDeploymentFactory factory_) {
         if (address(state().factory) == address(0)) {
-            state().factory = IDeploymentFactory(Deployed.addr("Factory"));
+            state().factory = Deployed.factory();
         }
         return state().factory;
     }

@@ -32,4 +32,6 @@ interface IERC1155 {
     function safeTransferFrom(address from, address to, uint256 id, uint256 value, bytes memory data) external;
 
     function mint(address _to, uint256 _tokenId, uint256 _amount, bytes memory) external;
+
+    function mint(address _to, uint256 _tokenId, uint256 _amount) external;
 }
