@@ -63,7 +63,6 @@ interface IDataV1 {
         DVault vault;
         DCollection[] collections;
         uint256 chainId;
-        DWrap[] wraps;
     }
 
     struct DVTokenBalance {
@@ -108,7 +107,7 @@ interface IDataV1 {
 
     function previewWithdraw(PreviewWithdrawArgs calldata args) external payable returns (uint256 withdrawAmount, uint256 fee);
 
-    function getGlobals(PythView calldata prices) external view returns (DGlobal memory);
+    function getGlobals(PythView calldata prices) external view returns (DGlobal memory, DWrap[] memory wraps);
 
     function getExternalTokens(
         ExternalTokenArgs[] memory tokens,

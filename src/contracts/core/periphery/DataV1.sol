@@ -77,12 +77,12 @@ contract DataV1 is IDataV1 {
         (withdrawAmount, fee) = IVault(VAULT).previewWithdraw(args.vaultAsset, vaultAssetAmount);
     }
 
-    function getGlobals(PythView calldata _prices) external view returns (DGlobal memory result) {
+    function getGlobals(PythView calldata _prices) external view returns (DGlobal memory result, DWrap[] memory wraps) {
         result.chainId = block.chainid;
         result.protocol = DIAMOND.viewProtocolData(_prices);
         result.vault = getVault();
         result.collections = getCollectionData(address(1));
-        result.wraps = getWraps(result);
+        wraps = getWraps(result);
     }
 
     function getWraps(DGlobal memory _globals) internal view returns (DWrap[] memory result) {
