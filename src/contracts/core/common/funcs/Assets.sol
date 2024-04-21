@@ -10,6 +10,9 @@ import {safePrice, SDIPrice} from "common/funcs/Prices.sol";
 import {cs} from "common/State.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {ms} from "minter/MState.sol";
+import {scdp} from "scdp/SState.sol";
+import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {IKISS} from "kiss/interfaces/IKISS.sol";
 
 library Assets {
     using WadRay for uint256;
@@ -262,5 +265,44 @@ library Assets {
             return IKreskoAssetAnchor(self.anchor).convertToShares(_maybeRebasedAmount);
         }
         return _maybeRebasedAmount;
+    }
+
+    /**
+     * @notice Validate that the minter debt limit is not exceeded.
+     * @param _asset Asset struct of the asset being minted.
+     * @param _krAsset Address of the kresko asset being minted.
+     * @param _mintAmount Amount of the kresko asset being minted.
+     * @dev Reverts if the minter debt limit is exceeded.
+     */
+    function validateMinterDebtLimit(Asset storage _asset, address _krAsset, uint256 _mintAmount) internal view {
+        uint256 supply = getMinterSupply(_asset, _krAsset);
+        uint256 newSupply = supply + _mintAmount;
+        if (newSupply > _asset.maxDebtMinter) {
+            revert Errors.EXCEEDS_ASSET_MINTING_LIMIT(Errors.id(_krAsset), newSupply, _asset.maxDebtMinter);
+        }
+    }
+
+    /**
+     * @notice Get the minter supply for a given kresko asset.
+     * @param _asset Asset struct of the asset being minted.
+     * @param _krAsset Address of the kresko asset being minted.
+     * @return minterSupply Minter supply for the kresko asset.
+     */
+    function getMinterSupply(Asset storage _asset, address _krAsset) internal view returns (uint256) {
+        if (_asset.anchor == _krAsset) {
+            return _getMinterSupplyKiss(_krAsset);
+        }
+        return _getMinterSupplyKrAsset(_asset.anchor, _krAsset);
+    }
+
+    function _getMinterSupplyKrAsset(address _assetAddr, address _anchor) private view returns (uint256) {
+        IKreskoAssetAnchor anchor = IKreskoAssetAnchor(_anchor);
+        return anchor.convertToAssets(anchor.totalSupply() - anchor.balanceOf(_assetAddr) - scdp().assetData[_assetAddr].debt);
+    }
+
+    function _getMinterSupplyKiss(address _assetAddr) private view returns (uint256) {
+        return
+            IERC20(_assetAddr).totalSupply() -
+            (IERC20(IKISS(_assetAddr).vKISS()).totalSupply() + scdp().assetData[_assetAddr].debt);
     }
 }
