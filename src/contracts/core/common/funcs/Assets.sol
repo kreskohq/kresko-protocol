@@ -292,7 +292,7 @@ library Assets {
         if (_asset.anchor == _krAsset) {
             return _getMinterSupplyKiss(_krAsset);
         }
-        return _getMinterSupplyKrAsset(_asset.anchor, _krAsset);
+        return _getMinterSupplyKrAsset(_krAsset, _asset.anchor);
     }
 
     function _getMinterSupplyKrAsset(address _assetAddr, address _anchor) private view returns (uint256) {

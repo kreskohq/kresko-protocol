@@ -70,4 +70,8 @@ contract MinterStateFacet is IMinterStateFacet {
     ) external view returns (uint256 value, uint256 adjustedValue, uint256 price) {
         return debtAmountToValues(cs().assets[_krAsset], _amount);
     }
+
+    function getMinterSupply(address _krAsset) external view returns (uint256) {
+        return cs().assets[_krAsset].getMinterSupply(_krAsset);
+    }
 }
