@@ -46,4 +46,12 @@ contract MinterCaps is MinterCapLogicUpdate, Tested {
         uint256 minterSupplyAfter = kresko.getMinterSupply(krETHAddr);
         (minterSupply / 10).eq(minterSupplyAfter, "Supply should decrease by 10x");
     }
+
+    function test_kissMintLimit() public {
+        revert("Not implemented");
+    }
+
+    function test_krAssetMintLimit() public {
+        revert("Not implemented");
+    }
 }
