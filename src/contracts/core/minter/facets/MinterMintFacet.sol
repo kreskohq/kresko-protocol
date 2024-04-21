@@ -46,15 +46,13 @@ contract MinterMintFacet is IMinterMintFacet, Modifiers {
 
         if (!asset.isMarketOpen()) revert Errors.MARKET_CLOSED(Errors.id(_args.krAsset), asset.ticker.toString());
 
-        uint256 newSupply = IKreskoAsset(_args.krAsset).totalSupply() + _args.amount;
-        if (newSupply > asset.maxDebtMinter) {
-            revert Errors.EXCEEDS_ASSET_MINTING_LIMIT(Errors.id(_args.krAsset), newSupply, asset.maxDebtMinter);
-        }
+        asset.validateMinterDebtLimit(_args.krAsset, _args.amount);
 
         // If there is a fee for opening a position, handle it
         if (asset.openFee > 0) {
             handleMinterFee(asset, _args.account, _args.amount, Enums.MinterFee.Open);
         }
+
         uint256 existingDebt = s.accountDebtAmount(_args.account, _args.krAsset, asset);
 
         // The synthetic asset debt position must be greater than the minimum debt position value
