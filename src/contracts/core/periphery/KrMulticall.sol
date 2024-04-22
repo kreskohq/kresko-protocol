@@ -13,6 +13,7 @@ import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {ISwapRouter, IKrMulticall} from "periphery/IKrMulticall.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
 import {BurnArgs, MintArgs, SCDPWithdrawArgs, SwapArgs, WithdrawArgs} from "common/Args.sol";
+import {fromWad} from "common/funcs/Math.sol";
 
 // solhint-disable avoid-low-level-calls, code-complexity
 
@@ -29,6 +30,7 @@ contract KrMulticall is IKrMulticall, Ownable {
     IPyth public pythEp;
     ISwapRouter public v3Router;
     IWETH9 public wNative;
+    event MulticallExecuted(address _sender, Operation[] ops, Result[] results);
 
     constructor(
         address _kresko,
@@ -47,7 +49,7 @@ contract KrMulticall is IKrMulticall, Ownable {
 
     function rescue(address _token, uint256 _amount, address _receiver) external onlyOwner {
         if (_token == address(0)) payable(_receiver).transfer(_amount);
-        IERC20(_token).transfer(_receiver, _amount);
+        else IERC20(_token).transfer(_receiver, _amount);
     }
 
     function execute(
@@ -115,9 +117,15 @@ contract KrMulticall is IKrMulticall, Ownable {
                         results[i].amountOut = balanceAfter - results[i].amountOut;
                     }
                 }
+
+                if (i > 0 && results[i - 1].amountOut == 0) {
+                    results[i - 1].amountOut = results[i].amountIn;
+                }
             }
 
             _handleFinished(ops);
+
+            emit MulticallExecuted(msg.sender, ops, results);
         }
     }
 
@@ -150,6 +158,25 @@ contract KrMulticall is IKrMulticall, Ownable {
         if (_op.data.tokensInMode == TokensInMode.UseContractBalance) {
             return token.balanceOf(address(this));
         }
+        if (_op.data.tokensInMode == TokensInMode.UseContractBalanceNative) {
+            return address(this).balance;
+        }
+
+        if (_op.data.tokensInMode == TokensInMode.UseContractBalanceUnwrapNative) {
+            if (_op.data.tokenIn != address(wNative)) {
+                revert INVALID_NATIVE_TOKEN_IN(_op.action, _op.data.tokenIn, wNative.symbol());
+            }
+            wNative.withdraw(wNative.balanceOf(address(this)));
+            return address(this).balance;
+        }
+
+        if (_op.data.tokensInMode == TokensInMode.UseContractBalanceWrapNative) {
+            if (_op.data.tokenIn != address(wNative)) {
+                revert INVALID_NATIVE_TOKEN_IN(_op.action, _op.data.tokenIn, wNative.symbol());
+            }
+            wNative.deposit{value: address(this).balance}();
+            return wNative.balanceOf(address(this));
+        }
 
         // Use amountIn for tokens in, eg. MinterRepay allows this.
         if (_op.data.tokensInMode == TokensInMode.UseContractBalanceExactAmountIn) return _op.data.amountIn;
@@ -160,7 +187,7 @@ contract KrMulticall is IKrMulticall, Ownable {
     function _handleTokensOut(Operation memory _op, uint256 balance) internal {
         if (_op.data.tokensOutMode == TokensOutMode.ReturnToSenderNative) {
             wNative.withdraw(balance);
-            payable(msg.sender).transfer(balance);
+            payable(msg.sender).transfer(address(this).balance);
             return;
         }
 
@@ -196,7 +223,7 @@ contract KrMulticall is IKrMulticall, Ownable {
         }
 
         // Transfer native to sender
-        if (address(this).balance > 0) payable(msg.sender).transfer(address(this).balance);
+        if (address(this).balance != 0) payable(msg.sender).transfer(address(this).balance);
     }
 
     function _approve(address _token, uint256 _amount, address spender) internal {
@@ -301,13 +328,22 @@ contract KrMulticall is IKrMulticall, Ownable {
                 revert NATIVE_SYNTH_WRAP_NOT_ALLOWED(_op.action, _op.data.tokenOut, IKreskoAsset(_op.data.tokenOut).symbol());
             }
 
-            return address(_op.data.tokenOut).call{value: _op.data.amountIn}("");
+            uint256 wBal = wNative.balanceOf(address(this));
+            if (wBal != 0) wNative.withdraw(wBal);
+
+            return address(_op.data.tokenOut).call{value: address(this).balance}("");
         } else if (_op.action == Action.SynthUnwrap) {
-            _approve(_op.data.tokenIn, _op.data.amountIn, _op.data.tokenIn);
-            return _op.data.tokenIn.call(abi.encodeCall(IKreskoAsset.unwrap, (receiver, _op.data.amountIn, false)));
+            IKreskoAsset krAsset = IKreskoAsset(_op.data.tokenIn);
+            IKreskoAsset.Wrapping memory info = krAsset.wrappingInfo();
+            return
+                _op.data.tokenIn.call(
+                    abi.encodeCall(
+                        IKreskoAsset.unwrap,
+                        (receiver, fromWad(krAsset.balanceOf(address(this)), info.underlyingDecimals), false)
+                    )
+                );
         } else if (_op.action == Action.SynthUnwrapNative) {
-            _approve(_op.data.tokenIn, _op.data.amountIn, _op.data.tokenIn);
-            return _op.data.tokenIn.call(abi.encodeCall(IKreskoAsset.unwrap, (receiver, _op.data.amountIn, false)));
+            return _op.data.tokenIn.call(abi.encodeCall(IKreskoAsset.unwrap, (receiver, _op.data.amountIn, true)));
         } else if (_op.action == Action.VaultDeposit) {
             _approve(_op.data.tokenIn, _op.data.amountIn, kiss);
             return kiss.call(abi.encodeCall(IVaultExtender.vaultDeposit, (_op.data.tokenIn, _op.data.amountIn, receiver)));

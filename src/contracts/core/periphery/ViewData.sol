@@ -28,7 +28,7 @@ library ViewFuncs {
     using WadRay for uint256;
     using Arrays for address[];
 
-    function find(address[] memory _elements, address _elementToFind) internal pure returns (bool found) {
+    function includes(address[] memory _elements, address _elementToFind) internal pure returns (bool) {
         for (uint256 i; i < _elements.length; ) {
             if (_elements[i] == _elementToFind) {
                 return true;
@@ -37,6 +37,7 @@ library ViewFuncs {
                 ++i;
             }
         }
+        return false;
     }
 
     function getAllAssets() internal view returns (address[] memory result) {
@@ -49,21 +50,21 @@ library ViewFuncs {
         uint256 uniques;
 
         for (uint256 i; i < mCollaterals.length; i++) {
-            if (!find(all, mCollaterals[i])) {
+            if (!includes(all, mCollaterals[i])) {
                 all[uniques] = mCollaterals[i];
                 uniques++;
             }
         }
 
         for (uint256 i; i < mkrAssets.length; i++) {
-            if (!find(all, mkrAssets[i])) {
+            if (!includes(all, mkrAssets[i])) {
                 all[uniques] = mkrAssets[i];
                 uniques++;
             }
         }
 
         for (uint256 i; i < sAssets.length; i++) {
-            if (!find(all, sAssets[i])) {
+            if (!includes(all, sAssets[i])) {
                 all[uniques] = sAssets[i];
                 uniques++;
             }
@@ -251,21 +252,21 @@ library ViewFuncs {
         uint256 uniques;
 
         for (uint256 i; i < mCollaterals.length; i++) {
-            if (!find(all, mCollaterals[i])) {
+            if (!includes(all, mCollaterals[i])) {
                 all[uniques] = mCollaterals[i];
                 uniques++;
             }
         }
 
         for (uint256 i; i < mkrAssets.length; i++) {
-            if (!find(all, mkrAssets[i])) {
+            if (!includes(all, mkrAssets[i])) {
                 all[uniques] = mkrAssets[i];
                 uniques++;
             }
         }
 
         for (uint256 i; i < sAssets.length; i++) {
-            if (!find(all, sAssets[i])) {
+            if (!includes(all, sAssets[i])) {
                 all[uniques] = sAssets[i];
                 uniques++;
             }
