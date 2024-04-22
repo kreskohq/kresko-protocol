@@ -36,13 +36,16 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
     IKISS kiss = IKISS(kissAddr);
 
     IKreskoAsset krETH = IKreskoAsset(krETHAddr);
+    IKreskoAsset krBTC = IKreskoAsset(krBTCAddr);
+    IKreskoAsset krSOL = IKreskoAsset(krSOLAddr);
+
     IKreskoAssetAnchor akrETH = IKreskoAssetAnchor(akrETHAddr);
 
     IDeploymentFactory factory = IDeploymentFactory(factoryAddr);
-    IDataV1 dataV1 = IDataV1(0x0D7412df8E363EA76bd29625Fb8c481bcD28611B);
+    IDataV1 dataV1 = IDataV1(dataV1Addr);
     IGatingManager manager = IGatingManager(0x13f14aB44B434F16D88645301515C899d69A30Bd);
-    IERC1155 kreskian = IERC1155(0xAbDb949a18d27367118573A217E5353EDe5A0f1E);
-    IERC1155 questForKresk = IERC1155(0x1C04925779805f2dF7BbD0433ABE92Ea74829bF6);
+    IERC1155 kreskian = IERC1155(kreskianAddr);
+    IERC1155 questForKresk = IERC1155(questAddr);
     IPyth pythEP = IPyth(0xff1a0f4744e8582DF1aE09D5611b887B6a12925C);
     ISwapRouter swap = ISwapRouter(0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45);
     ISwapRouter quoter = ISwapRouter(0x61fFE014bA17989E743c5F6cB21bF9697530B21e);
@@ -162,6 +165,7 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
         WBTC.approve(spender, allowance);
         weth.approve(spender, allowance);
         krETH.approve(spender, allowance);
+        krBTC.approve(spender, allowance);
         akrETH.approve(spender, allowance);
         ARB.approve(spender, allowance);
         kiss.approve(spender, allowance);

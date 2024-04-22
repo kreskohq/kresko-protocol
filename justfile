@@ -172,11 +172,11 @@ verify-proxy-contract:
 	--constructor-args "0x"
 
 verify-contract:
-	forge verify-contract 0x \
-	DataV1 \
+	forge verify-contract 0xC35A7648B434f0A161c12BD144866bdf93c4a4FC \
+	KrMulticall \
 	--chain arbitrum \
 	--watch \
-	--constructor-args "0x"
+	--constructor-args "0x0000000000000000000000000000000000177abd99485dcaea3efaa91db3fe720000000000000000000000006a1d6d2f4af6915e6bba8f2db46f442d18db5c9b00000000000000000000000068b3465833fb72a70ecdf485e0e4c7bd8665fc4500000000000000000000000082af49447d8a07e3bd95bd0d56f35241523fbab1000000000000000000000000ff1a0f4744e8582df1ae09d5611b887b6a12925c000000000000000000000000266489bde85ff0dfe1ebf9f0a7e6fed3a973cec3"
 
 
 set positional-arguments
@@ -198,6 +198,17 @@ set positional-arguments
 	bun utils/ffi.ts deleteBatch $1 && \
 	echo "-> Deleted $1"
 
+@frun script func: 
+	forge script $1 --sig "$2()" --ffi -vvv && \
+	echo "-> $1.$2() ran successfully"
+
+@fbcast script func: 
+	forge script $1 --sig "$2()" --ffi --broadcast --skip-simulation -vvv && \
+	echo "-> $1.$2() ran successfully"
+
+@ftest func: 
+	forge test --mt ".*$1.*" --ffi -vvv && \
+	echo "-> $1.$2() ran successfully"
 
 
 @setup:

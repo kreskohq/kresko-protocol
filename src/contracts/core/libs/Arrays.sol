@@ -25,6 +25,19 @@ library Arrays {
         return _oracles[0] == Enums.OracleType.Empty && _oracles[1] == Enums.OracleType.Empty;
     }
 
+    function findIndex(address[] memory _elements, address _elementToFind) internal pure returns (int256 idx) {
+        for (uint256 i; i < _elements.length; ) {
+            if (_elements[i] == _elementToFind) {
+                return int256(i);
+            }
+            unchecked {
+                ++i;
+            }
+        }
+
+        return -1;
+    }
+
     function find(address[] storage _elements, address _elementToFind) internal pure returns (FindResult memory result) {
         address[] memory elements = _elements;
         for (uint256 i; i < elements.length; ) {
