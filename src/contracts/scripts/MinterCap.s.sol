@@ -5,7 +5,7 @@ import {ArbScript} from "scripts/utils/ArbScript.s.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 import {cs} from "common/State.sol";
-import {ProtocolUpgrader} from "scripts/locals/ProtocolUpgrader.s.sol";
+import {ProtocolUpgrader} from "scripts/utils/ProtocolUpgrader.s.sol";
 import {ms} from "minter/MState.sol";
 import {Arrays} from "libs/Arrays.sol";
 
