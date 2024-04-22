@@ -297,7 +297,9 @@ library Assets {
 
     function _getMinterSupplyKrAsset(address _assetAddr, address _anchor) private view returns (uint256) {
         IKreskoAssetAnchor anchor = IKreskoAssetAnchor(_anchor);
-        return anchor.convertToAssets(anchor.totalSupply() - anchor.balanceOf(_assetAddr) - scdp().assetData[_assetAddr].debt);
+        uint256 supply = anchor.totalSupply() - anchor.balanceOf(_assetAddr) - scdp().assetData[_assetAddr].debt;
+        if (supply == 0) return 0;
+        return anchor.convertToAssets(supply);
     }
 
     function _getMinterSupplyKiss(address _assetAddr) private view returns (uint256) {
