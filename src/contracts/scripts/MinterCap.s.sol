@@ -33,7 +33,6 @@ contract MinterCapLogicUpdate is ProtocolUpgrader, ArbScript {
         vm.createSelectFork("arbitrum");
         useMnemonic("MNEMONIC");
         sender = getAddr(0);
-
         initUpgrader(kreskoAddr);
     }
 

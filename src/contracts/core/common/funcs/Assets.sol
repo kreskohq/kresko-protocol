@@ -303,6 +303,6 @@ library Assets {
     function _getMinterSupplyKiss(address _assetAddr) private view returns (uint256) {
         return
             IERC20(_assetAddr).totalSupply() -
-            (IERC20(IKISS(_assetAddr).vKISS()).totalSupply() + scdp().assetData[_assetAddr].debt);
+            (IERC20(IKISS(_assetAddr).vKISS()).balanceOf(_assetAddr) + scdp().assetData[_assetAddr].debt);
     }
 }
