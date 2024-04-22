@@ -14,7 +14,7 @@ export type Transaction = {
   from: Address
   to?: Address
   value: Hex
-  data: Hex
+  input: Hex
   nonce: Hex
   accessList: any[]
   gas: Hex
