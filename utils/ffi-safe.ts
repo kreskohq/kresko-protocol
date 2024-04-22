@@ -130,7 +130,6 @@ export async function proposeBatch(filename?: string) {
 export async function deleteBatch(txHash?: Hex) {
   const safeTxHash = getArg(txHash)
   const [signature] = await signData(deleteData(safeTxHash))
-
   const response = await fetch(`${SAFE_API_V1}transactions/${safeTxHash}/`, {
     method: 'DELETE',
     headers: {
@@ -163,7 +162,7 @@ async function parseBroadcast(name: string, chainId: number, safeAddr: Address) 
     const to = tx.transaction.to
     const value = tx.transaction.value
     const gas = tx.transaction.gas
-    const data = tx.transaction.data
+    const data = tx.transaction.input
     return {
       payload: {
         to: checksumAddress(to ?? zeroAddress),
