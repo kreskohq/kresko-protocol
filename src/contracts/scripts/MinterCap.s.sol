@@ -3,25 +3,11 @@ pragma solidity ^0.8.0;
 
 import {ArbScript} from "scripts/utils/ArbScript.s.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
-import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
-import {cs} from "common/State.sol";
 import {ProtocolUpgrader} from "scripts/utils/ProtocolUpgrader.s.sol";
-import {ms} from "minter/MState.sol";
-import {Arrays} from "libs/Arrays.sol";
+import {deployPayload} from "scripts/payloads/Payloads.sol";
+import {Task0009} from "scripts/tasks/Task0009.s.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
-
-contract Payload0006 is ArbDeployAddr {
-    using Arrays for address[];
-
-    function initialize() public {
-        require(cs().assets[kissAddr].maxDebtMinter != 0, "zero");
-        require(cs().assets[kissAddr].maxDebtMinter == 140_000 ether, "already-initialized");
-
-        cs().assets[kissAddr].maxDebtMinter = 60_000 ether;
-        ms().krAssets.pushUnique(kissAddr);
-    }
-}
 
 contract MinterCapLogicUpdate is ProtocolUpgrader, ArbScript {
     using Log for *;
@@ -31,18 +17,15 @@ contract MinterCapLogicUpdate is ProtocolUpgrader, ArbScript {
 
     function setUp() public virtual {
         vm.createSelectFork("arbitrum");
-        initUpgrader(kreskoAddr);
+        initUpgrader(kreskoAddr, factoryAddr, CreateMode.Create2);
     }
 
-    function payload0006() public output("minter-caps-update") {
-        broadcastWith(sender);
-        initializer.initContract = address(new Payload0006());
-        initializer.initData = abi.encodeWithSelector(Payload0006.initialize.selector);
-
+    function payload0009() public output("minter-caps-update") {
+        broadcastWith(safe);
         createFacetCut("MinterMintFacet");
         createFacetCut("MinterStateFacet");
-
-        broadcastWith(safe);
+        initializer.initContract = deployPayload(type(Task0009).creationCode, "", 9);
+        initializer.initData = abi.encodeWithSelector(Task0009.initialize.selector);
         executeCuts("MinterLogicUpdate", false);
     }
 

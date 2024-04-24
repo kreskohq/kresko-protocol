@@ -21,7 +21,7 @@ contract MinterCaps is MinterCapLogicUpdate, Tested {
     function setUp() public override {
         super.setUp();
         useMnemonic("MNEMONIC_DEVNET");
-        payload0006();
+        payload0009();
         fetchPythAndUpdate();
 
         user = getAddr(100);

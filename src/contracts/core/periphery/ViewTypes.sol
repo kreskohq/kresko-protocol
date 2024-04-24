@@ -107,6 +107,7 @@ library View {
         address addr;
         bool isMarketOpen;
         uint256 tSupply;
+        uint256 mSupply;
         uint256 price;
         Asset config;
     }

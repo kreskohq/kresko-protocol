@@ -235,6 +235,7 @@ library ViewFuncs {
                 synthwrap: synthwrap,
                 name: token.name(),
                 tSupply: token.totalSupply(),
+                mSupply: asset.isMinterMintable ? asset.getMinterSupply(addr) : 0,
                 price: uint256(price.answer),
                 isMarketOpen: asset.isMarketOpen(),
                 priceRaw: price,

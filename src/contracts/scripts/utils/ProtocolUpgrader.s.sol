@@ -13,15 +13,24 @@ import {__revert} from "kresko-lib/utils/Base.s.sol";
 import {IDiamondLoupeFacet} from "diamond/interfaces/IDiamondLoupeFacet.sol";
 import {FacetCutAction} from "diamond/DSTypes.sol";
 import {create1, getFacetsAndSelectors} from "scripts/deploy/DeployFuncs.s.sol";
+import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 
 contract ProtocolUpgrader is Scripted, FacetScript("./utils/getFunctionSelectors.sh") {
     using Log for *;
     using Help for *;
     using Deployed for *;
+    using LibDeploy for bytes;
+    enum CreateMode {
+        Create1,
+        Create2,
+        Create3
+    }
 
     IExtendedDiamondCutFacet diamond;
     FacetCut[] cuts;
     Initializer initializer;
+
+    CreateMode createMode = CreateMode.Create1;
 
     modifier output(string memory id) {
         LibDeploy.initOutputJSON(id);
@@ -29,8 +38,10 @@ contract ProtocolUpgrader is Scripted, FacetScript("./utils/getFunctionSelectors
         LibDeploy.writeOutputJSON();
     }
 
-    function initUpgrader(address _kresko) internal {
+    function initUpgrader(address _kresko, address _factoryAddr, CreateMode _createMode) internal {
         diamond = IExtendedDiamondCutFacet(_kresko);
+        createMode = _createMode;
+        Deployed.factory(_factoryAddr);
     }
 
     function executeCuts(string memory id, bool _dry) internal {
@@ -108,11 +119,21 @@ contract ProtocolUpgrader is Scripted, FacetScript("./utils/getFunctionSelectors
         }
         LibDeploy.JSONKey(fileName);
         LibDeploy.setJsonNumber("oldSelectors", oldSelectors.length);
-        facetAddr = create1(facet);
+        facetAddr = _create(fileName, facet);
         LibDeploy.setJsonAddr("address", facetAddr);
 
         cuts.push(FacetCut({facetAddress: facetAddr, action: FacetCutAction.Add, functionSelectors: selectors}));
         LibDeploy.setJsonNumber("newSelectors", selectors.length);
         LibDeploy.saveJSONKey();
+    }
+
+    function _create(string memory _fileName, bytes memory _code) internal returns (address addr) {
+        if (createMode == CreateMode.Create1) {
+            addr = create1(_code);
+        } else if (createMode == CreateMode.Create2) {
+            addr = _code.d2("", bytes32(bytes(_fileName))).implementation;
+        } else {
+            addr = _code.d3("", keccak256(abi.encodePacked(_code))).implementation;
+        }
     }
 }
