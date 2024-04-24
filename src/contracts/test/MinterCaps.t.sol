@@ -22,6 +22,7 @@ contract MinterCaps is MinterCapLogicUpdate, Tested {
         super.setUp();
         useMnemonic("MNEMONIC_DEVNET");
         payload0009();
+        afterRun();
         fetchPythAndUpdate();
 
         user = getAddr(100);
@@ -97,5 +98,9 @@ contract MinterCaps is MinterCapLogicUpdate, Tested {
 
         uint256 supplyAfter = kresko.getMinterSupply(krETHAddr);
         (supplyBefore + mintAmount).eq(supplyAfter, "supply-after-mint");
+    }
+
+    function test_assets() public {
+        peekAccount(user, false);
     }
 }

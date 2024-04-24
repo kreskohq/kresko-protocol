@@ -6,6 +6,7 @@ import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {ProtocolUpgrader} from "scripts/utils/ProtocolUpgrader.s.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
 import {Task0009} from "scripts/tasks/Task0009.s.sol";
+import {DataV1} from "periphery/DataV1.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
@@ -29,5 +30,7 @@ contract MinterCapLogicUpdate is ProtocolUpgrader, ArbScript {
         executeCuts("MinterLogicUpdate", false);
     }
 
-    function afterRun() public {}
+    function afterRun() public {
+        dataV1 = new DataV1(kreskoAddr, vaultAddr, kissAddr, address(quoter), kreskianAddr, questAddr);
+    }
 }
