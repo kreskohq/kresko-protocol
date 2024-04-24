@@ -25,12 +25,15 @@ contract MinterCapLogicUpdate is ProtocolUpgrader, ArbScript {
         broadcastWith(safe);
         createFacetCut("MinterMintFacet");
         createFacetCut("MinterStateFacet");
+        createFacetCut("ViewDataFacet");
         initializer.initContract = deployPayload(type(Task0009).creationCode, "", 9);
         initializer.initData = abi.encodeWithSelector(Task0009.initialize.selector);
         executeCuts("MinterLogicUpdate", false);
     }
 
     function afterRun() public {
+        useMnemonic("MNEMONIC");
+        broadcastWith(getAddr(0));
         dataV1 = new DataV1(kreskoAddr, vaultAddr, kissAddr, address(quoter), kreskianAddr, questAddr);
     }
 }
