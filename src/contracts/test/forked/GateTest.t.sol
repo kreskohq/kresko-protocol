@@ -91,6 +91,7 @@ contract GateTest is Tested {
         questForKresk.mint(userValidPhaseOne3, 1, 4);
 
         questForKresk.mint(userNotValid2, 1, 1);
+        // This user will be able to enter Phase2 after latest Gating Manager update
         questForKresk.mint(userNotValid3, 0, 1);
     }
 
@@ -135,7 +136,6 @@ contract GateTest is Tested {
 
         newManager.isEligible(userNotValid).eq(false, "userNotValid");
         newManager.isEligible(userNotValid2).eq(false, "userNotValid2");
-        newManager.isEligible(userNotValid3).eq(false, "userNotValid3");
         newManager.isEligible(userValidPhaseThree).eq(false, "userValidPhaseThree");
 
         vm.expectRevert(Errors.MISSING_PHASE_2_NFT.selector);
@@ -145,19 +145,18 @@ contract GateTest is Tested {
         newManager.check(userNotValid2);
 
         vm.expectRevert(Errors.MISSING_PHASE_2_NFT.selector);
-        newManager.check(userNotValid3);
-
-        vm.expectRevert(Errors.MISSING_PHASE_2_NFT.selector);
         newManager.check(userValidPhaseThree);
 
         newManager.isEligible(userValidPhaseTwo).eq(true, "userValidPhaseTwo");
         newManager.isEligible(userValidPhaseOne).eq(true, "userValidPhaseOne");
         newManager.isEligible(userValidPhaseOne2).eq(true, "userValidPhaseOne2");
         newManager.isEligible(userValidPhaseOne3).eq(true, "userValidPhaseOne3");
+        newManager.isEligible(userNotValid3).eq(true, "userNotValid3");
         newManager.check(userValidPhaseTwo);
         newManager.check(userValidPhaseOne);
         newManager.check(userValidPhaseOne2);
         newManager.check(userValidPhaseOne3);
+        newManager.check(userNotValid3);
 
         newManager.isEligible(acc1).eq(true, "acc1");
         newManager.isEligible(acc2).eq(true, "acc2");

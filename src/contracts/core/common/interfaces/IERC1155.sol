@@ -34,4 +34,6 @@ interface IERC1155 {
     function mint(address _to, uint256 _tokenId, uint256 _amount, bytes memory) external;
 
     function mint(address _to, uint256 _tokenId, uint256 _amount) external;
+
+    function burn(address _to, uint256 _tokenId, uint256 _amount) external;
 }
