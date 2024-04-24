@@ -15,6 +15,21 @@ hasBun := `bun --help | grep -q 'Usage: bun' && echo true || echo false`
 hasFoundry := `forge --version | grep -q 'forge' && echo true || echo false`
 hasPM2 := `bunx pm2 | grep -q 'usage: pm2' && echo true || echo false`
 
+@deploy script sig: 
+  forge script $1 --sig "$2()" --ffi --broadcast \
+  --chain arbitrum \
+  --fork-url "$RPC_ARBITRUM_INFURA" \
+  --verify
+
+@resume script sig:
+  forge script $1 --sig "$2()" --ffi --broadcast \
+  --chain arbitrum \
+  --skip-simulation \
+  --rpc-url "$RPC_ARBITRUM_INFURA" \
+  --verify \
+  --resume
+
+
 deploy-local:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata  "deploy(string,string,uint32,bool,bool)" "localhost" "MNEMONIC_DEVNET" 0 true false) \

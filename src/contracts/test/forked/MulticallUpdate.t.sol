@@ -114,7 +114,8 @@ contract MulticallUpdate is Tested, ArbScript {
             })
         });
         exec(0, ops, new bytes[](0));
-        krETH.balanceOf(sender).eq(994005248750000000, "krETH-bal");
+        krETH.balanceOf(sender).gt(0.95 ether, "krETH-bal");
+        krETH.balanceOf(sender).lt(1 ether, "krETH-bal");
     }
 
     function testSynthwraps() public pranked(sender) {

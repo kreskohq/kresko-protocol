@@ -25,6 +25,9 @@ interface IMinterStateFacet {
     /// @notice get all meaningful protocol parameters
     function getParametersMinter() external view returns (MinterParams memory);
 
+    /// @notice Gets the supply originating from the Minter for @param _asset.
+    function getMinterSupply(address _asset) external view returns (uint256);
+
     /**
      * @notice Gets the USD value for a single collateral asset and amount.
      * @param _collateralAsset The address of the collateral asset.

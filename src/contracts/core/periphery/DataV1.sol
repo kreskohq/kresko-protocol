@@ -165,7 +165,6 @@ contract DataV1 is IDataV1 {
 
     function getAccount(PythView calldata _prices, address _account) external view returns (DAccount memory result) {
         result.protocol = DIAMOND.viewAccountData(_prices, _account);
-        result.protocol.minter.debts = kissFix(_account, _prices);
         result.vault.addr = VAULT;
         result.vault.name = IERC20(VAULT).name();
         result.vault.amount = IERC20(VAULT).balanceOf(_account);
@@ -177,50 +176,6 @@ contract DataV1 is IDataV1 {
         result.collections = getCollectionData(_account);
         (result.phase, result.eligible) = DIAMOND.viewAccountGatingPhase(_account);
         result.chainId = block.chainid;
-    }
-
-    function kissFix(address _account, PythView calldata _prices) internal view returns (View.Position[] memory result) {
-        IKresko kr = IKresko(address(DIAMOND));
-
-        View.AssetView[] memory assets = DIAMOND.viewProtocolData(_prices).assets;
-        address[] memory mintedAssets = kr.getAccountMintedAssets(_account);
-
-        View.Position[] memory found = new View.Position[](assets.length);
-        uint256 count;
-        for (uint256 i; i < assets.length; i++) {
-            View.AssetView memory asset = assets[i];
-            if (asset.config.isMinterMintable) {
-                found[i] = _getMinterPos(_account, asset, kr, mintedAssets);
-                ++count;
-            }
-        }
-
-        result = new View.Position[](count);
-        for (uint256 j; j < found.length; j++) {
-            if (found[j].addr != address(0)) result[--count] = found[j];
-        }
-    }
-
-    function _getMinterPos(
-        address _account,
-        View.AssetView memory _asset,
-        IKresko _kr,
-        address[] memory _mintedAssets
-    ) internal view returns (View.Position memory) {
-        uint256 debtAmount = _kr.getAccountDebtAmount(_account, _asset.addr);
-        uint256 val = debtAmount.wadMul(_asset.price);
-        return
-            View.Position({
-                addr: _asset.addr,
-                symbol: _asset.symbol,
-                amount: debtAmount,
-                amountAdj: 0,
-                val: val,
-                valAdj: val.percentMul(_asset.config.kFactor),
-                index: _mintedAssets.findIndex(_asset.addr),
-                price: _asset.price,
-                config: _asset.config
-            });
     }
 
     function getBalances(
