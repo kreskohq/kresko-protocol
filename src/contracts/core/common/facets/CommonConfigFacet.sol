@@ -52,6 +52,11 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
         cs().feeRecipient = _newFeeRecipient;
     }
 
+    /// @inheritdoc ICommonConfigFacet
+    function setMarketStatusProvider(address _provider) public override onlyRole(Role.ADMIN) {
+        cs().marketStatusProvider = _provider;
+    }
+
     function setPythEndpoint(address _pythEp) public override onlyRole(Role.ADMIN) {
         if (_pythEp == address(0)) revert Errors.PYTH_EP_ZERO();
         cs().pythEp = _pythEp;

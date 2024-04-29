@@ -45,6 +45,10 @@ struct CommonState {
     /* -------------------------------------------------------------------------- */
     mapping(bytes32 role => RoleData data) _roles;
     mapping(bytes32 role => EnumerableSet.AddressSet member) _roleMembers;
+    /* -------------------------------------------------------------------------- */
+    /*                                Market Status Provider                      */
+    /* -------------------------------------------------------------------------- */
+    address marketStatusProvider;
 }
 
 /* -------------------------------------------------------------------------- */

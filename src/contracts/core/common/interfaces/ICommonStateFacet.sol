@@ -19,6 +19,9 @@ interface ICommonStateFacet {
     /// @notice gating manager contract address
     function getGatingManager() external view returns (address);
 
+    /// @notice Get the market status provider address.
+    function getMarketStatusProvider() external view returns (address);
+
     /// @notice Get the L2 sequencer uptime feed address.
     function getSequencerUptimeFeed() external view returns (address);
 

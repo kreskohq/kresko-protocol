@@ -107,4 +107,10 @@ interface ICommonConfigFacet {
      * @param _newManager _newManager address
      */
     function setGatingManager(address _newManager) external;
+
+    /**
+     * @notice Sets market status provider
+     * @param _provider market status provider address
+     */
+    function setMarketStatusProvider(address _provider) external;
 }
