@@ -42,4 +42,9 @@ contract AssetStateFacet is IAssetStateFacet {
         }
         revert Errors.INVALID_TICKER(Errors.id(_assetAddr), cs().assets[_assetAddr].ticker.toString());
     }
+
+    /// @inheritdoc IAssetStateFacet
+    function getMarketStatus(address _assetAddr) external view returns (bool) {
+        return cs().assets[_assetAddr].isMarketOpen();
+    }
 }
