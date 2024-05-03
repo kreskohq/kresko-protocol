@@ -6,6 +6,7 @@ import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import {ProtocolUpgrader} from "scripts/utils/ProtocolUpgrader.s.sol";
 import {DataV2} from "periphery/DataV2.sol";
 import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
+import {deployPayload} from "scripts/payloads/Payloads.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
@@ -28,7 +29,12 @@ contract MarketStatusUpdate is ProtocolUpgrader, ArbScript {
         createFacetCut("CommonStateFacet");
         createFacetCut("AssetStateFacet");
         executeCuts("MarketStatusUpdate", false);
-        dataV2 = new DataV2(kreskoAddr, vaultAddr, kissAddr, address(quoter), kreskianAddr, questAddr);
+        address dataV2Addr = deployPayload(
+            type(DataV2).creationCode,
+            abi.encode(kreskoAddr, vaultAddr, kissAddr, address(quoter), kreskianAddr, questAddr),
+            2
+        );
+        dataV2 = DataV2(dataV2Addr);
         kresko.setMarketStatusProvider(address(provider));
     }
 }
