@@ -23,18 +23,24 @@ contract MarketStatusUpdate is ProtocolUpgrader, ArbScript {
         initUpgrader(kreskoAddr, factoryAddr, CreateMode.Create2);
     }
 
+    function deployData() external {
+        broadcastWith(getAddr(0));
+        DataV2 newDataV2 = new DataV2(kreskoAddr, vaultAddr, kissAddr, address(quoter), kreskianAddr, questAddr);
+        dataV2 = newDataV2;
+    }
+
     function payload0010() public output("market-status-update") {
         broadcastWith(safe);
         createFacetCut("CommonConfigFacet");
         createFacetCut("CommonStateFacet");
         createFacetCut("AssetStateFacet");
+        createFacetCut("MinterMintFacet");
+        createFacetCut("MinterBurnFacet");
+        createFacetCut("SCDPSwapFacet");
+        createFacetCut("SCDPFacet");
+        createFacetCut("ViewDataFacet");
+        createFacetCut("MinterLiquidationFacet");
         executeCuts("MarketStatusUpdate", false);
-        address dataV2Addr = deployPayload(
-            type(DataV2).creationCode,
-            abi.encode(kreskoAddr, vaultAddr, kissAddr, address(quoter), kreskianAddr, questAddr),
-            2
-        );
-        dataV2 = DataV2(dataV2Addr);
         kresko.setMarketStatusProvider(address(provider));
     }
 }
