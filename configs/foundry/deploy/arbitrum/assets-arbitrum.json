@@ -295,6 +295,40 @@
       }
     },
     {
+      "00_name": "Euro",
+      "01_symbol": "krEUR",
+      "02_underlying": "",
+      "03_wrapFee": 0,
+      "04_unwrapFee": 0,
+      "05_config": {
+        "00_ticker": "EUR",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 1e4,
+        "05_kFactor": 1e4,
+        "06_openFee": 0,
+        "07_closeFee": 50,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 50000e18,
+        "10_maxDebtSCDP": 50000e18,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 5,
+        "13_swapOutFeeSCDP": 5,
+        "14_protocolFeeShareSCDP": 7.5e2,
+        "15_liqIncentiveSCDP": 1.035e4,
+        "16_decimals": 0,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": true,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": true,
+        "21_isSharedOrSwappedCollateral": true,
+        "22_isCoverAsset": false
+      }
+    },
+    {
       "00_name": "Solana",
       "01_symbol": "krSOL",
       "02_underlying": "",
@@ -444,6 +478,21 @@
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
       "06_pythId": "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+      "07_staleTimePyth": 30,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 50,
+      "11_useAdapter": false,
+      "12_invertPyth": false
+    },
+    {
+      "00_ticker": "EUR",
+      "01_mockPrice": 0,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0xA14d53bC1F1c0F31B4aA3BD109344E5009051a84",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0xa995d00bb36a63cef7fd2c287dc105fc8f3d93779f062f09551b0af3e81ec30b",
       "07_staleTimePyth": 30,
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,
