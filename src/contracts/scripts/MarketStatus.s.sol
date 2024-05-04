@@ -20,6 +20,7 @@ contract MarketStatusUpdate is ProtocolUpgrader, ArbScript {
 
     function setUp() public virtual {
         vm.createSelectFork("arbitrum");
+        useMnemonic("MNEMONIC");
         initUpgrader(kreskoAddr, factoryAddr, CreateMode.Create2);
     }
 

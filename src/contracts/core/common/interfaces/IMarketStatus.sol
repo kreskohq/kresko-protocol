@@ -16,17 +16,15 @@ interface IMarketStatus {
 
     function getExchangeStatus(bytes32) external view returns (bool);
 
-    function getExchangeStatuses(
-        bytes32[] calldata
-    ) external view returns (bool[] memory);
+    function getExchangeStatuses(bytes32[] calldata) external view returns (bool[] memory);
 
     function getExchange(bytes32) external view returns (bytes32);
 
     function getTickerStatus(bytes32) external view returns (bool);
 
-    function getTickerStatuses(
-        bytes32[] calldata
-    ) external view returns (bool[] memory);
+    function getTickerExchange(bytes32) external view returns (bytes32);
+
+    function getTickerStatuses(bytes32[] calldata) external view returns (bool[] memory);
 
     function owner() external view returns (address);
 }

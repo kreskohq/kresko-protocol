@@ -213,15 +213,15 @@ set positional-arguments
 	bun utils/ffi.ts deleteBatch $1 && \
 	echo "-> Deleted $1"
 
-@frun script func: 
+@script script func: 
 	forge script $1 --sig "$2()" --ffi -vvv && \
 	echo "-> $1.$2() ran successfully"
 
-@fbcast script func: 
+@send script func: 
 	forge script $1 --sig "$2()" --ffi --broadcast --skip-simulation -vvv && \
 	echo "-> $1.$2() ran successfully"
 
-@ftest func: 
+@test func: 
 	forge test --mt ".*$1.*" --ffi -vvv && \
 	echo "-> $1.$2() ran successfully"
 
