@@ -18,14 +18,14 @@ hasPM2 := `bunx pm2 | grep -q 'usage: pm2' && echo true || echo false`
 @deploy script sig: 
   forge script $1 --sig "$2()" --ffi --broadcast \
   --chain arbitrum \
-  --fork-url "$RPC_ARBITRUM_INFURA" \
+  --fork-url "$RPC_ARBITRUM_URL" \
   --verify
 
 @resume script sig:
   forge script $1 --sig "$2()" --ffi --broadcast \
   --chain arbitrum \
   --skip-simulation \
-  --rpc-url "$RPC_ARBITRUM_INFURA" \
+  --rpc-url "$RPC_ARBITRUM_URL" \
   --verify \
   --resume
 
@@ -219,6 +219,14 @@ set positional-arguments
 
 @send script func: 
 	forge script $1 --sig "$2()" --ffi --broadcast --skip-simulation -vvv && \
+	echo "-> $1.$2() ran successfully"
+
+@send-fork script func:
+	forge script $1 --sig "$2()" --ffi --broadcast --skip-simulation -vvv --unlocked --fork-url "https://rpc.tenderly.co/fork/ca98ed00-27df-4838-bdff-0cb955211c5a" && \
+	echo "-> $1.$2() ran successfully"
+
+@resume-fork script func: 
+	forge script $1 --sig "$2()" --ffi --broadcast --skip-simulation -vvv --unlocked --rpc-url "https://rpc.tenderly.co/fork/ca98ed00-27df-4838-bdff-0cb955211c5a" --resume && \
 	echo "-> $1.$2() ran successfully"
 
 @test func: 

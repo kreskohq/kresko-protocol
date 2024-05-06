@@ -53,7 +53,7 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
     bytes[] pythUpdate;
     PythView pythView;
     address[] clAssets = [USDCAddr, WBTCAddr, wethAddr];
-    string pythAssets = "ETH,USDC,BTC,ARB,SOL";
+    string pythAssets = "ETH,USDC,BTC,ARB,SOL,EUR";
 
     function initialize(string memory mnemonic) public {
         useMnemonic(mnemonic);

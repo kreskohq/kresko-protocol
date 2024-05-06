@@ -10,10 +10,9 @@ import {FeedConfiguration, Oracle} from "common/Types.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
-import {Payload0003} from "scripts/payloads/Payload0003.sol";
+import {PayloadKrEUR} from "scripts/payloads/PayloadKrEUR.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
-
 contract krEURTask is ArbScript {
     using Log for *;
     using Help for *;
@@ -30,16 +29,12 @@ contract krEURTask is ArbScript {
         LibDeploy.writeOutputJSON();
     }
 
-    function execAll() public returns (address krEURAddr) {
-        if (currentForkId == 0) {
-            currentForkId = vm.createSelectFork("arbitrum");
-        }
+    function deployKrEUR() public returns (address krEURAddr) {
         JSON.Config memory json = JSON.getConfig("arbitrum", "arbitrum");
-        broadcastWith(safe);
 
         (, LibDeploy.DeployedKrAsset memory deployInfo) = addKrAsset(json, "krEUR");
-        address payload = deployPayload(type(Payload0003).creationCode, abi.encode(deployInfo.addr), 1);
-        IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(payload, abi.encodeCall(Payload0003.executePayload, ()));
+        address payload = deployPayload(type(PayloadKrEUR).creationCode, abi.encode(deployInfo.addr), 12);
+        IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(payload, abi.encodeCall(PayloadKrEUR.executePayload, ()));
         return deployInfo.addr;
     }
 

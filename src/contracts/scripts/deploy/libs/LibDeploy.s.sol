@@ -172,6 +172,8 @@ library LibDeploy {
             (IKreskoAsset(proxyAddr), meta.anchorName, meta.anchorSymbol, json.params.common.admin)
         );
 
+        meta.anchorSalt.blg("");
+        meta.krAssetSalt.blg("");
         // deploy krasset + anchor in batch
         bytes[] memory batch = new bytes[](2);
         batch[0] = abi.encodeCall(

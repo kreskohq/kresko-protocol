@@ -7,19 +7,20 @@ import {ProtocolUpgrader} from "scripts/utils/ProtocolUpgrader.s.sol";
 import {DataV2} from "periphery/DataV2.sol";
 import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
+import {krEURTask} from "scripts/tasks/krEUR.s.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
-contract MarketStatusUpdate is ProtocolUpgrader, ArbScript {
+contract MarketStatusUpdate is ProtocolUpgrader, krEURTask {
     using Log for *;
     using Help for *;
 
     address sender;
     IMarketStatus provider = IMarketStatus(0xf6188e085ebEB716a730F8ecd342513e72C8AD04);
     DataV2 dataV2;
+    address krEURAddr;
 
     function setUp() public virtual {
-        vm.createSelectFork("arbitrum");
         useMnemonic("MNEMONIC");
         initUpgrader(kreskoAddr, factoryAddr, CreateMode.Create2);
     }
@@ -30,18 +31,14 @@ contract MarketStatusUpdate is ProtocolUpgrader, ArbScript {
         dataV2 = newDataV2;
     }
 
-    function payload0010() public output("market-status-update") {
+    function execAll() public {
         broadcastWith(safe);
-        createFacetCut("CommonConfigFacet");
-        createFacetCut("CommonStateFacet");
-        createFacetCut("AssetStateFacet");
-        createFacetCut("MinterMintFacet");
-        createFacetCut("MinterBurnFacet");
-        createFacetCut("SCDPSwapFacet");
-        createFacetCut("SCDPFacet");
-        createFacetCut("ViewDataFacet");
-        createFacetCut("MinterLiquidationFacet");
-        executeCuts("MarketStatusUpdate", false);
+        addMarketStatus();
+        krEURAddr = deployKrEUR();
+    }
+
+    function addMarketStatus() public output("market-status-update") {
+        fullUpgrade();
         kresko.setMarketStatusProvider(address(provider));
     }
 }

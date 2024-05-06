@@ -18,7 +18,7 @@ contract MarketStatusUpdateTest is MarketStatusUpdate {
 
     function setUp() public override {
         super.setUp();
-        payload0010();
+        execAll();
 
         sender = getAddr(0);
         prank(sender);
@@ -42,7 +42,7 @@ contract MarketStatusUpdateTest is MarketStatusUpdate {
         assets[7] = address(krSOLAddr);
         assets[8] = address(kissAddr);
 
-        for (uint i = 0; i < assets.length; i++) {
+        for (uint256 i; i < assets.length; i++) {
             kresko.getMarketStatus(assets[i]).eq(true);
         }
 
@@ -97,12 +97,27 @@ contract MarketStatusUpdateTest is MarketStatusUpdate {
 
         prank(sender);
         vm.expectRevert();
-        kresko.mintKreskoAsset(MintArgs({account: sender, receiver: sender, krAsset: kissAddr, amount: 1e18}), pythUpdate);
+        kresko.mintKreskoAsset(MintArgs({account: sender, receiver: sender, krAsset: kissAddr, amount: 11e18}), pythUpdate);
 
         prank(provider.owner());
         provider.setStatus(tickers, open);
 
         prank(sender);
         kresko.mintKreskoAsset(MintArgs({account: sender, receiver: sender, krAsset: kissAddr, amount: 1e18}), pythUpdate);
+    }
+
+    function testMintKrEUR() external {
+        // prank(provider.owner());
+        // provider.setStatus(tickers, closed);
+
+        prank(sender);
+        // vm.expectRevert();
+        kresko.mintKreskoAsset(MintArgs({account: sender, receiver: sender, krAsset: krEURAddr, amount: 10.1e18}), pythUpdate);
+
+        // prank(provider.owner());
+        // provider.setStatus(tickers, open);
+
+        // prank(sender);
+        // kresko.mintKreskoAsset(MintArgs({account: sender, receiver: sender, krAsset: kissAddr, amount: 1e18}), pythUpdate);
     }
 }
