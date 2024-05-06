@@ -46,7 +46,7 @@ contract MarketStatusTest is Tested, ProtocolUpgrader, ArbDeployAddr {
 
         // Update CommonConfigFacet
         bytes4[] memory selectors = getSelectors("CommonConfigFacet");
-        address oldFacet = kresko.facetAddress(selectors[0]);
+        address oldFacet = kresko.facetAddress(selectors[selectors.length - 1]);
         bytes4[] memory oldSelectors = kresko.facetFunctionSelectors(oldFacet);
         FacetCut[] memory cuts = new FacetCut[](1);
         // Remove Config facet

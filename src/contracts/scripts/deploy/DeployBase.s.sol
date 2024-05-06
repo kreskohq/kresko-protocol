@@ -15,6 +15,7 @@ import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IKrMulticall} from "periphery/IKrMulticall.sol";
 import {IDataV1} from "periphery/interfaces/IDataV1.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
+import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 
@@ -41,6 +42,7 @@ abstract contract DeployBase {
     IDeploymentFactory factory;
     IKrMulticall multicall;
     IGatingManager gatingManager;
+    IMarketStatus marketStatusProvider;
     IPyth pythEp;
     IDataV1 dataV1;
     IWETH9 weth;
@@ -51,6 +53,11 @@ abstract contract DeployBase {
 
     function deployGatingManager(JSON.Config memory json, address _deployer) internal returns (address) {
         return address(gatingManager = json.createGatingManager(_deployer));
+    }
+
+    function deployMarketStatusProvider(JSON.Config memory json, address _deployer) internal returns (address) {
+        address(marketStatusProvider = json.createMarketStatusProvider(_deployer));
+        return address(marketStatusProvider);
     }
 
     function deployDiamond(JSON.Config memory json, address _deployer, bytes32 salt) internal returns (address) {

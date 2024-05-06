@@ -36,7 +36,7 @@ contract SafeScript {
         bytes signature;
     }
 
-    string constant NETWORK = "arbitrum";
+    string constant NETWORK = "fork-arbitrum";
     uint256 constant CHAIN_ID = 42161;
 
     address constant SAFE_ADDRESS = 0x266489Bde85ff0dfe1ebF9f0a7e6Fed3a973cEc3;

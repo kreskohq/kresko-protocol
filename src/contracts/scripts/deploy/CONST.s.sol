@@ -12,6 +12,8 @@ library CONST {
     bytes32 constant PYTH_MOCK_SALT = bytes32("MockPythEP_1");
     bytes32 constant MC_SALT = bytes32("Multicall_1");
     bytes32 constant D1_SALT = bytes32("DataV1_1");
+    bytes32 constant D2_SALT = bytes32("DataV2_1");
+    bytes32 constant MS_SALT = bytes32("MarketStatus_1");
 
     string constant KRASSET_NAME_PREFIX = "Kresko: ";
     string constant KISS_PREFIX = "Kresko: ";

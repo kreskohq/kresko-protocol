@@ -21,6 +21,7 @@ import {Asset, FeedConfiguration} from "common/Types.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
+import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 import {getPythData} from "vendor/pyth/PythScript.sol";
 import {MintArgs} from "common/Args.sol";
 
@@ -65,6 +66,11 @@ contract Deploy is Scripted, DeployBase {
             gatingManager = IGatingManager(json.params.common.gatingManager);
         }
 
+        if (json.params.common.marketStatusProvider == address(0)) {
+            json.params.common.marketStatusProvider = super.deployMarketStatusProvider(json, deployer);
+        } else {
+            marketStatusProvider = IMarketStatus(json.params.common.marketStatusProvider);
+        }
         // Create base contracts
         address diamond = super.deployDiamond(json, deployer, salts.kresko);
 
@@ -101,7 +107,7 @@ contract Deploy is Scripted, DeployBase {
         if (json.users.accounts.length > 0) {
             setupUsers(json, deployer, disableLog);
         }
-
+        kresko.setMarketStatusProvider(address(marketStatusProvider));
         gatingManager.setPhase(json.params.gatingPhase);
         if (!disableLog) Log.clg(json.params.gatingPhase, "Gating phase set to: ");
         /* --------------------- Remove deployer access --------------------- */

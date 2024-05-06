@@ -18,6 +18,8 @@ import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {CONST} from "scripts/deploy/CONST.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {MockPyth} from "mocks/MockPyth.sol";
+import {MockMarketStatus} from "src/contracts/mocks/MockMarketStatus.sol";
+import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 import {getPythViewData, getMockPythPayload, PythView} from "vendor/pyth/PythScript.sol";
 import {LibJSON, JSON} from "scripts/deploy/libs/LibJSON.s.sol";
 
@@ -45,6 +47,16 @@ library LibDeploy {
             abi.encode(_owner, json.params.periphery.okNFT, json.params.periphery.qfkNFT, 0)
         );
         return GatingManager(implementation.d3("", CONST.GM_SALT).implementation);
+    }
+
+    function createMarketStatusProvider(
+        JSON.Config memory json,
+        address _owner
+    ) internal saveOutput("MarketStatusProvider") returns (IMarketStatus) {
+        bytes memory implementation = type(MockMarketStatus).creationCode.ctor(abi.encode("0x"));
+        MockMarketStatus provider = MockMarketStatus(implementation.d3("", CONST.MS_SALT).implementation);
+        provider.initialize();
+        return IMarketStatus(address(provider));
     }
 
     function createMockPythEP(JSON.Config memory json, bool _realPrices) internal saveOutput("MockPythEP") returns (MockPyth) {

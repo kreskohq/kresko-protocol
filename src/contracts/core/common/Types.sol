@@ -164,4 +164,5 @@ struct CommonInitArgs {
     address sequencerUptimeFeed;
     address gatingManager;
     address pythEp;
+    address marketStatusProvider;
 }
