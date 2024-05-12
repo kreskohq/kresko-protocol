@@ -2,19 +2,16 @@
 pragma solidity ^0.8.0;
 
 import {ArbScript, Asset} from "scripts/utils/ArbScript.s.sol";
-import {Help, Log, mvm} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {FeedConfiguration, Oracle} from "common/Types.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
-import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
-import {deployPayload} from "scripts/payloads/Payloads.sol";
-import {Payload0003} from "scripts/payloads/Payload0003.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
-contract krEURTask is ArbScript {
+contract AssetAdder is ArbScript {
     using Log for *;
     using Help for *;
     using LibDeploy for JSON.Config;
@@ -24,22 +21,10 @@ contract krEURTask is ArbScript {
 
     FeedConfiguration NO_NEW_FEEDS;
     uint256 currentForkId;
-    modifier jsonOut(string memory id) {
-        LibDeploy.initOutputJSON(id);
-        _;
-        LibDeploy.writeOutputJSON();
-    }
 
-    function execAll() public returns (address krEURAddr) {
-        if (currentForkId == 0) {
-            currentForkId = vm.createSelectFork("arbitrum");
-        }
+    function deployKrAsset(string memory _symbol) public returns (address) {
         JSON.Config memory json = JSON.getConfig("arbitrum", "arbitrum");
-        broadcastWith(safe);
-
-        (, LibDeploy.DeployedKrAsset memory deployInfo) = addKrAsset(json, "krEUR");
-        address payload = deployPayload(type(Payload0003).creationCode, abi.encode(deployInfo.addr), 1);
-        IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(payload, abi.encodeCall(Payload0003.executePayload, ()));
+        (, LibDeploy.DeployedKrAsset memory deployInfo) = addKrAsset(json, _symbol);
         return deployInfo.addr;
     }
 
@@ -47,16 +32,9 @@ contract krEURTask is ArbScript {
         JSON.Config memory json,
         string memory symbol
     ) public jsonOut(symbol) returns (Asset memory config, LibDeploy.DeployedKrAsset memory deployInfo) {
-        symbol.clg("Asset Symbol");
-        json.assets.kreskoAssets.length.clg("KrAssets Configured");
-
         JSON.KrAssetParams memory params = JSON.getKrAsset(json, symbol);
-        params.json.symbol.clg("Asset Symbol");
-        params.json.config.ticker.clg("Ticker");
         deployInfo = json.deployKrAsset(params.json, kreskoAddr);
-
         config = params.json.config.toAsset(symbol);
-
         FeedConfiguration memory feedConfig = getFeedConfig(json, params.json.config, params.ticker);
         validateOracles(config.ticker, feedConfig);
         config = kresko.addAsset(deployInfo.addr, config, feedConfig);
@@ -67,7 +45,6 @@ contract krEURTask is ArbScript {
         config = params.json.config.toAsset(symbol);
 
         address assetAddr = params.json.addr;
-
         FeedConfiguration memory feedConfig = getFeedConfig(json, params.json.config, params.ticker);
         validateOracles(config.ticker, feedConfig);
 
@@ -130,7 +107,9 @@ contract krEURTask is ArbScript {
         require(secondaryPrice != 0, "Secondary price is zero");
     }
 
-    function afterRun(address assetAddr) internal {
-        peekAsset(assetAddr, false);
+    modifier jsonOut(string memory id) {
+        LibDeploy.initOutputJSON(id);
+        _;
+        LibDeploy.writeOutputJSON();
     }
 }
