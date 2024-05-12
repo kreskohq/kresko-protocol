@@ -19,17 +19,21 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
 
     function setUp() public override {
         super.setUp();
+        sender = getAddr(0);
+
         execAll();
+
         deal(user, 1e18);
         deal(USDCAddr, user, 100_000e6);
         dealERC1155(questAddr, user, 0, 1);
 
-        sender = getAddr(0);
         prank(sender);
+
         fetchPythAndUpdate();
         vm.warp(pythEP.getPriceUnsafe(0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43).timestamp);
 
         prank(user);
+
         approvals();
         kresko.depositCollateral(user, USDCAddr, 25_000e6);
     }

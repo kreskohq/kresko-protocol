@@ -19,6 +19,7 @@ import {Percents, Enums} from "common/Constants.sol";
 import {fromWad, toWad} from "common/funcs/Math.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
 import {PythView} from "vendor/pyth/PythScript.sol";
+import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 
 using WadRay for uint256;
 using PercentageMath for uint256;
@@ -31,13 +32,22 @@ using Strings for bytes32;
 /**
  * @notice Gets the oracle price using safety checks for deviation and sequencer uptime
  * @notice Reverts when price deviates more than `_oracleDeviationPct`
+ * @notice Allows stale price when market is closed, market status must be checked before calling this function if needed.
  * @param _ticker Ticker of the price
  * @param _oracles The list of oracle identifiers
  * @param _oracleDeviationPct the deviation percentage
  */
 function safePrice(bytes32 _ticker, Enums.OracleType[2] memory _oracles, uint256 _oracleDeviationPct) view returns (uint256) {
-    uint256[2] memory prices = [oraclePrice(_oracles[0], _ticker), oraclePrice(_oracles[1], _ticker)];
-    if (prices[0] == 0 && prices[1] == 0) {
+    Oracle memory primaryConfig = cs().oracles[_ticker][_oracles[0]];
+    Oracle memory referenceConfig = cs().oracles[_ticker][_oracles[1]];
+
+    bool isClosed = (primaryConfig.isClosable || referenceConfig.isClosable) &&
+        !IMarketStatus(cs().marketStatusProvider).getTickerStatus(_ticker);
+
+    uint256 primaryPrice = oraclePrice(_oracles[0], primaryConfig, _ticker, isClosed);
+    uint256 referencePrice = oraclePrice(_oracles[1], referenceConfig, _ticker, isClosed);
+
+    if (primaryPrice == 0 && referencePrice == 0) {
         revert Errors.ZERO_OR_STALE_PRICE(_ticker.toString(), [uint8(_oracles[0]), uint8(_oracles[1])]);
     }
 
@@ -46,34 +56,41 @@ function safePrice(bytes32 _ticker, Enums.OracleType[2] memory _oracles, uint256
         revert Errors.L2_SEQUENCER_DOWN();
     }
 
-    return deducePrice(prices[0], prices[1], _oracleDeviationPct);
+    return deducePrice(primaryPrice, referencePrice, _oracleDeviationPct);
 }
 
 /**
  * @notice Call the price getter for the oracle provided and return the price.
  * @param _oracleId The oracle id (uint8).
  * @param _ticker Ticker for the asset
+ * @param _allowStale Flag to allow stale price in the case when market is closed.
  * @return uint256 oracle price.
  * This will return 0 if the oracle is not set.
  */
-function oraclePrice(Enums.OracleType _oracleId, bytes32 _ticker) view returns (uint256) {
+function oraclePrice(
+    Enums.OracleType _oracleId,
+    Oracle memory _config,
+    bytes32 _ticker,
+    bool _allowStale
+) view returns (uint256) {
     if (_oracleId == Enums.OracleType.Empty) return 0;
-    Oracle memory config = cs().oracles[_ticker][_oracleId];
 
-    if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker, config.staleTime);
+    uint256 staleTime = _allowStale ? _config.staleTime : 3 days;
 
-    if (_oracleId == Enums.OracleType.Pyth) return pythPrice(config.pythId, config.invertPyth, config.staleTime);
+    if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker, staleTime);
+
+    if (_oracleId == Enums.OracleType.Pyth) return pythPrice(_config.pythId, _config.invertPyth, staleTime);
 
     if (_oracleId == Enums.OracleType.Vault) {
-        return vaultPrice(config.feed);
+        return vaultPrice(_config.feed);
     }
 
     if (_oracleId == Enums.OracleType.Chainlink) {
-        return aggregatorV3Price(config.feed, config.staleTime);
+        return aggregatorV3Price(_config.feed, staleTime);
     }
 
     if (_oracleId == Enums.OracleType.API3) {
-        return API3Price(config.feed, config.staleTime);
+        return API3Price(_config.feed, staleTime);
     }
 
     // Revert if no answer is found
