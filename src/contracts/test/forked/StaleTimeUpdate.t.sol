@@ -6,11 +6,13 @@ import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
 import {StaleTimeUpdate} from "scripts/tasks/StaleTimeUpdate.s.sol";
 import {MintArgs, SwapArgs} from "common/Args.sol";
 import {Log} from "kresko-lib/utils/Libs.s.sol";
+import {Tested} from "kresko-lib/utils/Tested.t.sol";
 
-contract StaleTimeUpdateTest is StaleTimeUpdate {
+contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
     using Log for *;
     using ShortAssert for *;
 
+    address user = makeAddr("user");
     bytes32[] tickers = [bytes32(0x43525950544f0000000000000000000000000000000000000000000000000000)];
     bool[] closed = [false];
     bool[] open = [true];
@@ -18,11 +20,23 @@ contract StaleTimeUpdateTest is StaleTimeUpdate {
     function setUp() public override {
         super.setUp();
         execAll();
+        deal(user, 1e18);
+        deal(USDCAddr, user, 100_000e6);
+        dealERC1155(questAddr, user, 0, 1);
 
         sender = getAddr(0);
         prank(sender);
         fetchPythAndUpdate();
         vm.warp(pythEP.getPriceUnsafe(0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43).timestamp);
+
+        prank(user);
+        approvals();
+        kresko.depositCollateral(user, USDCAddr, 25_000e6);
+    }
+
+    function testCanMintKrEUR() external pranked(user) {
+        kresko.mintKreskoAsset(MintArgs({account: user, receiver: user, krAsset: krEURAddr, amount: 1e18}), pythUpdate);
+        kresko.getAccountCollateralAmount(user, USDCAddr).clg("coll");
     }
 
     function testSwapCryptoKrAsset() external pranked(sender) {
