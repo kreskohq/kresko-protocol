@@ -19,7 +19,7 @@ contract MarketStatusUpdate is ProtocolUpgrader, ArbScript {
     DataV2 dataV2;
 
     function setUp() public virtual {
-        vm.createSelectFork("arbitrum");
+        vm.createSelectFork("arbitrum", 208100230);
         useMnemonic("MNEMONIC");
         initUpgrader(kreskoAddr, factoryAddr, CreateMode.Create2);
     }
@@ -32,16 +32,7 @@ contract MarketStatusUpdate is ProtocolUpgrader, ArbScript {
 
     function payload0010() public output("market-status-update") {
         broadcastWith(safe);
-        createFacetCut("CommonConfigFacet");
-        createFacetCut("CommonStateFacet");
-        createFacetCut("AssetStateFacet");
-        createFacetCut("MinterMintFacet");
-        createFacetCut("MinterBurnFacet");
-        createFacetCut("SCDPSwapFacet");
-        createFacetCut("SCDPFacet");
-        createFacetCut("ViewDataFacet");
-        createFacetCut("MinterLiquidationFacet");
-        executeCuts("MarketStatusUpdate", false);
+        fullUpgrade();
         kresko.setMarketStatusProvider(address(provider));
     }
 }
