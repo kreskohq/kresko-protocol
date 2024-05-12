@@ -7,18 +7,14 @@ import {Log, Help} from "kresko-lib/utils/Libs.s.sol";
 import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
 import {Tested} from "kresko-lib/utils/Tested.t.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {IWETH9} from "kresko-lib/token/IWETH9.sol";
-import {FacetCut, FacetCutAction} from "diamond/DSTypes.sol";
 import {CommonConfigFacet} from "common/facets/CommonConfigFacet.sol";
 import {CommonStateFacet} from "common/facets/CommonStateFacet.sol";
 import {AssetStateFacet} from "common/facets/AssetStateFacet.sol";
-import {MockMarketStatus} from "src/contracts/mocks/MockMarketStatus.sol";
-import {ProtocolUpgrader, ArbDeployAddr} from "scripts/utils/ProtocolUpgrader.s.sol";
-import {IDataV1} from "periphery/interfaces/IDataV1.sol";
-import {console} from "forge-std/console.sol";
+import {ProtocolUpgrader} from "scripts/utils/ProtocolUpgrader.s.sol";
 import {DataV2} from "periphery/DataV2.sol";
 import {DataV1} from "periphery/DataV1.sol";
 import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
+import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 
 contract MarketStatusTest is Tested, ProtocolUpgrader, ArbDeployAddr {
     using Log for *;
@@ -38,45 +34,10 @@ contract MarketStatusTest is Tested, ProtocolUpgrader, ArbDeployAddr {
 
     function setUp() public pranked(safe) {
         vm.createSelectFork("arbitrum", 206380985); // Market status already running at this block
+        initUpgrader(kreskoAddr, factoryAddr, CreateMode.Create2);
 
         // Deploy new facets
-        config = new CommonConfigFacet();
-        state = new CommonStateFacet();
-        assetState = new AssetStateFacet();
-
-        // Update CommonConfigFacet
-        bytes4[] memory selectors = getSelectors("CommonConfigFacet");
-        address oldFacet = kresko.facetAddress(selectors[0]);
-        bytes4[] memory oldSelectors = kresko.facetFunctionSelectors(oldFacet);
-        FacetCut[] memory cuts = new FacetCut[](1);
-        // Remove Config facet
-        cuts[0] = (FacetCut({facetAddress: address(0), action: FacetCutAction.Remove, functionSelectors: oldSelectors}));
-        kresko.diamondCut(cuts, address(0), "");
-        // Add Config facet
-        cuts[0] = FacetCut(address(config), FacetCutAction.Add, selectors);
-        kresko.diamondCut(cuts, address(0), "");
-
-        // Update CommonStateFacet
-        selectors = getSelectors("CommonStateFacet");
-        oldFacet = kresko.facetAddress(selectors[0]);
-        oldSelectors = kresko.facetFunctionSelectors(oldFacet);
-        // Remove CommonState facet
-        cuts[0] = FacetCut({facetAddress: address(0), action: FacetCutAction.Remove, functionSelectors: oldSelectors});
-        kresko.diamondCut(cuts, address(0), "");
-        // Add CommonState facet
-        cuts[0] = FacetCut(address(state), FacetCutAction.Add, selectors);
-        kresko.diamondCut(cuts, address(0), "");
-
-        // Update AssetStateFacet
-        selectors = getSelectors("AssetStateFacet");
-        oldFacet = kresko.facetAddress(selectors[0]);
-        oldSelectors = kresko.facetFunctionSelectors(oldFacet);
-        // Remove AssetState facet
-        cuts[0] = FacetCut({facetAddress: address(0), action: FacetCutAction.Remove, functionSelectors: oldSelectors});
-        kresko.diamondCut(cuts, address(0), "");
-        // Add AssetState facet
-        cuts[0] = FacetCut(address(assetState), FacetCutAction.Add, selectors);
-        kresko.diamondCut(cuts, address(0), "");
+        fullUpgrade();
 
         // Set Market Status Provider
         kresko.getMarketStatusProvider().eq(address(0));

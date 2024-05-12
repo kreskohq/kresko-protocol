@@ -20,6 +20,7 @@ import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {MockPyth} from "mocks/MockPyth.sol";
 import {getPythViewData, getMockPythPayload, PythView} from "vendor/pyth/PythScript.sol";
 import {LibJSON, JSON} from "scripts/deploy/libs/LibJSON.s.sol";
+import {MockMarketStatus} from "src/contracts/mocks/MockMarketStatus.sol";
 
 library LibDeploy {
     using Conversions for bytes[];
@@ -45,6 +46,10 @@ library LibDeploy {
             abi.encode(_owner, json.params.periphery.okNFT, json.params.periphery.qfkNFT, 0)
         );
         return GatingManager(implementation.d3("", CONST.GM_SALT).implementation);
+    }
+
+    function createMockMarketStatusProvider(JSON.Config memory) internal saveOutput("MarketStatus") returns (MockMarketStatus) {
+        return MockMarketStatus(type(MockMarketStatus).creationCode.d3("", CONST.MOCK_STATUS_SALT).implementation);
     }
 
     function createMockPythEP(JSON.Config memory json, bool _realPrices) internal saveOutput("MockPythEP") returns (MockPyth) {

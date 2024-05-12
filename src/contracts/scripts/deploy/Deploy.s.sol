@@ -23,6 +23,7 @@ import {IGatingManager} from "periphery/IGatingManager.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
 import {getPythData} from "vendor/pyth/PythScript.sol";
 import {MintArgs} from "common/Args.sol";
+import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 
 contract Deploy is Scripted, DeployBase {
     using LibJSON for *;
@@ -67,6 +68,12 @@ contract Deploy is Scripted, DeployBase {
 
         // Create base contracts
         address diamond = super.deployDiamond(json, deployer, salts.kresko);
+
+        if (json.params.common.marketStatusProvider == address(0)) {
+            json.params.common.marketStatusProvider = address(json.createMockMarketStatusProvider());
+        }
+
+        kresko.setMarketStatusProvider(json.params.common.marketStatusProvider);
 
         vault = json.createVault(deployer);
         kiss = json.createKISS(diamond, address(vault));
