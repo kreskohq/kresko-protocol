@@ -8,7 +8,7 @@ import {MintArgs, SwapArgs} from "common/Args.sol";
 import {Log} from "kresko-lib/utils/Libs.s.sol";
 import {Tested} from "kresko-lib/utils/Tested.t.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {Asset} from "common/Types.sol";
+import {Asset, Enums} from "common/Types.sol";
 import {Errors} from "common/Errors.sol";
 import {LiquidationArgs} from "common/Args.sol";
 
@@ -44,6 +44,26 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
         states_looseOracles();
 
         krEURAsset = kresko.getAsset(krEURAddr);
+    }
+
+    function testTickerClosable() external {
+        kresko.getOracleOfTicker(bytes32("EUR"), Enums.OracleType.Pyth).isClosable.eq(true, "eur-pyth-should-be-closable");
+        kresko.getOracleOfTicker(bytes32("EUR"), Enums.OracleType.Chainlink).isClosable.eq(
+            true,
+            "eur-chainlink-should-be-closable"
+        );
+
+        kresko.getOracleOfTicker(bytes32("SOL"), Enums.OracleType.Pyth).isClosable.eq(false, "sol-pyth-should-not-be-closable");
+        kresko.getOracleOfTicker(bytes32("SOL"), Enums.OracleType.Chainlink).isClosable.eq(
+            false,
+            "sol-chainlink-should-not-be-closable"
+        );
+
+        kresko.getOracleOfTicker(bytes32("BTC"), Enums.OracleType.Pyth).isClosable.eq(false, "btc-pyth-should-not-be-closable");
+        kresko.getOracleOfTicker(bytes32("BTC"), Enums.OracleType.Chainlink).isClosable.eq(
+            false,
+            "btc-chainlink-should-not-be-closable"
+        );
     }
 
     function testMarketIsClosed() external {

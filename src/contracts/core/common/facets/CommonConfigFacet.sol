@@ -87,13 +87,19 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
         }
         for (uint256 i; i < oracles.length; i++) {
             if (oracles[i] == Enums.OracleType.Chainlink) {
-                setChainLinkFeed(_ticker, feeds[i], _feedConfig.staleTimes[i]);
+                setChainLinkFeed(_ticker, feeds[i], _feedConfig.staleTimes[i], _feedConfig.isClosable);
             } else if (oracles[i] == Enums.OracleType.API3) {
-                setAPI3Feed(_ticker, feeds[i], _feedConfig.staleTimes[i]);
+                setAPI3Feed(_ticker, feeds[i], _feedConfig.staleTimes[i], _feedConfig.isClosable);
             } else if (oracles[i] == Enums.OracleType.Vault) {
                 setVaultFeed(_ticker, feeds[i]);
             } else if (oracles[i] == Enums.OracleType.Pyth) {
-                setPythFeed(_ticker, _feedConfig.pythId, _feedConfig.invertPyth, _feedConfig.staleTimes[i]);
+                setPythFeed(
+                    _ticker,
+                    _feedConfig.pythId,
+                    _feedConfig.invertPyth,
+                    _feedConfig.staleTimes[i],
+                    _feedConfig.isClosable
+                );
             }
         }
     }
@@ -102,12 +108,13 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
     function setChainlinkFeeds(
         bytes32[] calldata _tickers,
         address[] calldata _feeds,
-        uint256[] calldata _staleTimes
+        uint256[] calldata _staleTimes,
+        bool[] calldata _isClosables
     ) public onlyRole(Role.ADMIN) {
         if (_tickers.length != _feeds.length) revert Errors.ARRAY_LENGTH_MISMATCH("", _tickers.length, _feeds.length);
 
         for (uint256 i; i < _tickers.length; i++) {
-            setChainLinkFeed(_tickers[i], _feeds[i], _staleTimes[i]);
+            setChainLinkFeed(_tickers[i], _feeds[i], _staleTimes[i], _isClosables[i]);
         }
     }
 
@@ -115,12 +122,13 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
     function setAPI3Feeds(
         bytes32[] calldata _tickers,
         address[] calldata _feeds,
-        uint256[] calldata _staleTimes
+        uint256[] calldata _staleTimes,
+        bool[] calldata _isClosables
     ) public onlyRole(Role.ADMIN) {
         if (_tickers.length != _feeds.length) revert Errors.ARRAY_LENGTH_MISMATCH("", _tickers.length, _feeds.length);
 
         for (uint256 i; i < _tickers.length; i++) {
-            setAPI3Feed(_tickers[i], _feeds[i], _staleTimes[i]);
+            setAPI3Feed(_tickers[i], _feeds[i], _staleTimes[i], _isClosables[i]);
         }
     }
 
@@ -130,32 +138,52 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
             revert Errors.ARRAY_LENGTH_MISMATCH("", _tickers.length, _pythConfig.pythIds.length);
 
         for (uint256 i; i < _tickers.length; i++) {
-            setPythFeed(_tickers[i], _pythConfig.pythIds[i], _pythConfig.invertPyth[i], _pythConfig.staleTimes[i]);
+            setPythFeed(
+                _tickers[i],
+                _pythConfig.pythIds[i],
+                _pythConfig.invertPyth[i],
+                _pythConfig.staleTimes[i],
+                _pythConfig.isClosables[i]
+            );
         }
     }
 
-    function setPythFeed(bytes32 _ticker, bytes32 _pythId, bool _invert, uint256 _staleTime) public onlyRole(Role.ADMIN) {
+    function setPythFeed(
+        bytes32 _ticker,
+        bytes32 _pythId,
+        bool _invert,
+        uint256 _staleTime,
+        bool _isClosable
+    ) public onlyRole(Role.ADMIN) {
         if (_pythId == bytes32(0)) revert Errors.PYTH_ID_ZERO(_ticker.toString());
         cs().oracles[_ticker][Enums.OracleType.Pyth].pythId = _pythId;
         cs().oracles[_ticker][Enums.OracleType.Pyth].staleTime = _staleTime;
         cs().oracles[_ticker][Enums.OracleType.Pyth].invertPyth = _invert;
+        cs().oracles[_ticker][Enums.OracleType.Pyth].isClosable = _isClosable;
     }
 
     /// @inheritdoc ICommonConfigFacet
-    function setChainLinkFeed(bytes32 _ticker, address _feedAddr, uint256 _staleTime) public onlyRole(Role.ADMIN) {
+    function setChainLinkFeed(
+        bytes32 _ticker,
+        address _feedAddr,
+        uint256 _staleTime,
+        bool _isClosable
+    ) public onlyRole(Role.ADMIN) {
         if (_feedAddr == address(0)) revert Errors.FEED_ZERO_ADDRESS(_ticker.toString());
         cs().oracles[_ticker][Enums.OracleType.Chainlink].feed = _feedAddr;
         cs().oracles[_ticker][Enums.OracleType.Chainlink].staleTime = _staleTime;
+        cs().oracles[_ticker][Enums.OracleType.Chainlink].isClosable = _isClosable;
         if (CommonStateFacet(address(this)).getChainlinkPrice(_ticker) == 0) {
             revert Errors.INVALID_CL_PRICE(_ticker.toString(), _feedAddr);
         }
     }
 
     /// @inheritdoc ICommonConfigFacet
-    function setAPI3Feed(bytes32 _ticker, address _feedAddr, uint256 _staleTime) public onlyRole(Role.ADMIN) {
+    function setAPI3Feed(bytes32 _ticker, address _feedAddr, uint256 _staleTime, bool _isClosable) public onlyRole(Role.ADMIN) {
         if (_feedAddr == address(0)) revert Errors.FEED_ZERO_ADDRESS(_ticker.toString());
         cs().oracles[_ticker][Enums.OracleType.API3].feed = _feedAddr;
         cs().oracles[_ticker][Enums.OracleType.API3].staleTime = _staleTime;
+        cs().oracles[_ticker][Enums.OracleType.API3].isClosable = _isClosable;
 
         if (CommonStateFacet(address(this)).getAPI3Price(_ticker) == 0) {
             revert Errors.INVALID_API3_PRICE(_ticker.toString(), _feedAddr);
