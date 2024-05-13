@@ -23,8 +23,8 @@ contract StaleTimeUpdate is ProtocolUpgrader, AssetAdder {
     DataV2 dataV2;
 
     function setUp() public virtual {
-        vm.createSelectFork("arbitrum", 210453827);
         useMnemonic("MNEMONIC");
+        vm.createSelectFork("https://rpc.tenderly.co/fork/79bd2b6a-c927-42fc-b53b-9642660b0cfb");
         initUpgrader(kreskoAddr, factoryAddr, CreateMode.Create2);
     }
 
@@ -38,6 +38,7 @@ contract StaleTimeUpdate is ProtocolUpgrader, AssetAdder {
         broadcastWith(getAddr(0));
         DataV2 newDataV2 = new DataV2(kreskoAddr, vaultAddr, kissAddr, address(quoter), kreskianAddr, questAddr);
         dataV2 = newDataV2;
+        address(dataV2).clg("datav2");
     }
 
     function execAll() public output("market-status-update") {
@@ -45,5 +46,13 @@ contract StaleTimeUpdate is ProtocolUpgrader, AssetAdder {
         fullUpgrade();
         kresko.setMarketStatusProvider(address(provider));
         createkrEUR();
+    }
+
+    function execFork() public {
+        broadcastWith(safe);
+        fullUpgrade();
+        kresko.setMarketStatusProvider(address(provider));
+        createkrEUR();
+        states_looseOracles();
     }
 }
