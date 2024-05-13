@@ -98,8 +98,8 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
         if (sync) syncTimeLocal();
     }
 
-    function fetchPyth(string memory assets) internal {
-        (bytes[] memory update, PythView memory values) = getPythData(assets);
+    function fetchPyth(string memory _assets) internal {
+        (bytes[] memory update, PythView memory values) = getPythData(_assets);
         pythUpdate = update;
         pythView.ids = values.ids;
         delete pythView.prices;
@@ -110,6 +110,11 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
 
     function fetchPyth() internal {
         fetchPyth(pythAssets);
+    }
+
+    function fetchPythAndUpdate(string memory _assets) internal {
+        fetchPyth(_assets);
+        pythEP.updatePriceFeeds{value: pythEP.getUpdateFee(pythUpdate)}(pythUpdate);
     }
 
     function fetchPythAndUpdate() internal {
@@ -214,6 +219,12 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
         vault.setWithdrawFee(USDCeAddr, 0);
         vault.setDepositFee(USDCAddr, 0);
         vault.setWithdrawFee(USDCAddr, 0);
+    }
+
+    function states_looseOracles() internal {
+        vault.setAssetFeed(USDCAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
+        vault.setAssetFeed(USDCeAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
+        kresko.setMaxPriceDeviationPct(25e2);
     }
 
     function states_noFactorsNoFees() internal {
