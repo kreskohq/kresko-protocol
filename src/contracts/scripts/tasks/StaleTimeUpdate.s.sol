@@ -23,7 +23,7 @@ contract StaleTimeUpdate is ProtocolUpgrader, AssetAdder {
     DataV2 dataV2;
 
     function setUp() public virtual {
-        useMnemonic("MNEMONIC");
+        useMnemonic("MNEMONIC_DEVNET");
         vm.createSelectFork("https://rpc.tenderly.co/fork/79bd2b6a-c927-42fc-b53b-9642660b0cfb");
         initUpgrader(kreskoAddr, factoryAddr, CreateMode.Create2);
     }
@@ -48,11 +48,7 @@ contract StaleTimeUpdate is ProtocolUpgrader, AssetAdder {
         createkrEUR();
     }
 
-    function execFork() public {
-        broadcastWith(safe);
-        fullUpgrade();
-        kresko.setMarketStatusProvider(address(provider));
-        createkrEUR();
-        states_looseOracles();
-    }
+    bool[] closed = [false];
+    bool[] open = [true];
+    bytes32[] exchangesNonCrypto = [bytes32(0x464f524558000000000000000000000000000000000000000000000000000000)];
 }

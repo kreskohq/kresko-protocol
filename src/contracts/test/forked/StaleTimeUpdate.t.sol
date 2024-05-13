@@ -21,7 +21,6 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
 
     function setUp() public override {
         super.setUp();
-        sender = getAddr(0);
 
         execAll();
 
@@ -29,12 +28,9 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
         deal(USDCAddr, user, 100_000e6);
         dealERC1155(questAddr, user, 0, 1);
 
-        prank(sender);
-
+        prank(user);
         fetchPythAndUpdate();
         vm.warp(pythEP.getPriceUnsafe(0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43).timestamp);
-
-        prank(user);
 
         approvals();
         IERC20(krEURAddr).approve(kreskoAddr, type(uint256).max);
@@ -186,12 +182,12 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
         );
     }
 
-    function testSwapCryptoKrAsset() external pranked(sender) {
+    function testSwapCryptoKrAsset() external pranked(user) {
         _closeCrypto();
         vm.expectRevert();
         kresko.swapSCDP(
             SwapArgs({
-                receiver: sender,
+                receiver: user,
                 assetIn: kissAddr,
                 assetOut: krSOLAddr,
                 amountIn: 1e18,
@@ -203,7 +199,7 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
         _openCrypto();
         kresko.swapSCDP(
             SwapArgs({
-                receiver: sender,
+                receiver: user,
                 assetIn: kissAddr,
                 assetOut: krSOLAddr,
                 amountIn: 1e18,
@@ -213,12 +209,12 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
         );
     }
 
-    function testSwapNonCryptoKrAsset() external pranked(sender) {
+    function testSwapNonCryptoKrAsset() external pranked(user) {
         _closeCrypto();
         vm.expectRevert();
         kresko.swapSCDP(
             SwapArgs({
-                receiver: sender,
+                receiver: user,
                 assetIn: kissAddr,
                 assetOut: krSOLAddr,
                 amountIn: 1e18,
@@ -230,7 +226,7 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
         _openCrypto();
         kresko.swapSCDP(
             SwapArgs({
-                receiver: sender,
+                receiver: user,
                 assetIn: kissAddr,
                 assetOut: krSOLAddr,
                 amountIn: 1e18,
@@ -240,19 +236,18 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
         );
     }
 
-    function testMintCryptoKrAsset() external pranked(sender) {
+    function testMintCryptoKrAsset() external pranked(user) {
         _closeCrypto();
         vm.expectRevert();
-        kresko.mintKreskoAsset(MintArgs({account: sender, receiver: sender, krAsset: kissAddr, amount: 1e18}), pythUpdate);
+        kresko.mintKreskoAsset(MintArgs({account: user, receiver: user, krAsset: kissAddr, amount: 1e18}), pythUpdate);
 
         _openCrypto();
-        kresko.mintKreskoAsset(MintArgs({account: sender, receiver: sender, krAsset: kissAddr, amount: 1e18}), pythUpdate);
+        kresko.mintKreskoAsset(MintArgs({account: user, receiver: user, krAsset: kissAddr, amount: 1e18}), pythUpdate);
     }
 
     bytes32[] exchangesCrypto = [bytes32(0x43525950544f0000000000000000000000000000000000000000000000000000)];
-    bytes32[] exchangesNonCrypto = [bytes32(0x464f524558000000000000000000000000000000000000000000000000000000)];
-    bool[] closed = [false];
-    bool[] open = [true];
+
+    // bytes32[] exchangesNonCrypto = [bytes32(0x464f524558000000000000000000000000000000000000000000000000000000)];
 
     function _closeCrypto() internal repranked(provider.owner()) {
         provider.setStatus(exchangesCrypto, closed);

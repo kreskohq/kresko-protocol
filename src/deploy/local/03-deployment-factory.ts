@@ -8,6 +8,10 @@ const deploy: DeployFunction = async function (hre) {
   })
 
   hre.DeploymentFactory = DeploymentFactory
+
+  const [MockMarketStatus] = await hre.deploy('MockMarketStatus')
+
+  hre.Diamond.setMarketStatusProvider(MockMarketStatus.address)
 }
 deploy.tags = ['local', 'all', 'core', 'proxy']
 export default deploy
