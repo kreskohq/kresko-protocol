@@ -524,7 +524,8 @@
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
       "11_useAdapter": false,
-      "12_invertPyth": false
+      "12_invertPyth": false,
+      "13_isClosable": false
     },
     {
       "00_ticker": "TSLA",
@@ -539,7 +540,8 @@
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
       "11_useAdapter": false,
-      "12_invertPyth": false
+      "12_invertPyth": false,
+      "13_isClosable": true
     },
     {
       "00_ticker": "ETH",
@@ -554,7 +556,8 @@
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
       "11_useAdapter": false,
-      "12_invertPyth": false
+      "12_invertPyth": false,
+      "13_isClosable": false
     },
     {
       "00_ticker": "BTC",
@@ -569,7 +572,8 @@
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
       "11_useAdapter": false,
-      "12_invertPyth": false
+      "12_invertPyth": false,
+      "13_isClosable": false
     },
     {
       "00_ticker": "EUR",
@@ -584,7 +588,8 @@
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
       "11_useAdapter": false,
-      "12_invertPyth": false
+      "12_invertPyth": false,
+      "13_isClosable": true
     },
     {
       "00_ticker": "DAI",
@@ -599,7 +604,8 @@
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
       "11_useAdapter": false,
-      "12_invertPyth": false
+      "12_invertPyth": false,
+      "13_isClosable": false
     },
     {
       "00_ticker": "USDC",
@@ -614,7 +620,8 @@
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
       "11_useAdapter": false,
-      "12_invertPyth": false
+      "12_invertPyth": false,
+      "13_isClosable": false
     },
     {
       "00_ticker": "XAU",
@@ -629,7 +636,8 @@
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
       "11_useAdapter": false,
-      "12_invertPyth": false
+      "12_invertPyth": false,
+      "13_isClosable": true
     },
     {
       "00_ticker": "USDT",
@@ -644,7 +652,8 @@
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
       "11_useAdapter": false,
-      "12_invertPyth": false
+      "12_invertPyth": false,
+      "13_isClosable": false
     },
     {
       "00_ticker": "JPY",
@@ -659,7 +668,8 @@
       "09_staleTimeChainlink": 86401,
       "10_staleTimeRedstone": 300,
       "11_useAdapter": false,
-      "12_invertPyth": false
+      "12_invertPyth": false,
+      "13_isClosable": true
     }
   ],
   "07_customTradeRoutes": [

@@ -23,7 +23,6 @@ import {IGatingManager} from "periphery/IGatingManager.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
 import {getPythData} from "vendor/pyth/PythScript.sol";
 import {MintArgs} from "common/Args.sol";
-import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 
 contract Deploy is Scripted, DeployBase {
     using LibJSON for *;
@@ -147,6 +146,7 @@ contract Deploy is Scripted, DeployBase {
                         [address(vault), address(0)],
                         [uint256(0), 0],
                         bytes32(0),
+                        false,
                         false
                     )
                 )

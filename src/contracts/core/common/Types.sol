@@ -23,6 +23,10 @@ struct Oracle {
  * @notice Feed configuration.
  * @param oracleIds List of two supported oracle providers.
  * @param feeds List of two feed addresses matching to the providers supplied. Redstone will be address(0).
+ * @param staleTimes List of two stale times for the feeds.
+ * @param pythId Pyth asset ID.
+ * @param invertPyth Invert the Pyth price.
+ * @param isClosable Is the market for the ticker closable.
  */
 struct FeedConfiguration {
     Enums.OracleType[2] oracleIds;
@@ -30,6 +34,7 @@ struct FeedConfiguration {
     uint256[2] staleTimes;
     bytes32 pythId;
     bool invertPyth;
+    bool isClosable;
 }
 
 /**
