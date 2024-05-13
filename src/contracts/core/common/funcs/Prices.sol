@@ -75,7 +75,7 @@ function oraclePrice(
 ) view returns (uint256) {
     if (_oracleId == Enums.OracleType.Empty) return 0;
 
-    uint256 staleTime = _allowStale ? _config.staleTime : 3 days;
+    uint256 staleTime = _allowStale ? _config.staleTime : 4 days;
 
     if (_oracleId == Enums.OracleType.Redstone) return Redstone.getPrice(_ticker, staleTime);
 
