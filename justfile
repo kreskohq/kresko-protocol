@@ -225,7 +225,7 @@ set positional-arguments
 	forge script $1 --sig "$2()" --ffi --broadcast --unlocked -vvv
 
 @resume-fork script func: 
-	forge script $1 --sig "$2()" --ffi --broadcast --skip-simulation --unlocked -vvv --resume --rpc-url "https://rpc.tenderly.co/fork/79bd2b6a-c927-42fc-b53b-9642660b0cfb"
+	forge script $1 --sig "$2()" --ffi --broadcast --skip-simulation --unlocked -vvv --resume --rpc-url "https://rpc.tenderly.co/fork/3fc8bc37-2867-4ed3-badb-0b1bab83a731"
 
 @test func: 
 	forge test --mt ".*$1.*" --ffi -vvv && \
