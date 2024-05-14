@@ -24,7 +24,7 @@ contract StaleTimeUpdate is ProtocolUpgrader, AssetAdder {
 
     function setUp() public virtual {
         useMnemonic("MNEMONIC");
-        vm.createSelectFork("https://rpc.tenderly.co/fork/3fc8bc37-2867-4ed3-badb-0b1bab83a731");
+        vm.createSelectFork("arbitrum", 210453827);
         initUpgrader(kreskoAddr, factoryAddr, CreateMode.Create2);
     }
 
