@@ -15,19 +15,6 @@ hasBun := `bun --help | grep -q 'Usage: bun' && echo true || echo false`
 hasFoundry := `forge --version | grep -q 'forge' && echo true || echo false`
 hasPM2 := `bunx pm2 | grep -q 'usage: pm2' && echo true || echo false`
 
-@deploy script sig: 
-  forge script $1 --sig "$2()" --ffi --broadcast \
-  --chain arbitrum \
-  --fork-url "$RPC_ARBITRUM_INFURA" \
-  --verify
-
-@resume script sig:
-  forge script $1 --sig "$2()" --ffi --broadcast \
-  --chain arbitrum \
-  --skip-simulation \
-  --rpc-url "$RPC_ARBITRUM_INFURA" \
-  --verify \
-  --resume
 
 
 deploy-local:
@@ -180,21 +167,35 @@ flats:
 	forge flatten src/contracts/core/vault/interfaces/IVaultRateProvider.sol > out/IVaultRateProvider.sol 
 
 verify-proxy-contract:
-	forge verify-contract 0x \
+	forge verify-contract 0x83BB68a7437b02ebBe1ab2A0E8B464CC5510Aafe \
 	src/contracts/core/factory/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy \
+	--chain arbitrum \
+	--watch \
+	--constructor-args "0x0000000000000000000000000538a0e016bce0b986366c2dfc5b9713d4b36cd9000000000000000000000000000000000070ab95211e32fda3b706589d3482d5000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001a471206626000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000012000000000000000000000000266489bde85ff0dfe1ebf9f0a7e6fed3a973cec30000000000000000000000000000000000177abd99485dcaea3efaa91db3fe720000000000000000000000000000000000000000000000000000000000000000000000000000000000000000266489bde85ff0dfe1ebf9f0a7e6fed3a973cec300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c4b7265736b6f3a204575726f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000056b7245555200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+
+verify-contract:
+	forge verify-contract 0x0538A0E016bcE0B986366C2DFc5b9713d4B36cd9 \
+	KreskoAsset \
 	--chain arbitrum \
 	--watch \
 	--constructor-args "0x"
 
-verify-contract:
-	forge verify-contract 0xC35A7648B434f0A161c12BD144866bdf93c4a4FC \
-	KrMulticall \
-	--chain arbitrum \
-	--watch \
-	--constructor-args "0x0000000000000000000000000000000000177abd99485dcaea3efaa91db3fe720000000000000000000000006a1d6d2f4af6915e6bba8f2db46f442d18db5c9b00000000000000000000000068b3465833fb72a70ecdf485e0e4c7bd8665fc4500000000000000000000000082af49447d8a07e3bd95bd0d56f35241523fbab1000000000000000000000000ff1a0f4744e8582df1ae09d5611b887b6a12925c000000000000000000000000266489bde85ff0dfe1ebf9f0a7e6fed3a973cec3"
-
 
 set positional-arguments
+
+@deploy script sig: 
+  forge script $1 --sig "$2()" --ffi --broadcast \
+  --chain arbitrum --skip-simulation \
+  --fork-url "$RPC_ARBITRUM_INFURA" \
+  --verify
+
+@resume script sig:
+  forge script $1 --sig "$2()" --ffi --broadcast \
+  --chain arbitrum \
+  --skip-simulation \
+  --rpc-url "$RPC_ARBITRUM_INFURA" \
+  --verify \
+  --resume
 
 @safe-run script func: 
 	forge script $1 --sig "$2()" --ffi -vvv && \

@@ -22,7 +22,7 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
     function setUp() public override {
         super.setUp();
 
-        execAll();
+        // execAll();
 
         deal(user, 1e18);
         deal(USDCAddr, user, 100_000e6);
@@ -48,6 +48,11 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
             true,
             "eur-chainlink-should-be-closable"
         );
+        kresko.getOracleOfTicker(bytes32("JPY"), Enums.OracleType.Pyth).isClosable.eq(true, "jpy-pyth-should-be-closable");
+        kresko.getOracleOfTicker(bytes32("JPY"), Enums.OracleType.Chainlink).isClosable.eq(
+            true,
+            "jpy-chainlink-should-be-closable"
+        );
 
         kresko.getOracleOfTicker(bytes32("SOL"), Enums.OracleType.Pyth).isClosable.eq(false, "sol-pyth-should-not-be-closable");
         kresko.getOracleOfTicker(bytes32("SOL"), Enums.OracleType.Chainlink).isClosable.eq(
@@ -59,6 +64,14 @@ contract StaleTimeUpdateTest is Tested, StaleTimeUpdate {
         kresko.getOracleOfTicker(bytes32("BTC"), Enums.OracleType.Chainlink).isClosable.eq(
             false,
             "btc-chainlink-should-not-be-closable"
+        );
+    }
+
+    function testJpy() external {
+        kresko.getOracleOfTicker(bytes32("JPY"), Enums.OracleType.Pyth).isClosable.eq(true, "jpy-pyth-should-be-closable");
+        kresko.getOracleOfTicker(bytes32("JPY"), Enums.OracleType.Chainlink).isClosable.eq(
+            true,
+            "jpy-chainlink-should-be-closable"
         );
     }
 
