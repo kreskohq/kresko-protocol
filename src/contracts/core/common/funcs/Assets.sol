@@ -13,6 +13,7 @@ import {ms} from "minter/MState.sol";
 import {scdp} from "scdp/SState.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
+import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 
 library Assets {
     using WadRay for uint256;
@@ -44,8 +45,8 @@ library Assets {
         return self.collateralAmountToValue(_amount, true);
     }
 
-    function isMarketOpen(Asset storage) internal pure returns (bool) {
-        return true;
+    function isMarketOpen(Asset storage self) internal view returns (bool) {
+        return IMarketStatus(cs().marketStatusProvider).getTickerStatus(self.ticker);
     }
 
     /* -------------------------------------------------------------------------- */

@@ -68,6 +68,12 @@ contract Deploy is Scripted, DeployBase {
         // Create base contracts
         address diamond = super.deployDiamond(json, deployer, salts.kresko);
 
+        if (json.params.common.marketStatusProvider == address(0)) {
+            json.params.common.marketStatusProvider = address(json.createMockMarketStatusProvider());
+        }
+
+        kresko.setMarketStatusProvider(json.params.common.marketStatusProvider);
+
         vault = json.createVault(deployer);
         kiss = json.createKISS(diamond, address(vault));
 
@@ -140,6 +146,7 @@ contract Deploy is Scripted, DeployBase {
                         [address(vault), address(0)],
                         [uint256(0), 0],
                         bytes32(0),
+                        false,
                         false
                     )
                 )

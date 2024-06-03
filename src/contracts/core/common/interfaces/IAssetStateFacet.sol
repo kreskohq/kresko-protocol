@@ -50,4 +50,13 @@ interface IAssetStateFacet {
      * @return feedAddr Feed address that the asset uses with the oracle type.
      */
     function getFeedForAddress(address _assetAddr, Enums.OracleType _oracleType) external view returns (address feedAddr);
+
+    /**
+     * @notice Get the market status for an asset.
+     * @param _assetAddr Asset address.
+     * @return bool True if the market is open, false otherwise.
+     * @custom:signature getMarketStatus(address)
+     * @custom:selector 0x3b3b3b3b
+     */
+    function getMarketStatus(address _assetAddr) external view returns (bool);
 }

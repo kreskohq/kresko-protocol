@@ -77,7 +77,8 @@ library LibJSON {
                 feeds: [feed1, feed2],
                 pythId: ticker.pythId,
                 staleTimes: [staleTime1, staleTime2],
-                invertPyth: ticker.invertPyth
+                invertPyth: ticker.invertPyth,
+                isClosable: ticker.isClosable
             });
     }
 

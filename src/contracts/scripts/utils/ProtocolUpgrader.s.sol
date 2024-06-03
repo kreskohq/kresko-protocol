@@ -87,7 +87,7 @@ contract ProtocolUpgrader is Scripted, FacetScript("./utils/getFunctionSelectors
         return handleFacet(name, facet, selectors);
     }
 
-    function createFullCut() private {
+    function createFullCut() internal {
         (string[] memory files, bytes[] memory facets, bytes4[][] memory selectors) = getFacetsAndSelectors();
 
         for (uint256 i; i < facets.length; i++) {

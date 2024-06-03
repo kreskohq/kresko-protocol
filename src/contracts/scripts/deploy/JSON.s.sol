@@ -202,6 +202,7 @@ struct TickerConfig {
     uint256 staleTimeRedstone;
     bool useAdapter;
     bool invertPyth;
+    bool isClosable;
 }
 
 struct Balance {

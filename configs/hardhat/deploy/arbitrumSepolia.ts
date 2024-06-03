@@ -247,6 +247,7 @@ const commonInitAgs = (
   sequencerGracePeriodTime: 3600,
   sequencerUptimeFeed: '0x23ab08d87BBAe90e8BDe56F87ad6e53683E08279',
   pythEp: '0x4374e5a8b9C22271E9EB878A2AA31DE97DF15DAF',
+  marketStatusProvider: '0xf6188e085ebEB716a730F8ecd342513e72C8AD04',
 })
 
 export const minterInitArgs: MinterInitArgsStruct = {

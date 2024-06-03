@@ -9,6 +9,7 @@ library CONST {
     bytes32 constant KISS_SALT = bytes32("KISS_1");
     bytes32 constant VAULT_SALT = bytes32("vKISS_1");
     bytes32 constant GM_SALT = bytes32("GatingManager_1");
+    bytes32 constant MOCK_STATUS_SALT = bytes32("mock_market_status");
     bytes32 constant PYTH_MOCK_SALT = bytes32("MockPythEP_1");
     bytes32 constant MC_SALT = bytes32("Multicall_1");
     bytes32 constant D1_SALT = bytes32("DataV1_1");

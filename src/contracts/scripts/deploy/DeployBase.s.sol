@@ -21,11 +21,9 @@ import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {MinterConfigFacet} from "minter/facets/MinterConfigFacet.sol";
 import {CommonConfigFacet} from "common/facets/CommonConfigFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
-import {CONST} from "scripts/deploy/CONST.s.sol";
 import {IPyth} from "vendor/pyth/IPyth.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {create1, getFacetsAndSelectors} from "scripts/deploy/DeployFuncs.s.sol";
-import {PLog} from "kresko-lib/utils/PLog.s.sol";
 
 abstract contract DeployBase {
     using LibDeploy for bytes;

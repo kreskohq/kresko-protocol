@@ -4,13 +4,14 @@
   "02_common": {
     "00_admin": "0xFcbB93547B7C1936fEbfe56b4cEeD9Ab66dA1857",
     "01_council": "0x0000000000000000000000000000000000000000",
-    "02_treasury": "0x389297F0d8C489954D65e04ff0690FC54E57Dad6",
+    "02_treasury": "0x266489Bde85ff0dfe1ebF9f0a7e6Fed3a973cEc3",
     "03_maxPriceDeviationPct": 5e2,
     "04_oracleDecimals": 8,
     "05_sequencerGracePeriodTime": 3600,
     "06_sequencerUptimeFeed": "0xFdB631F5EE196F0ed6FAa767959853A9F217697D",
     "07_gatingManager": "0x0000000000000000000000000000000000000000",
-    "08_pythEndpoint": "0xff1a0f4744e8582DF1aE09D5611b887B6a12925C"
+    "08_pythEndpoint": "0xff1a0f4744e8582DF1aE09D5611b887B6a12925C",
+    "09_marketStatusProvider": "0x0000000000000000000000000000000000000000"
   },
   "03_scdp": {
     "00_minCollateralRatio": 250e2,

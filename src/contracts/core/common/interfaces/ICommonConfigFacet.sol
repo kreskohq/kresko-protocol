@@ -7,6 +7,7 @@ interface ICommonConfigFacet {
         bytes32[] pythIds;
         uint256[] staleTimes;
         bool[] invertPyth;
+        bool[] isClosables;
     }
 
     /**
@@ -54,7 +55,12 @@ interface ICommonConfigFacet {
      * @param _tickers Bytes32 list of tickers
      * @param _feeds List of feed addresses.
      */
-    function setChainlinkFeeds(bytes32[] calldata _tickers, address[] calldata _feeds, uint256[] memory _staleTimes) external;
+    function setChainlinkFeeds(
+        bytes32[] calldata _tickers,
+        address[] calldata _feeds,
+        uint256[] memory _staleTimes,
+        bool[] calldata _isClosables
+    ) external;
 
     /**
      * @notice Set api3 feeds for tickers.
@@ -62,7 +68,12 @@ interface ICommonConfigFacet {
      * @param _tickers Bytes32 list of tickers
      * @param _feeds List of feed addresses.
      */
-    function setAPI3Feeds(bytes32[] calldata _tickers, address[] calldata _feeds, uint256[] memory _staleTimes) external;
+    function setAPI3Feeds(
+        bytes32[] calldata _tickers,
+        address[] calldata _feeds,
+        uint256[] memory _staleTimes,
+        bool[] calldata _isClosables
+    ) external;
 
     /**
      * @notice Set a vault feed for ticker.
@@ -82,7 +93,7 @@ interface ICommonConfigFacet {
      */
     function setPythFeeds(bytes32[] calldata _tickers, PythConfig calldata pythConfig) external;
 
-    function setPythFeed(bytes32 _ticker, bytes32 _pythId, bool _invert, uint256 _staleTime) external;
+    function setPythFeed(bytes32 _ticker, bytes32 _pythId, bool _invert, uint256 _staleTime, bool _isClosable) external;
 
     /**
      * @notice Set ChainLink feed address for ticker.
@@ -91,7 +102,7 @@ interface ICommonConfigFacet {
      * @custom:signature setChainLinkFeed(bytes32,address)
      * @custom:selector 0xe091f77a
      */
-    function setChainLinkFeed(bytes32 _ticker, address _feedAddr, uint256 _staleTime) external;
+    function setChainLinkFeed(bytes32 _ticker, address _feedAddr, uint256 _staleTime, bool _isClosable) external;
 
     /**
      * @notice Set API3 feed address for an asset.
@@ -100,11 +111,17 @@ interface ICommonConfigFacet {
      * @custom:signature setApi3Feed(bytes32,address)
      * @custom:selector 0x7e9f9837
      */
-    function setAPI3Feed(bytes32 _ticker, address _feedAddr, uint256 _staleTime) external;
+    function setAPI3Feed(bytes32 _ticker, address _feedAddr, uint256 _staleTime, bool _isClosable) external;
 
     /**
      * @notice Sets gating manager
      * @param _newManager _newManager address
      */
     function setGatingManager(address _newManager) external;
+
+    /**
+     * @notice Sets market status provider
+     * @param _provider market status provider address
+     */
+    function setMarketStatusProvider(address _provider) external;
 }

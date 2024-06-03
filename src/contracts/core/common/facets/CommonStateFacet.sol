@@ -31,6 +31,11 @@ contract CommonStateFacet is ICommonStateFacet {
     }
 
     /// @inheritdoc ICommonStateFacet
+    function getMarketStatusProvider() external view returns (address) {
+        return cs().marketStatusProvider;
+    }
+
+    /// @inheritdoc ICommonStateFacet
     function getOracleDeviationPct() external view returns (uint16) {
         return cs().maxPriceDeviationPct;
     }

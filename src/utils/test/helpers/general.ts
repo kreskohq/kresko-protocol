@@ -91,6 +91,7 @@ export const getAssetConfig = async (
     oracleIds: assetStruct.oracles,
     pythId: toBytes(config.pyth.id),
     invertPyth: config.pyth.invert,
+    isClosable: false,
     staleTimes: config.staleTimes ?? [10000, 86401],
     feeds: assetStruct.oracles[0] === OracleType.Pyth ? [zeroAddress, config.feed] : [config.feed, zeroAddress],
   }
