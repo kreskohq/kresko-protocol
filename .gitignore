@@ -28,7 +28,6 @@ src/types/typechain
 src/types/contracts
 _bin
 bin
-lib
 # secrets
 *interact.ethers
 *.env
