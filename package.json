@@ -14,11 +14,10 @@
   },
   "scripts": {
     "clean": "bunx hardhat clean && forge clean",
-    "f:dry": "bunx just dry-local",
+    "f:dry": "bunx just deploy-local-dry",
     "f:test": "forge test --no-match-path '*/locals/*' -vvv",
     "f:compile": "forge build",
-    "f:dev:kill": "bunx just kill",
-    "f:dev": "bunx just local",
+    "f:kill": "bunx just kill",
     "hh:dev": "bunx hardhat node --tags local --watch",
     "hh:compile": "bunx hardhat compile",
     "hh:recompile": "bunx hardhat clean && bunx hardhat compile",
