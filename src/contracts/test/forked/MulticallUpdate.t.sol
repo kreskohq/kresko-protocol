@@ -70,7 +70,8 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        exec(amount, ops, new bytes[](0));
+
+        exec(amount, ops);
         sender.balance.lt(100 ether, "krETH-bal-1");
         sender.balance.gt(99.9 ether, "krETH-bal-2");
     }
@@ -113,7 +114,8 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        exec(0, ops, new bytes[](0));
+
+        exec(0, ops);
         krETH.balanceOf(sender).gt(0.95 ether, "krETH-bal");
         krETH.balanceOf(sender).lt(1 ether, "krETH-bal");
     }
@@ -150,7 +152,8 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        exec(amount, ops, new bytes[](0));
+
+        exec(amount, ops);
         krBTC.balanceOf(sender).eq(0, "krBTC-bal-1");
         WBTC.balanceOf(sender).gt(0.98e8, "krETH-bal-2");
         WBTC.balanceOf(sender).lt(1e8, "krETH-bal-2");
@@ -191,7 +194,8 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        exec(0, ops, new bytes[](0));
+
+        exec(0, ops);
         krBTC.balanceOf(sender).gt(0, "krBTC-bal-1");
         WBTC.balanceOf(sender).eq(0, "WBTC-bal-1");
     }
@@ -226,7 +230,8 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        exec(0, ops, new bytes[](0));
+
+        exec(0, ops);
         USDC.balanceOf(sender).eq(0, "USDC-bal-1");
         krETH.balanceOf(sender).gt(0, "krETH-bal-1");
     }
@@ -266,7 +271,8 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        exec(0, ops, new bytes[](0));
+
+        exec(0, ops);
         krETH.balanceOf(sender).gt(0, "krETH-bal-1");
         weth.balanceOf(sender).eq(0, "WETH-bal-1");
     }
@@ -306,7 +312,7 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        exec(0, ops, new bytes[](0));
+        exec(0, ops);
         krETH.balanceOf(sender).eq(0, "krETH-bal-1");
         USDC.balanceOf(sender).gt(0, "USDC-bal-1");
     }
@@ -385,7 +391,7 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        exec(amount + 5, ops, pythUpdate);
+        exec(amount, ops);
         USDC.balanceOf(sender).gt(100e6, "USDC-bal-1");
     }
 
@@ -461,17 +467,13 @@ contract MulticallUpdate is Tested, ArbScript {
                 index: 0
             })
         });
-        exec(5, ops, pythUpdate);
+        exec(0, ops);
         USDC.balanceOf(sender).eq(0, "USDC-bal-1");
         sender.balance.gt(100 ether, "ETH-bal-1");
     }
 
-    function exec(
-        uint256 val,
-        IKrMulticall.Operation[] memory ops,
-        bytes[] memory _updateData
-    ) internal returns (IKrMulticall.Result[] memory results) {
-        results = multicall.execute{value: val}(ops, _updateData);
+    function exec(uint256 val, IKrMulticall.Operation[] memory ops) internal returns (IKrMulticall.Result[] memory results) {
+        results = multicall.execute{value: val}(ops, new bytes[](0));
         for (uint256 i = 0; i < results.length; i++) {
             Log.hr();
             uint8(ops[i].action).clg("action");

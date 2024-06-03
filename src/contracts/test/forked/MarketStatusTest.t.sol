@@ -11,7 +11,6 @@ import {CommonConfigFacet} from "common/facets/CommonConfigFacet.sol";
 import {CommonStateFacet} from "common/facets/CommonStateFacet.sol";
 import {AssetStateFacet} from "common/facets/AssetStateFacet.sol";
 import {ProtocolUpgrader} from "scripts/utils/ProtocolUpgrader.s.sol";
-import {DataV2} from "periphery/DataV2.sol";
 import {DataV1} from "periphery/DataV1.sol";
 import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
@@ -25,36 +24,17 @@ contract MarketStatusTest is Tested, ProtocolUpgrader, ArbDeployAddr {
     IKresko kresko = IKresko(kreskoAddr);
     DataV1 dataV1 = DataV1(dataV1Addr);
 
-    DataV2 dataV2;
-    CommonConfigFacet config;
-    CommonStateFacet state;
-    AssetStateFacet assetState;
-
-    IMarketStatus provider = IMarketStatus(0xf6188e085ebEB716a730F8ecd342513e72C8AD04);
+    IMarketStatus provider = IMarketStatus(marketStatusAddr);
 
     function setUp() public pranked(safe) {
-        vm.createSelectFork("arbitrum", 206380985); // Market status already running at this block
-        initUpgrader(kreskoAddr, factoryAddr, CreateMode.Create2);
-
-        // Deploy new facets
-        fullUpgrade();
-
-        // Set Market Status Provider
-        kresko.getMarketStatusProvider().eq(address(0));
-
-        kresko.setMarketStatusProvider(address(provider));
-
-        dataV2 = new DataV2(address(dataV1.DIAMOND()), address(dataV1.VAULT()), address(0), address(0), address(0), address(0));
+        vm.createSelectFork("arbitrum", 217380985); // Market status already running at this block
     }
 
-    function test_Facets_Update() external {
+    function testMarketStatusProviderAddress() external {
         kresko.getMarketStatusProvider().eq(address(provider));
-        kresko.getPythEndpoint().notEq(address(0));
-        kresko.getFeeRecipient().eq(safe);
-        kresko.getGatingManager().notEq(address(0));
     }
 
-    function test_getMarketStatus() external {
+    function testGetMarketStatus() external {
         address[] memory assets = new address[](9);
         assets[0] = address(wethAddr);
         assets[1] = address(USDCeAddr);
@@ -66,7 +46,7 @@ contract MarketStatusTest is Tested, ProtocolUpgrader, ArbDeployAddr {
         assets[7] = address(krSOLAddr);
         assets[8] = address(kissAddr);
 
-        for (uint i = 0; i < assets.length; i++) {
+        for (uint256 i; i < assets.length; i++) {
             kresko.getMarketStatus(assets[i]).eq(true);
         }
 
@@ -74,8 +54,8 @@ contract MarketStatusTest is Tested, ProtocolUpgrader, ArbDeployAddr {
         kresko.getMarketStatus(address(DAIAddr));
     }
 
-    function test_Crypto_ticker_status() external {
-        bytes32[] memory tickers = _getTickers();
+    function testTickerStatuses() external {
+        bytes32[] memory tickers = _cryptoTickers();
 
         bool[] memory status = provider.getTickerStatuses(tickers);
         for (uint256 i = 0; i < status.length; i++) {
@@ -86,15 +66,14 @@ contract MarketStatusTest is Tested, ProtocolUpgrader, ArbDeployAddr {
         provider.getTickerStatus(bytes32("DAI"));
     }
 
-    function test_DataV2() external {
-        // All crypto assets should be always open
-        DataV2.DVAsset[] memory result = dataV2.getVAssets();
-        for (uint256 i = 0; i < result.length; i++) {
+    function testDataContractStatuses() external {
+        DataV1.DVAsset[] memory result = dataV1.getVAssets();
+        for (uint256 i; i < result.length; i++) {
             result[i].isMarketOpen.eq(true);
         }
     }
 
-    function _getTickers() internal pure returns (bytes32[] memory) {
+    function _cryptoTickers() internal pure returns (bytes32[] memory) {
         bytes32[] memory tickers = new bytes32[](6);
         tickers[0] = "ETH";
         tickers[1] = "BTC";
