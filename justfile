@@ -22,15 +22,14 @@ deploy-local:
 deploy-local-dry:
 	forge script src/contracts/scripts/deploy/Deploy.s.sol:Deploy \
 	--sig $(cast calldata "deploy(string,string,uint32,bool,bool)" "localhost" "MNEMONIC_DEVNET" 0 true false) \
-	--with-gas-price 100000000 \
 	--ffi \
 	-vvv
 
-flats: 
-	forge flatten src/contracts/core/periphery/IKresko.sol > out/IKresko.sol && \
-	forge flatten src/contracts/core/kiss/interfaces/IKISS.sol > out/IKISS.sol && \
-	forge flatten src/contracts/core/vault/interfaces/IVault.sol > out/IVault.sol && \
-	forge flatten src/contracts/core/vault/interfaces/IVaultRateProvider.sol > out/IVaultRateProvider.sol 
+exports: 
+	forge flatten src/contracts/core/periphery/IKresko.sol -o out/IKresko.sol && \
+	forge flatten src/contracts/core/kiss/interfaces/IKISS.sol -o out/IKISS.sol && \
+	forge flatten src/contracts/core/vault/interfaces/IVault.sol -o out/IVault.sol && \
+	forge flatten src/contracts/core/vault/interfaces/IVaultRateProvider.sol -o out/IVaultRateProvider.sol 
 
 set positional-arguments
 
