@@ -17,7 +17,7 @@ contract MulticallUpdate is Tested, ArbScript {
     address sender;
 
     function setUp() public {
-        ArbScript.initialize();
+        ArbScript.initialize("MNEMONIC_DEPLOY");
         sender = vm.createWallet("sender").addr;
         deal(sender, 100 ether);
         deal(USDCAddr, sender, 100e6);
@@ -35,7 +35,6 @@ contract MulticallUpdate is Tested, ArbScript {
 
         prank(safe);
         fetchPythAndUpdate();
-        states_looseOracles();
         kresko.grantRole(Role.MANAGER, address(multicall));
     }
 

@@ -24,7 +24,7 @@ contract SafeExample is ArbScript {
     using Help for *;
 
     modifier setUp() {
-        ArbScript.initialize();
+        ArbScript.initialize("MNEMONIC_DEPLOY");
         fetchPythAndUpdate();
         _;
     }
