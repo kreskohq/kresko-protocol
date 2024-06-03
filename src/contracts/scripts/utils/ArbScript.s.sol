@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {Scripted} from "kresko-lib/utils/Scripted.s.sol";
-import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
 
@@ -18,15 +17,14 @@ import {IPyth} from "vendor/pyth/IPyth.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {IKreskoAssetAnchor} from "kresko-asset/IKreskoAssetAnchor.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
-import {Asset, Enums, Oracle, RawPrice} from "common/Types.sol";
+import {Asset, Oracle, RawPrice} from "common/Types.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
-import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
-import {Anvil} from "./Anvil.s.sol";
+import {View} from "periphery/ViewTypes.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
-contract ArbScript is Anvil, Scripted, ArbDeployAddr {
+contract ArbScript is Scripted, ArbDeployAddr {
     using Log for *;
     using Help for *;
 
@@ -53,7 +51,7 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
     bytes[] pythUpdate;
     PythView pythView;
     address[] clAssets = [USDCAddr, WBTCAddr, wethAddr];
-    string pythAssets = "ETH,USDC,BTC,ARB,SOL";
+    string pythAssets = "ETH,USDC,BTC,ARB,SOL,JPY,EUR";
 
     function initialize(string memory mnemonic) public {
         useMnemonic(mnemonic);
@@ -65,37 +63,6 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
         useMnemonic("MNEMONIC_DEPLOY");
         vm.createSelectFork("arbitrum");
         Deployed.factory(factoryAddr);
-    }
-
-    function initFork(address sender) internal returns (uint256 forkId) {
-        forkId = vm.createSelectFork("localhost");
-        Deployed.factory(factoryAddr);
-        Anvil.syncTime(0);
-        vm.makePersistent(address(pythEP));
-        broadcastWith(sender);
-        fetchPythAndUpdate();
-        vm.stopBroadcast();
-        syncForkPrices();
-    }
-
-    function syncForkPrices() internal {
-        uint256[] memory prices = new uint256[](clAssets.length);
-        for (uint256 i; i < clAssets.length; i++) {
-            prices[i] = kresko.getPythPrice(kresko.getAsset(clAssets[i]).ticker);
-        }
-
-        for (uint256 i; i < clAssets.length; i++) {
-            address feed = kresko.getFeedForAddress(clAssets[i], Enums.OracleType.Chainlink);
-            IAggregatorV3(feed).latestAnswer().clg("Chainlink Price");
-            Anvil.setCLPrice(feed, prices[i]);
-        }
-    }
-
-    function initLocal(uint256 blockNr, bool sync) public {
-        useMnemonic("MNEMONIC_DEPLOY");
-        Deployed.factory(factoryAddr);
-        vm.createSelectFork("arbitrum", blockNr);
-        if (sync) syncTimeLocal();
     }
 
     function fetchPyth(string memory _assets) internal {
@@ -136,12 +103,6 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
         ValQuery[] memory queries = new ValQuery[](1);
         queries[0] = ValQuery(asset, 1e18);
         return getValues(queries)[0].price;
-    }
-
-    function getValuePrice(address asset, uint256 amount) internal returns (ValQueryRes memory) {
-        ValQuery[] memory queries = new ValQuery[](1);
-        queries[0] = ValQuery(asset, amount);
-        return getValues(queries)[0];
     }
 
     function getValues(ValQuery[] memory queries) internal returns (ValQueryRes[] memory res) {
@@ -225,6 +186,23 @@ contract ArbScript is Anvil, Scripted, ArbDeployAddr {
         vault.setAssetFeed(USDCAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
         vault.setAssetFeed(USDCeAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
         kresko.setMaxPriceDeviationPct(25e2);
+
+        View.AssetView[] memory assets = kresko.viewProtocolData(pythView).assets;
+
+        for (uint256 i; i < assets.length; i++) {
+            Asset memory asset = assets[i].config;
+            Oracle memory primaryOracle = kresko.getOracleOfTicker(asset.ticker, asset.oracles[0]);
+
+            if (primaryOracle.pythId != bytes32(0)) {
+                kresko.setPythFeed(
+                    asset.ticker,
+                    primaryOracle.pythId,
+                    primaryOracle.invertPyth,
+                    1000000,
+                    primaryOracle.isClosable
+                );
+            }
+        }
     }
 
     function states_noFactorsNoFees() internal {

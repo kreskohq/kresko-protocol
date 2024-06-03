@@ -7,7 +7,7 @@ import {DataV2} from "periphery/DataV2.sol";
 import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
 import {AssetAdder} from "scripts/utils/AssetAdder.s.sol";
-import {PayloadEUR, PayloadJPY} from "scripts/payloads/Payload0011.sol";
+import {PayloadEUR} from "scripts/payloads/KrAssetPayloads.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 
 // solhint-disable no-empty-blocks, reason-string, state-visibility
@@ -18,7 +18,6 @@ contract StaleTimeUpdate is ProtocolUpgrader, AssetAdder {
 
     address sender;
     address krEURAddr;
-    address krJPYAddr;
     address payloadAddr;
     IMarketStatus provider = IMarketStatus(0xf6188e085ebEB716a730F8ecd342513e72C8AD04);
     DataV2 dataV2;
@@ -34,13 +33,6 @@ contract StaleTimeUpdate is ProtocolUpgrader, AssetAdder {
         krEURAddr = deployKrAsset("krEUR");
         payloadAddr = deployPayload(type(PayloadEUR).creationCode, abi.encode(krEURAddr), 11);
         IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(payloadAddr, abi.encodeCall(PayloadEUR.executePayload, ()));
-    }
-
-    function createkrJPY() public {
-        broadcastWith(safe);
-        krJPYAddr = deployKrAsset("krJPY");
-        payloadAddr = deployPayload(type(PayloadJPY).creationCode, abi.encode(krJPYAddr), 12);
-        IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(payloadAddr, abi.encodeCall(PayloadJPY.executePayload, ()));
     }
 
     function deployData() external {

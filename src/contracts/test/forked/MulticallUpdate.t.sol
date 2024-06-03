@@ -35,6 +35,7 @@ contract MulticallUpdate is Tested, ArbScript {
 
         prank(safe);
         fetchPythAndUpdate();
+        states_looseOracles();
         kresko.grantRole(Role.MANAGER, address(multicall));
     }
 
