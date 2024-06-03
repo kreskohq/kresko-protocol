@@ -1,7 +1,6 @@
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-[submodule "lib/kresko-foundry-helpers"]
-	path = lib/kresko-foundry-helpers
-	url = https://github.com/kreskohq/kresko-foundry-helpers
-	ignore = dirty
+[submodule "lib/kresko-lib"]
+	path = lib/kresko-lib
+	url = https://github.com/kreskohq/kresko-lib
