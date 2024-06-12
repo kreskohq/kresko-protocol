@@ -35,7 +35,7 @@
   },
   "editor.formatOnSave": true,
   "solidity.linter.type": "solhint",
-  "solidity.test.executeOnSave": true,
+  "solidity.test.executeOnSave": false,
   "solidity.compiler.version.remote": "v0.8.25+commit.b61c2a91",
   "solidity.compiler.outDir": "build/vsc",
   "solidity.compiler.location": "Extension",
@@ -46,8 +46,8 @@
     "lib"
   ],
   "solidity.formatter": "prettier",
-  "solidity.validation.onSave": true,
-  "solidity.validation.onChange": true,
+  "solidity.validation.onSave": false,
+  "solidity.validation.onChange": false,
   "solidity.validation.onOpen": false,
   "solidity.test.verbosity": 2,
   "inline-bookmarks.view.showVisibleFilesOnly": false

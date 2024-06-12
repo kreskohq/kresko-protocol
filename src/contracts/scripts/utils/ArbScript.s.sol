@@ -30,7 +30,7 @@ contract ArbScript is Scripted, ArbDeploy {
     bytes[] pythUpdate;
     PythView pythView;
     address[] clAssets = [USDCAddr, WBTCAddr, wethAddr];
-    string pythAssets = "ETH,USDC,BTC,ARB,SOL,JPY,EUR";
+    string pythAssets = "ETH,USDC,BTC,ARB,SOL,JPY,EUR,GBP";
 
     function initialize(string memory mnemonic) internal {
         useMnemonic(mnemonic);
@@ -66,8 +66,14 @@ contract ArbScript is Scripted, ArbDeploy {
         pythEP.updatePriceFeeds{value: pythEP.getUpdateFee(pythUpdate)}(pythUpdate);
     }
 
+    function fetchPythSync() internal {
+        fetchPyth();
+        pythEP.updatePriceFeeds{value: pythEP.getUpdateFee(pythUpdate)}(pythUpdate);
+        syncTimeLocal();
+    }
+
     function syncTimeLocal() internal {
-        vm.warp((vm.unixTime() / 1000) - 5);
+        vm.warp((vm.unixTime() / 1000));
     }
 
     function getValues(ValQuery[] memory queries) internal returns (ValQueryRes[] memory res) {

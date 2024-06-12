@@ -10,22 +10,29 @@ import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol"
 contract AddKrAsset is AssetAdder {
     using Log for *;
 
-    address internal newAssetAddr;
+    address payable internal newAssetAddr;
 
-    function setUp() public {
+    string assetName = "Pound";
+    string assetTicker = "GBP";
+    string assetSymbol = string.concat("kr", assetTicker);
+
+    function setUp() public virtual {
         vm.createSelectFork("arbitrum");
         Deployed.factory(factoryAddr);
     }
 
-    function addKrAsset() public {
+    function createAddKrAsset() public {
         broadcastWith(safe);
-        newAssetAddr = deployKrAsset("krJPY");
+        newAssetAddr = deployKrAsset(assetSymbol);
+
         address payloadAddr = deployPayload(
             type(KrAssetPayload).creationCode,
             abi.encode(newAssetAddr),
-            bytes32("krJPY-initializer")
+            string.concat(assetSymbol, "-initializer")
         );
         IExtendedDiamondCutFacet(kreskoAddr).executeInitializer(payloadAddr, abi.encodeCall(KrAssetPayload.executePayload, ()));
-        newAssetAddr.clg("Asset created");
+        Log.br();
+        newAssetAddr.clg(string.concat(assetSymbol, " deployed @ "));
+        Log.hr();
     }
 }
