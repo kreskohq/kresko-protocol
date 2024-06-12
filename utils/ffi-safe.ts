@@ -59,7 +59,8 @@ export async function getSafePayloads() {
   const name = process.argv[3]
   const chainId = process.argv[4]
   const safeAddr = process.argv[5] as Address
-  const payloads = await parseBroadcast(name, Number(chainId), safeAddr)
+  const nonce = process.argv[6] as string | undefined
+  const payloads = await parseBroadcast(name, Number(chainId), safeAddr, nonce ? Number(nonce) : undefined)
 
   if (!payloads.length) {
     throw new Error(`No payloads found for ${name} on chain ${chainId}`)
@@ -147,7 +148,7 @@ export async function safeSign(txHash?: Hex): Promise<[Hex, Address]> {
   return [`${signature.slice(0, -2)}${v1.toString(16)}` as Hex, signer]
 }
 
-async function parseBroadcast(name: string, chainId: number, safeAddr: Address) {
+async function parseBroadcast(name: string, chainId: number, safeAddr: Address, nonce?: number) {
   const files = glob.sync(`${deploysBroadcasts}/broadcast/**/${chainId}/dry-run/${name}-latest.json`)
   if (files.length !== 1) throw new Error(`Expected 1 file, got ${files.length}`)
   const data: BroadcastJSON = require(files[0])
@@ -188,7 +189,7 @@ async function parseBroadcast(name: string, chainId: number, safeAddr: Address) 
     txCount: BigInt(data.transactions.length),
     creationCount: BigInt(data.transactions.reduce((res, tx) => res + tx.additionalContracts.length, 0)),
     totalGas: BigInt(data.transactions.reduce((acc, tx) => acc + Number(tx.transaction.gas), 0)),
-    safeNonce: BigInt(safeInfo.nonce),
+    safeNonce: BigInt(nonce ? nonce : safeInfo.nonce),
     safeVersion: safeInfo.version,
     timestamp: BigInt(data.timestamp),
     chainId: BigInt(data.chain),
