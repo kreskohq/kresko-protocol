@@ -6,7 +6,7 @@ import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 
 using LibDeploy for bytes;
 
-function payloadSalt(string memory _id) view returns (bytes32) {
+function payloadSalt(string memory _id) pure returns (bytes32) {
     return bytes32(bytes(string.concat("payload-", (_id))));
 }
 
