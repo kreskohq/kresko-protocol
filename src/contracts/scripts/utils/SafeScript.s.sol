@@ -49,25 +49,32 @@ contract SafeScript {
     string[] argsFFI;
 
     function sendBatch(string memory broadcastId) public {
+        sendBatch(broadcastId, 0);
+    }
+
+    function sendBatch(string memory broadcastId, uint256 nonce) public {
         mvm.createSelectFork(NETWORK);
-        (, string memory fileName) = simulateAndSign(broadcastId);
+        (, string memory fileName) = simulateAndSign(broadcastId, nonce);
         proposeBatch(fileName);
     }
 
-    function simulateAndSign(string memory broadcastId) public returns (bytes32 safeTxHash, string memory fileName) {
-        (bytes32 txHash, string memory file, bytes memory sig, address signer) = signBatch(simulate(broadcastId));
-        string.concat("Batch signed by: ", signer.str()).clg();
-        string.concat("Signature: ", sig.str()).clg();
-        string.concat("Safe Tx Hash: ", txHash.str()).clg();
-        string.concat("Output written to: ", file).clg();
+    function simulateAndSign(
+        string memory broadcastId,
+        uint256 nonce
+    ) public returns (bytes32 safeTxHash, string memory fileName) {
+        (bytes32 txHash, string memory file, bytes memory sig, address signer) = signBatch(simulate(broadcastId, nonce));
+        string.concat("Hash: ", mvm.toString(txHash)).clg();
+        string.concat("Signer: ", mvm.toString(signer)).clg();
+        string.concat("Signature: ", mvm.toString(sig)).clg();
+        string.concat("Output File: ", file).clg();
         return (txHash, file);
     }
 
-    function simulate(string memory broadcastId) public returns (Batch memory batch) {
-        Payloads memory data = getPayloads(broadcastId);
+    function simulate(string memory broadcastId, uint256 nonce) public returns (Batch memory batch) {
+        Payloads memory data = getPayloads(broadcastId, nonce);
         printPayloads(data);
         for (uint256 i; i < data.payloads.length; ++i) {
-            require(!data.extras[i].transactionType.equals("CREATE"), "Only CALL transactions are supported");
+            require(!data.extras[i].transactionType.equals("CREATE"), "Fail: Found CREATE transaction, only CALL is allowed!");
         }
 
         batch = _simulate(data);
@@ -101,17 +108,15 @@ contract SafeScript {
 
     function _simulate(Payloads memory payloads) private returns (Batch memory batch) {
         batch = createBatch(payloads);
-        bytes32 fromSafe = getSafeTxHash(batch);
         string
             .concat(
-                "Simulating in network: ",
-                NETWORK,
+                "** Simulating the transaction",
                 "\n  chainId: ",
                 block.chainid.str(),
-                "\n  safeTxHash: ",
-                fromSafe.str(),
-                "\n  batch.txHash: ",
-                batch.txHash.str()
+                "\n  hash: ",
+                batch.txHash.str(),
+                "\n  nonce: ",
+                batch.nonce.str()
             )
             .clg();
         mvm.prank(SAFE_ADDRESS);
@@ -121,13 +126,13 @@ contract SafeScript {
         if (!success) {
             (bool successRevert, bytes memory successReturnData) = abi.decode(returnData, (bool, bytes));
             if (!successRevert) {
-                Log.clg("Batch simulation failed: ", successReturnData.str());
+                Log.clg("Simulation fail: ", successReturnData.str());
                 __revert(successReturnData);
             }
             if (successReturnData.length == 0) {
-                Log.clg("Batch simulation successful with no return data.");
+                Log.clg("Simulation success!");
             } else {
-                Log.clg(successReturnData.str(), "Batch simulation successful with return data: ");
+                Log.clg(successReturnData.str(), "Simulation success! -> ");
             }
         }
     }
@@ -182,8 +187,16 @@ contract SafeScript {
         return abi.decode(returnData, (bytes32));
     }
 
-    function getPayloads(string memory broadcastId) public returns (Payloads memory) {
-        argsFFI = ["bun", "utils/ffi.ts", "getSafePayloads", broadcastId, mvm.toString(CHAIN_ID), mvm.toString(SAFE_ADDRESS)];
+    function getPayloads(string memory broadcastId, uint256 nonce) public returns (Payloads memory) {
+        argsFFI = [
+            "bun",
+            "utils/ffi.ts",
+            "getSafePayloads",
+            broadcastId,
+            mvm.toString(CHAIN_ID),
+            mvm.toString(SAFE_ADDRESS),
+            mvm.toString(nonce)
+        ];
         return abi.decode(mvm.ffi(argsFFI), (Payloads));
     }
 

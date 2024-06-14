@@ -15,6 +15,7 @@ import {Asset, Oracle} from "common/Types.sol";
 import {ArbDeploy} from "kresko-lib/info/ArbDeploy.sol";
 import {View} from "periphery/ViewTypes.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
+import {Enums} from "common/Constants.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
@@ -29,13 +30,18 @@ contract ArbScript is Scripted, ArbDeploy {
 
     bytes[] pythUpdate;
     PythView pythView;
-    address[] clAssets = [USDCAddr, WBTCAddr, wethAddr];
-    string pythAssets = "ETH,USDC,BTC,ARB,SOL,JPY,EUR";
+    string pythAssets = "ETH,USDC,BTC,ARB,SOL,JPY,EUR,GBP";
 
     function initialize(string memory mnemonic) internal {
         useMnemonic(mnemonic);
         vm.createSelectFork("arbitrum");
         Deployed.factory(factoryAddr);
+    }
+
+    function initialize(uint256 blockNr) internal {
+        vm.createSelectFork("arbitrum", blockNr);
+        Deployed.factory(factoryAddr);
+        states_looseOracles();
     }
 
     function initialize() internal {
@@ -66,27 +72,14 @@ contract ArbScript is Scripted, ArbDeploy {
         pythEP.updatePriceFeeds{value: pythEP.getUpdateFee(pythUpdate)}(pythUpdate);
     }
 
-    function syncTimeLocal() internal {
-        vm.warp((vm.unixTime() / 1000) - 5);
+    function fetchPythSync() internal {
+        fetchPyth();
+        pythEP.updatePriceFeeds{value: pythEP.getUpdateFee(pythUpdate)}(pythUpdate);
+        syncTimeLocal();
     }
 
-    function getValues(ValQuery[] memory queries) internal returns (ValQueryRes[] memory res) {
-        (bytes[] memory valCalls, bytes[] memory priceCalls) = (new bytes[](queries.length), new bytes[](queries.length));
-        for (uint256 i; i < queries.length; i++) {
-            (valCalls[i], priceCalls[i]) = (
-                abi.encodeWithSelector(0xc7bf8cf5, queries[i].asset, queries[i].amount),
-                abi.encodeWithSelector(0x41976e09, queries[i].asset)
-            );
-        }
-
-        (, bytes[] memory vals) = kresko.batchStaticCall(valCalls, pythUpdate);
-        (, bytes[] memory prices) = kresko.batchStaticCall(priceCalls, pythUpdate);
-
-        res = new ValQueryRes[](queries.length);
-        for (uint256 i; i < queries.length; i++) {
-            (uint256 value, uint256 price) = (abi.decode(vals[i], (uint256)), abi.decode(prices[i], (uint256)));
-            res[i] = ValQueryRes(queries[i].asset, queries[i].amount, value, price);
-        }
+    function syncTimeLocal() internal {
+        vm.warp(getTime());
     }
 
     function approvals(address spender) internal {
@@ -97,6 +90,9 @@ contract ArbScript is Scripted, ArbDeploy {
         weth.approve(spender, allowance);
         krETH.approve(spender, allowance);
         krBTC.approve(spender, allowance);
+        krJPY.approve(spender, allowance);
+        krEUR.approve(spender, allowance);
+        krSOL.approve(spender, allowance);
         akrETH.approve(spender, allowance);
         ARB.approve(spender, allowance);
         kiss.approve(spender, allowance);
@@ -139,7 +135,7 @@ contract ArbScript is Scripted, ArbDeploy {
         return (amount, assets, fees);
     }
 
-    function states_noVaultFees() internal {
+    function states_noVaultFees() internal repranked(safe) {
         if (vault.getConfig().pendingGovernance != address(0)) vault.acceptGovernance();
         vault.setDepositFee(USDCeAddr, 0);
         vault.setWithdrawFee(USDCeAddr, 0);
@@ -147,7 +143,7 @@ contract ArbScript is Scripted, ArbDeploy {
         vault.setWithdrawFee(USDCAddr, 0);
     }
 
-    function states_looseOracles() internal {
+    function states_looseOracles() internal repranked(safe) {
         vault.setAssetFeed(USDCAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
         vault.setAssetFeed(USDCeAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
         kresko.setMaxPriceDeviationPct(25e2);
@@ -156,9 +152,9 @@ contract ArbScript is Scripted, ArbDeploy {
 
         for (uint256 i; i < assets.length; i++) {
             Asset memory asset = assets[i].config;
-            Oracle memory primaryOracle = kresko.getOracleOfTicker(asset.ticker, asset.oracles[0]);
 
-            if (primaryOracle.pythId != bytes32(0)) {
+            if (asset.oracles[0] == Enums.OracleType.Pyth) {
+                Oracle memory primaryOracle = kresko.getOracleOfTicker(asset.ticker, asset.oracles[0]);
                 kresko.setPythFeed(
                     asset.ticker,
                     primaryOracle.pythId,
@@ -167,66 +163,41 @@ contract ArbScript is Scripted, ArbDeploy {
                     primaryOracle.isClosable
                 );
             }
+            if (asset.oracles[1] == Enums.OracleType.Chainlink) {
+                Oracle memory secondaryOracle = kresko.getOracleOfTicker(asset.ticker, asset.oracles[1]);
+                kresko.setChainLinkFeed(asset.ticker, secondaryOracle.feed, 1000000, secondaryOracle.isClosable);
+            }
         }
     }
 
-    function states_noFactorsNoFees() internal {
-        kresko.setAssetCFactor(wethAddr, 1e4);
-        kresko.setAssetCFactor(WBTCAddr, 1e4);
-        kresko.setAssetCFactor(USDCAddr, 1e4);
-        kresko.setAssetCFactor(USDCeAddr, 1e4);
+    function states_noFactorsNoFees() internal repranked(safe) {
+        View.AssetView[] memory assets = kresko.viewProtocolData(pythView).assets;
+        for (uint256 i; i < assets.length; i++) {
+            View.AssetView memory asset = assets[i];
+            if (asset.config.factor > 0) {
+                asset.config.factor = 1e4;
+            }
+            if (asset.config.kFactor > 0) {
+                asset.config.kFactor = 1e4;
+                asset.config.swapInFeeSCDP = 0;
+                asset.config.swapOutFeeSCDP = 0;
+                asset.config.protocolFeeShareSCDP = 0;
+                asset.config.closeFee = 0;
+                asset.config.openFee = 0;
+                if (asset.config.ticker != bytes32("KISS")) {
+                    (bool success, ) = asset.addr.call(abi.encodeWithSelector(0x15360fb9, 0));
+                    (success, ) = asset.addr.call(abi.encodeWithSelector(0xe8e5c3f3, 0));
+                    success;
+                }
+            }
 
-        kresko.setAssetCFactor(krETHAddr, 1e4);
-        kresko.setAssetCFactor(kissAddr, 1e4);
-        kresko.setAssetKFactor(krETHAddr, 1e4);
-        kresko.setAssetKFactor(kissAddr, 1e4);
-
-        kresko.setAssetSwapFeesSCDP(krETHAddr, 0, 0, 0);
-        kresko.setAssetSwapFeesSCDP(kissAddr, 0, 0, 0);
-
-        krETH.setCloseFee(0);
-        krETH.setOpenFee(0);
-
-        Asset memory cfgETH = kresko.getAsset(krETHAddr);
-        cfgETH.closeFee = 0;
-        cfgETH.openFee = 0;
-        kresko.updateAsset(krETHAddr, cfgETH);
+            kresko.updateAsset(asset.addr, asset.config);
+        }
 
         states_noVaultFees();
     }
 
-    string jsonk;
-
-    function save(string memory key, string memory val) internal {
-        if (!key.equals("end")) {
-            jsonk = vm.serializeString("out", key, val);
-            return;
-        }
-        string memory outputDir = string.concat("./temp/");
-        if (!vm.exists(outputDir)) vm.createDir(outputDir, true);
-        string memory file = string.concat(
-            outputDir,
-            vm.toString(block.chainid),
-            "-task-run-",
-            string.concat(vm.toString(vm.unixTime()), ".json")
-        );
-
-        vm.writeJson(val, file);
-    }
-
     function getTime() internal returns (uint256) {
-        return uint256((vm.unixTime() / 1000));
-    }
-
-    struct ValQuery {
-        address asset;
-        uint256 amount;
-    }
-
-    struct ValQueryRes {
-        address asset;
-        uint256 amount;
-        uint256 value;
-        uint256 price;
+        return vm.unixTime() / 1000;
     }
 }

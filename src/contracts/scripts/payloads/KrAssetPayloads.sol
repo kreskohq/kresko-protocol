@@ -21,11 +21,11 @@ contract KrAssetPayload is ArbDeployAddr {
         scdp().isRoute[krETHAddr][newAssetAddr] = true;
         scdp().isRoute[newAssetAddr][krETHAddr] = true;
 
-        // scdp().isRoute[krEURAddr][newAssetAddr] = true;
-        // scdp().isRoute[newAssetAddr][krEURAddr] = true;
+        scdp().isRoute[krEURAddr][newAssetAddr] = true;
+        scdp().isRoute[newAssetAddr][krEURAddr] = true;
 
-        // scdp().isRoute[krJPYAddr][newAssetAddr] = true;
-        // scdp().isRoute[newAssetAddr][krJPYAddr] = true;
+        scdp().isRoute[krJPYAddr][newAssetAddr] = true;
+        scdp().isRoute[newAssetAddr][krJPYAddr] = true;
 
         scdp().isRoute[krBTCAddr][newAssetAddr] = true;
         scdp().isRoute[newAssetAddr][krBTCAddr] = true;

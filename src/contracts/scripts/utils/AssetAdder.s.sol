@@ -22,10 +22,10 @@ contract AssetAdder is ArbScript {
     FeedConfiguration NO_NEW_FEEDS;
     uint256 currentForkId;
 
-    function deployKrAsset(string memory _symbol) public returns (address) {
+    function deployKrAsset(string memory _symbol) public returns (address payable) {
         JSON.Config memory json = JSON.getConfig("arbitrum", "arbitrum");
         (, LibDeploy.DeployedKrAsset memory deployInfo) = addKrAsset(json, _symbol);
-        return deployInfo.addr;
+        return payable(deployInfo.addr);
     }
 
     function addKrAsset(
