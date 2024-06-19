@@ -22,6 +22,12 @@ contract AddKrAsset is AssetAdder {
         Deployed.factory(factoryAddr);
     }
 
+    function createFork() public {
+        broadcastWith(safe);
+        states_looseOracles();
+        createAddKrAsset();
+    }
+
     function createAddKrAsset() public {
         broadcastWith(safe);
         newAssetAddr = deployKrAsset(assetSymbol);

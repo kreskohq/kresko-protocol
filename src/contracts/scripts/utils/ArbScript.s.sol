@@ -38,7 +38,7 @@ contract ArbScript is Scripted, ArbDeploy {
         Deployed.factory(factoryAddr);
     }
 
-    function initialize(uint256 blockNr) internal {
+    function initialize(uint256 blockNr) internal repranked(safe) {
         vm.createSelectFork("arbitrum", blockNr);
         Deployed.factory(factoryAddr);
         states_looseOracles();
@@ -143,7 +143,7 @@ contract ArbScript is Scripted, ArbDeploy {
         vault.setWithdrawFee(USDCAddr, 0);
     }
 
-    function states_looseOracles() internal repranked(safe) {
+    function states_looseOracles() internal {
         vault.setAssetFeed(USDCAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
         vault.setAssetFeed(USDCeAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
         kresko.setMaxPriceDeviationPct(25e2);
