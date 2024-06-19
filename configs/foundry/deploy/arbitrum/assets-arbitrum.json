@@ -606,6 +606,22 @@
       "11_useAdapter": false,
       "12_invertPyth": false,
       "13_isClosable": true
+    },
+    {
+      "00_ticker": "XAU",
+      "01_mockPrice": 0,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0x1F954Dc24a49708C26E0C1777f16750B5C6d5a2c",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0x765d2ba906dbc32ca17cc11f5310a89e9ee1f6420508c63861f2f8ba4ee34bb2",
+      "07_staleTimePyth": 30,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 50,
+      "11_useAdapter": false,
+      "12_invertPyth": false,
+      "13_isClosable": true
     }
   ],
   "07_customTradeRoutes": []
