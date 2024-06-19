@@ -429,6 +429,40 @@
         "21_isSharedOrSwappedCollateral": true,
         "22_isCoverAsset": false
       }
+    },
+    {
+      "00_name": "Gold",
+      "01_symbol": "krXAU",
+      "02_underlying": "",
+      "03_wrapFee": 0,
+      "04_unwrapFee": 0,
+      "05_config": {
+        "00_ticker": "XAU",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 1e4,
+        "05_kFactor": 1e4,
+        "06_openFee": 0,
+        "07_closeFee": 50,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 21.5e18,
+        "10_maxDebtSCDP": 21.5e18,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 9,
+        "13_swapOutFeeSCDP": 14,
+        "14_protocolFeeShareSCDP": 7.5e2,
+        "15_liqIncentiveSCDP": 1.035e4,
+        "16_decimals": 0,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": true,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": true,
+        "21_isSharedOrSwappedCollateral": true,
+        "22_isCoverAsset": false
+      }
     }
   ],
   "05_kiss": {

@@ -30,7 +30,7 @@ contract ArbScript is Scripted, ArbDeploy {
 
     bytes[] pythUpdate;
     PythView pythView;
-    string pythAssets = "ETH,USDC,BTC,ARB,SOL,JPY,EUR,GBP";
+    string pythAssets = "ETH,USDC,BTC,ARB,SOL,JPY,EUR,GBP,XAU,XAG";
 
     function initialize(string memory mnemonic) internal {
         useMnemonic(mnemonic);

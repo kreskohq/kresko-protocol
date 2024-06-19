@@ -12,9 +12,10 @@ contract AddKrAsset is AssetAdder {
 
     address payable internal newAssetAddr;
 
-    string assetName = "Pound";
-    string assetTicker = "GBP";
+    string assetName = "Gold";
+    string assetTicker = "XAU";
     string assetSymbol = string.concat("kr", assetTicker);
+    bytes32 marketStatusSource = bytes32("XAU");
 
     function setUp() public virtual {
         vm.createSelectFork("arbitrum");
