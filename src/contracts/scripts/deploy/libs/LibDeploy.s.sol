@@ -20,7 +20,7 @@ import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {MockPyth} from "mocks/MockPyth.sol";
 import {getPythViewData, getMockPythPayload, PythView} from "vendor/pyth/PythScript.sol";
 import {LibJSON, JSON} from "scripts/deploy/libs/LibJSON.s.sol";
-import {MockMarketStatus} from "src/contracts/mocks/MockMarketStatus.sol";
+import {MockMarketStatus} from "mocks-misc/MockMarketStatus.sol";
 
 library LibDeploy {
     using Conversions for bytes[];

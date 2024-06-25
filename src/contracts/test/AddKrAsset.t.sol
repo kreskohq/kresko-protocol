@@ -27,7 +27,7 @@ contract AddKrAssetTest is Tested, AddKrAsset {
     uint256 testMint;
 
     function setUp() public override {
-        super.initialize(223579321);
+        super.initialize(225611889);
 
         createAddKrAsset();
 
