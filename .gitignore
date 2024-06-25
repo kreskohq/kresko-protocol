@@ -43,6 +43,8 @@ yarn-debug.log*
 yarn-error.log*
 **/.DS_Store
 
+soljson-*.*
+
 *ganache.js
 packages/contracts/dist
 packages/contracts/src/types/**/*
