@@ -34,21 +34,29 @@
     }
   },
   "editor.formatOnSave": true,
-  "solidity.linter.type": "solhint",
-  "solidity.test.executeOnSave": false,
-  "solidity.compiler.version.remote": "v0.8.23+commit.f704f362",
-  "solidity.compiler.outDir": "build/vsc",
-  "solidity.compiler.location": "Remote",
-  "solidity.project.monorepo": false,
-  "solidity.project.sources": "src/contracts",
-  "solidity.validation.delay": 300,
+  "solidity.compiler": {
+    "outDir": "build/vsc",
+    "type": "Remote",
+    "remote": "v0.8.23+commit.f704f362"
+  },
   "solidity.project.libs": [
     "lib"
   ],
+  "solidity.project.monorepo": false,
   "solidity.formatter": "prettier",
-  "solidity.validation.onSave": true,
-  "solidity.validation.onChange": false,
-  "solidity.validation.onOpen": false,
-  "solidity.test.verbosity": 2,
-  "inline-bookmarks.view.showVisibleFilesOnly": false
+  "solidity.linter.type": "solhint",
+  "solidity.linter.rules": {
+    "state-visibility": "off"
+  },
+  "solidity.project.sources": "src/contracts",
+  "solidity.validation": {
+    "onChange": true,
+    "onSave": false,
+    "onOpen": true,
+    "delay": 150
+  },
+  "solidity.test": {
+    "executeOnSave": false,
+    "verbosity": 2
+  }
 }
