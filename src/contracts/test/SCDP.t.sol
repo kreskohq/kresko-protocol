@@ -26,6 +26,7 @@ contract SCDPTest is Tested, Deploy {
     IKreskoAsset krETH;
     IKreskoAsset krJPY;
     IKreskoAsset krTSLA;
+    MockOracle ethFeed;
     Asset krETHConfig;
     Asset kissConfig;
     uint256 fee_KISS_krETH;
@@ -39,9 +40,14 @@ contract SCDPTest is Tested, Deploy {
 
     address krETHAddr;
     address kissAddr;
-
+    JSON.TickerConfig[] tickerCfg;
     function setUp() public mnemonic("MNEMONIC_DEVNET") users(getAddr(11), getAddr(22), getAddr(33)) {
         JSON.Config memory json = Deploy.deployTest("MNEMONIC_DEVNET", "test-clean", 0);
+
+        for (uint256 i; i < json.assets.tickers.length; i++) {
+            tickerCfg.push(json.assets.tickers[i]);
+        }
+        ethFeed = MockOracle(kresko.getOracleOfTicker(bytes32("ETH"), Enums.OracleType.Chainlink).feed);
 
         // for price updates
         vm.deal(address(kresko), 1 ether);
@@ -71,7 +77,7 @@ contract SCDPTest is Tested, Deploy {
         usdc.mint(user0, 1000e6);
         prank(getAddr(0));
         council = kresko.getRoleMember(keccak256("kresko.roles.minter.safety.council"), 0);
-        assertNotEq(council, address(0));
+        council.notEq(address(0));
 
         kiss.transfer(user0, 2000e18);
     }
@@ -688,14 +694,13 @@ contract SCDPTest is Tested, Deploy {
     }
 
     function _setETHPrice(uint256 price) internal repranked(admin) {
-        MockOracle(kresko.getOracleOfTicker(bytes32("ETH"), Enums.OracleType.Chainlink).feed).setPrice(price);
-        JSON.Config memory cfg = JSON.getConfig("test", "test-clean");
-        for (uint256 i = 0; i < cfg.assets.tickers.length; i++) {
-            if (cfg.assets.tickers[i].ticker.equals("ETH")) {
-                cfg.assets.tickers[i].mockPrice = price;
+        ethFeed.setPrice(price);
+        for (uint256 i = 0; i < tickerCfg.length; i++) {
+            if (tickerCfg[i].ticker.equals("ETH")) {
+                tickerCfg[i].mockPrice = price;
             }
         }
-        updatePythLocal(cfg.getMockPrices());
+        updatePythLocal(tickerCfg);
     }
 
     function _toggleActionPaused(address asset, Enums.Action action, bool paused) internal repranked(council) {

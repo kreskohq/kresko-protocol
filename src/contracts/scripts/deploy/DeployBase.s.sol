@@ -22,6 +22,7 @@ import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
 import {PythView} from "kresko-lib/vendor/Pyth.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {FacetData, getFacets, create1} from "kresko-lib/utils/ffi/ffi-facets.s.sol";
+import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 
 abstract contract DeployBase is Based {
     using LibDeploy for bytes;
@@ -135,8 +136,8 @@ abstract contract DeployBase is Based {
         return (kresko = IKresko(address(new DiamondBomb().create(_deployer, facets, selectors, initializers, calldatas))));
     }
 
-    function updatePythLocal(PythView memory _prices) internal {
-        getMockPayload(_prices);
+    function updatePythLocal(JSON.TickerConfig[] memory tickers) internal {
+        getMockPayload(LibJSON.getMockPrices(tickers));
         updatePyth(pyth.update, 0);
     }
 }

@@ -231,7 +231,7 @@ library LibJSON {
         revert("Balance not found");
     }
 
-    function getMockPrices(JSON.Config memory cfg) internal view returns (PythView memory result) {
+    function getMockPrices(JSON.TickerConfig[] memory cfg) internal view returns (PythView memory result) {
         (bytes32[] memory ids, int64[] memory prices) = _getPrices(cfg);
         require(ids.length == prices.length, "PythScript: mock price length mismatch");
         result.ids = new bytes32[](ids.length);
@@ -242,11 +242,11 @@ library LibJSON {
         }
     }
 
-    function _getPrices(JSON.Config memory cfg) private pure returns (bytes32[] memory ids, int64[] memory prices) {
+    function _getPrices(JSON.TickerConfig[] memory cfg) private pure returns (bytes32[] memory ids, int64[] memory prices) {
         uint256 count;
 
-        for (uint256 i; i < cfg.assets.tickers.length; i++) {
-            if (cfg.assets.tickers[i].pythId != bytes32(0)) {
+        for (uint256 i; i < cfg.length; i++) {
+            if (cfg[i].pythId != bytes32(0)) {
                 count++;
             }
         }
@@ -255,10 +255,11 @@ library LibJSON {
         prices = new int64[](count);
 
         count = 0;
-        for (uint256 i; i < cfg.assets.tickers.length; i++) {
-            if (cfg.assets.tickers[i].pythId != bytes32(0)) {
-                ids[count] = cfg.assets.tickers[i].pythId;
-                prices[count] = int64(uint64(cfg.assets.tickers[i].mockPrice));
+        for (uint256 i; i < cfg.length; i++) {
+            JSON.TickerConfig memory ticker = cfg[i];
+            if (ticker.pythId != bytes32(0)) {
+                ids[count] = ticker.pythId;
+                prices[count] = int64(uint64(ticker.mockPrice));
                 count++;
             }
         }

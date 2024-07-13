@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.23;
-import {Asset, CommonInitArgs} from "common/Types.sol";
+import {CommonInitArgs} from "common/Types.sol";
 import {SCDPInitArgs} from "scdp/STypes.sol";
 import {MinterInitArgs} from "minter/MTypes.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
@@ -8,7 +8,6 @@ import {Enums} from "common/Constants.sol";
 import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {Help, Utils, mAddr, mvm} from "kresko-lib/utils/s/LibVm.s.sol";
 import {CONST} from "scripts/deploy/CONST.s.sol";
-import {PLog} from "kresko-lib/utils/s/PLog.s.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 
 struct Files {
@@ -310,7 +309,6 @@ function get(Users memory users, uint256 i) returns (address) {
 uint256 constant ALL_USERS = 9999;
 
 using {get} for Users global;
-using {LibJSON.getMockPrices} for Config global;
 
 using {LibJSON.metadata} for KrAssetConfig global;
 using {LibJSON.toAsset} for AssetJSON global;

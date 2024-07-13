@@ -687,12 +687,12 @@ contract MulticallTest is Deploy {
 
     function _setETHPrice(uint256 _newPrice) internal {
         ethFeed.setPrice(_newPrice * 1e8);
-        JSON.Config memory cfg = JSON.getConfig("test", "test-base");
-        for (uint256 i = 0; i < cfg.assets.tickers.length; i++) {
-            if (cfg.assets.tickers[i].ticker.equals("ETH")) {
-                cfg.assets.tickers[i].mockPrice = _newPrice * 1e8;
+        JSON.TickerConfig[] memory tickers = JSON.getAssetConfig("test", "test-base").tickers;
+        for (uint256 i = 0; i < tickers.length; i++) {
+            if (tickers[i].ticker.equals("ETH")) {
+                tickers[i].mockPrice = _newPrice * 1e8;
             }
         }
-        updatePythLocal(cfg.getMockPrices());
+        updatePythLocal(tickers);
     }
 }

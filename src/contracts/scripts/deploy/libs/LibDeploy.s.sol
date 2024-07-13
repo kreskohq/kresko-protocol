@@ -24,7 +24,7 @@ library LibDeploy {
     using Help for *;
     using Utils for *;
     using Deployed for *;
-    using LibJSON for string;
+    using LibJSON for *;
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
 
@@ -40,7 +40,7 @@ library LibDeploy {
 
     function createMockPythEP(JSON.Config memory json) internal saveOutput("MockPythEP") returns (address) {
         bytes[] memory args = new bytes[](1);
-        args[0] = abi.encode(json.getMockPrices());
+        args[0] = abi.encode(json.assets.tickers.getMockPrices());
         bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(args));
         return implementation.d3("", CONST.PYTH_MOCK_SALT).implementation;
     }

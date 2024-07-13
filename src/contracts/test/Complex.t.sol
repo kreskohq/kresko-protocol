@@ -11,7 +11,7 @@ import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {MockERC20, MockOracle} from "mocks/Mocks.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import "scripts/deploy/JSON.s.sol" as JSON;
+import {JSON, LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {MintArgs, SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs} from "common/Args.sol";
 
 contract ComplexTest is Deploy {
@@ -656,12 +656,12 @@ contract ComplexTest is Deploy {
 
     function _setETHPrice(uint256 _newPrice) internal {
         ethFeed.setPrice(_newPrice * 1e8);
-        JSON.Config memory cfg = JSON.getConfig("test", "test-audit");
-        for (uint256 i = 0; i < cfg.assets.tickers.length; i++) {
-            if (cfg.assets.tickers[i].ticker.equals("ETH")) {
-                cfg.assets.tickers[i].mockPrice = _newPrice * 1e8;
+        JSON.TickerConfig[] memory tickers = JSON.getAssetConfig("test", "test-audit").tickers;
+        for (uint256 i = 0; i < tickers.length; i++) {
+            if (tickers[i].ticker.equals("ETH")) {
+                tickers[i].mockPrice = _newPrice * 1e8;
             }
         }
-        updatePythLocal(cfg.getMockPrices());
+        updatePythLocal(tickers);
     }
 }

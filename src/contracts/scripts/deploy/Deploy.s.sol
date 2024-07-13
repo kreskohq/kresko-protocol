@@ -183,7 +183,7 @@ contract Deploy is DeployBase {
 
     function setupUsers(JSON.Config memory json, bool disableLog) private reclearCallers {
         payable(address(kresko)).transfer(0.00001 ether);
-        updatePythLocal(json.getMockPrices());
+        updatePythLocal(json.assets.tickers);
         setupBalances(json.users, json.assets);
         setupSCDP(json.users, json.assets);
         setupMinter(json.users, json.assets);
