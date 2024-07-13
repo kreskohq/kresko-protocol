@@ -33,7 +33,6 @@ remappings = [
     "periphery/=src/contracts/core/periphery/",
     'scripts/=src/contracts/scripts/',
     'test/=src/contracts/test/',
-    'mocks-misc/=src/contracts/mocks/',
     "mocks/=src/contracts/core/test/mocks",
 ]
 

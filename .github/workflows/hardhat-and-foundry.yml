@@ -24,10 +24,11 @@ jobs:
       - run: bun install --yarn
 
       - name: Run Foundry Tests
-        run: forge test --no-match-path '*/locals/*' -v
+        run: forge test
         env:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
           RPC_ARBITRUM_ALCHEMY: https://arb-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_API_KEY }}
+          MNEMONIC_DEVNET: ${{ secrets.MNEMONIC_DEVNET }}
 
   hardhat:
     name: hardhat

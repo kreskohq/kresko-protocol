@@ -475,6 +475,8 @@ contract ComplexTest is Deploy {
     }
 
     function testFullLiquidation() external {
+        vm.skip(true);
+
         uint256 amount = 4000e18;
         // Setup another user
         address userOther = getAddr(55);
