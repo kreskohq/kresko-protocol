@@ -11,7 +11,7 @@ import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {Ownable} from "@oz/access/Ownable.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {ISwapRouter, IKrMulticall} from "periphery/IKrMulticall.sol";
-import {IPyth} from "vendor/pyth/IPyth.sol";
+import {IPyth} from "kresko-lib/vendor/Pyth.sol";
 import {BurnArgs, MintArgs, SCDPWithdrawArgs, SwapArgs, WithdrawArgs} from "common/Args.sol";
 import {fromWad} from "common/funcs/Math.sol";
 

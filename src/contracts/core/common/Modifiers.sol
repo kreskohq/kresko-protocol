@@ -9,7 +9,7 @@ import {Asset} from "common/Types.sol";
 import {cs, gm, CommonState} from "common/State.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {scdp} from "scdp/SState.sol";
-import {IPyth} from "vendor/pyth/IPyth.sol";
+import {IPyth} from "kresko-lib/vendor/Pyth.sol";
 import {handlePythUpdate} from "common/funcs/Utils.sol";
 
 library LibModifiers {

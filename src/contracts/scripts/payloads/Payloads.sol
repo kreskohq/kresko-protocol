@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {vmFFI} from "kresko-lib/utils/Base.s.sol";
+import {vmFFI} from "kresko-lib/utils/s/Base.s.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 
 using LibDeploy for bytes;

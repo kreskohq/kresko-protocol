@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Tested} from "kresko-lib/utils/Tested.t.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
-import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
+import {Tested} from "kresko-lib/utils/s/Tested.t.sol";
+import {Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
+import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
 import {AddKrAsset} from "scripts/tasks/AddKrAsset.s.sol";
 import {Asset} from "common/Types.sol";
 import {MintArgs, SwapArgs, BurnArgs} from "common/Args.sol";
@@ -14,7 +14,7 @@ import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";
 
 contract AddKrAssetTest is Tested, AddKrAsset {
     using Log for *;
-    using Help for *;
+    using Utils for *;
     using ShortAssert for *;
 
     Asset assetConfig;
@@ -27,17 +27,23 @@ contract AddKrAssetTest is Tested, AddKrAsset {
     uint256 testMint;
 
     function setUp() public override {
-        super.initialize(225611889);
+        super.initialize(231759536);
+        bytes32[] memory tickers = new bytes32[](1);
+        bytes32[] memory exchanges = new bytes32[](1);
+        tickers[0] = bytes32("DOGE");
+        exchanges[0] = bytes32("CRYPTO");
+        prank(safe);
+        marketStatus.setTickers(tickers, exchanges);
 
         createAddKrAsset();
+        updatePyth();
+        syncTime();
 
         assetConfig = kresko.getAsset(newAssetAddr);
         newAsset = KreskoAsset(newAssetAddr);
         newAssetAnchor = KreskoAssetAnchor(newAsset.anchor());
 
-        fetchPythSync();
-
-        testMint = (testMintValue).divWad(kresko.getPrice(newAssetAddr));
+        testMint = (testMintValue).wdiv(kresko.getPrice(newAssetAddr));
         prank(safe);
 
         (user0, user1) = (address(0x1234), address(0x4321));
@@ -46,13 +52,13 @@ contract AddKrAssetTest is Tested, AddKrAsset {
             address testUser = testUsers[i];
 
             deal(testUser, 1 ether);
-            deal(USDCAddr, testUser, 100_000e6);
+            deal(usdcAddr, testUser, 100_000e6);
             dealERC1155(kreskianAddr, testUser, 0, 1);
 
             prank(testUser);
             approvals();
             newAsset.approve(kreskoAddr, type(uint256).max);
-            kresko.depositCollateral(testUser, USDCAddr, 10_000e6);
+            kresko.depositCollateral(testUser, usdcAddr, 10_000e6);
         }
     }
 
@@ -75,7 +81,7 @@ contract AddKrAssetTest is Tested, AddKrAsset {
         uint256 primaryPrice = kresko.getPrice(newAssetAddr);
         uint256 secondaryPrice = uint256(kresko.getPushPrice(newAssetAddr).answer);
 
-        uint256 ratio = primaryPrice.pctDiv(secondaryPrice);
+        uint256 ratio = primaryPrice.pdiv(secondaryPrice);
 
         ratio.closeTo(100e2, 5e2, "price-ratio");
 
@@ -94,13 +100,9 @@ contract AddKrAssetTest is Tested, AddKrAsset {
                 if (assetIn == assetOut) continue;
 
                 bool enabled = kresko.getSwapEnabledSCDP(assetIn, assetOut);
-                assetIn.clg("asset-in");
-                assetOut.clg("asset-out");
                 assertTrue(enabled, "route-enabled");
 
                 enabled = kresko.getSwapEnabledSCDP(assetOut, assetIn);
-                assetIn.clg("asset-out");
-                assetOut.clg("asset-in");
                 assertTrue(enabled, "route-2-enabled");
             }
         }
@@ -111,11 +113,11 @@ contract AddKrAssetTest is Tested, AddKrAsset {
 
         kresko.mintKreskoAsset(
             MintArgs({krAsset: newAssetAddr, amount: testMint, account: user0, receiver: user0}),
-            pythUpdate
+            pyth.update
         );
         kresko.getAccountMintedAssets(user0)[0].eq(newAssetAddr, "user0-minted-asset");
         kresko.getAccountDebtAmount(user0, newAssetAddr).eq(testMint, "user0-debt-amount");
-        kresko.getAccountTotalDebtValue(user0).eq(price.mulWad(testMint), "user0-debt-value");
+        kresko.getAccountTotalDebtValue(user0).eq(price.wmul(testMint).pmul(assetConfig.kFactor), "user0-debt-value");
 
         uint256 swapAmount = testMint / 10;
         uint256 burnAmount = testMint / 2;
@@ -149,7 +151,10 @@ contract AddKrAssetTest is Tested, AddKrAsset {
         newAsset.balanceOf(user0).eq(testMint - swapAmount - burnAmount, "user0-balance-burn");
 
         kresko.getAccountDebtAmount(user0, newAssetAddr).eq(debtAmountAfterBurn, "user0-debt-amount-burn");
-        kresko.getAccountTotalDebtValue(user0).eq(price.mulWad(debtAmountAfterBurn), "user0-debt-value-burn");
+        kresko.getAccountTotalDebtValue(user0).eq(
+            price.wmul(debtAmountAfterBurn).pmul(assetConfig.kFactor),
+            "user0-debt-value-burn"
+        );
 
         newAsset.totalSupply().eq(debtAmountAfterBurn, "asset-total-supply-burn");
         KreskoAssetAnchor(assetConfig.anchor).totalSupply().eq(debtAmountAfterBurn, "anchor-total-supply-burn");
@@ -163,7 +168,10 @@ contract AddKrAssetTest is Tested, AddKrAsset {
         newAsset.balanceOf(user0).eq(testMint - swapAmount - burnAmount + testMint, "user0-balance-user1-mint");
         newAsset.balanceOf(user1).eq(0 ether, "user1-balance-user1-mint");
         kresko.getAccountDebtAmount(user1, newAssetAddr).eq(testMint, "user1-debt-amount-user1-mint");
-        kresko.getAccountTotalDebtValue(user1).eq(price.mulWad(testMint), "user1-debt-value-user1-mint");
+        kresko.getAccountTotalDebtValue(user1).eq(
+            price.wmul(testMint).pmul(assetConfig.kFactor),
+            "user1-debt-value-user1-mint"
+        );
 
         prank(user0);
         kresko.burnKreskoAsset(

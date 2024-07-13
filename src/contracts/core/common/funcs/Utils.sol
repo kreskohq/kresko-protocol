@@ -6,7 +6,7 @@ import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
-import {IPyth} from "vendor/pyth/IPyth.sol";
+import {IPyth} from "kresko-lib/vendor/Pyth.sol";
 import {cs} from "common/State.sol";
 import {Errors} from "common/Errors.sol";
 

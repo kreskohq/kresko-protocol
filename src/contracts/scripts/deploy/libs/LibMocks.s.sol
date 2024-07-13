@@ -8,13 +8,14 @@ import {JSON, LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {LibSafe} from "kresko-lib/mocks/MockSafe.sol";
-import {mvm} from "kresko-lib/utils/LibVm.s.sol";
+import {PythView} from "kresko-lib/vendor/Pyth.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {MockERC1155} from "mocks/MockERC1155.sol";
-import {Help} from "kresko-lib/utils/Libs.s.sol";
+import {Help, mvm, Utils} from "kresko-lib/utils/s/LibVm.s.sol";
 
 library LibMocks {
     using Help for *;
+    using Utils for *;
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
     using LibDeploy for JSON.Config;
@@ -51,7 +52,7 @@ library LibMocks {
 
         if (json.params.common.sequencerUptimeFeed == address(0)) {
             json.params.common.sequencerUptimeFeed = address(deploySeqFeed());
-            mvm.warp(mvm.unixTime());
+            mvm.warp(mvm.unixTime() / 1000);
         }
 
         if (json.params.common.council == address(0)) {
@@ -85,7 +86,7 @@ library LibMocks {
         }
 
         if (json.params.common.pythEp == address(0)) {
-            json.params.common.pythEp = deployMockPythEP(json, json.params.common.pythEp != address(0));
+            json.params.common.pythEp = deployMockPythEP(json);
         }
         return json;
     }
@@ -123,8 +124,8 @@ library LibMocks {
         return (deployment.implementation, deployment2.implementation);
     }
 
-    function deployMockPythEP(JSON.Config memory json, bool _realPrices) internal returns (address) {
-        return address(json.createMockPythEP(_realPrices));
+    function deployMockPythEP(JSON.Config memory json) internal returns (address) {
+        return address(json.createMockPythEP());
     }
 
     function deployMockOracle(string memory ticker, uint256 price, uint8 decimals) internal returns (MockOracle) {

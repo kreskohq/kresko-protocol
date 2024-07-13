@@ -6,10 +6,9 @@ import {MinterInitArgs} from "minter/MTypes.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {Enums} from "common/Constants.sol";
 import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
-import {mAddr, mvm} from "kresko-lib/utils/MinVm.s.sol";
-import {Help} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Utils, mAddr, mvm} from "kresko-lib/utils/s/LibVm.s.sol";
 import {CONST} from "scripts/deploy/CONST.s.sol";
-import {PLog} from "kresko-lib/utils/PLog.s.sol";
+import {PLog} from "kresko-lib/utils/s/PLog.s.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 struct Files {
     string params;
@@ -18,6 +17,7 @@ struct Files {
 }
 
 using Help for string;
+using Utils for string;
 
 function getConfig(string memory network, string memory configId) returns (Config memory json) {
     string memory dir = string.concat(CONST.CONFIG_DIR, network, "/");
@@ -307,32 +307,10 @@ function get(Users memory users, uint256 i) returns (address) {
     return acc.addr;
 }
 
-function getMockPrices(Config memory cfg) pure returns (bytes32[] memory ids, int64[] memory prices) {
-    uint256 count;
-
-    for (uint256 i; i < cfg.assets.tickers.length; i++) {
-        if (cfg.assets.tickers[i].pythId != bytes32(0)) {
-            count++;
-        }
-    }
-
-    ids = new bytes32[](count);
-    prices = new int64[](count);
-
-    count = 0;
-    for (uint256 i; i < cfg.assets.tickers.length; i++) {
-        if (cfg.assets.tickers[i].pythId != bytes32(0)) {
-            ids[count] = cfg.assets.tickers[i].pythId;
-            prices[count] = int64(uint64(cfg.assets.tickers[i].mockPrice));
-            count++;
-        }
-    }
-}
-
 uint256 constant ALL_USERS = 9999;
 
 using {get} for Users global;
-using {getMockPrices} for Config global;
+using {LibJSON.getMockPrices} for Config global;
 
 using {LibJSON.metadata} for KrAssetConfig global;
 using {LibJSON.toAsset} for AssetJSON global;

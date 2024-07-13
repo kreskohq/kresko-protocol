@@ -1,10 +1,11 @@
-import type { MockOracle, MockPyth } from '@/types/typechain'
+import type { MockOracle } from '@/types/typechain'
 import type { PromiseOrValue } from '@/types/typechain/common'
-import type { PythViewStruct } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
 import type { assets } from '@config/hardhat/deploy/arbitrumSepolia'
 import { type FakeContract } from '@defi-wonderland/smock'
 import { formatBytesString } from '@utils/values'
 import { BigNumber, BytesLike } from 'ethers'
+import { Hex } from 'viem'
+import { encodeAbiParameters, parseAbiParameters } from 'viem/utils'
 import { TEN_USD } from '../mocks'
 
 const pythPrices = new Map<string, BigNumber>()
@@ -33,12 +34,11 @@ export const updatePrices = async (hre: any, fakeOracle: FakeContract<MockOracle
   fakeOracle.latestRoundData.returns([1, priceBn, now, now, 1])
 
   const mockPyth = await hre.getContractOrFork('MockPyth')
-  await mockPyth.updatePriceFeeds(await getUpdateData(hre))
+  await mockPyth.updatePriceFeeds(getUpdateData())
 }
 
-export const getUpdateData = async (hre: any) => {
-  const mockPyth = await hre.getContractOrFork('MockPyth')
-  return await mapToUpdateData(mockPyth, Array.from(pythPrices.entries()))
+export const getUpdateData = () => {
+  return mapToUpdateData(Array.from(pythPrices.entries()))
 }
 
 export const getViewData = (_hre: any) => {
@@ -61,39 +61,44 @@ export const clear = () => {
 }
 
 type PriceConfig = [pythId: PromiseOrValue<BytesLike> | string, price: number | BigNumber][]
-
-export const mapToUpdateData = (mockPyth: MockPyth, values?: PriceConfig) => {
+const params = parseAbiParameters([
+  'PriceView data',
+  'struct PriceView { bytes32[] ids; Price[] prices; }',
+  'struct Price { int64 price; uint64 conf; int32 expo; uint256 publishTime; }',
+])
+export const mapToUpdateData = (values?: PriceConfig) => {
   if (!values?.length) {
     values = defaultPrices
   }
 
-  values = values.map(([pythId, price]) => [toBytes(pythId), price instanceof BigNumber ? price : price.ebn(8)])
-
-  return mockPyth.getMockPayload(
-    values.map(v => v[0]),
-    values.map(v => v[1]),
-  )
+  return [encodeAbiParameters(params, [mapToPriceView(values)])]
 }
 
-export const mapToPriceView = (values?: PriceConfig): PythViewStruct => {
+export const mapToPriceView = (values?: PriceConfig) => {
   if (!values?.length) {
     values = defaultPrices
   }
-  values = values.map(([pythId, price]) => [toBytes(pythId), price instanceof BigNumber ? price : price.ebn(8)])
+  const data = values.map(
+    ([pythId, price]) =>
+      ({
+        id: toBytes(pythId) as Hex,
+        price: price instanceof BigNumber ? price.toBigInt() : price.ebn(8).toBigInt(),
+      }) as const,
+  )
 
   return {
-    ids: values.map(v => v[0]),
-    prices: values.map(v => ({
-      price: v[1],
-      conf: (0.0001e8).ebn(0),
-      exp: -8,
-      timestamp: Math.floor(Date.now() / 1000).ebn(0),
+    ids: data.map(v => v.id),
+    prices: data.map(v => ({
+      price: v.price,
+      conf: (0.0001e8).ebn(0).toBigInt(),
+      expo: -8,
+      publishTime: BigInt(Math.floor(Date.now() / 1000)),
     })),
   }
 }
 
 export const toBytes = (value: any) => {
-  return String(value).startsWith('0x') ? (value as string) : formatBytesString(value ?? '', 32)
+  return String(value).startsWith('0x') ? (value as Hex) : (formatBytesString(value ?? '', 32) as Hex)
 }
 export type TestAssetIds = TestTokenSymbols
 export const TestTickers = {

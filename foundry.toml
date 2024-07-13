@@ -10,7 +10,7 @@ fs_permissions = [{ access = "read-write", path = "./" }]
 ffi = true
 solc = '0.8.23'
 evm_version = 'paris'
-via_ir = true
+via_ir = false
 optimizer = true
 optimizer_runs = 1000
 remappings = [
@@ -37,17 +37,6 @@ remappings = [
     "mocks/=src/contracts/core/test/mocks",
 ]
 
-# [profile.optimizer_details]
-# "yul" = false
-# "constantOptimizer" = false
-# "deduplicate" = false
-# "peephole" = false
-# "inliner" = false
-# "jumpdestRemover" = false
-# "orderLiterals" = false
-# "cse" = false
-# [profile.optimizer_details.yul_details]
-# "stackAllocation" = true
 [rpc_endpoints]
 arbitrum = "${RPC_ARBITRUM_ALCHEMY}"
 arbitrumSepolia = "${RPC_ARBITRUM_SEPOLIA_ALCHEMY}"

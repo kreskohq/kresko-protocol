@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {Tested} from "kresko-lib/utils/Tested.t.sol";
-import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
+import {Tested} from "kresko-lib/utils/s/Tested.t.sol";
+import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
 import {Strings} from "libs/Strings.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {Asset} from "common/Types.sol";
-import {PLog} from "kresko-lib/utils/PLog.s.sol";
+import {PLog} from "kresko-lib/utils/s/PLog.s.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";

@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {IAPI3} from "kresko-lib/vendor/IAPI3.sol";
 import {IVaultRateProvider} from "vault/interfaces/IVaultRateProvider.sol";
+import {PythView, Price, IPyth} from "kresko-lib/vendor/Pyth.sol";
 
 import {WadRay} from "libs/WadRay.sol";
 import {Strings} from "libs/Strings.sol";
@@ -17,8 +18,7 @@ import {isSequencerUp} from "common/funcs/Utils.sol";
 import {RawPrice, Oracle} from "common/Types.sol";
 import {Percents, Enums} from "common/Constants.sol";
 import {fromWad, toWad} from "common/funcs/Math.sol";
-import {IPyth} from "vendor/pyth/IPyth.sol";
-import {PythView} from "vendor/pyth/PythScript.sol";
+
 import {IMarketStatus} from "common/interfaces/IMarketStatus.sol";
 
 using WadRay for uint256;
@@ -123,7 +123,7 @@ function deducePrice(uint256 _primaryPrice, uint256 _referencePrice, uint256 _or
 }
 
 function pythPrice(bytes32 _id, bool _invert, uint256 _staleTime) view returns (uint256 price_) {
-    IPyth.Price memory result = IPyth(cs().pythEp).getPriceNoOlderThan(_id, _staleTime);
+    Price memory result = IPyth(cs().pythEp).getPriceNoOlderThan(_id, _staleTime);
 
     if (!_invert) {
         price_ = normalizePythPrice(result, cs().oracleDecimals);
@@ -136,9 +136,9 @@ function pythPrice(bytes32 _id, bool _invert, uint256 _staleTime) view returns (
     }
 }
 
-function normalizePythPrice(IPyth.Price memory _price, uint8 oracleDec) pure returns (uint256) {
+function normalizePythPrice(Price memory _price, uint8 oracleDec) pure returns (uint256) {
     uint256 result = uint64(_price.price);
-    uint256 exp = uint32(-_price.exp);
+    uint256 exp = uint32(-_price.expo);
     if (exp > oracleDec) {
         result = result / 10 ** (exp - oracleDec);
     }
@@ -149,9 +149,9 @@ function normalizePythPrice(IPyth.Price memory _price, uint8 oracleDec) pure ret
     return result;
 }
 
-function invertNormalizePythPrice(IPyth.Price memory _price, uint8 oracleDec) pure returns (uint256) {
-    _price.price = int64(uint64(1 * (10 ** uint32(-_price.exp)).wadDiv(uint64(_price.price))));
-    _price.exp = -18;
+function invertNormalizePythPrice(Price memory _price, uint8 oracleDec) pure returns (uint256) {
+    _price.price = int64(uint64(1 * (10 ** uint32(-_price.expo)).wadDiv(uint64(_price.price))));
+    _price.expo = -18;
     return normalizePythPrice(_price, oracleDec);
 }
 
@@ -272,14 +272,14 @@ function viewPrice(bytes32 _ticker, PythView calldata views) view returns (RawPr
 
     for (uint256 i; i < views.ids.length; i++) {
         if (views.ids[i] == config.pythId) {
-            IPyth.Price memory _price = views.prices[i];
+            Price memory _price = views.prices[i];
             RawPrice memory result = RawPrice(
                 int256(
                     !config.invertPyth
                         ? normalizePythPrice(_price, cs().oracleDecimals)
                         : invertNormalizePythPrice(_price, cs().oracleDecimals)
                 ),
-                _price.timestamp,
+                _price.publishTime,
                 config.staleTime,
                 false,
                 _price.price == 0,

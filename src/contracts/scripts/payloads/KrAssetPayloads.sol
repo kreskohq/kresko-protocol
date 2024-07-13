@@ -7,7 +7,6 @@ import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 
 contract KrAssetPayload is ArbDeployAddr {
     address public immutable newAssetAddr;
-    address constant krXAUAddr = 0xe0A49C9215206f9cfb79981901bDF1f2716d3215;
 
     constructor(address _newAssetAddr) {
         newAssetAddr = _newAssetAddr;
@@ -39,5 +38,8 @@ contract KrAssetPayload is ArbDeployAddr {
 
         scdp().isRoute[krXAUAddr][newAssetAddr] = true;
         scdp().isRoute[newAssetAddr][krXAUAddr] = true;
+
+        scdp().isRoute[krXAGAddr][newAssetAddr] = true;
+        scdp().isRoute[newAssetAddr][krXAGAddr] = true;
     }
 }

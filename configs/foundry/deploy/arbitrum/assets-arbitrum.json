@@ -497,6 +497,40 @@
         "21_isSharedOrSwappedCollateral": true,
         "22_isCoverAsset": false
       }
+    },
+    {
+      "00_name": "Dogecoin",
+      "01_symbol": "krDOGE",
+      "02_underlying": "",
+      "03_wrapFee": 0,
+      "04_unwrapFee": 0,
+      "05_config": {
+        "00_ticker": "DOGE",
+        "02_anchor": "0x0000000000000000000000000000000000000000",
+        "03_oracles": [
+          5,
+          2
+        ],
+        "04_factor": 0.95e4,
+        "05_kFactor": 1.05e4,
+        "06_openFee": 0,
+        "07_closeFee": 50,
+        "08_liqIncentive": 1.05e4,
+        "09_maxDebtMinter": 500000e18,
+        "10_maxDebtSCDP": 500000e18,
+        "11_depositLimitSCDP": 0,
+        "12_swapInFeeSCDP": 9,
+        "13_swapOutFeeSCDP": 14,
+        "14_protocolFeeShareSCDP": 7.5e2,
+        "15_liqIncentiveSCDP": 1.035e4,
+        "16_decimals": 0,
+        "17_isMinterCollateral": true,
+        "18_isMinterMintable": true,
+        "19_isSharedCollateral": false,
+        "20_isSwapMintable": true,
+        "21_isSharedOrSwappedCollateral": true,
+        "22_isCoverAsset": false
+      }
     }
   ],
   "05_kiss": {
@@ -699,6 +733,22 @@
       "04_api3": "0x0000000000000000000000000000000000000000",
       "05_vault": "0x0000000000000000000000000000000000000000",
       "06_pythId": "0xf2fb02c32b055c805e7238d628e5e9dadef274376114eb1f012337cabe93871e",
+      "07_staleTimePyth": 30,
+      "08_staleTimeAPI3": 86401,
+      "09_staleTimeChainlink": 86401,
+      "10_staleTimeRedstone": 50,
+      "11_useAdapter": false,
+      "12_invertPyth": false,
+      "13_isClosable": true
+    },
+    {
+      "00_ticker": "DOGE",
+      "01_mockPrice": 0,
+      "02_priceDecimals": 8,
+      "03_chainlink": "0x9A7FB1b3950837a8D9b40517626E11D4127C098C",
+      "04_api3": "0x0000000000000000000000000000000000000000",
+      "05_vault": "0x0000000000000000000000000000000000000000",
+      "06_pythId": "0xdcef50dd0a4cd2dcc17e45df1676dcb336a11a61c69df7a0299b0150c672d25c",
       "07_staleTimePyth": 30,
       "08_staleTimeAPI3": 86401,
       "09_staleTimeChainlink": 86401,

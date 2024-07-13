@@ -3,9 +3,9 @@
 pragma solidity ^0.8.0;
 
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import {Log, Help} from "kresko-lib/utils/Libs.s.sol";
-import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
-import {Tested} from "kresko-lib/utils/Tested.t.sol";
+import {Log, Help} from "kresko-lib/utils/s/LibVm.s.sol";
+import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
+import {Tested} from "kresko-lib/utils/s/Tested.t.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {IAccess} from "kresko-lib/vendor/IAccess.sol";

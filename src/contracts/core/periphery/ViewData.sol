@@ -17,7 +17,7 @@ import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {ViewHelpers} from "periphery/ViewHelpers.sol";
 import {fromWad, toWad, wadUSD} from "common/funcs/Math.sol";
 import {Percents} from "common/Constants.sol";
-import {PythView} from "vendor/pyth/PythScript.sol";
+import {PythView} from "kresko-lib/vendor/Pyth.sol";
 
 // solhint-disable code-complexity
 

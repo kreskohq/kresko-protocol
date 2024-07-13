@@ -6,7 +6,7 @@ task(TASK_PRINT_DEPLOYMENTS, 'Prints the list of deployment addresses', async ()
   const docs = []
   for (const [name, deployment] of Object.entries(deployments)) {
     console.log(`${name}: ${deployment.address}`)
-    docs.push(`${name},  [${deployment.address}](https://goerli-optimism.etherscan.io/address/${deployment.address})`)
+    docs.push(`${name},  [${deployment.address}](https://arbiscan.io/address/${deployment.address})`)
   }
 
   console.log(docs.join('\n'))

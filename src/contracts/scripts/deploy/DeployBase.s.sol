@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 
 import {FacetCut, Initializer, FacetCutAction} from "diamond/DSTypes.sol";
 import {Diamond} from "diamond/Diamond.sol";
-
+import {Based} from "kresko-lib/utils/Based.s.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {IKISS} from "kiss/interfaces/IKISS.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
@@ -13,7 +13,6 @@ import {InitializerMismatch, SelectorBytecodeMismatch, DiamondBomb} from "script
 
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IKrMulticall} from "periphery/IKrMulticall.sol";
-import {IDataV1} from "periphery/interfaces/IDataV1.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
@@ -21,11 +20,11 @@ import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {MinterConfigFacet} from "minter/facets/MinterConfigFacet.sol";
 import {CommonConfigFacet} from "common/facets/CommonConfigFacet.sol";
 import {SCDPConfigFacet} from "scdp/facets/SCDPConfigFacet.sol";
-import {IPyth} from "vendor/pyth/IPyth.sol";
+import {IPyth, PythView} from "kresko-lib/vendor/Pyth.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {create1, getFacetsAndSelectors} from "scripts/deploy/DeployFuncs.s.sol";
 
-abstract contract DeployBase {
+abstract contract DeployBase is Based {
     using LibDeploy for bytes;
     using LibDeploy for bytes32;
     using LibDeploy for JSON.Config;
@@ -40,7 +39,6 @@ abstract contract DeployBase {
     IKrMulticall multicall;
     IGatingManager gatingManager;
     IPyth pythEp;
-    IDataV1 dataV1;
     IWETH9 weth;
 
     function deployDeploymentFactory(address _deployer) internal returns (address) {
@@ -134,5 +132,10 @@ abstract contract DeployBase {
         (, bytes[] memory facets, bytes4[][] memory selectors) = getFacetsAndSelectors();
         (uint256[] memory initializers, bytes[] memory calldatas) = getInitializers(json, selectors);
         return (kresko = IKresko(address(new DiamondBomb().create(_deployer, facets, selectors, initializers, calldatas))));
+    }
+
+    function updatePythLocal(PythView memory _prices) internal {
+        getMockPayload(_prices);
+        updatePyth(pyth.update, pyth.cost);
     }
 }

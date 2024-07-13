@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import {Asset, RawPrice} from "common/Types.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Log, Utils} from "kresko-lib/utils/s/LibVm.s.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
@@ -15,6 +15,7 @@ import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 
 library LibDeployUtils {
     using Log for *;
+    using Utils for *;
     using Help for *;
     using LibDeploy for *;
     using LibJSON for *;
@@ -55,14 +56,14 @@ library LibDeployUtils {
         }
     }
 
-    function logUserOutput(JSON.Config memory json, address user, IKresko kresko, address kiss) internal {
+    function logUserOutput(JSON.Config memory json, address user, IKresko kresko, address kiss) internal view {
         if (LibDeploy.state().disableLog) return;
         Log.br();
         Log.hr();
         Log.clg("Test User");
         user.clg("Address");
         Log.hr();
-        emit Log.log_named_decimal_uint("Ether", user.balance, 18);
+        user.balance.dlg("Ether");
 
         for (uint256 i; i < json.assets.extAssets.length; i++) {
             JSON.ExtAsset memory asset = json.assets.extAssets[i];
@@ -87,7 +88,7 @@ library LibDeployUtils {
         kresko.getDepositsSCDP(user).dlg("SCDP Deposits", 18);
     }
 
-    function logOutput(JSON.Config memory json, IKresko kresko, address kiss) internal {
+    function logOutput(JSON.Config memory json, IKresko kresko, address kiss) internal view {
         if (LibDeploy.state().disableLog) return;
         Log.br();
         Log.hr();
@@ -106,12 +107,12 @@ library LibDeployUtils {
 
             tSupply.dlg("Total Supply", token.decimals());
             uint256 wadSupply = toWad(tSupply, token.decimals());
-            wadSupply.mulWad(price).dlg("Market Cap USD", 8);
+            wadSupply.wmul(price).dlg("Market Cap USD", 8);
 
             bal.dlg("Kresko Balance", token.decimals());
 
             uint256 wadBal = toWad(bal, token.decimals());
-            wadBal.mulWad(price).dlg("Kresko Balance USD", 8);
+            wadBal.wmul(price).dlg("Kresko Balance USD", 8);
         }
         for (uint256 i; i < json.assets.kreskoAssets.length; i++) {
             JSON.KrAssetConfig memory krAsset = json.assets.kreskoAssets[i];
@@ -124,9 +125,9 @@ library LibDeployUtils {
             uint256 balance = token.balanceOf(address(kresko));
             uint256 price = uint256(kresko.getPushPrice(address(token)).answer);
             tSupply.dlg("Total Minted", token.decimals());
-            tSupply.mulWad(price).dlg("Market Cap USD", 8);
+            tSupply.wmul(price).dlg("Market Cap USD", 8);
             balance.dlg("Kresko Balance", token.decimals());
-            balance.mulWad(price).dlg("Kresko Balance USD", 8);
+            balance.wmul(price).dlg("Kresko Balance USD", 8);
         }
         {
             Log.hr();
@@ -134,16 +135,16 @@ library LibDeployUtils {
             uint256 tSupply = IERC20(kiss).totalSupply();
             uint256 kissPrice = uint256(kresko.getPushPrice(kiss).answer);
             tSupply.dlg("Total Minted", 18);
-            tSupply.mulWad(kissPrice).dlg("Market Cap USD", 8);
+            tSupply.wmul(kissPrice).dlg("Market Cap USD", 8);
 
             IERC20(kiss).balanceOf(address(kresko)).dlg("Kresko Balance");
             uint256 scdpDeposits = kresko.getDepositsSCDP(kiss);
             scdpDeposits.dlg("SCDP Deposits", 18);
-            scdpDeposits.mulWad(kissPrice).dlg("SCDP Deposits USD", 8);
+            scdpDeposits.wmul(kissPrice).dlg("SCDP Deposits USD", 8);
         }
     }
 
-    function logAsset(Asset memory config, address kresko, address asset) internal {
+    function logAsset(Asset memory config, address kresko, address asset) internal view {
         if (LibDeploy.state().disableLog) return;
         IERC20 token = IERC20(asset);
         RawPrice memory price = IKresko(kresko).getPushPrice(asset);
@@ -161,7 +162,7 @@ library LibDeployUtils {
         config.isSharedCollateral.clg("SCDP Depositable");
 
         ("-------  Oracle --------").clg();
-        config.ticker.blg2txt("Ticker");
+        config.ticker.str().clg("Ticker");
         price.feed.clg("Feed");
         uint256(price.answer).dlg("Feed Price", 8);
         uint8(config.oracles[0]).clg("Primary Oracle");
@@ -170,17 +171,17 @@ library LibDeployUtils {
         ("-------  Config --------").clg();
         config.maxDebtMinter.dlg("Minter Debt Limit", 18);
         config.maxDebtSCDP.dlg("SCDP Debt Limit", 18);
-        config.kFactor.pct("kFactor");
-        config.factor.pct("cFactor");
-        config.openFee.pct("Minter Open Fee");
-        config.closeFee.pct("Minter Close Fee");
-        config.swapInFeeSCDP.pct("SCDP Swap In Fee");
-        config.swapOutFeeSCDP.pct("SCDP Swap Out Fee");
-        config.protocolFeeShareSCDP.pct("SCDP Protocol Fee");
-        config.liqIncentiveSCDP.pct("SCDP Liquidation Incentive");
+        config.kFactor.plg("kFactor");
+        config.factor.plg("cFactor");
+        config.openFee.plg("Minter Open Fee");
+        config.closeFee.plg("Minter Close Fee");
+        config.swapInFeeSCDP.plg("SCDP Swap In Fee");
+        config.swapOutFeeSCDP.plg("SCDP Swap Out Fee");
+        config.protocolFeeShareSCDP.plg("SCDP Protocol Fee");
+        config.liqIncentiveSCDP.plg("SCDP Liquidation Incentive");
     }
 
-    function logOutput(VaultAsset memory config, address vault) internal {
+    function logOutput(VaultAsset memory config, address vault) internal view {
         if (LibDeploy.state().disableLog) return;
         address assetAddr = address(config.token);
         Log.br();
@@ -194,7 +195,7 @@ library LibDeployUtils {
         config.staleTime.clg("Stale Price Time");
         ("-------  Config --------").clg();
         config.maxDeposits.dlg("Max Deposit Amount", config.decimals);
-        config.depositFee.pct("Deposit Fee");
-        config.withdrawFee.pct("Withdraw Fee");
+        config.depositFee.plg("Deposit Fee");
+        config.withdrawFee.plg("Withdraw Fee");
     }
 }

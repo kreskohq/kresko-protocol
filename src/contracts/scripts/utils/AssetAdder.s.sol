@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ArbScript, Asset} from "scripts/utils/ArbScript.s.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
@@ -14,10 +14,9 @@ import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 contract AssetAdder is ArbScript {
     using Log for *;
     using Help for *;
-    using LibDeploy for JSON.Config;
-    using LibDeploy for bytes;
-    using LibJSON for JSON.Config;
-    using LibJSON for JSON.AssetJSON;
+    using Utils for *;
+    using LibDeploy for *;
+    using LibJSON for *;
 
     FeedConfiguration NO_NEW_FEEDS;
     uint256 currentForkId;

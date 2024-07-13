@@ -19,7 +19,7 @@ import type {
   SCDPInitArgsStruct,
 } from '@/types/typechain/hardhat-diamond-abi/HardhatDiamondABI.sol/Kresko'
 import { priceTW, toBig } from '@utils/values'
-import { zeroAddress } from 'viem'
+import { Hex, encodeAbiParameters, parseAbiParameters, zeroAddress } from 'viem'
 
 const pricesMock = {
   'ARB/USD': 1.1,

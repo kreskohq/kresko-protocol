@@ -1,5 +1,5 @@
 import { glob } from 'glob'
-import { Address } from 'viem'
+import { Address, encodeAbiParameters, encodeFunctionData, parseAbiParameters } from 'viem'
 import { type BroadcastJSON, deploysBroadcasts } from './ffi-shared'
 
 export const getLatestBroadcastedDeployment = () => {
@@ -25,7 +25,7 @@ export function getDeployment() {
   const key = keys.find(k => k.toLowerCase() === name.toLowerCase())
 
   if (!key) throw new Error(`Found deployment but no entry for ${name}-${chainId}-${deployId}`)
-  return data[key].address as Address
+  return encodeAbiParameters(parseAbiParameters(['address']), [data[key].address as Address])
 }
 
 const findBroadcastedDeployment = (name: string, chainId: number) => {
