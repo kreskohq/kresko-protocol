@@ -5,7 +5,6 @@ import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {JSON, LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {LibSafe} from "kresko-lib/mocks/MockSafe.sol";
-import {PythView} from "kresko-lib/vendor/Pyth.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
 import {MockERC1155, MockSequencerUptimeFeed, MockERC20, MockOracle} from "mocks/Mocks.sol";
 import {Help, mvm, Utils} from "kresko-lib/utils/s/LibVm.s.sol";
