@@ -30,11 +30,7 @@ using WadRay for uint256;
 
 contract SCDPFacet is ISCDPFacet, Modifiers {
     /// @inheritdoc ISCDPFacet
-    function depositSCDP(
-        address _account,
-        address _collateralAsset,
-        uint256 _amount
-    ) external payable nonReentrant gate(_account) {
+    function depositSCDP(address _account, address _collateralAsset, uint256 _amount) external payable nonReentrant {
         // Transfer tokens into this contract prior to any state changes as an extra measure against re-entrancy.
         IERC20(_collateralAsset).safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -141,7 +137,7 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
     }
 
     /// @inheritdoc ISCDPFacet
-    function repaySCDP(SCDPRepayArgs calldata _args) external payable nonReentrant gate(tx.origin) {
+    function repaySCDP(SCDPRepayArgs calldata _args) external payable nonReentrant {
         handlePythUpdate(_args.prices);
         Asset storage repayAsset = cs().onlySwapMintable(_args.repayAsset, Enums.Action.SCDPRepay);
         Asset storage seizeAsset = cs().onlySwapMintable(_args.seizeAsset, Enums.Action.SCDPRepay);
@@ -222,11 +218,6 @@ contract SCDPFacet is ISCDPFacet, Modifiers {
 
     /// @inheritdoc ISCDPFacet
     function liquidateSCDP(SCDPLiquidationArgs memory _args, bytes[] calldata _updateData) external payable nonReentrant {
-        // inlined modifier (for stack)
-        if (address(gm().manager) != address(0)) {
-            gm().manager.check(tx.origin);
-        }
-
         // inlined modifier (for stack)
         handlePythUpdate(_updateData);
 

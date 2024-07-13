@@ -130,9 +130,6 @@ library Errors {
     error NO_COLLATERALS_DEPOSITED(address who);
     error ONLY_WHITELISTED();
     error BLACKLISTED();
-    error MISSING_PHASE_3_NFT();
-    error MISSING_PHASE_2_NFT();
-    error MISSING_PHASE_1_NFT();
     error CANNOT_RE_ENTER();
     error PYTH_ID_ZERO(string ticker);
     error ARRAY_LENGTH_MISMATCH(string ticker, uint256 arr1, uint256 arr2);

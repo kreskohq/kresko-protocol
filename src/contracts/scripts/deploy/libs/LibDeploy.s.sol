@@ -12,14 +12,11 @@ import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 import {IKresko} from "periphery/IKresko.sol";
 import {Help, Log, Utils, mvm} from "kresko-lib/utils/s/LibVm.s.sol";
-import {GatingManager} from "periphery/GatingManager.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {CONST} from "scripts/deploy/CONST.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
-import {MockPyth} from "kresko-lib/mocks/MockPyth.sol";
-import {PythView} from "kresko-lib/vendor/Pyth.sol";
 import {LibJSON, JSON} from "scripts/deploy/libs/LibJSON.s.sol";
-import {MockMarketStatus} from "mocks-misc/MockMarketStatus.sol";
+import {MockMarketStatus, MockPyth} from "mocks/Mocks.sol";
 
 library LibDeploy {
     using Conversions for bytes[];
@@ -32,31 +29,20 @@ library LibDeploy {
     using LibDeploy for bytes32;
 
     function createFactory(address _owner) internal saveOutput("Factory") returns (DeploymentFactory result) {
-        result = new DeploymentFactory(_owner);
+        state().factory = (result = new DeploymentFactory(_owner));
         setJsonAddr("address", address(result));
         setJsonBytes("ctor", abi.encode(_owner));
-        state().factory = result;
     }
 
-    function createGatingManager(
-        JSON.Config memory json,
-        address _owner
-    ) internal saveOutput("GatingManager") returns (GatingManager) {
-        bytes memory implementation = type(GatingManager).creationCode.ctor(
-            abi.encode(_owner, json.params.periphery.okNFT, json.params.periphery.qfkNFT, 0)
-        );
-        return GatingManager(implementation.d3("", CONST.GM_SALT).implementation);
+    function createMockMarketStatusProvider(JSON.Config memory) internal saveOutput("MarketStatus") returns (address) {
+        return type(MockMarketStatus).creationCode.d3("", CONST.MOCK_STATUS_SALT).implementation;
     }
 
-    function createMockMarketStatusProvider(JSON.Config memory) internal saveOutput("MarketStatus") returns (MockMarketStatus) {
-        return MockMarketStatus(type(MockMarketStatus).creationCode.d3("", CONST.MOCK_STATUS_SALT).implementation);
-    }
-
-    function createMockPythEP(JSON.Config memory json) internal saveOutput("MockPythEP") returns (MockPyth) {
-        bytes[] memory ctor = new bytes[](1);
-        ctor[0] = abi.encode(json.getMockPrices());
-        bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(ctor));
-        return MockPyth(implementation.d3("", CONST.PYTH_MOCK_SALT).implementation);
+    function createMockPythEP(JSON.Config memory json) internal saveOutput("MockPythEP") returns (address) {
+        bytes[] memory args = new bytes[](1);
+        args[0] = abi.encode(json.getMockPrices());
+        bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(args));
+        return implementation.d3("", CONST.PYTH_MOCK_SALT).implementation;
     }
 
     function createKISS(
@@ -76,8 +62,8 @@ library LibDeploy {
     }
 
     function createVault(JSON.Config memory json, address _owner) internal saveOutput("Vault") returns (Vault) {
-        string memory name = string.concat(CONST.VAULT_NAME_PREFIX, json.assets.kiss.name);
-        string memory symbol = string.concat(CONST.VAULT_SYMBOL_PREFIX, json.assets.kiss.symbol);
+        string memory name = CONST.VAULT_NAME_PREFIX.cc(json.assets.kiss.name);
+        string memory symbol = CONST.VAULT_SYMBOL_PREFIX.cc(json.assets.kiss.symbol);
         bytes memory implementation = type(Vault).creationCode.ctor(
             abi.encode(name, symbol, 18, 8, _owner, json.params.common.treasury, json.params.common.sequencerUptimeFeed)
         );
@@ -221,7 +207,7 @@ library LibDeploy {
                 return pkr3(json.assets.kreskoAssets[i]);
             }
         }
-        revert(string.concat("!assetAddr: ", symbol));
+        revert(("!assetAddr: ").cc(symbol));
     }
 
     bytes32 internal constant DEPLOY_STATE_SLOT = keccak256("DeployState");

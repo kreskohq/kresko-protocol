@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ArbScript} from "scripts/utils/ArbScript.s.sol";
-import {Help, Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
+import {Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {scdp} from "scdp/SState.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
@@ -21,7 +21,6 @@ contract ExamplePayload0002 is ArbDeployAddr {
 
 contract SafeExample is ArbScript {
     using Log for *;
-    using Help for *;
 
     modifier setUp() {
         ArbScript.initialize("MNEMONIC_DEPLOY");

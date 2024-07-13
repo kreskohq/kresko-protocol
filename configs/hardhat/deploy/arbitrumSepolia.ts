@@ -238,18 +238,14 @@ const gnosisSafeDeployments: GnosisSafeDeployment[] = [
   SignMessageLib,
   SimulateTxAccessor,
 ]
-const commonInitAgs = (
-  gatingManager: string,
-): Omit<CommonInitArgsStruct, 'feeRecipient' | 'admin' | 'council' | 'treasury'> => ({
+const commonInitArgs = {
   oracleDecimals: 8,
-  gatingManager,
   maxPriceDeviationPct: 0.1e4,
   sequencerGracePeriodTime: 3600,
   sequencerUptimeFeed: '0x23ab08d87BBAe90e8BDe56F87ad6e53683E08279',
   pythEp: '0x4374e5a8b9C22271E9EB878A2AA31DE97DF15DAF',
   marketStatusProvider: '0xf6188e085ebEB716a730F8ecd342513e72C8AD04',
-})
-
+}
 export const minterInitArgs: MinterInitArgsStruct = {
   minCollateralRatio: 1.5e4,
   liquidationThreshold: 1.4e4,
@@ -263,28 +259,28 @@ export const scdpInitArgs: SCDPInitArgsStruct = {
 }
 export const testnetConfigs: NetworkConfig = {
   all: {
-    commonInitAgs: commonInitAgs(zeroAddress),
+    commonInitArgs,
     minterInitArgs,
     scdpInitArgs,
     assets: [assets.DAI, assets.KISS, assets.WETH, assets.krBTC, assets.krETH],
     gnosisSafeDeployments,
   },
   hardhat: {
-    commonInitAgs: commonInitAgs(zeroAddress),
+    commonInitArgs,
     minterInitArgs,
     scdpInitArgs,
     assets: [assets.KISS, assets.krETH],
     gnosisSafeDeployments,
   },
   localhost: {
-    commonInitAgs: commonInitAgs(zeroAddress),
+    commonInitArgs,
     minterInitArgs,
     scdpInitArgs,
     assets: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],
     gnosisSafeDeployments,
   },
   arbitrumGoerli: {
-    commonInitAgs: commonInitAgs(zeroAddress),
+    commonInitArgs,
     minterInitArgs,
     scdpInitArgs,
     assets: [assets.DAI, assets.KISS, assets.krBTC, assets.krETH],

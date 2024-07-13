@@ -11,7 +11,7 @@ import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
 import {stdStorage, StdStorage} from "forge-std/StdStorage.sol";
 import {PLog} from "kresko-lib/utils/s/PLog.s.sol";
 import {Conversions, Deploys, Proxies} from "libs/Utils.sol";
-import {LogicA, LogicB} from "mocks-misc/MockLogic.sol";
+import {LogicA, LogicB} from "mocks/MockLogic.sol";
 import {DeploymentFactory, IDeploymentFactory, Deployment, TransparentUpgradeableProxy} from "factory/DeploymentFactory.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {KreskoAssetAnchor} from "kresko-asset/KreskoAssetAnchor.sol";

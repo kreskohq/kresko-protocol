@@ -10,6 +10,7 @@ import {Help, Utils, mAddr, mvm} from "kresko-lib/utils/s/LibVm.s.sol";
 import {CONST} from "scripts/deploy/CONST.s.sol";
 import {PLog} from "kresko-lib/utils/s/PLog.s.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
+
 struct Files {
     string params;
     string assets;
@@ -20,14 +21,14 @@ using Help for string;
 using Utils for string;
 
 function getConfig(string memory network, string memory configId) returns (Config memory json) {
-    string memory dir = string.concat(CONST.CONFIG_DIR, network, "/");
+    string memory dir = CONST.CONFIG_DIR.cc(network, "/");
 
     return getConfigFrom(dir, configId);
 }
 
 function getSalts(string memory network, string memory configId) returns (Salts memory) {
-    string memory dir = string.concat(CONST.CONFIG_DIR, network, "/");
-    string memory location = string.concat(dir, "salts-", configId, ".json");
+    string memory dir = CONST.CONFIG_DIR.cc(network, "/");
+    string memory location = dir.cc("salts-", configId, ".json");
     if (!mvm.exists(location)) {
         return Salts({kresko: bytes32("Kresko"), multicall: bytes32("Multicall")});
     }
@@ -38,19 +39,19 @@ function getSalts(string memory network, string memory configId) returns (Salts 
 function getConfigFrom(string memory dir, string memory configId) returns (Config memory json) {
     Files memory files;
 
-    files.params = string.concat(dir, "params-", configId, ".json");
+    files.params = dir.cc("params-", configId, ".json");
     if (!mvm.exists(files.params)) {
-        revert(string.concat("No configuration exists: ", files.params));
+        revert(files.params.cc(": no configuration exists."));
     }
-    files.assets = string.concat(dir, "assets-", configId, ".json");
+    files.assets = dir.cc("assets-", configId, ".json");
     if (!mvm.exists(files.assets)) {
-        revert(string.concat("No asset configuration exists: ", files.assets));
+        revert(files.assets.cc(": no asset configuration exists."));
     }
 
     json.params = abi.decode(mvm.parseJson(mvm.readFile(files.params)), (Params));
     json.assets = getAssetConfigFrom(dir, configId);
 
-    files.users = string.concat(dir, "users-", configId, ".json");
+    files.users = dir.cc("users-", configId, ".json");
     if (mvm.exists(files.users)) {
         json.users = abi.decode(mvm.parseJson(mvm.readFile(files.users)), (Users));
     }
@@ -64,16 +65,16 @@ function getConfigFrom(string memory dir, string memory configId) returns (Confi
 
 // stacks too deep so need to split assets into separate function
 function getAssetConfig(string memory network, string memory configId) returns (Assets memory json) {
-    string memory dir = string.concat(CONST.CONFIG_DIR, network, "/");
+    string memory dir = CONST.CONFIG_DIR.cc(network, "/");
     return getAssetConfigFrom(dir, configId);
 }
 
 function getAssetConfigFrom(string memory dir, string memory configId) returns (Assets memory) {
     Files memory files;
 
-    files.assets = string.concat(dir, "assets-", configId, ".json");
+    files.assets = dir.cc("assets-", configId, ".json");
     if (!mvm.exists(files.assets)) {
-        revert(string.concat("No asset configuration exists: ", files.assets));
+        revert(files.assets.cc(": no asset configuration exists."));
     }
 
     return abi.decode(mvm.parseJson(mvm.readFile(files.assets)), (Assets));
@@ -139,12 +140,11 @@ struct Config {
 
 struct Params {
     string configId;
-    address deploymentFactory;
+    address factory;
     CommonInitArgs common;
     SCDPInitArgs scdp;
     MinterInitArgs minter;
     Periphery periphery;
-    uint8 gatingPhase;
 }
 
 struct Periphery {

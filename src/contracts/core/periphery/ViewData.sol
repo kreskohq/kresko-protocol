@@ -91,7 +91,6 @@ library ViewFuncs {
         result.sequencerStartedAt = uint32(startedAt);
         result.timestamp = uint32(block.timestamp);
         result.blockNr = uint32(block.number);
-        result.gate = viewGate();
         result.tvl = viewTVL(prices);
     }
 
@@ -101,15 +100,6 @@ library ViewFuncs {
             Asset storage asset = cs().assets[assets[i]];
             result += toWad(IERC20(assets[i]).balanceOf(address(this)), asset.decimals).wadMul(asset.getViewPrice(prices));
         }
-    }
-
-    function viewGate() internal view returns (View.Gate memory result) {
-        if (address(gm().manager) == address(0)) {
-            return result;
-        }
-        result.kreskian = address(gm().manager.kreskian());
-        result.questForKresk = address(gm().manager.questForKresk());
-        result.phase = gm().manager.phase();
     }
 
     function viewMinter() internal view returns (View.Minter memory result) {
@@ -493,14 +483,6 @@ library ViewFuncs {
         result.accountIndexTimestamp = scdp().accountIndexes[_account][_assetAddr].timestamp;
         result.liqIndexCurrent = scdp().assetIndexes[_assetAddr].currLiqIndex;
         result.feeIndexCurrent = scdp().assetIndexes[_assetAddr].currFeeIndex;
-    }
-
-    function viewPhaseEligibility(address _account) internal view returns (uint8 phase, bool isEligible) {
-        if (address(gm().manager) == address(0)) {
-            return (0, true);
-        }
-        phase = gm().manager.phase();
-        isEligible = gm().manager.isEligible(_account);
     }
 
     function _symbol(address _assetAddr) internal view returns (string memory) {

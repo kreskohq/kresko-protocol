@@ -27,7 +27,7 @@ contract AddKrAssetTest is Tested, AddKrAsset {
     uint256 testMint;
 
     function setUp() public override {
-        super.initialize(231759536);
+        super.initialize(231869463);
         bytes32[] memory tickers = new bytes32[](1);
         bytes32[] memory exchanges = new bytes32[](1);
         tickers[0] = bytes32("DOGE");
@@ -35,26 +35,25 @@ contract AddKrAssetTest is Tested, AddKrAsset {
         prank(safe);
         marketStatus.setTickers(tickers, exchanges);
 
-        createAddKrAsset();
         updatePyth();
         syncTime();
+
+        createAddKrAsset();
 
         assetConfig = kresko.getAsset(newAssetAddr);
         newAsset = KreskoAsset(newAssetAddr);
         newAssetAnchor = KreskoAssetAnchor(newAsset.anchor());
 
         testMint = (testMintValue).wdiv(kresko.getPrice(newAssetAddr));
-        prank(safe);
 
+        prank(safe);
         (user0, user1) = (address(0x1234), address(0x4321));
         address[2] memory testUsers = [user0, user1];
         for (uint256 i; i < testUsers.length; i++) {
             address testUser = testUsers[i];
-
             deal(testUser, 1 ether);
             deal(usdcAddr, testUser, 100_000e6);
             dealERC1155(kreskianAddr, testUser, 0, 1);
-
             prank(testUser);
             approvals();
             newAsset.approve(kreskoAddr, type(uint256).max);
@@ -89,7 +88,7 @@ contract AddKrAssetTest is Tested, AddKrAsset {
         marketStatus.getTickerStatus(assetConfig.ticker).eq(expectedMarketStatus, "ticker-market-status");
     }
 
-    function testTradeRoutes() external {
+    function testTradeRoutes() external view {
         address[] memory assets = kresko.getKreskoAssetsSCDP();
 
         for (uint256 i; i < assets.length; i++) {

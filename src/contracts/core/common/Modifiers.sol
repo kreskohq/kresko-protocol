@@ -6,10 +6,9 @@ import {Errors} from "common/Errors.sol";
 import {Auth} from "common/Auth.sol";
 import {Role, Constants, Enums} from "common/Constants.sol";
 import {Asset} from "common/Types.sol";
-import {cs, gm, CommonState} from "common/State.sol";
+import {cs, CommonState} from "common/State.sol";
 import {WadRay} from "libs/WadRay.sol";
 import {scdp} from "scdp/SState.sol";
-import {IPyth} from "kresko-lib/vendor/Pyth.sol";
 import {handlePythUpdate} from "common/funcs/Utils.sol";
 
 library LibModifiers {
@@ -248,14 +247,6 @@ contract Modifiers {
         cs().entered = Constants.ENTERED;
         _;
         cs().entered = Constants.NOT_ENTERED;
-    }
-
-    /// @notice Reverts if the caller does not have the required NFT's for the gated phase
-    modifier gate(address _account) {
-        if (address(gm().manager) != address(0)) {
-            gm().manager.check(_account);
-        }
-        _;
     }
 
     modifier usePyth(bytes[] calldata _updateData) {

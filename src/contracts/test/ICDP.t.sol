@@ -9,7 +9,7 @@ import {PercentageMath} from "libs/PercentageMath.sol";
 import {Asset} from "common/Types.sol";
 import {PLog} from "kresko-lib/utils/s/PLog.s.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
-import {MockERC20} from "mocks/MockERC20.sol";
+import {MockERC20} from "mocks/Mocks.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
@@ -97,7 +97,7 @@ contract ICDPTest is Tested, Deploy {
         kresko.depositCollateral(user0, address(usdc), depositAmount);
         kresko.getAccountCollateralAmount(user0, address(usdc)).eq(depositAmount);
 
-        kresko.mintKreskoAsset(MintArgs(user0, address(krJPY), mintAmount, user0), updateData);
+        kresko.mintKreskoAsset(MintArgs(user0, address(krJPY), mintAmount, user0), pyth.update);
         kresko.getAccountTotalCollateralValue(user0).eq(1000e8);
         kresko.getAccountTotalDebtValue(user0).eq(67.67e8);
     }
@@ -112,11 +112,11 @@ contract ICDPTest is Tested, Deploy {
         kresko.depositCollateral(user0, address(usdc), depositAmount);
         kresko.getAccountCollateralAmount(user0, address(usdc)).eq(depositAmount);
 
-        kresko.mintKreskoAsset(MintArgs(user0, address(krJPY), mintAmount, user0), updateData);
+        kresko.mintKreskoAsset(MintArgs(user0, address(krJPY), mintAmount, user0), pyth.update);
 
         uint256 feeValue = kresko.getValue(address(krJPY), mintAmount.percentMul(krJPYConfig.closeFee));
 
-        kresko.burnKreskoAsset(BurnArgs(user0, address(krJPY), mintAmount, 0, user0), updateData);
+        kresko.burnKreskoAsset(BurnArgs(user0, address(krJPY), mintAmount, 0, user0), pyth.update);
 
         kresko.getAccountTotalCollateralValue(user0).eq(1000e8 - feeValue);
         kresko.getAccountTotalDebtValue(user0).eq(0);
@@ -132,10 +132,10 @@ contract ICDPTest is Tested, Deploy {
         kresko.depositCollateral(user0, address(usdc), depositAmount);
         kresko.getAccountCollateralAmount(user0, address(usdc)).eq(depositAmount);
 
-        kresko.mintKreskoAsset(MintArgs(user0, address(krJPY), mintAmount, user0), updateData);
-        kresko.burnKreskoAsset(BurnArgs(user0, address(krJPY), mintAmount, 0, user0), updateData);
+        kresko.mintKreskoAsset(MintArgs(user0, address(krJPY), mintAmount, user0), pyth.update);
+        kresko.burnKreskoAsset(BurnArgs(user0, address(krJPY), mintAmount, 0, user0), pyth.update);
 
-        kresko.withdrawCollateral(WithdrawArgs(user0, address(usdc), type(uint256).max, 0, user0), updateData);
+        kresko.withdrawCollateral(WithdrawArgs(user0, address(usdc), type(uint256).max, 0, user0), pyth.update);
 
         kresko.getAccountTotalCollateralValue(user0).eq(0);
         kresko.getAccountTotalDebtValue(user0).eq(0);
@@ -156,7 +156,7 @@ contract ICDPTest is Tested, Deploy {
         bytes memory mintData = abi.encodeWithSelector(
             kresko.mintKreskoAsset.selector,
             MintArgs(user0, address(krJPY), mintAmount, user0),
-            updateData
+            pyth.update
         );
         uint256 gasMint = gasleft();
         (success, ) = address(kresko).call(mintData);
@@ -166,7 +166,7 @@ contract ICDPTest is Tested, Deploy {
         bytes memory burnData = abi.encodeWithSelector(
             kresko.burnKreskoAsset.selector,
             BurnArgs(user0, address(krJPY), mintAmount, 0, user0),
-            updateData
+            pyth.update
         );
         uint256 gasBurn = gasleft();
         (success, ) = address(kresko).call(burnData);
@@ -176,7 +176,7 @@ contract ICDPTest is Tested, Deploy {
         bytes memory withdrawData = abi.encodeWithSelector(
             kresko.withdrawCollateral.selector,
             WithdrawArgs(user0, address(usdc), 998e18, 0, user0),
-            updateData
+            pyth.update
         );
         uint256 gasWithdraw = gasleft();
         (success, ) = address(kresko).call(withdrawData);

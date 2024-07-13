@@ -26,11 +26,6 @@ contract CommonStateFacet is ICommonStateFacet {
     }
 
     /// @inheritdoc ICommonStateFacet
-    function getGatingManager() external view returns (address) {
-        return address(gm().manager);
-    }
-
-    /// @inheritdoc ICommonStateFacet
     function getMarketStatusProvider() external view returns (address) {
         return cs().marketStatusProvider;
     }

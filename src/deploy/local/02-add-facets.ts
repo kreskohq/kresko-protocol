@@ -24,15 +24,7 @@ const deploy: DeployFunction = async function (hre) {
   })
   await hre.deploy('MockSequencerUptimeFeed')
 
-  const [GatingManager] = await hre.deploy('GatingManager', {
-    args: [
-      hre.users.deployer.address,
-      '0xAbDb949a18d27367118573A217E5353EDe5A0f1E',
-      '0x1C04925779805f2dF7BbD0433ABE92Ea74829bF6',
-      0,
-    ],
-  })
-  const commonInit = (await getCommonInitializer(hre, GatingManager.address)).args
+  const commonInit = (await getCommonInitializer(hre)).args
   if (commonInit.council === zeroAddress) throw new Error('Council address not set')
   await addFacets({
     names: commonFacets,

@@ -8,18 +8,16 @@ import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {LibMocks} from "scripts/deploy/libs/LibMocks.s.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {LibDeployUtils} from "scripts/deploy/libs/LibDeployUtils.s.sol";
-import {Help, Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
+import {Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {Ownable} from "@oz/access/Ownable.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
-import {MockERC20} from "mocks/MockERC20.sol";
-import {IERC1155} from "common/interfaces/IERC1155.sol";
+import {MockERC20} from "mocks/Mocks.sol";
 import {Enums, Role} from "common/Constants.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {Asset, FeedConfiguration} from "common/Types.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
-import {IGatingManager} from "periphery/IGatingManager.sol";
 import {IPyth} from "kresko-lib/vendor/Pyth.sol";
 import {MintArgs} from "common/Args.sol";
 
@@ -29,15 +27,12 @@ contract Deploy is DeployBase {
     using LibDeploy for *;
     using Deployed for *;
     using LibDeployUtils for *;
-    using Help for *;
     using Log for *;
     using Utils for *;
 
     mapping(bytes32 => bool) tickerExists;
     mapping(bytes32 => bool) routeExists;
     SwapRouteSetter[] routeCache;
-    bytes[] updateData;
-    uint256 updateFee;
 
     function exec(
         JSON.Config memory json,
@@ -45,32 +40,23 @@ contract Deploy is DeployBase {
         address deployer,
         bool disableLog
     ) private broadcasted(deployer) returns (JSON.Config memory) {
-        // Deploy the deployment factory first.
-        if (json.params.deploymentFactory == address(0)) {
-            json.params.deploymentFactory = super.deployDeploymentFactory(deployer);
-        } else {
-            factory = IDeploymentFactory(json.params.deploymentFactory);
-            LibDeploy.state().factory = factory;
+        if (json.params.factory == address(0)) {
+            json.params.factory = address(LibDeploy.createFactory(deployer));
         }
+
+        LibDeploy.state().factory = (factory = IDeploymentFactory(json.params.factory));
         // Create configured mocks, updates the received config with addresses.
         json = json.createMocks(deployer);
-        pythEp = IPyth(json.params.common.pythEp);
-        pyth.get[block.chainid] = pythEp;
+        pyth.get[block.chainid] = IPyth(json.params.common.pythEp);
         weth = json.assets.wNative.token;
         // Set tokens to cache as we know them at this point.
         json.cacheExtTokens();
-
-        if (json.params.common.gatingManager == address(0)) {
-            json.params.common.gatingManager = super.deployGatingManager(json, deployer);
-        } else {
-            gatingManager = IGatingManager(json.params.common.gatingManager);
-        }
 
         // Create base contracts
         address diamond = super.deployDiamond(json, deployer, salts.kresko);
 
         if (json.params.common.marketStatusProvider == address(0)) {
-            json.params.common.marketStatusProvider = address(json.createMockMarketStatusProvider());
+            json.params.common.marketStatusProvider = json.createMockMarketStatusProvider();
         }
 
         kresko.setMarketStatusProvider(json.params.common.marketStatusProvider);
@@ -101,15 +87,12 @@ contract Deploy is DeployBase {
         delete routeCache;
 
         /* ---------------------------- Periphery --------------------------- */
-        multicall = json.createMulticall(diamond, address(kiss), address(pythEp), salts.multicall);
-
+        multicall = json.createMulticall(diamond, address(kiss), address(pyth.get[block.chainid]), salts.multicall);
         /* ------------------------------ Users ----------------------------- */
         if (json.users.accounts.length > 0) {
-            setupUsers(json, deployer, disableLog);
+            setupUsers(json, disableLog);
         }
 
-        gatingManager.setPhase(json.params.gatingPhase);
-        if (!disableLog) Log.clg(json.params.gatingPhase, "Gating phase set to: ");
         /* --------------------- Remove deployer access --------------------- */
         address admin = json.params.common.admin;
         if (admin != deployer) {
@@ -129,6 +112,7 @@ contract Deploy is DeployBase {
             Log.clg("Deployment finished!");
             Log.hr();
         }
+
         return json;
     }
 
@@ -197,12 +181,12 @@ contract Deploy is DeployBase {
     /*                               USER SETUPS                              */
     /* ---------------------------------------------------------------------- */
 
-    function setupUsers(JSON.Config memory json, address deployer, bool disableLog) private reclearCallers {
+    function setupUsers(JSON.Config memory json, bool disableLog) private reclearCallers {
+        payable(address(kresko)).transfer(0.00001 ether);
         updatePythLocal(json.getMockPrices());
         setupBalances(json.users, json.assets);
         setupSCDP(json.users, json.assets);
         setupMinter(json.users, json.assets);
-        setupNFTs(json.users.nfts.nftsFrom == address(0) ? deployer : json.users.nfts.nftsFrom, json.users, json.params);
 
         if (!disableLog) {
             for (uint256 i; i < json.users.accounts.length; i++) {
@@ -316,7 +300,10 @@ contract Deploy is DeployBase {
             payable(user).transfer(0.005 ether);
             broadcastWith(user);
         }
-        kresko.mintKreskoAsset{value: updateFee}(MintArgs(user, pos.mintSymbol.cached(), pos.mintAmount, user), updateData);
+        kresko.mintKreskoAsset{value: pyth.viewData.ids.length}(
+            MintArgs(user, pos.mintSymbol.cached(), pos.mintAmount, user),
+            pyth.update
+        );
     }
 
     function setupKISSBalance(
@@ -359,48 +346,6 @@ contract Deploy is DeployBase {
 
             _maybeApprove(address(kiss), address(kresko), 1);
             kresko.depositSCDP(user, address(kiss), pos.kissDeposits);
-        }
-    }
-
-    function setupNFTs(address _owner, JSON.Users memory users, JSON.Params memory params) private broadcasted(_owner) {
-        if (users.nfts.userCount == 0) return;
-        IERC1155 okNFT = IERC1155(params.periphery.okNFT);
-        IERC1155 qfkNFT = IERC1155(params.periphery.qfkNFT);
-        for (uint256 i; i < users.nfts.userCount; i++) {
-            address user = users.get(i);
-            if (users.nfts.useMocks) {
-                if (i < 5) {
-                    okNFT.mint(user, 0, 3, "");
-                }
-                if (i < 3) {
-                    qfkNFT.mint(user, 0, 1, "");
-                }
-                if (i < 2) {
-                    qfkNFT.mint(user, 1, 1, "");
-                    qfkNFT.mint(user, 2, 1, "");
-                }
-                if (i == 0) {
-                    qfkNFT.mint(user, 2, 1, "");
-                    qfkNFT.mint(user, 3, 1, "");
-                    qfkNFT.mint(user, 4, 1, "");
-                    qfkNFT.mint(user, 5, 1, "");
-                    qfkNFT.mint(user, 6, 1, "");
-                    qfkNFT.mint(user, 7, 1, "");
-                }
-            } else {
-                if (i < 3) {
-                    okNFT.safeTransferFrom(_owner, user, 0, 1, "");
-                }
-                if (i < 2) {
-                    qfkNFT.safeTransferFrom(_owner, user, 1, 1, "");
-                }
-                if (i == 0) {
-                    qfkNFT.safeTransferFrom(_owner, user, 2, 1, "");
-                    qfkNFT.safeTransferFrom(_owner, user, 3, 1, "");
-                    qfkNFT.safeTransferFrom(_owner, user, 4, 1, "");
-                    qfkNFT.safeTransferFrom(_owner, user, 5, 1, "");
-                }
-            }
         }
     }
 

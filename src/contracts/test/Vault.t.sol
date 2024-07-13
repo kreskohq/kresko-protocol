@@ -4,9 +4,8 @@ pragma solidity ^0.8.0;
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Test} from "forge-std/Test.sol";
-import {MockOracle} from "mocks/MockOracle.sol";
-import {MockERC20, USDC, USDT, DAI} from "mocks/MockERC20.sol";
-import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
+import {MockOracle, MockSequencerUptimeFeed} from "mocks/Mocks.sol";
+import {MockERC20, USDC, USDT, DAI} from "kresko-lib/mocks/MockERC20.sol";
 
 import {VaultAsset} from "vault/VTypes.sol";
 import {Vault} from "vault/Vault.sol";

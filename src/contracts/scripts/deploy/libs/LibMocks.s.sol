@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import {MockOracle} from "mocks/MockOracle.sol";
-import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployment} from "factory/IDeploymentFactory.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {JSON, LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
-import {MockSequencerUptimeFeed} from "mocks/MockSequencerUptimeFeed.sol";
 import {WETH9} from "kresko-lib/token/WETH9.sol";
 import {LibSafe} from "kresko-lib/mocks/MockSafe.sol";
 import {PythView} from "kresko-lib/vendor/Pyth.sol";
 import {IWETH9} from "kresko-lib/token/IWETH9.sol";
-import {MockERC1155} from "mocks/MockERC1155.sol";
+import {MockERC1155, MockSequencerUptimeFeed, MockERC20, MockOracle} from "mocks/Mocks.sol";
 import {Help, mvm, Utils} from "kresko-lib/utils/s/LibVm.s.sol";
 
 library LibMocks {

@@ -2,21 +2,19 @@
 pragma solidity ^0.8.0;
 
 import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
-import {Help, Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
+import {Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import {IKrMulticall} from "periphery/KrMulticall.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
-import {MockOracle} from "mocks/MockOracle.sol";
-import {MockERC20} from "mocks/MockERC20.sol";
+import {MockOracle, MockERC20} from "mocks/Mocks.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
-import {SCDPLiquidationArgs, SwapArgs} from "common/Args.sol";
+import {SwapArgs} from "common/Args.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
 contract MulticallTest is Deploy {
     using ShortAssert for *;
-    using Help for *;
     using Log for *;
     using Utils for *;
     uint256 constant ETH_PRICE = 2000;
@@ -49,7 +47,7 @@ contract MulticallTest is Deploy {
         krETH.approve(address(kresko), type(uint256).max);
         _setETHPrice(ETH_PRICE);
         // 1000 KISS -> 0.48 ETH
-        kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, 1000e18, 0, updateData));
+        kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, 1000e18, 0, pyth.update));
         vault.setDepositFee(address(usdt), 10e2);
         vault.setWithdrawFee(address(usdt), 10e2);
 
@@ -92,7 +90,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute(ops, updateData);
+        IKrMulticall.Result[] memory results = multicall.execute(ops, pyth.update);
         usdc.balanceOf(user).eq(0, "usdc-balance");
         krJPY.balanceOf(user).eq(10000e18, "jpy-borrow-balance");
         results[0].amountIn.eq(10_000e6, "usdc-deposit-amount");
@@ -104,7 +102,7 @@ contract MulticallTest is Deploy {
     function testNativeDeposit() public {
         address user = getAddr(100);
         uint256 amount = 5 ether;
-        vm.deal(user, amount * 2 + updateFee);
+        vm.deal(user, amount * 2 + pyth.cost);
         prank(user);
         IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](1);
 
@@ -123,7 +121,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute{value: 5 ether + updateFee}(ops, updateData);
+        IKrMulticall.Result[] memory results = multicall.execute{value: 5 ether + pyth.cost}(ops, pyth.update);
         results[0].amountIn.eq(5 ether, "native-deposit-amount");
         results[0].tokenIn.eq(address(weth), "native-deposit-addr");
         uint256 depositsAfter = kresko.getAccountCollateralAmount(user, address(weth));
@@ -156,13 +154,13 @@ contract MulticallTest is Deploy {
         });
 
         vm.expectRevert();
-        multicall.execute{value: 5 ether}(ops, updateData);
+        multicall.execute{value: 5 ether}(ops, pyth.update);
     }
 
     function testNativeDepositWithdraw() public {
         address user = getAddr(100);
         uint256 amount = 5 ether;
-        vm.deal(user, amount * 2 + updateFee);
+        vm.deal(user, amount * 2 + pyth.cost);
         prank(user);
         IKrMulticall.Operation[] memory ops = new IKrMulticall.Operation[](2);
 
@@ -195,7 +193,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute{value: amount + updateFee}(ops, updateData);
+        IKrMulticall.Result[] memory results = multicall.execute{value: amount + pyth.cost}(ops, pyth.update);
         results[0].amountIn.eq(amount, "native-deposit-amount");
         results[0].tokenIn.eq(address(weth), "native-deposit-addr");
         results[1].amountOut.eq(amount, "native-deposit-amount");
@@ -257,7 +255,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute(ops, updateData);
+        IKrMulticall.Result[] memory results = multicall.execute(ops, pyth.update);
         usdc.balanceOf(user).eq(0, "usdc-balance");
         krJPY.balanceOf(user).eq(0, "jpy-borrow-balance");
         results[0].amountIn.eq(10_000e6, "usdc-deposit-amount");
@@ -304,7 +302,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute(ops, updateData);
+        IKrMulticall.Result[] memory results = multicall.execute(ops, pyth.update);
         usdc.balanceOf(user).eq(0, "usdc-balance");
         kresko.getAccountDepositSCDP(user, address(kiss)).eq(9998e18, "kiss-deposit-amount");
         kiss.balanceOf(user).eq(0, "jpy-borrow-balance");
@@ -350,7 +348,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        multicall.execute(opsDeposit, updateData);
+        multicall.execute(opsDeposit, pyth.update);
 
         IKrMulticall.Operation[] memory opsWithdraw = new IKrMulticall.Operation[](2);
         opsWithdraw[0] = IKrMulticall.Operation({
@@ -382,7 +380,7 @@ contract MulticallTest is Deploy {
             })
         });
 
-        IKrMulticall.Result[] memory results = multicall.execute(opsWithdraw, updateData);
+        IKrMulticall.Result[] memory results = multicall.execute(opsWithdraw, pyth.update);
 
         usdc.balanceOf(user).eq(9996000400, "usdc-balance");
         kresko.getAccountDepositSCDP(user, address(kiss)).eq(0, "kiss-deposit-amount");
@@ -435,7 +433,7 @@ contract MulticallTest is Deploy {
                 index: 0
             })
         });
-        IKrMulticall.Result[] memory results = multicall.execute(opsShort, updateData);
+        IKrMulticall.Result[] memory results = multicall.execute(opsShort, pyth.update);
 
         krJPY.balanceOf(address(multicall)).eq(0, "jpy-balance-multicall-after");
         kiss.balanceOf(address(multicall)).eq(0, "kiss-balance-multicall-after");
@@ -492,7 +490,7 @@ contract MulticallTest is Deploy {
                 index: 0
             })
         });
-        multicall.execute(opsShort, updateData);
+        multicall.execute(opsShort, pyth.update);
 
         IKrMulticall.Operation[] memory opsShortClose = new IKrMulticall.Operation[](2);
 
@@ -524,7 +522,7 @@ contract MulticallTest is Deploy {
                 index: 0
             })
         });
-        IKrMulticall.Result[] memory results = multicall.execute(opsShortClose, updateData);
+        IKrMulticall.Result[] memory results = multicall.execute(opsShortClose, pyth.update);
 
         usdc.balanceOf(user).eq(0, "usdc-balance");
         kresko.getAccountCollateralAmount(user, address(usdc)).eq(9997520000, "usdc-deposit-amount");
@@ -676,7 +674,7 @@ contract MulticallTest is Deploy {
 
         prank(getAddr(0));
         krJPY.approve(address(multicall), type(uint256).max);
-        IKrMulticall.Result[] memory results = multicall.execute(ops, updateData);
+        IKrMulticall.Result[] memory results = multicall.execute(ops, pyth.update);
         for (uint256 i; i < results.length; i++) {
             results[i].tokenIn.clg("tokenIn");
             results[i].amountIn.clg("amountIn");

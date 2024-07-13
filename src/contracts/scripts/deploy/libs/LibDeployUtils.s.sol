@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import {Asset, RawPrice} from "common/Types.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {Help, Log, Utils} from "kresko-lib/utils/s/LibVm.s.sol";
+import {Log, Utils} from "kresko-lib/utils/s/LibVm.s.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {IVault} from "vault/interfaces/IVault.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
@@ -16,7 +16,6 @@ import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 library LibDeployUtils {
     using Log for *;
     using Utils for *;
-    using Help for *;
     using LibDeploy for *;
     using LibJSON for *;
     using Deployed for *;

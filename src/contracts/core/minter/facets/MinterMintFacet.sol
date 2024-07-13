@@ -9,7 +9,6 @@ import {cs} from "common/State.sol";
 import {Asset} from "common/Types.sol";
 import {Strings} from "libs/Strings.sol";
 
-import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {IMinterMintFacet} from "minter/interfaces/IMinterMintFacet.sol";
 
 import {MEvent} from "minter/MEvent.sol";
@@ -31,14 +30,7 @@ contract MinterMintFacet is IMinterMintFacet, Modifiers {
     function mintKreskoAsset(
         MintArgs memory _args,
         bytes[] calldata _updateData
-    )
-        external
-        payable
-        onlyRoleIf(_args.account != msg.sender, Role.MANAGER)
-        nonReentrant
-        usePyth(_updateData)
-        gate(_args.account)
-    {
+    ) external payable onlyRoleIf(_args.account != msg.sender, Role.MANAGER) nonReentrant usePyth(_updateData) {
         if (_args.amount == 0) revert Errors.ZERO_MINT(Errors.id(_args.krAsset));
         Asset storage asset = cs().onlyMinterMintable(_args.krAsset, Enums.Action.Borrow);
 

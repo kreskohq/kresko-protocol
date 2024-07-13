@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {ArbScript} from "scripts/utils/ArbScript.s.sol";
 import {Tested} from "kresko-lib/utils/s/Tested.t.sol";
-import {Help, Log} from "kresko-lib/utils/s/LibVm.s.sol";
+import {Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
 import {IKrMulticall, KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
@@ -12,11 +12,12 @@ import {Role} from "common/Constants.sol";
 
 contract MulticallUpdate is Tested, ArbScript {
     using Log for *;
-    using Help for *;
     using ShortAssert for *;
 
     function setUp() public {
-        ArbScript.initialize("MNEMONIC_DEPLOY");
+        ArbScript.initialize(231869463);
+        useMnemonic("MNEMONIC_DEPLOY");
+
         sender = vm.createWallet("sender").addr;
         deal(sender, 100 ether);
         deal(usdcAddr, sender, 100e6);

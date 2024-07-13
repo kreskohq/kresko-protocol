@@ -17,7 +17,6 @@ import {Errors} from "common/Errors.sol";
 import {cs, gm} from "common/State.sol";
 import {Auth} from "common/Auth.sol";
 import {Validations} from "common/Validations.sol";
-import {IGatingManager} from "periphery/IGatingManager.sol";
 
 contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
     using Strings for bytes32;
@@ -34,7 +33,6 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
         setSequencerUptimeFeed(args.sequencerUptimeFeed);
         setMaxPriceDeviationPct(args.maxPriceDeviationPct);
         setSequencerGracePeriod(args.sequencerGracePeriodTime);
-        setGatingManager(args.gatingManager);
         setPythEndpoint(args.pythEp);
         ds().supportedInterfaces[type(IAuthorizationFacet).interfaceId] = true;
         // Revoke admin role from deployer
@@ -60,10 +58,6 @@ contract CommonConfigFacet is ICommonConfigFacet, Modifiers, DSModifiers {
     function setPythEndpoint(address _pythEp) public override onlyRole(Role.ADMIN) {
         if (_pythEp == address(0)) revert Errors.PYTH_EP_ZERO();
         cs().pythEp = _pythEp;
-    }
-
-    function setGatingManager(address _newManager) public override onlyRole(Role.ADMIN) {
-        gm().manager = IGatingManager(_newManager);
     }
 
     /// @inheritdoc ICommonConfigFacet

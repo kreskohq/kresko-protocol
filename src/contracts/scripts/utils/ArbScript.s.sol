@@ -3,11 +3,9 @@ pragma solidity ^0.8.0;
 
 import {Based} from "kresko-lib/utils/Based.s.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {Help, Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
+import {Log} from "kresko-lib/utils/s/LibVm.s.sol";
 
-import {IGatingManager} from "periphery/IGatingManager.sol";
-import {IKrMulticall, ISwapRouter} from "periphery/IKrMulticall.sol";
-import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
+import {IKrMulticall} from "periphery/IKrMulticall.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Asset, Oracle} from "common/Types.sol";
 import {ArbDeploy} from "kresko-lib/info/ArbDeploy.sol";
@@ -19,18 +17,16 @@ import {Enums} from "common/Constants.sol";
 
 contract ArbScript is Based, ArbDeploy {
     using Log for *;
-    using Help for *;
 
     IKrMulticall multicall = IKrMulticall(multicallAddr);
     IKresko kresko = IKresko(kreskoAddr);
-    IGatingManager manager = IGatingManager(0x13f14aB44B434F16D88645301515C899d69A30Bd);
 
     function initialize(string memory mnemonic) internal {
         base(mnemonic, "RPC_ARBITRUM_ALCHEMY");
         Deployed.factory(factoryAddr);
     }
 
-    function initialize(uint256 blockNr) internal repranked(safe) {
+    function initialize(uint256 blockNr) internal {
         vm.createSelectFork("arbitrum", blockNr);
         Deployed.factory(factoryAddr);
         states_looseOracles();

@@ -87,8 +87,4 @@ contract ViewDataFacet is IViewDataFacet {
             }
         }
     }
-
-    function viewAccountGatingPhase(address _account) external view returns (uint8 phase, bool eligibleForCurrentPhase) {
-        return ViewFuncs.viewPhaseEligibility(_account);
-    }
 }

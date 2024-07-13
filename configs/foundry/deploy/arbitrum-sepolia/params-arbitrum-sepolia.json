@@ -9,7 +9,6 @@
     "04_oracleDecimals": 8,
     "05_sequencerGracePeriodTime": 3600,
     "06_sequencerUptimeFeed": "0x23ab08d87BBAe90e8BDe56F87ad6e53683E08279",
-    "07_gatingManager": "0x0000000000000000000000000000000000000000",
     "08_pythEndpoint": "0x4374e5a8b9C22271E9EB878A2AA31DE97DF15DAF",
     "09_marketStatusProvider": "0x0000000000000000000000000000000000000000"
   },
@@ -29,6 +28,5 @@
     "01_questForKreskNFT": "0x200945e331Af88e1D854Cb9D3503F257B33Fe19F",
     "02_V3SwapRouter02": "0x021dAc9a7652A2C010AD4B4f412E2DEbBE76481a",
     "03_UniswapQuoterV2": "0x2779a0CC1c3e0E44D2542EC3e79e3864Ae93Ef0B"
-  },
-  "06_gatingPhase": 1
+  }
 }

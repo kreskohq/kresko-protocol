@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {EnumerableSet} from "@oz/utils/structs/EnumerableSet.sol";
 import {Strings} from "libs/Strings.sol";
 import {Meta} from "libs/Meta.sol";
-import {ds} from "diamond/DState.sol";
 
 import {Errors} from "common/Errors.sol";
 import {Role} from "common/Constants.sol";

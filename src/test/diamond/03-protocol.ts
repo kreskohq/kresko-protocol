@@ -35,8 +35,7 @@ describe('Diamond', () => {
     })
     it('initialized correct state', async function () {
       expect(await hre.Diamond.getStorageVersion()).to.equal(3)
-      const GatingManager = await hre.deployments.get('GatingManager')
-      const { args } = await getCommonInitializer(hre, GatingManager.address)
+      const { args } = await getCommonInitializer(hre)
       const { args: minterArgs } = await getMinterInitializer(hre)
       const { args: scdpArgs } = await getSCDPInitializer(hre)
 

@@ -168,7 +168,6 @@ struct CommonInitArgs {
     uint8 oracleDecimals;
     uint32 sequencerGracePeriodTime;
     address sequencerUptimeFeed;
-    address gatingManager;
     address pythEp;
     address marketStatusProvider;
 }

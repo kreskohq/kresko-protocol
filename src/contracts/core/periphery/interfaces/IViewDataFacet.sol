@@ -23,8 +23,6 @@ interface IViewDataFacet {
         address[] memory tokens
     ) external view returns (View.Balance[] memory result);
 
-    function viewAccountGatingPhase(address account) external view returns (uint8 phase, bool eligibleForCurrentPhase);
-
     function viewSCDPAccounts(
         PythView calldata prices,
         address[] memory accounts,

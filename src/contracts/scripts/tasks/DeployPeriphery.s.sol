@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Help, Log} from "kresko-lib/utils/s/LibVm.s.sol";
+import {Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 import {Scripted} from "kresko-lib/utils/s/Scripted.s.sol";
@@ -10,7 +10,6 @@ import {Scripted} from "kresko-lib/utils/s/Scripted.s.sol";
 
 contract DeployPeriphery is Scripted, ArbDeployAddr {
     using Log for *;
-    using Help for *;
 
     function setUp() public {
         useMnemonic("MNEMONIC_DEPLOY");

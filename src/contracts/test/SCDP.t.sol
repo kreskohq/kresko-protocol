@@ -4,15 +4,14 @@ pragma solidity ^0.8.0;
 // solhint-disable no-console, state-visibility, var-name-mixedcase, avoid-low-level-calls, max-states-count
 
 import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
-import {Log, Utils, Help} from "kresko-lib/utils/s/LibVm.s.sol";
+import {Log, Utils} from "kresko-lib/utils/s/LibVm.s.sol";
 import {Tested} from "kresko-lib/utils/s/Tested.t.sol";
 import {Asset} from "common/Types.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
-import {MockERC20} from "mocks/MockERC20.sol";
+import {MockERC20, MockOracle} from "mocks/Mocks.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
-import {MockOracle} from "mocks/MockOracle.sol";
 import {Enums} from "common/Constants.sol";
 import {SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs, SCDPRepayArgs} from "common/Args.sol";
 import {Errors} from "common/Errors.sol";
@@ -20,7 +19,6 @@ import {Errors} from "common/Errors.sol";
 contract SCDPTest is Tested, Deploy {
     using ShortAssert for *;
     using Log for *;
-    using Help for *;
     using Utils for *;
     using Deployed for *;
 
@@ -72,10 +70,10 @@ contract SCDPTest is Tested, Deploy {
 
         usdc.mint(user0, 1000e6);
         prank(getAddr(0));
-        kiss.transfer(user0, 2000e18);
-
         council = kresko.getRoleMember(keccak256("kresko.roles.minter.safety.council"), 0);
         assertNotEq(council, address(0));
+
+        kiss.transfer(user0, 2000e18);
     }
 
     modifier withDeposits() {
@@ -318,7 +316,7 @@ contract SCDPTest is Tested, Deploy {
         _poolDeposit(deployer, address(kiss), 50000e18);
         (, uint256 feesDistributed, ) = kresko.previewSwapSCDP(address(kiss), address(krETH), 1000e18);
 
-        kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, 1000e18, 0, updateData));
+        kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, 1000e18, 0, pyth.update));
         _liquidate(75, 1000e18, 0.01e18);
 
         uint256 kissBalBefore = kiss.balanceOf(deployer);
@@ -340,7 +338,7 @@ contract SCDPTest is Tested, Deploy {
         uint256 fees = kresko.getAccountFeesSCDP(deployer, address(kiss));
         fees.gt(0, "fees");
         uint256 kissBalBefore = kiss.balanceOf(deployer);
-        kresko.emergencyWithdrawSCDP(SCDPWithdrawArgs(deployer, address(kiss), 1000e18, deployer), updateData);
+        kresko.emergencyWithdrawSCDP(SCDPWithdrawArgs(deployer, address(kiss), 1000e18, deployer), pyth.update);
 
         (kiss.balanceOf(deployer) - kissBalBefore).eq(1000e18, "received-withdraw");
         kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(0, "fees-after");
@@ -360,7 +358,7 @@ contract SCDPTest is Tested, Deploy {
         bytes memory withdrawData = abi.encodeWithSelector(
             kresko.withdrawSCDP.selector,
             SCDPWithdrawArgs(user0, address(kiss), amount, user0),
-            updateData
+            pyth.update
         );
         uint256 gasWithdraw = gasleft();
         (success, ) = address(kresko).call(withdrawData);
@@ -372,7 +370,7 @@ contract SCDPTest is Tested, Deploy {
 
         bytes memory swapData = abi.encodeWithSelector(
             kresko.swapSCDP.selector,
-            SwapArgs(user0, address(kiss), address(krETH), amount, 0, updateData)
+            SwapArgs(user0, address(kiss), address(krETH), amount, 0, pyth.update)
         );
         uint256 gasSwap = gasleft();
         (success, ) = address(kresko).call(swapData);
@@ -382,7 +380,7 @@ contract SCDPTest is Tested, Deploy {
 
         bytes memory swapData2 = abi.encodeWithSelector(
             kresko.swapSCDP.selector,
-            SwapArgs(user0, address(krETH), address(kiss), krETH.balanceOf(user0), 0, updateData)
+            SwapArgs(user0, address(krETH), address(kiss), krETH.balanceOf(user0), 0, pyth.update)
         );
 
         uint256 gasSwap2 = gasleft();
@@ -393,7 +391,7 @@ contract SCDPTest is Tested, Deploy {
 
         bytes memory swapData3 = abi.encodeWithSelector(
             kresko.swapSCDP.selector,
-            SwapArgs(user0, address(kiss), address(krETH), kiss.balanceOf(user0), 0, updateData)
+            SwapArgs(user0, address(kiss), address(krETH), kiss.balanceOf(user0), 0, pyth.update)
         );
         uint256 gasSwap3 = gasleft();
         (success, ) = address(kresko).call(swapData3);
@@ -436,7 +434,7 @@ contract SCDPTest is Tested, Deploy {
                 Enums.Action.SCDPWithdraw
             )
         );
-        kresko.withdrawSCDP(SCDPWithdrawArgs(user0, address(usdc), 1000e6, user0), updateData);
+        kresko.withdrawSCDP(SCDPWithdrawArgs(user0, address(usdc), 1000e6, user0), pyth.update);
 
         // Unpause SCDPWithdraw for USDC
         _toggleActionPaused(address(usdc), Enums.Action.SCDPWithdraw, false);
@@ -464,10 +462,10 @@ contract SCDPTest is Tested, Deploy {
                 Enums.Action.SCDPWithdraw
             )
         );
-        kresko.emergencyWithdrawSCDP(SCDPWithdrawArgs(deployer, address(kiss), 1000e18, deployer), updateData);
+        kresko.emergencyWithdrawSCDP(SCDPWithdrawArgs(deployer, address(kiss), 1000e18, deployer), pyth.update);
 
         _toggleActionPaused(address(kiss), Enums.Action.SCDPWithdraw, false);
-        kresko.emergencyWithdrawSCDP(SCDPWithdrawArgs(deployer, address(kiss), 1000e18, deployer), updateData);
+        kresko.emergencyWithdrawSCDP(SCDPWithdrawArgs(deployer, address(kiss), 1000e18, deployer), pyth.update);
         (kiss.balanceOf(deployer) - kissBalBefore).eq(1000e18, "received-withdraw");
         kresko.getAccountFeesSCDP(deployer, address(kiss)).eq(0, "fees-after");
     }
@@ -523,7 +521,7 @@ contract SCDPTest is Tested, Deploy {
 
         assertGt(krETH.balanceOf(user0), 0);
 
-        SCDPRepayArgs memory repay = SCDPRepayArgs(address(krETH), krETH.balanceOf(user0), address(kiss), updateData);
+        SCDPRepayArgs memory repay = SCDPRepayArgs(address(krETH), krETH.balanceOf(user0), address(kiss), pyth.update);
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
@@ -535,7 +533,7 @@ contract SCDPTest is Tested, Deploy {
 
         _toggleActionPaused(address(krETH), Enums.Action.SCDPRepay, false);
 
-        repay = SCDPRepayArgs(address(krETH), krETH.balanceOf(user0), address(kiss), updateData);
+        repay = SCDPRepayArgs(address(krETH), krETH.balanceOf(user0), address(kiss), pyth.update);
         prank(user0);
         kresko.repaySCDP(repay);
     }
@@ -584,7 +582,7 @@ contract SCDPTest is Tested, Deploy {
                 Enums.Action.SCDPCover
             )
         );
-        kresko.coverSCDP(address(krETH), 1000e18, updateData);
+        kresko.coverSCDP(address(krETH), 1000e18, pyth.update);
     }
 
     function test_coverWithIncentiveSCDP_Paused() public {
@@ -597,7 +595,7 @@ contract SCDPTest is Tested, Deploy {
                 Enums.Action.SCDPCover
             )
         );
-        kresko.coverWithIncentiveSCDP(address(kiss), 1000e18, address(krETH), updateData);
+        kresko.coverWithIncentiveSCDP(address(kiss), 1000e18, address(krETH), pyth.update);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -619,14 +617,14 @@ contract SCDPTest is Tested, Deploy {
         for (uint256 i; i < times; i++) {
             _setETHPrice(uint256(2000e8));
             (uint256 amountOut, , ) = kresko.previewSwapSCDP(address(kiss), address(krETH), swapAmount);
-            kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, swapAmount, 0, updateData));
+            kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, swapAmount, 0, pyth.update));
             _setETHPrice(uint256(90000e8));
             if (i > 40) {
                 liquidateAmount = liquidateAmount.pmul(0.50e4);
             }
             _liquidate(krETHAddr, liquidateAmount.pmul(1e4 - (100 * i)), address(kiss));
             _setETHPrice(uint256(2000e8));
-            kresko.swapSCDP(SwapArgs(getAddr(0), krETHAddr, address(kiss), amountOut, 0, updateData));
+            kresko.swapSCDP(SwapArgs(getAddr(0), krETHAddr, address(kiss), amountOut, 0, pyth.update));
         }
     }
 
@@ -640,11 +638,11 @@ contract SCDPTest is Tested, Deploy {
     }
 
     function _poolWithdraw(address user, address asset, uint256 amount) internal repranked(user) {
-        kresko.withdrawSCDP(SCDPWithdrawArgs(user, asset, amount, user), updateData);
+        kresko.withdrawSCDP(SCDPWithdrawArgs(user, asset, amount, user), pyth.update);
     }
 
     function _swap(address user, address assetIn, uint256 amount, address assetOut) internal repranked(user) {
-        kresko.swapSCDP(SwapArgs(user, assetIn, assetOut, amount, 0, updateData));
+        kresko.swapSCDP(SwapArgs(user, assetIn, assetOut, amount, 0, pyth.update));
     }
 
     function _liquidate(
@@ -652,7 +650,7 @@ contract SCDPTest is Tested, Deploy {
         uint256 _repayAmount,
         address _seizeAsset
     ) internal repranked(liquidator) returns (uint256 crAfter, uint256 debtValAfter, uint256 debtAmountAfter) {
-        kresko.liquidateSCDP(SCDPLiquidationArgs(_repayAsset, _repayAmount, _seizeAsset), updateData);
+        kresko.liquidateSCDP(SCDPLiquidationArgs(_repayAsset, _repayAmount, _seizeAsset), pyth.update);
         return (kresko.getCollateralRatioSCDP(), kresko.getDebtValueSCDP(_repayAsset, true), kresko.getDebtSCDP(_repayAsset));
     }
 

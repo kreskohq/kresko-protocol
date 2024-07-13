@@ -4,8 +4,7 @@ pragma solidity ^0.8.0;
 
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
-import {Log, Help} from "kresko-lib/utils/s/LibVm.s.sol";
-import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
+import {Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import {Tested} from "kresko-lib/utils/s/Tested.t.sol";
 import {IAccess} from "kresko-lib/vendor/IAccess.sol";
 import {Role} from "common/Constants.sol";
@@ -28,9 +27,7 @@ contract InitializerTest {
 
 contract MetaTest is Tested, Deploy {
     using Log for *;
-    using Help for *;
     using Deployed for *;
-    using ShortAssert for *;
 
     address payable krETH;
     address admin;

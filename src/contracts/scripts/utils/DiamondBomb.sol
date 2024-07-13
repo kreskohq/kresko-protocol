@@ -2,6 +2,7 @@
 pragma solidity >=0.8.19;
 import {FacetCut, FacetCutAction, Initializer} from "diamond/DSTypes.sol";
 import {Diamond} from "diamond/Diamond.sol";
+import {FacetData} from "kresko-lib/utils/ffi/ffi-facets.s.sol";
 error InitializerMismatch(uint256 initializerCount, uint256 initializerArgsCount);
 error SelectorBytecodeMismatch(uint256 selectorCount, uint256 bytecodeCount);
 

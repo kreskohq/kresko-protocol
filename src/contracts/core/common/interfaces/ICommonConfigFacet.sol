@@ -114,12 +114,6 @@ interface ICommonConfigFacet {
     function setAPI3Feed(bytes32 _ticker, address _feedAddr, uint256 _staleTime, bool _isClosable) external;
 
     /**
-     * @notice Sets gating manager
-     * @param _newManager _newManager address
-     */
-    function setGatingManager(address _newManager) external;
-
-    /**
      * @notice Sets market status provider
      * @param _provider market status provider address
      */

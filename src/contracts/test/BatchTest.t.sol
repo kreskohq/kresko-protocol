@@ -7,7 +7,7 @@ import {IMinterDepositWithdrawFacet} from "minter/interfaces/IMinterDepositWithd
 import {IMinterAccountStateFacet} from "minter/interfaces/IMinterAccountStateFacet.sol";
 import {PLog} from "kresko-lib/utils/s/PLog.s.sol";
 import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
-import {MockERC20} from "mocks/MockERC20.sol";
+import {MockERC20} from "mocks/Mocks.sol";
 import {IMinterMintFacet} from "minter/interfaces/IMinterMintFacet.sol";
 import {MintArgs} from "common/Args.sol";
 import {IKresko} from "periphery/IKresko.sol";
@@ -56,7 +56,7 @@ contract BatchTest is Tested, Deploy {
         calls[2] = abi.encodeCall(IMinterMintFacet.mintKreskoAsset, (MintArgs(user, krETH, 0.1 ether, user), new bytes[](0)));
         calls[3] = abi.encodeCall(IMinterMintFacet.mintKreskoAsset, (MintArgs(user, krJPY, 10000 ether, user), new bytes[](0)));
 
-        kresko.batchCall{value: updateFee}(calls, updateData);
+        kresko.batchCall{value: pyth.cost}(calls, pyth.update);
 
         DAI.balanceOf(user).eq(600 ether, "user-dai-balance");
         USDC.balanceOf(user).eq(900e6, "user-usdc-balance");
@@ -68,8 +68,8 @@ contract BatchTest is Tested, Deploy {
     function testBatchStaticCall() public pranked(user) {
         kresko.depositCollateral(user, address(DAI), 400 ether);
         kresko.depositCollateral(user, address(USDC), 100e6);
-        kresko.mintKreskoAsset{value: updateFee}(MintArgs(user, krETH, 0.1 ether, user), updateData);
-        kresko.mintKreskoAsset{value: updateFee}(MintArgs(user, krJPY, 10000 ether, user), updateData);
+        kresko.mintKreskoAsset{value: pyth.cost}(MintArgs(user, krETH, 0.1 ether, user), pyth.update);
+        kresko.mintKreskoAsset{value: pyth.cost}(MintArgs(user, krJPY, 10000 ether, user), pyth.update);
 
         bytes[] memory staticCalls = new bytes[](4);
         staticCalls[0] = abi.encodeCall(IMinterAccountStateFacet.getAccountCollateralAmount, (user, address(DAI)));
@@ -78,7 +78,7 @@ contract BatchTest is Tested, Deploy {
         staticCalls[3] = abi.encodeCall(IMinterAccountStateFacet.getAccountDebtAmount, (user, krJPY));
 
         uint256 nativeBalBefore = user.balance;
-        (uint256 time, bytes[] memory data) = kresko.batchStaticCall{value: updateFee}(staticCalls, updateData);
+        (uint256 time, bytes[] memory data) = kresko.batchStaticCall{value: pyth.cost}(staticCalls, pyth.update);
 
         abi.decode(data[0], (uint256)).eq(400 ether, "static-user-dai-collateral");
         abi.decode(data[1], (uint256)).eq(100e6, "static-user-usdc-collateral");
@@ -94,14 +94,14 @@ contract BatchTest is Tested, Deploy {
         calls[0] = abi.encodeCall(IMinterDepositWithdrawFacet.depositCollateral, (user, address(DAI), 400 ether));
 
         vm.expectRevert();
-        kresko.batchStaticCall{value: updateFee}(calls, updateData);
+        kresko.batchStaticCall{value: pyth.cost}(calls, pyth.update);
     }
 
     function testReentry() public pranked(user) {
         bytes[] memory calls = new bytes[](1);
         calls[0] = abi.encodeCall(IMinterAccountStateFacet.getAccountCollateralAmount, (user, address(DAI)));
 
-        Reentrant reentrant = new Reentrant(kresko, calls, updateData);
+        Reentrant reentrant = new Reentrant(kresko, calls, pyth.update);
 
         vm.deal(address(kresko), 1 ether);
         vm.deal(address(reentrant), 0.001 ether);

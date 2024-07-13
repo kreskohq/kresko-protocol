@@ -509,9 +509,6 @@ interface IErrorsEvents {
     error INVALID_SEQUENCER_UPTIME_FEED(address);
     error NO_MINTED_ASSETS(address who);
     error NO_COLLATERALS_DEPOSITED(address who);
-    error MISSING_PHASE_3_NFT();
-    error MISSING_PHASE_2_NFT();
-    error MISSING_PHASE_1_NFT();
     error CANNOT_RE_ENTER();
     error ARRAY_LENGTH_MISMATCH(string ticker, uint256 arr1, uint256 arr2);
     error COLLATERAL_VALUE_GREATER_THAN_REQUIRED(uint256 collateralValue, uint256 minCollateralValue, uint32 ratio);
