@@ -21,9 +21,6 @@ contract MulticallTest is Deploy {
     using Utils for *;
     uint256 constant ETH_PRICE = 2000;
 
-    string internal rs_price_eth = "ETH:2000:8,";
-    string internal rs_prices_rest = "BTC:35159:8,EUR:1.07:8,DAI:0.9998:8,USDC:1:8,XAU:1977:8,USDT:1:8,JPY:0.0067:8";
-
     KreskoAsset krETH;
     KreskoAsset krJPY;
     address krETHAddr;
@@ -689,36 +686,6 @@ contract MulticallTest is Deploy {
     }
 
     /* -------------------------------- Util -------------------------------- */
-
-    function _trades(uint256 count) internal {
-        address trader = getAddr(777);
-        uint256 mintAmount = 20000e6;
-        usdc.mint(trader, mintAmount * count);
-
-        prank(trader);
-        usdc.approve(address(kiss), type(uint256).max);
-        kiss.approve(address(kresko), type(uint256).max);
-        krETH.approve(address(kresko), type(uint256).max);
-        (uint256 tradeAmount, ) = kiss.vaultDeposit(address(usdc), mintAmount * count, trader);
-        for (uint256 i = 0; i < count; i++) {
-            kresko.swapSCDP(SwapArgs(trader, address(kiss), krETHAddr, tradeAmount / count, 0, updateData));
-            kresko.swapSCDP(SwapArgs(trader, krETHAddr, address(kiss), krETH.balanceOf(trader), 0, updateData));
-        }
-    }
-
-    function _cover(uint256 _coverAmount) internal returns (uint256 crAfter, uint256 debtValAfter) {
-        kresko.coverSCDP(address(kiss), _coverAmount, updateData);
-        return (kresko.getCollateralRatioSCDP(), kresko.getTotalDebtValueSCDP(true));
-    }
-
-    function _liquidate(
-        address _repayAsset,
-        uint256 _repayAmount,
-        address _seizeAsset
-    ) internal returns (uint256 crAfter, uint256 debtValAfter, uint256 debtAmountAfter) {
-        kresko.liquidateSCDP(SCDPLiquidationArgs(_repayAsset, _repayAmount, _seizeAsset), updateData);
-        return (kresko.getCollateralRatioSCDP(), kresko.getDebtValueSCDP(_repayAsset, true), kresko.getDebtSCDP(_repayAsset));
-    }
 
     function _setETHPrice(uint256 _newPrice) internal {
         ethFeed.setPrice(_newPrice * 1e8);

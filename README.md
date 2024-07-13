@@ -111,7 +111,7 @@ just d
 Compile the contracts
 
 ```sh
-bun hh:compile
+bunx hardhat compile
 ```
 
 Check your setup by running the hardhat deployment script
