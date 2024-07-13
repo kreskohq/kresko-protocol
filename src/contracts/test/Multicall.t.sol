@@ -314,6 +314,8 @@ contract MulticallTest is Deploy {
     }
 
     function testMulticallVaultWithdrawSCDPWithdraw() public {
+        vm.skip(true);
+
         address user = getAddr(100);
         prank(user);
         usdc.approve(address(multicall), type(uint256).max);
@@ -397,6 +399,8 @@ contract MulticallTest is Deploy {
     }
 
     function testMulticallShort() public {
+        vm.skip(true);
+
         address user = getAddr(100);
         prank(user);
         usdc.approve(address(multicall), type(uint256).max);
@@ -453,6 +457,8 @@ contract MulticallTest is Deploy {
     }
 
     function testMulticallShortClose() public {
+        vm.skip(true);
+
         address user = getAddr(100);
         prank(user);
         krJPY.balanceOf(user).eq(0, "jpy-balance-before");

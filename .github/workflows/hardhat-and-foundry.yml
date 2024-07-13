@@ -24,7 +24,7 @@ jobs:
       - run: bun install --yarn
 
       - name: Run Foundry Tests
-        run: forge test --no-rpc-rate-limit --memory-limit 234217728 -vvv
+        run: forge test --no-rpc-rate-limit --memory-limit 234217728
         env:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
           RPC_ARBITRUM_ALCHEMY: https://arb-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_API_KEY }}
