@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {ArbScript} from "scripts/utils/ArbScript.s.sol";
-import {Tested} from "kresko-lib/utils/Tested.t.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
-import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
+import {Tested} from "kresko-lib/utils/s/Tested.t.sol";
+import {Help, Log} from "kresko-lib/utils/s/LibVm.s.sol";
+import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
 import {IKrMulticall, KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 
@@ -14,14 +14,13 @@ contract MulticallUpdate is Tested, ArbScript {
     using Log for *;
     using Help for *;
     using ShortAssert for *;
-    address sender;
 
     function setUp() public {
         ArbScript.initialize("MNEMONIC_DEPLOY");
         sender = vm.createWallet("sender").addr;
         deal(sender, 100 ether);
-        deal(USDCAddr, sender, 100e6);
-        deal(WBTCAddr, sender, 1e8);
+        deal(usdcAddr, sender, 100e6);
+        deal(wbtcAddr, sender, 1e8);
 
         prank(sender);
         multicall = KrMulticall(payable(0xFFc08195d17c16a0585f2DA72210e1059f60C306));
@@ -34,7 +33,7 @@ contract MulticallUpdate is Tested, ArbScript {
         approvals();
 
         prank(safe);
-        fetchPythAndUpdate();
+        updatePyth();
         kresko.grantRole(Role.MANAGER, address(multicall));
     }
 
@@ -127,7 +126,7 @@ contract MulticallUpdate is Tested, ArbScript {
         ops[0] = IKrMulticall.Operation({
             action: IKrMulticall.Action.SynthWrap,
             data: IKrMulticall.Data({
-                tokenIn: WBTCAddr,
+                tokenIn: wbtcAddr,
                 amountIn: uint96(amount),
                 tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
                 tokenOut: krBTCAddr,
@@ -144,7 +143,7 @@ contract MulticallUpdate is Tested, ArbScript {
                 tokenIn: krBTCAddr,
                 amountIn: 0,
                 tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
-                tokenOut: WBTCAddr,
+                tokenOut: wbtcAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
@@ -172,7 +171,7 @@ contract MulticallUpdate is Tested, ArbScript {
                 tokenIn: krBTCAddr,
                 amountIn: uint96(amount),
                 tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
-                tokenOut: WBTCAddr,
+                tokenOut: wbtcAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
@@ -183,7 +182,7 @@ contract MulticallUpdate is Tested, ArbScript {
         ops[1] = IKrMulticall.Operation({
             action: IKrMulticall.Action.SynthWrap,
             data: IKrMulticall.Data({
-                tokenIn: WBTCAddr,
+                tokenIn: wbtcAddr,
                 amountIn: 0,
                 tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: krBTCAddr,
@@ -205,14 +204,14 @@ contract MulticallUpdate is Tested, ArbScript {
         ops[0] = IKrMulticall.Operation({
             action: IKrMulticall.Action.AMMExactInput,
             data: IKrMulticall.Data({
-                tokenIn: USDCAddr,
+                tokenIn: usdcAddr,
                 amountIn: uint96(100e6),
                 tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
                 tokenOut: wethAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                path: abi.encodePacked(USDCAddr, uint24(500), wethAddr),
+                path: abi.encodePacked(usdcAddr, uint24(500), wethAddr),
                 index: 0
             })
         });
@@ -304,11 +303,11 @@ contract MulticallUpdate is Tested, ArbScript {
                 tokenIn: wethAddr,
                 amountIn: 0,
                 tokensInMode: IKrMulticall.TokensInMode.UseContractBalanceWrapNative,
-                tokenOut: USDCAddr,
+                tokenOut: usdcAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
-                path: abi.encodePacked(wethAddr, uint24(500), USDCAddr),
+                path: abi.encodePacked(wethAddr, uint24(500), usdcAddr),
                 index: 0
             })
         });
@@ -327,18 +326,18 @@ contract MulticallUpdate is Tested, ArbScript {
                 tokenIn: wethAddr,
                 amountIn: uint96(amount),
                 tokensInMode: IKrMulticall.TokensInMode.Native,
-                tokenOut: USDCAddr,
+                tokenOut: usdcAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                path: abi.encodePacked(wethAddr, uint24(500), USDCAddr),
+                path: abi.encodePacked(wethAddr, uint24(500), usdcAddr),
                 index: 0
             })
         });
         ops[1] = IKrMulticall.Operation({
             action: IKrMulticall.Action.VaultDeposit,
             data: IKrMulticall.Data({
-                tokenIn: USDCAddr,
+                tokenIn: usdcAddr,
                 amountIn: 0,
                 tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: kissAddr,
@@ -383,11 +382,11 @@ contract MulticallUpdate is Tested, ArbScript {
                 tokenIn: wethAddr,
                 amountIn: 0,
                 tokensInMode: IKrMulticall.TokensInMode.UseContractBalanceWrapNative,
-                tokenOut: USDCAddr,
+                tokenOut: usdcAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSender,
                 amountOutMin: 0,
-                path: abi.encodePacked(wethAddr, uint24(500), USDCAddr),
+                path: abi.encodePacked(wethAddr, uint24(500), usdcAddr),
                 index: 0
             })
         });
@@ -400,14 +399,14 @@ contract MulticallUpdate is Tested, ArbScript {
         ops[0] = IKrMulticall.Operation({
             action: IKrMulticall.Action.AMMExactInput,
             data: IKrMulticall.Data({
-                tokenIn: USDCAddr,
+                tokenIn: usdcAddr,
                 amountIn: uint96(100e6),
                 tokensInMode: IKrMulticall.TokensInMode.PullFromSender,
                 tokenOut: wethAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
-                path: abi.encodePacked(USDCAddr, uint24(500), wethAddr),
+                path: abi.encodePacked(usdcAddr, uint24(500), wethAddr),
                 index: 0
             })
         });
@@ -445,7 +444,7 @@ contract MulticallUpdate is Tested, ArbScript {
                 tokenIn: kissAddr,
                 amountIn: 0,
                 tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
-                tokenOut: USDCAddr,
+                tokenOut: usdcAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.LeaveInContract,
                 amountOutMin: 0,
@@ -456,14 +455,14 @@ contract MulticallUpdate is Tested, ArbScript {
         ops[4] = IKrMulticall.Operation({
             action: IKrMulticall.Action.AMMExactInput,
             data: IKrMulticall.Data({
-                tokenIn: USDCAddr,
+                tokenIn: usdcAddr,
                 amountIn: 0,
                 tokensInMode: IKrMulticall.TokensInMode.UseContractBalance,
                 tokenOut: wethAddr,
                 amountOut: 0,
                 tokensOutMode: IKrMulticall.TokensOutMode.ReturnToSenderNative,
                 amountOutMin: 0,
-                path: abi.encodePacked(USDCAddr, uint24(500), wethAddr),
+                path: abi.encodePacked(usdcAddr, uint24(500), wethAddr),
                 index: 0
             })
         });

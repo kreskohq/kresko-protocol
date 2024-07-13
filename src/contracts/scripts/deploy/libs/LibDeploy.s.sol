@@ -8,17 +8,16 @@ import {Conversions} from "libs/Utils.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
 import {IKreskoAsset} from "kresko-asset/IKreskoAsset.sol";
 import {KISS} from "kiss/KISS.sol";
-import {DataV1} from "periphery/DataV1.sol";
 import {KrMulticall} from "periphery/KrMulticall.sol";
 import {Role} from "common/Constants.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {Help, Log, mvm} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Log, Utils, mvm} from "kresko-lib/utils/s/LibVm.s.sol";
 import {GatingManager} from "periphery/GatingManager.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {CONST} from "scripts/deploy/CONST.s.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
-import {MockPyth} from "mocks/MockPyth.sol";
-import {getPythViewData, getMockPythPayload, PythView} from "vendor/pyth/PythScript.sol";
+import {MockPyth} from "kresko-lib/mocks/MockPyth.sol";
+import {PythView} from "kresko-lib/vendor/Pyth.sol";
 import {LibJSON, JSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {MockMarketStatus} from "mocks-misc/MockMarketStatus.sol";
 
@@ -26,6 +25,7 @@ library LibDeploy {
     using Conversions for bytes[];
     using Log for *;
     using Help for *;
+    using Utils for *;
     using Deployed for *;
     using LibJSON for string;
     using LibDeploy for bytes;
@@ -52,17 +52,10 @@ library LibDeploy {
         return MockMarketStatus(type(MockMarketStatus).creationCode.d3("", CONST.MOCK_STATUS_SALT).implementation);
     }
 
-    function createMockPythEP(JSON.Config memory json, bool _realPrices) internal saveOutput("MockPythEP") returns (MockPyth) {
-        (bytes32[] memory ids, int64[] memory prices) = json.getMockPrices();
-
-        if (_realPrices) {
-            PythView memory data = getPythViewData(ids);
-            for (uint256 i; i < data.ids.length; i++) {
-                prices[i] = data.prices[i].price;
-            }
-        }
-
-        bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(getMockPythPayload(ids, prices)));
+    function createMockPythEP(JSON.Config memory json) internal saveOutput("MockPythEP") returns (MockPyth) {
+        bytes[] memory ctor = new bytes[](1);
+        ctor[0] = abi.encode(json.getMockPrices());
+        bytes memory implementation = type(MockPyth).creationCode.ctor(abi.encode(ctor));
         return MockPyth(implementation.d3("", CONST.PYTH_MOCK_SALT).implementation);
     }
 
@@ -73,7 +66,7 @@ library LibDeploy {
     ) internal saveOutput("KISS") returns (KISS result) {
         require(kresko != address(0), "deployKISS: !Kresko");
         require(vault != address(0), "deployKISS: !Vault");
-        string memory name = CONST.KISS_PREFIX.and(json.assets.kiss.name);
+        string memory name = string.concat(CONST.KISS_PREFIX, json.assets.kiss.name);
         bytes memory initializer = abi.encodeCall(
             KISS.initialize,
             (name, json.assets.kiss.symbol, 18, json.params.common.admin, kresko, vault)
@@ -83,31 +76,12 @@ library LibDeploy {
     }
 
     function createVault(JSON.Config memory json, address _owner) internal saveOutput("Vault") returns (Vault) {
-        string memory name = CONST.VAULT_NAME_PREFIX.and(json.assets.kiss.name);
-        string memory symbol = CONST.VAULT_SYMBOL_PREFIX.and(json.assets.kiss.symbol);
+        string memory name = string.concat(CONST.VAULT_NAME_PREFIX, json.assets.kiss.name);
+        string memory symbol = string.concat(CONST.VAULT_SYMBOL_PREFIX, json.assets.kiss.symbol);
         bytes memory implementation = type(Vault).creationCode.ctor(
             abi.encode(name, symbol, 18, 8, _owner, json.params.common.treasury, json.params.common.sequencerUptimeFeed)
         );
         return Vault(implementation.d3("", CONST.VAULT_SALT).implementation);
-    }
-
-    function createDataV1(
-        JSON.Config memory json,
-        address _kresko,
-        address _vault,
-        address _kiss
-    ) internal saveOutput("DataV1") returns (DataV1) {
-        bytes memory implementation = type(DataV1).creationCode.ctor(
-            abi.encode(
-                _kresko,
-                _vault,
-                _kiss,
-                json.params.periphery.quoterv2,
-                json.params.periphery.okNFT,
-                json.params.periphery.qfkNFT
-            )
-        );
-        return DataV1(implementation.d3("", CONST.D1_SALT).implementation);
     }
 
     function createMulticall(

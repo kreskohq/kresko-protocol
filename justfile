@@ -1,4 +1,5 @@
 set dotenv-load
+import? "../justfile";
 
 alias dd := deploy-local-dry
 alias dr := restart

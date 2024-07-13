@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.21;
 
-import {vmFFI} from "kresko-lib/utils/Base.s.sol";
+import {vmFFI} from "kresko-lib/utils/s/Base.s.sol";
 
 function getFacetsAndSelectors() returns (string[] memory files, bytes[] memory facets, bytes4[][] memory selectors) {
     string[] memory cmd = new string[](2);

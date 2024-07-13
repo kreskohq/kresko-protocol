@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
+    "module": "commonjs",
     "target": "esnext",
-    "moduleResolution": "nodenext",
     "lib": [
       "dom",
       "esnext"
@@ -54,20 +53,19 @@
     "node_modules",
     "cache",
     "out",
-    "lib",
     "artifacts",
     "broadcast"
   ],
   "include": [
     "hardhat.config.ts",
     "src",
+    "lib/kresko-lib/utils",
     "configs",
     "utils"
   ],
   "ts-node": {
     "files": true,
     "transpileOnly": true,
-    "swc": true,
-    "esm": true
+    "swc": true
   }
 }

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {PythView} from "kresko-lib/vendor/Pyth.sol";
+
 import {Asset} from "common/Types.sol";
 import {toWad} from "common/funcs/Math.sol";
 import {pushPrice, viewPrice} from "common/funcs/Prices.sol";
@@ -8,7 +10,6 @@ import {MinterState} from "minter/MState.sol";
 import {cs} from "common/State.sol";
 import {PercentageMath} from "libs/PercentageMath.sol";
 import {WadRay} from "libs/WadRay.sol";
-import {PythView} from "vendor/pyth/PythScript.sol";
 
 using PercentageMath for uint256;
 using WadRay for uint256;

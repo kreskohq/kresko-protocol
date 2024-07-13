@@ -1,7 +1,6 @@
 export * from './add-asset'
 export * from './add-facet'
 export * from './clean'
-export * from './deploy-contract'
 export * from './deploy-kiss'
 export * from './deploy-token'
 export * from './deploy-krasset'

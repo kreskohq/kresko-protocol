@@ -36,7 +36,7 @@ describe('Oracles', () => {
       /// set price to 11
       const pythPrice = 11
 
-      await mockPyth.updatePriceFeeds(await mapToUpdateData(mockPyth, [[f.Collateral.pythId, pythPrice]]))
+      await mockPyth.updatePriceFeeds(mapToUpdateData([[f.Collateral.pythId, pythPrice]]))
 
       expect(await hre.Diamond.getAccountTotalCollateralValue(user.address)).to.equal(
         f.depositAmount.wadMul(toBig(pythPrice, 8)),
@@ -50,7 +50,7 @@ describe('Oracles', () => {
 
       const pythPrice = 10
 
-      await mockPyth.updatePriceFeeds(await mapToUpdateData(mockPyth, [[f.Collateral.pythId, pythPrice]]))
+      await mockPyth.updatePriceFeeds(mapToUpdateData([[f.Collateral.pythId, pythPrice]]))
 
       // should revert if price deviates more than maxPriceDeviationPct
       await expect(hre.Diamond.getAccountTotalCollateralValue(user.address)).to.be.reverted

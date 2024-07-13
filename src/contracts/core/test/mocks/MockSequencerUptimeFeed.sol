@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
+import {MockPyth} from "kresko-lib/mocks/MockPyth.sol";
 
 contract MockSequencerUptimeFeed {
     uint256 internal __startedAt;

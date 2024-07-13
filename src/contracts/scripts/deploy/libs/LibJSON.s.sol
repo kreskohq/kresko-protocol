@@ -1,8 +1,7 @@
 // solhint-disable state-visibility
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import {mvm} from "kresko-lib/utils/MinVm.s.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Utils, Log, mvm} from "kresko-lib/utils/s/LibVm.s.sol";
 import {Asset, FeedConfiguration} from "common/Types.sol";
 import {Enums} from "common/Constants.sol";
 import {VaultAsset} from "vault/VTypes.sol";
@@ -12,9 +11,11 @@ import {CONST} from "scripts/deploy/CONST.s.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {IAggregatorV3} from "kresko-lib/vendor/IAggregatorV3.sol";
+import {PythView, Price} from "kresko-lib/vendor/Pyth.sol";
 
 library LibJSON {
     using Help for *;
+    using Utils for *;
     using LibDeploy for string;
     using LibJSON for *;
     using Deployed for *;
@@ -229,5 +230,38 @@ library LibJSON {
             }
         }
         revert("Balance not found");
+    }
+
+    function getMockPrices(JSON.Config memory cfg) internal view returns (PythView memory result) {
+        (bytes32[] memory ids, int64[] memory prices) = _getPrices(cfg);
+        require(ids.length == prices.length, "PythScript: mock price length mismatch");
+        result.ids = new bytes32[](ids.length);
+        result.prices = new Price[](ids.length);
+        for (uint256 i = 0; i < prices.length; i++) {
+            result.ids[i] = ids[i];
+            result.prices[i] = Price({price: prices[i], conf: 1, expo: -8, publishTime: block.timestamp});
+        }
+    }
+
+    function _getPrices(JSON.Config memory cfg) private pure returns (bytes32[] memory ids, int64[] memory prices) {
+        uint256 count;
+
+        for (uint256 i; i < cfg.assets.tickers.length; i++) {
+            if (cfg.assets.tickers[i].pythId != bytes32(0)) {
+                count++;
+            }
+        }
+
+        ids = new bytes32[](count);
+        prices = new int64[](count);
+
+        count = 0;
+        for (uint256 i; i < cfg.assets.tickers.length; i++) {
+            if (cfg.assets.tickers[i].pythId != bytes32(0)) {
+                ids[count] = cfg.assets.tickers[i].pythId;
+                prices[count] = int64(uint64(cfg.assets.tickers[i].mockPrice));
+                count++;
+            }
+        }
     }
 }

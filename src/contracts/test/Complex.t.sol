@@ -3,11 +3,9 @@ pragma solidity ^0.8.0;
 
 // solhint-disable state-visibility, avoid-low-level-calls, no-console, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
-import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
+import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
+import {Help, Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import {VaultAsset} from "vault/VTypes.sol";
-import {PercentageMath} from "libs/PercentageMath.sol";
-import {WadRay} from "libs/WadRay.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
@@ -16,14 +14,12 @@ import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {MockOracle} from "mocks/MockOracle.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
 import {MintArgs, SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs} from "common/Args.sol";
-import {getPythData} from "vendor/pyth/PythScript.sol";
 
 contract ComplexTest is Deploy {
     using ShortAssert for *;
     using Help for *;
     using Log for *;
-    using WadRay for *;
-    using PercentageMath for *;
+    using Utils for *;
     uint256 constant ETH_PRICE = 2000;
 
     IERC20 internal vaultShare;
@@ -117,8 +113,8 @@ contract ComplexTest is Deploy {
         VaultAsset memory usdtConfig = vault.assets(address(usdt));
         usdt.balanceOf(vault.getConfig().feeRecipient).eq(0);
         uint256 depositAmount = 1000e6;
-        uint256 actualWithdrawAmount = depositAmount.percentMul(1e4 - usdtConfig.depositFee) / 2;
-        uint256 expectedOut = actualWithdrawAmount.percentMul(1e4 - usdtConfig.withdrawFee);
+        uint256 actualWithdrawAmount = depositAmount.pmul(1e4 - usdtConfig.depositFee) / 2;
+        uint256 expectedOut = actualWithdrawAmount.pmul(1e4 - usdtConfig.withdrawFee);
         expectedOut.clg("expected-usdt-out");
         // user setup
         address user = getAddr(20);
@@ -522,7 +518,7 @@ contract ComplexTest is Deploy {
 
         // Make it liquidatable
         _setETHPriceAndCoverIncentive(104071, 5000e18);
-        uint256 amountFromUsers = (5000e18).percentMul(paramsJSON.scdp.coverIncentive) - swapDeposits;
+        uint256 amountFromUsers = (5000e18).pmul(paramsJSON.scdp.coverIncentive) - swapDeposits;
         kresko.getSwapDepositsSCDP(address(kiss)).eq(0, "swap-deps-after");
         uint256 depositsAfterUser = kresko.getAccountDepositSCDP(getAddr(0), address(kiss));
         depositsAfterUser.lt(depositsBeforeUser, "deposits-after-cover-user");
@@ -571,7 +567,7 @@ contract ComplexTest is Deploy {
         }
         kresko.setAssetKFactor(krETHAddr, 1e4);
         _setETHPrice(price);
-        kresko.getCollateralRatioSCDP().pct("CR: before-liq");
+        kresko.getCollateralRatioSCDP().plg("CR: before-liq");
         _liquidate(krETHAddr, debt, address(kiss));
     }
 
@@ -584,8 +580,8 @@ contract ComplexTest is Deploy {
         }
         kresko.setAssetKFactor(krETHAddr, 1e4);
         _setETHPrice(price);
-        kresko.getCollateralRatioSCDP().pct("CR: before-liq");
-        _liquidate(krETHAddr, amount.wadDiv(price * 1e18), address(kiss));
+        kresko.getCollateralRatioSCDP().plg("CR: before-liq");
+        _liquidate(krETHAddr, amount.wdiv(price * 1e18), address(kiss));
     }
 
     function _setETHPriceAndCover(uint256 price, uint256 amount) internal {
@@ -597,9 +593,9 @@ contract ComplexTest is Deploy {
         kiss.approve(address(kresko), type(uint256).max);
         kresko.setAssetKFactor(krETHAddr, 1e4);
         _setETHPrice(price);
-        kresko.getCollateralRatioSCDP().pct("CR: before-cover");
+        kresko.getCollateralRatioSCDP().plg("CR: before-cover");
         _cover(amount);
-        kresko.getCollateralRatioSCDP().pct("CR: after-cover");
+        kresko.getCollateralRatioSCDP().plg("CR: after-cover");
     }
 
     function _setETHPriceAndCoverIncentive(uint256 price, uint256 amount) internal {
@@ -611,9 +607,9 @@ contract ComplexTest is Deploy {
         kiss.approve(address(kresko), type(uint256).max);
         kresko.setAssetKFactor(krETHAddr, 1e4);
         _setETHPrice(price);
-        kresko.getCollateralRatioSCDP().pct("CR: before-cover");
+        kresko.getCollateralRatioSCDP().plg("CR: before-cover");
         _coverIncentive(amount, address(kiss));
-        kresko.getCollateralRatioSCDP().pct("CR: after-cover");
+        kresko.getCollateralRatioSCDP().plg("CR: after-cover");
     }
 
     function _trades(uint256 count) internal {
@@ -666,7 +662,6 @@ contract ComplexTest is Deploy {
                 cfg.assets.tickers[i].mockPrice = _newPrice * 1e8;
             }
         }
-        updateData = getPythData(cfg);
-        pythEp.updatePriceFeeds(updateData);
+        updatePythLocal(cfg.getMockPrices());
     }
 }

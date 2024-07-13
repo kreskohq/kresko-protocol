@@ -3,12 +3,12 @@
 pragma solidity 0.8.23;
 
 import {DeployBase} from "scripts/deploy/DeployBase.s.sol";
-import {Scripted} from "kresko-lib/utils/Scripted.s.sol";
+
 import {LibJSON} from "scripts/deploy/libs/LibJSON.s.sol";
 import {LibMocks} from "scripts/deploy/libs/LibMocks.s.sol";
 import {LibDeploy} from "scripts/deploy/libs/LibDeploy.s.sol";
 import {LibDeployUtils} from "scripts/deploy/libs/LibDeployUtils.s.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import {VaultAsset} from "vault/VTypes.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {Ownable} from "@oz/access/Ownable.sol";
@@ -20,11 +20,10 @@ import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {Asset, FeedConfiguration} from "common/Types.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
 import {IGatingManager} from "periphery/IGatingManager.sol";
-import {IPyth} from "vendor/pyth/IPyth.sol";
-import {getPythData} from "vendor/pyth/PythScript.sol";
+import {IPyth} from "kresko-lib/vendor/Pyth.sol";
 import {MintArgs} from "common/Args.sol";
 
-contract Deploy is Scripted, DeployBase {
+contract Deploy is DeployBase {
     using LibJSON for *;
     using LibMocks for *;
     using LibDeploy for *;
@@ -32,6 +31,7 @@ contract Deploy is Scripted, DeployBase {
     using LibDeployUtils for *;
     using Help for *;
     using Log for *;
+    using Utils for *;
 
     mapping(bytes32 => bool) tickerExists;
     mapping(bytes32 => bool) routeExists;
@@ -55,6 +55,7 @@ contract Deploy is Scripted, DeployBase {
         // Create configured mocks, updates the received config with addresses.
         json = json.createMocks(deployer);
         pythEp = IPyth(json.params.common.pythEp);
+        pyth.get[block.chainid] = pythEp;
         weth = json.assets.wNative.token;
         // Set tokens to cache as we know them at this point.
         json.cacheExtTokens();
@@ -101,7 +102,6 @@ contract Deploy is Scripted, DeployBase {
 
         /* ---------------------------- Periphery --------------------------- */
         multicall = json.createMulticall(diamond, address(kiss), address(pythEp), salts.multicall);
-        dataV1 = json.createDataV1(diamond, address(vault), address(kiss));
 
         /* ------------------------------ Users ----------------------------- */
         if (json.users.accounts.length > 0) {
@@ -198,8 +198,7 @@ contract Deploy is Scripted, DeployBase {
     /* ---------------------------------------------------------------------- */
 
     function setupUsers(JSON.Config memory json, address deployer, bool disableLog) private reclearCallers {
-        updateData = getPythData(json);
-        updateFee = pythEp.getUpdateFee(updateData);
+        updatePythLocal(json.getMockPrices());
         setupBalances(json.users, json.assets);
         setupSCDP(json.users, json.assets);
         setupMinter(json.users, json.assets);
@@ -438,7 +437,7 @@ contract Deploy is Scripted, DeployBase {
         bool disableLog
     ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
         if (disableLog) LibDeploy.disableLog();
-        else Log.clg(network.and(":").and(configId), "Deploying");
+        else Log.clg(string.concat(network, ":", configId), "Deploying");
         if (saveOutput) LibDeploy.initOutputJSON(configId);
 
         json = exec(JSON.getConfig(network, configId), JSON.getSalts(network, configId), getAddr(deployer), disableLog);
@@ -463,7 +462,7 @@ contract Deploy is Scripted, DeployBase {
         bool disableLog
     ) public mnemonic(mnemonicEnv) returns (JSON.Config memory json) {
         if (disableLog) LibDeploy.disableLog();
-        else Log.clg(dir.and(configId), "Deploying from");
+        else Log.clg(string.concat(dir, configId), "Deploying from");
         if (saveOutput) LibDeploy.initOutputJSON(configId);
 
         json = exec(

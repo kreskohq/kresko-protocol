@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
-import {PercentageMath} from "libs/PercentageMath.sol";
-import {WadRay} from "libs/WadRay.sol";
+import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
+import {Help, Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import {IKrMulticall} from "periphery/KrMulticall.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {KreskoAsset} from "kresko-asset/KreskoAsset.sol";
@@ -13,7 +11,6 @@ import {MockERC20} from "mocks/MockERC20.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {SCDPLiquidationArgs, SwapArgs} from "common/Args.sol";
 import "scripts/deploy/JSON.s.sol" as JSON;
-import {getPythData} from "vendor/pyth/PythScript.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
@@ -21,8 +18,7 @@ contract MulticallTest is Deploy {
     using ShortAssert for *;
     using Help for *;
     using Log for *;
-    using WadRay for *;
-    using PercentageMath for *;
+    using Utils for *;
     uint256 constant ETH_PRICE = 2000;
 
     string internal rs_price_eth = "ETH:2000:8,";
@@ -732,6 +728,6 @@ contract MulticallTest is Deploy {
                 cfg.assets.tickers[i].mockPrice = _newPrice * 1e8;
             }
         }
-        updateData = getPythData(cfg);
+        updatePythLocal(cfg.getMockPrices());
     }
 }

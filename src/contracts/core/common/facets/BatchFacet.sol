@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 import {IBatchFacet} from "common/interfaces/IBatchFacet.sol";
-import {__revert} from "kresko-lib/utils/Base.s.sol";
+import {__revert} from "kresko-lib/utils/Funcs.sol";
 import {Errors} from "common/Errors.sol";
 import {Modifiers} from "common/Modifiers.sol";
-import {IPyth} from "vendor/pyth/IPyth.sol";
 
 // solhint-disable no-empty-blocks, reason-string
 

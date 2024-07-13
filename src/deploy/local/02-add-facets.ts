@@ -10,7 +10,7 @@ import {
 import { addFacets } from '@scripts/add-facets'
 import { getLogger } from '@utils/logging'
 import type { DeployFunction } from 'hardhat-deploy/dist/types'
-import { zeroAddress } from 'viem'
+import { encodeAbiParameters, encodeFunctionData, parseAbiParameters, zeroAddress } from 'viem'
 
 const logger = getLogger('common-facets')
 

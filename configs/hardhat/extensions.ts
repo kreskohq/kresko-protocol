@@ -23,7 +23,7 @@ extendEnvironment(function (hre) {
   hre.facets = []
   hre.extAssets = []
   hre.krAssets = []
-  hre.updateData = () => getUpdateData(hre)
+  hre.updateData = () => getUpdateData()
   hre.viewData = () => getViewData(hre)
 
   hre.getDeploymentOrFork = async deploymentName => {

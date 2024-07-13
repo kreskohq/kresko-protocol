@@ -1,15 +1,13 @@
 // // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Scripted} from "kresko-lib/utils/Scripted.s.sol";
+import {Based} from "kresko-lib/utils/Based.s.sol";
 import {IKresko} from "periphery/IKresko.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
 
 import {IGatingManager} from "periphery/IGatingManager.sol";
-import {IDataV1} from "periphery/interfaces/IDataV1.sol";
 import {IKrMulticall, ISwapRouter} from "periphery/IKrMulticall.sol";
 import {IDeploymentFactory} from "factory/IDeploymentFactory.sol";
-import {getPythData, PythView} from "vendor/pyth/PythScript.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
 import {Asset, Oracle} from "common/Types.sol";
 import {ArbDeploy} from "kresko-lib/info/ArbDeploy.sol";
@@ -19,22 +17,16 @@ import {Enums} from "common/Constants.sol";
 
 // solhint-disable state-visibility, max-states-count, var-name-mixedcase, no-global-import, const-name-snakecase, no-empty-blocks, no-console
 
-contract ArbScript is Scripted, ArbDeploy {
+contract ArbScript is Based, ArbDeploy {
     using Log for *;
     using Help for *;
 
     IKrMulticall multicall = IKrMulticall(multicallAddr);
-    IDataV1 dataV1 = IDataV1(dataV1Addr);
     IKresko kresko = IKresko(kreskoAddr);
     IGatingManager manager = IGatingManager(0x13f14aB44B434F16D88645301515C899d69A30Bd);
 
-    bytes[] pythUpdate;
-    PythView pythView;
-    string pythAssets = "ETH,USDC,BTC,ARB,SOL,JPY,EUR,GBP,XAU,XAG";
-
     function initialize(string memory mnemonic) internal {
-        useMnemonic(mnemonic);
-        vm.createSelectFork("arbitrum");
+        base(mnemonic, "RPC_ARBITRUM_ALCHEMY");
         Deployed.factory(factoryAddr);
     }
 
@@ -46,40 +38,6 @@ contract ArbScript is Scripted, ArbDeploy {
 
     function initialize() internal {
         initialize("MNEMONIC_DEPLOY");
-    }
-
-    function fetchPyth(string memory _assets) internal {
-        (bytes[] memory update, PythView memory values) = getPythData(_assets);
-        pythUpdate = update;
-        pythView.ids = values.ids;
-        delete pythView.prices;
-        for (uint256 i; i < values.prices.length; i++) {
-            pythView.prices.push(values.prices[i]);
-        }
-    }
-
-    function fetchPyth() internal {
-        fetchPyth(pythAssets);
-    }
-
-    function fetchPythAndUpdate(string memory _assets) internal {
-        fetchPyth(_assets);
-        pythEP.updatePriceFeeds{value: pythEP.getUpdateFee(pythUpdate)}(pythUpdate);
-    }
-
-    function fetchPythAndUpdate() internal {
-        fetchPyth();
-        pythEP.updatePriceFeeds{value: pythEP.getUpdateFee(pythUpdate)}(pythUpdate);
-    }
-
-    function fetchPythSync() internal {
-        fetchPyth();
-        pythEP.updatePriceFeeds{value: pythEP.getUpdateFee(pythUpdate)}(pythUpdate);
-        syncTimeLocal();
-    }
-
-    function syncTimeLocal() internal {
-        vm.warp(getTime());
     }
 
     function approvals(address spender) internal {
@@ -108,11 +66,11 @@ contract ArbScript is Scripted, ArbDeploy {
     }
 
     function getUSDC(address to, uint256 amount) internal returns (uint256) {
-        return getBal(USDCAddr, to, amount);
+        return getBal(usdcAddr, to, amount);
     }
 
     function getUSDCe(address to, uint256 amount) internal returns (uint256) {
-        return getBal(USDCeAddr, to, amount);
+        return getBal(usdceAddr, to, amount);
     }
 
     function getBal(address token, address to, uint256 amount) internal repranked(binanceAddr) returns (uint256) {
@@ -122,33 +80,33 @@ contract ArbScript is Scripted, ArbDeploy {
 
     function getKISSD(address to, uint256 amount) internal returns (uint256 shares, uint256 assets, uint256 fees) {
         approvals(kissAddr);
-        (assets, fees) = vault.previewMint(USDCeAddr, amount);
-        kiss.vaultDeposit(USDCeAddr, getUSDCe(to, assets), to);
+        (assets, fees) = vault.previewMint(usdceAddr, amount);
+        kiss.vaultDeposit(usdceAddr, getUSDCe(to, assets), to);
         return (amount, assets, fees);
     }
 
     function getKISSM(address to, uint256 amount) internal returns (uint256 shares, uint256 assets, uint256 fees) {
         approvals(kissAddr);
-        (assets, fees) = vault.previewMint(USDCeAddr, amount);
+        (assets, fees) = vault.previewMint(usdceAddr, amount);
         getUSDCe(to, assets);
-        kiss.vaultMint(USDCeAddr, amount, to);
+        kiss.vaultMint(usdceAddr, amount, to);
         return (amount, assets, fees);
     }
 
     function states_noVaultFees() internal repranked(safe) {
         if (vault.getConfig().pendingGovernance != address(0)) vault.acceptGovernance();
-        vault.setDepositFee(USDCeAddr, 0);
-        vault.setWithdrawFee(USDCeAddr, 0);
-        vault.setDepositFee(USDCAddr, 0);
-        vault.setWithdrawFee(USDCAddr, 0);
+        vault.setDepositFee(usdceAddr, 0);
+        vault.setWithdrawFee(usdceAddr, 0);
+        vault.setDepositFee(usdcAddr, 0);
+        vault.setWithdrawFee(usdcAddr, 0);
     }
 
     function states_looseOracles() public rebroadcasted(safe) {
-        vault.setAssetFeed(USDCAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
-        vault.setAssetFeed(USDCeAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
+        vault.setAssetFeed(usdcAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
+        vault.setAssetFeed(usdceAddr, 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3, type(uint24).max);
         kresko.setMaxPriceDeviationPct(25e2);
 
-        View.AssetView[] memory assets = kresko.viewProtocolData(pythView).assets;
+        View.AssetView[] memory assets = kresko.viewProtocolData(pyth.viewData).assets;
 
         for (uint256 i; i < assets.length; i++) {
             Asset memory asset = assets[i].config;
@@ -171,7 +129,7 @@ contract ArbScript is Scripted, ArbDeploy {
     }
 
     function states_noFactorsNoFees() internal repranked(safe) {
-        View.AssetView[] memory assets = kresko.viewProtocolData(pythView).assets;
+        View.AssetView[] memory assets = kresko.viewProtocolData(pyth.viewData).assets;
         for (uint256 i; i < assets.length; i++) {
             View.AssetView memory asset = assets[i];
             if (asset.config.factor > 0) {
@@ -195,9 +153,5 @@ contract ArbScript is Scripted, ArbDeploy {
         }
 
         states_noVaultFees();
-    }
-
-    function getTime() internal returns (uint256) {
-        return vm.unixTime() / 1000;
     }
 }

@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
 
+import {PythView} from "kresko-lib/vendor/Pyth.sol";
+
 import {View} from "periphery/ViewTypes.sol";
 import {IViewDataFacet} from "periphery/interfaces/IViewDataFacet.sol";
 import {ViewFuncs} from "periphery/ViewData.sol";
-import {PythView} from "vendor/pyth/PythScript.sol";
 
 contract ViewDataFacet is IViewDataFacet {
     /// @inheritdoc IViewDataFacet

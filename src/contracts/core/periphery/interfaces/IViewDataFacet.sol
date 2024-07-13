@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 import {View} from "periphery/ViewTypes.sol";
-import {PythView} from "vendor/pyth/PythScript.sol";
+import {PythView} from "kresko-lib/vendor/Pyth.sol";
 
 interface IViewDataFacet {
     function viewProtocolData(PythView calldata prices) external view returns (View.Protocol memory);

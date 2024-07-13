@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {AssetAdder} from "scripts/utils/AssetAdder.s.sol";
-import {Log} from "kresko-lib/utils/Libs.s.sol";
+import {Log, Utils} from "kresko-lib/utils/s/LibVm.s.sol";
 import {Deployed} from "scripts/deploy/libs/Deployed.s.sol";
 import {KrAssetPayload} from "scripts/payloads/KrAssetPayloads.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
@@ -11,13 +11,14 @@ import {IERC20} from "kresko-lib/token/IERC20.sol";
 
 contract AddKrAsset is AssetAdder {
     using Log for *;
+    using Utils for *;
 
     address payable internal newAssetAddr;
 
-    string assetName = "Silver";
-    string assetTicker = "XAG";
+    string assetName = "Dogecoin";
+    string assetTicker = "DOGE";
     string assetSymbol = string.concat("kr", assetTicker);
-    bytes32 marketStatusSource = bytes32("XAG");
+    bytes32 marketStatusSource = bytes32("CRYPTO");
 
     function setUp() public virtual {
         vm.createSelectFork("arbitrum");
@@ -36,8 +37,8 @@ contract AddKrAsset is AssetAdder {
         IERC20 token = IERC20(newAssetAddr);
 
         prank(safe);
-        fetchPythAndUpdate();
-        syncTimeLocal();
+        updatePyth();
+        syncTime();
 
         string memory info = string.concat(
             "\n************************************************************",
@@ -50,17 +51,13 @@ contract AddKrAsset is AssetAdder {
             "\n* (name)         -> ",
             token.name(),
             "\n* (getPrice)     -> ",
-            fpStr(kresko.getPrice(newAssetAddr)),
+            kresko.getPrice(newAssetAddr).strDec(8),
             "\n* (getPushPrice) -> ",
-            fpStr(uint256(kresko.getPushPrice(newAssetAddr).answer)),
+            (uint256(kresko.getPushPrice(newAssetAddr).answer)).strDec(8),
             "\n************************************************************"
         );
         Log.clg(info);
         Log.br();
-    }
-
-    function fpStr(uint256 value) public pure returns (string memory) {
-        return string.concat(vm.toString(value / 1e8), ".", vm.toString(value % 1e8));
     }
 
     function _createAddKrAsset() private rebroadcasted(safe) returns (address payable krAssetAddr_) {

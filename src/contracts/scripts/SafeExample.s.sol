@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ArbScript} from "scripts/utils/ArbScript.s.sol";
-import {Help, Log} from "kresko-lib/utils/Libs.s.sol";
+import {Help, Utils, Log} from "kresko-lib/utils/s/LibVm.s.sol";
 import {SwapRouteSetter} from "scdp/STypes.sol";
 import {scdp} from "scdp/SState.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
@@ -25,7 +25,7 @@ contract SafeExample is ArbScript {
 
     modifier setUp() {
         ArbScript.initialize("MNEMONIC_DEPLOY");
-        fetchPythAndUpdate();
+        updatePyth();
         _;
     }
 

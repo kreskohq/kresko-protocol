@@ -62,6 +62,13 @@ const config: HardhatUserConfig = {
         },
     timeout: process.env.CI ? 45000 : process.env.FORKING ? 300000 : 30000,
   },
+  external: {
+    contracts: [
+      {
+        artifacts: 'build/foundry',
+      },
+    ],
+  },
   paths: {
     artifacts: 'build/hardhat/artifacts',
     cache: 'build/hardhat/cache',

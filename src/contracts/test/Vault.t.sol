@@ -25,12 +25,12 @@ contract VaultTest is Test {
     MockOracle public daiOracle;
     MockOracle public usdtOracle;
 
-    address internal user4 = address(44444);
-    address internal user3 = address(33333);
-
-    address internal user2 = 0xB48bB6b68Ab4D366B4f9A30eE6f7Ee55125c2D9d;
-    address internal user1 = 0xfff57D31b6d007e2de2ef602F66Bc2C2B757bB42;
     address internal user0 = 0xfffff4Fc02030b28d5CdD7F9073307B2bd7c436F;
+    address internal user1 = 0xfff57D31b6d007e2de2ef602F66Bc2C2B757bB42;
+    address internal user2 = 0xB48bB6b68Ab4D366B4f9A30eE6f7Ee55125c2D9d;
+    address internal user3 = address(33333);
+    address internal user4 = address(44444);
+
     address internal liquidator = 0x361Bae08CDd251b022889d8eA9fb8ddb84012516;
     address internal feeRecipient = address(0xFEE);
 

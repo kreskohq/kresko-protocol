@@ -3,11 +3,9 @@ pragma solidity ^0.8.0;
 
 // solhint-disable no-console, state-visibility, var-name-mixedcase, avoid-low-level-calls, max-states-count
 
-import {ShortAssert} from "kresko-lib/utils/ShortAssert.t.sol";
-import {Log, Help} from "kresko-lib/utils/Libs.s.sol";
-import {Tested} from "kresko-lib/utils/Tested.t.sol";
-import {PercentageMath} from "libs/PercentageMath.sol";
-import {WadRay} from "libs/WadRay.sol";
+import {ShortAssert} from "kresko-lib/utils/s/ShortAssert.t.sol";
+import {Log, Utils, Help} from "kresko-lib/utils/s/LibVm.s.sol";
+import {Tested} from "kresko-lib/utils/s/Tested.t.sol";
 import {Asset} from "common/Types.sol";
 import {Deploy} from "scripts/deploy/Deploy.s.sol";
 import {MockERC20} from "mocks/MockERC20.sol";
@@ -17,15 +15,13 @@ import "scripts/deploy/JSON.s.sol" as JSON;
 import {MockOracle} from "mocks/MockOracle.sol";
 import {Enums} from "common/Constants.sol";
 import {SCDPLiquidationArgs, SCDPWithdrawArgs, SwapArgs, SCDPRepayArgs} from "common/Args.sol";
-import {getPythData} from "vendor/pyth/PythScript.sol";
 import {Errors} from "common/Errors.sol";
 
 contract SCDPTest is Tested, Deploy {
     using ShortAssert for *;
     using Log for *;
     using Help for *;
-    using WadRay for uint256;
-    using PercentageMath for uint256;
+    using Utils for *;
     using Deployed for *;
 
     MockERC20 usdc;
@@ -186,7 +182,7 @@ contract SCDPTest is Tested, Deploy {
         _swap(user0, address(kiss), 1000e18, address(krETH));
 
         kresko.getDebtSCDP(address(krETH)).eq(amountOut, "debt should be amountOut");
-        uint256 swapDeposits = (1000e18) - (1000e18).pctMul(fee_KISS_krETH);
+        uint256 swapDeposits = (1000e18) - (1000e18).pmul(fee_KISS_krETH);
         kresko.getSwapDepositsSCDP(address(kiss)).eq(swapDeposits, "swap deposits");
         krETH.balanceOf(user0).eq(amountOut, "amountOut");
 
@@ -194,8 +190,8 @@ contract SCDPTest is Tested, Deploy {
         totalFees.gt(0, "totalFees should be > 0");
 
         uint256 protocolFeePct = kissConfig.protocolFeeShareSCDP + krETHConfig.protocolFeeShareSCDP;
-        feesToProtocol.eq(totalFees.pctMul(protocolFeePct), "feesToProtocol");
-        feesDistributed.eq(totalFees.pctMul(1e4 - protocolFeePct), "feesDistributed");
+        feesToProtocol.eq(totalFees.pmul(protocolFeePct), "feesToProtocol");
+        feesDistributed.eq(totalFees.pmul(1e4 - protocolFeePct), "feesDistributed");
 
         kiss.balanceOf(feeRecipient).eq(feesToProtocol, "kiss feeRecipient");
 
@@ -409,7 +405,13 @@ contract SCDPTest is Tested, Deploy {
         _toggleActionPaused(address(usdc), Enums.Action.SCDPDeposit, true);
 
         prank(user0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(usdc)), Enums.Action.SCDPDeposit));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
+                Errors.id(address(usdc)),
+                Enums.Action.SCDPDeposit
+            )
+        );
         kresko.depositSCDP(user0, address(usdc), 1000e6);
 
         // Unpause SCDPDeposit for USDC
@@ -427,7 +429,13 @@ contract SCDPTest is Tested, Deploy {
         _toggleActionPaused(address(usdc), Enums.Action.SCDPWithdraw, true);
 
         prank(user0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(usdc)), Enums.Action.SCDPWithdraw));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
+                Errors.id(address(usdc)),
+                Enums.Action.SCDPWithdraw
+            )
+        );
         kresko.withdrawSCDP(SCDPWithdrawArgs(user0, address(usdc), 1000e6, user0), updateData);
 
         // Unpause SCDPWithdraw for USDC
@@ -449,7 +457,13 @@ contract SCDPTest is Tested, Deploy {
         fees.gt(0, "fees");
         uint256 kissBalBefore = kiss.balanceOf(deployer);
         _toggleActionPaused(address(kiss), Enums.Action.SCDPWithdraw, true);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(kiss)), Enums.Action.SCDPWithdraw));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
+                Errors.id(address(kiss)),
+                Enums.Action.SCDPWithdraw
+            )
+        );
         kresko.emergencyWithdrawSCDP(SCDPWithdrawArgs(deployer, address(kiss), 1000e18, deployer), updateData);
 
         _toggleActionPaused(address(kiss), Enums.Action.SCDPWithdraw, false);
@@ -465,9 +479,15 @@ contract SCDPTest is Tested, Deploy {
 
         uint256 fees = kresko.getAccountFeesSCDP(deployer, address(kiss));
         uint256 kissBalBefore = kiss.balanceOf(deployer);
-        
+
         _toggleActionPaused(address(kiss), Enums.Action.SCDPFeeClaim, true);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(kiss)), Enums.Action.SCDPFeeClaim));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
+                Errors.id(address(kiss)),
+                Enums.Action.SCDPFeeClaim
+            )
+        );
         kresko.claimFeesSCDP(deployer, address(kiss), deployer);
 
         _toggleActionPaused(address(kiss), Enums.Action.SCDPFeeClaim, false);
@@ -482,7 +502,13 @@ contract SCDPTest is Tested, Deploy {
 
         _setETHPrice(18000e8);
         _toggleActionPaused(address(krETH), Enums.Action.SCDPLiquidation, true);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPLiquidation));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
+                Errors.id(address(krETH)),
+                Enums.Action.SCDPLiquidation
+            )
+        );
         _liquidate(address(krETH), 0.1e18, address(kiss));
 
         _toggleActionPaused(address(krETH), Enums.Action.SCDPLiquidation, false);
@@ -492,13 +518,19 @@ contract SCDPTest is Tested, Deploy {
     function test_repaySCPD_Paused() public {
         _poolDeposit(deployer, address(kiss), 10000e18);
         _swap(user0, address(kiss), 1000e18, address(krETH));
-        
+
         _toggleActionPaused(address(krETH), Enums.Action.SCDPRepay, true);
 
         assertGt(krETH.balanceOf(user0), 0);
 
         SCDPRepayArgs memory repay = SCDPRepayArgs(address(krETH), krETH.balanceOf(user0), address(kiss), updateData);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPRepay));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
+                Errors.id(address(krETH)),
+                Enums.Action.SCDPRepay
+            )
+        );
         kresko.repaySCDP(repay);
 
         _toggleActionPaused(address(krETH), Enums.Action.SCDPRepay, false);
@@ -512,17 +544,29 @@ contract SCDPTest is Tested, Deploy {
         _poolDeposit(deployer, address(kiss), 10000e18);
         _toggleActionPaused(address(kiss), Enums.Action.SCDPSwap, true);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(kiss)), Enums.Action.SCDPSwap));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
+                Errors.id(address(kiss)),
+                Enums.Action.SCDPSwap
+            )
+        );
         _swap(user0, address(kiss), 1000e18, address(krETH));
 
         _toggleActionPaused(address(kiss), Enums.Action.SCDPSwap, false);
         _toggleActionPaused(address(krETH), Enums.Action.SCDPSwap, true);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPSwap));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
+                Errors.id(address(krETH)),
+                Enums.Action.SCDPSwap
+            )
+        );
         _swap(user0, address(kiss), 1000e18, address(krETH));
 
         _toggleActionPaused(address(krETH), Enums.Action.SCDPSwap, false);
-        
+
         assertEq(krETH.balanceOf(user0), 0);
         _swap(user0, address(kiss), 1000e18, address(krETH));
         assertGt(krETH.balanceOf(user0), 0);
@@ -530,20 +574,32 @@ contract SCDPTest is Tested, Deploy {
         assertEq(krETH.balanceOf(user0), 0);
     }
 
-    function test_coverSCDP_Paused() public {   
+    function test_coverSCDP_Paused() public {
         _toggleActionPaused(address(krETH), Enums.Action.SCDPCover, true);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPCover));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
+                Errors.id(address(krETH)),
+                Enums.Action.SCDPCover
+            )
+        );
         kresko.coverSCDP(address(krETH), 1000e18, updateData);
     }
 
     function test_coverWithIncentiveSCDP_Paused() public {
         _toggleActionPaused(address(krETH), Enums.Action.SCDPCover, true);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector, Errors.id(address(krETH)), Enums.Action.SCDPCover));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.ASSET_PAUSED_FOR_THIS_ACTION.selector,
+                Errors.id(address(krETH)),
+                Enums.Action.SCDPCover
+            )
+        );
         kresko.coverWithIncentiveSCDP(address(kiss), 1000e18, address(krETH), updateData);
     }
-    
+
     /* -------------------------------------------------------------------------- */
     /*                                   helpers                                  */
     /* -------------------------------------------------------------------------- */
@@ -552,9 +608,9 @@ contract SCDPTest is Tested, Deploy {
         for (uint256 i; i < times; i++) {
             _setETHPrice(uint256(90000e8));
             if (i > 40) {
-                liquidateAmount = liquidateAmount.percentMul(0.50e4);
+                liquidateAmount = liquidateAmount.pmul(0.50e4);
             }
-            _liquidate(krETHAddr, liquidateAmount.percentMul(1e4 - (100 * i)), address(kiss));
+            _liquidate(krETHAddr, liquidateAmount.pmul(1e4 - (100 * i)), address(kiss));
             _setETHPrice(uint256(2000e8));
         }
     }
@@ -566,9 +622,9 @@ contract SCDPTest is Tested, Deploy {
             kresko.swapSCDP(SwapArgs(getAddr(0), address(kiss), krETHAddr, swapAmount, 0, updateData));
             _setETHPrice(uint256(90000e8));
             if (i > 40) {
-                liquidateAmount = liquidateAmount.percentMul(0.50e4);
+                liquidateAmount = liquidateAmount.pmul(0.50e4);
             }
-            _liquidate(krETHAddr, liquidateAmount.percentMul(1e4 - (100 * i)), address(kiss));
+            _liquidate(krETHAddr, liquidateAmount.pmul(1e4 - (100 * i)), address(kiss));
             _setETHPrice(uint256(2000e8));
             kresko.swapSCDP(SwapArgs(getAddr(0), krETHAddr, address(kiss), amountOut, 0, updateData));
         }
@@ -607,9 +663,9 @@ contract SCDPTest is Tested, Deploy {
         krJPY.approve(address(kresko), type(uint256).max);
     }
 
-    function _printInfo(string memory prefix) internal {
-        prefix = prefix.and(" | ");
-        prefix.and("*****************").clg();
+    function _printInfo(string memory prefix) internal view {
+        prefix = string.concat(prefix, " | ");
+        string.concat(prefix, "*****************").clg();
         uint256 sdiPrice = kresko.getSDIPrice();
         uint256 sdiTotalSupply = kresko.totalSDI();
         uint256 totalCover = kresko.getSDICoverAmount();
@@ -619,18 +675,18 @@ contract SCDPTest is Tested, Deploy {
         uint256 effectiveDebt = kresko.getEffectiveSDIDebt();
         uint256 effectiveDebtValue = kresko.getEffectiveSDIDebtUSD();
 
-        sdiPrice.dlg(prefix.and("SDI Price"));
-        sdiTotalSupply.dlg(prefix.and("SDI totalSupply"));
-        kresko.getTotalSDIDebt().dlg(prefix.and("SCDP SDI Debt Amount"));
-        totalCover.dlg(prefix.and("SCDP SDI Cover Amount"));
-        effectiveDebt.dlg(prefix.and("SCDP Effective SDI Debt Amount"));
+        sdiPrice.dlg(string.concat(prefix, "SDI Price"));
+        sdiTotalSupply.dlg(string.concat(prefix, "SDI totalSupply"));
+        kresko.getTotalSDIDebt().dlg(string.concat(prefix, "SCDP SDI Debt Amount"));
+        totalCover.dlg(string.concat(prefix, "SCDP SDI Cover Amount"));
+        effectiveDebt.dlg(string.concat(prefix, "SCDP Effective SDI Debt Amount"));
 
-        collateralUSD.dlg(prefix.and("SCDP Collateral USD"), 8);
-        debtUSD.dlg(prefix.and("SCDP KrAsset Debt USD"), 8);
-        effectiveDebtValue.dlg(prefix.and("SCDP SDI Debt USD"), 8);
-        totalCover.mulWad(sdiPrice).dlg(prefix.and("SCDP SDI Cover USD"));
+        collateralUSD.dlg(string.concat(prefix, "SCDP Collateral USD"), 8);
+        debtUSD.dlg(string.concat(prefix, "SCDP KrAsset Debt USD"), 8);
+        effectiveDebtValue.dlg(string.concat(prefix, "SCDP SDI Debt USD"), 8);
+        totalCover.wmul(sdiPrice).dlg(string.concat(prefix, "SCDP SDI Cover USD"));
 
-        kresko.getCollateralRatioSCDP().pct(prefix.and("SCDP CR %"));
+        kresko.getCollateralRatioSCDP().plg(string.concat(prefix, "SCDP CR %"));
     }
 
     function _setETHPrice(uint256 price) internal repranked(admin) {
@@ -641,8 +697,7 @@ contract SCDPTest is Tested, Deploy {
                 cfg.assets.tickers[i].mockPrice = price;
             }
         }
-        updateData = getPythData(cfg);
-        pythEp.updatePriceFeeds(updateData);
+        updatePythLocal(cfg.getMockPrices());
     }
 
     function _toggleActionPaused(address asset, Enums.Action action, bool paused) internal repranked(council) {

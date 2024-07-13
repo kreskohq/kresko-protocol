@@ -13,7 +13,6 @@ type AddLiquidityArgs = {
   amount1: number | BigNumber
 }
 
-// type Test =
 export const addLiquidity = async (args: AddLiquidityArgs) => {
   const { token0, token1, amount0, amount1, user } = args
   await token0.contract.connect(user).approve(hre.UniV2Router.address, maxUint256)
