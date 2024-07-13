@@ -1,9 +1,7 @@
 import { error, success } from '../lib/kresko-lib/utils/shared'
-import { getDeployment, getLatestBroadcastedDeployment } from './ffi-deploy'
+import { getDeployment } from './ffi-deploy'
 
 const commands = {
-  // -> getLatestBroadcastedDeployment NAME CHAIN_ID
-  getLatestBroadcastedDeployment,
   // -> getDeployment CONTRACT_NAME CHAIN_ID DEPLOYMENT_ID
   getDeployment,
 }

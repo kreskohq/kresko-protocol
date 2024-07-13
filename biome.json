@@ -9,6 +9,7 @@
   "files": {
     "ignore": [
       "biome.json",
+      "soljson-*",
       "configs/foundry/deploy",
       "node_modules",
       "artifacts",

@@ -21,3 +21,4 @@ docs/
 coverage.json
 .solcover.js
 /src/**/*.json
+soljson-*.js
