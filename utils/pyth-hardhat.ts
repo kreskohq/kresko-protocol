@@ -1,5 +1,3 @@
-
-
 export async function getPayloadHardhat(assets: any[]) {
   if (assets.length === 0) {
     throw new Error('You have to provide at least one asset from hardhat config')

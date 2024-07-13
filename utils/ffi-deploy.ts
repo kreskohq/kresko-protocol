@@ -19,4 +19,3 @@ export function getDeployment() {
   if (!key) throw new Error(`Found deployment but no entry for ${name}-${chainId}-${deployId}`)
   return encodeAbiParameters(parseAbiParameters(['address']), [data[key].address as Address])
 }
-
