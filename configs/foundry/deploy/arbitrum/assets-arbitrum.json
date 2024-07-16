@@ -755,7 +755,7 @@
       "10_staleTimeRedstone": 50,
       "11_useAdapter": false,
       "12_invertPyth": false,
-      "13_isClosable": true
+      "13_isClosable": false
     }
   ],
   "07_customTradeRoutes": []

@@ -20,20 +20,17 @@ contract ArbScript is Based, ArbDeploy {
 
     IKrMulticall multicall = IKrMulticall(multicallAddr);
     IKresko kresko = IKresko(kreskoAddr);
+    constructor() {
+        Deployed.factory(factoryAddr);
+    }
 
     function initialize(string memory mnemonic) internal {
-        base(mnemonic, "RPC_ARBITRUM_ALCHEMY");
-        Deployed.factory(factoryAddr);
+        base(mnemonic, "arbitrum");
     }
 
     function initialize(uint256 blockNr) internal {
-        vm.createSelectFork("arbitrum", blockNr);
-        Deployed.factory(factoryAddr);
+        base("arbitrum", blockNr);
         states_looseOracles();
-    }
-
-    function initialize() internal {
-        initialize("MNEMONIC_DEPLOY");
     }
 
     function approvals(address spender) internal {

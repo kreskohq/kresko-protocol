@@ -8,6 +8,7 @@ import {KrAssetPayload} from "scripts/payloads/KrAssetPayloads.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
 import {IERC20} from "kresko-lib/token/IERC20.sol";
+import {IData} from "kresko-lib/core/types/Views.sol";
 
 contract AddKrAsset is AssetAdder {
     using Log for *;
@@ -25,10 +26,9 @@ contract AddKrAsset is AssetAdder {
         Deployed.factory(factoryAddr);
     }
 
-    function createFork() public {
-        broadcastWith(safe);
-        createAddKrAsset();
-        states_looseOracles();
+    function createKrAssetBatch() public broadcasted(safe) {
+        _createAddKrAsset();
+        IData(dataAddr).refreshProtocolAssets();
     }
 
     function createAddKrAsset() public {
@@ -60,7 +60,7 @@ contract AddKrAsset is AssetAdder {
         Log.br();
     }
 
-    function _createAddKrAsset() private rebroadcasted(safe) returns (address payable krAssetAddr_) {
+    function _createAddKrAsset() internal returns (address payable krAssetAddr_) {
         krAssetAddr_ = deployKrAsset(assetSymbol);
 
         address payloadAddr = deployPayload(

@@ -8,7 +8,7 @@ import {scdp} from "scdp/SState.sol";
 import {ArbDeployAddr} from "kresko-lib/info/ArbDeployAddr.sol";
 import {deployPayload} from "scripts/payloads/Payloads.sol";
 import {IExtendedDiamondCutFacet} from "diamond/interfaces/IDiamondCutFacet.sol";
-
+import {SafeScript} from "kresko-lib/utils/ffi/SafeScript.s.sol";
 // solhint-disable no-empty-blocks, reason-string, state-visibility
 
 contract ExamplePayload0002 is ArbDeployAddr {
@@ -19,7 +19,7 @@ contract ExamplePayload0002 is ArbDeployAddr {
     }
 }
 
-contract SafeExample is ArbScript {
+contract SafeExample is SafeScript, ArbScript {
     using Log for *;
 
     modifier setUp() {

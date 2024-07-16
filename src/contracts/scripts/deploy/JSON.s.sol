@@ -27,7 +27,7 @@ function getConfig(string memory network, string memory configId) returns (Confi
 
 function getSalts(string memory network, string memory configId) returns (Salts memory) {
     string memory dir = CONST.CONFIG_DIR.cc(network, "/");
-    string memory location = dir.cc("salts-", configId, ".json");
+    string memory location = string.concat(dir, "salts-", configId, ".json");
     if (!mvm.exists(location)) {
         return Salts({kresko: bytes32("Kresko"), multicall: bytes32("Multicall")});
     }
@@ -38,19 +38,15 @@ function getSalts(string memory network, string memory configId) returns (Salts 
 function getConfigFrom(string memory dir, string memory configId) returns (Config memory json) {
     Files memory files;
 
-    files.params = dir.cc("params-", configId, ".json");
+    files.params = string.concat(dir, "params-", configId, ".json");
     if (!mvm.exists(files.params)) {
         revert(files.params.cc(": no configuration exists."));
-    }
-    files.assets = dir.cc("assets-", configId, ".json");
-    if (!mvm.exists(files.assets)) {
-        revert(files.assets.cc(": no asset configuration exists."));
     }
 
     json.params = abi.decode(mvm.parseJson(mvm.readFile(files.params)), (Params));
     json.assets = getAssetConfigFrom(dir, configId);
 
-    files.users = dir.cc("users-", configId, ".json");
+    files.users = string.concat(dir, "users-", configId, ".json");
     if (mvm.exists(files.users)) {
         json.users = abi.decode(mvm.parseJson(mvm.readFile(files.users)), (Users));
     }
@@ -64,19 +60,15 @@ function getConfigFrom(string memory dir, string memory configId) returns (Confi
 
 // stacks too deep so need to split assets into separate function
 function getAssetConfig(string memory network, string memory configId) returns (Assets memory json) {
-    string memory dir = CONST.CONFIG_DIR.cc(network, "/");
-    return getAssetConfigFrom(dir, configId);
+    return getAssetConfigFrom(string.concat(CONST.CONFIG_DIR, network, "/"), configId);
 }
 
-function getAssetConfigFrom(string memory dir, string memory configId) returns (Assets memory) {
-    Files memory files;
-
-    files.assets = dir.cc("assets-", configId, ".json");
-    if (!mvm.exists(files.assets)) {
-        revert(files.assets.cc(": no asset configuration exists."));
+function getAssetConfigFrom(string memory dir, string memory configId) returns (Assets memory result) {
+    string memory location = string.concat(dir, "assets-", configId, ".json");
+    if (!mvm.exists(location)) {
+        revert(location.cc(": no asset configuration exists."));
     }
-
-    return abi.decode(mvm.parseJson(mvm.readFile(files.assets)), (Assets));
+    result = abi.decode(mvm.parseJson(mvm.readFile(location)), (Assets));
 }
 
 function getKrAsset(Config memory cfg, string memory symbol) pure returns (KrAssetParams memory result) {

@@ -1,5 +1,5 @@
 set dotenv-load
-import? "../justfile";
+import? "../justfile"
 
 alias dd := deploy-local-dry
 alias dr := restart
@@ -32,7 +32,6 @@ exports:
 	forge flatten src/contracts/core/vault/interfaces/IVault.sol -o out/IVault.sol && \
 	forge flatten src/contracts/core/vault/interfaces/IVaultRateProvider.sol -o out/IVaultRateProvider.sol 
 
-set positional-arguments
 
 @setup:
 	just deps
