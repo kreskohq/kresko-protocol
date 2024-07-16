@@ -27,14 +27,7 @@ contract AddKrAssetTest is Tested, AddKrAsset {
     uint256 testMint;
 
     function setUp() public override {
-        super.initialize(231869463);
-        bytes32[] memory tickers = new bytes32[](1);
-        bytes32[] memory exchanges = new bytes32[](1);
-        tickers[0] = bytes32("DOGE");
-        exchanges[0] = bytes32("CRYPTO");
-        prank(safe);
-        marketStatus.setTickers(tickers, exchanges);
-
+        super.initialize(232814485);
         updatePyth();
         syncTime();
 
