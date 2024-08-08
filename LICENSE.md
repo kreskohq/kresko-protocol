@@ -10,9 +10,9 @@ Parameters
 Licensor: Kresko Labs
 
 Licensed Work: Kresko Synthetic Asset Protocol
-The Licensed Work is (c) 2023 Kresko Labs
+The Licensed Work is (c) 2024 Kresko Labs
 
-Additional Use Grant: None
+Additional Use Grant: Unrestricted permission to use this licensed work is granted for the core developers of Kresko.
 
 Change Date: 2025-06-30
 
