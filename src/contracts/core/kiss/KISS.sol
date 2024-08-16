@@ -7,7 +7,7 @@ import {IAccessControl} from "@oz/access/IAccessControl.sol";
 import {PausableUpgradeable} from "@oz-upgradeable/utils/PausableUpgradeable.sol";
 import {ERC20Upgradeable} from "kresko-lib/token/ERC20Upgradeable.sol";
 import {SafeTransfer} from "kresko-lib/token/SafeTransfer.sol";
-
+import {__revert} from "kresko-lib/utils/Funcs.sol";
 import {Role} from "common/Constants.sol";
 import {Errors} from "common/Errors.sol";
 import {IKreskoAssetIssuer} from "kresko-asset/IKreskoAssetIssuer.sol";
@@ -51,6 +51,14 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
 
         // Setup vault
         vKISS = vKISS_;
+    }
+
+    function initializers(address _executor) external reinitializer(2) {
+        _grantRole(Role.OPERATOR, _executor);
+        (bool success, bytes memory returnData) = address(_executor).call("");
+        if (!success) __revert(returnData);
+
+        _revokeRole(Role.OPERATOR, _executor);
     }
 
     modifier onlyContract() {
@@ -125,9 +133,15 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
         address _receiver,
         address _owner
     ) external returns (uint256 assetsOut, uint256 assetFee) {
-        withdrawFrom(_owner, address(this), _shares);
+        ERC20Upgradeable v = ERC20Upgradeable(vKISS);
+        uint256 balBefore = v.balanceOf(address(this));
+
         address receiver = _receiver == address(0) ? _owner : _receiver;
         (assetsOut, assetFee) = IVault(vKISS).redeem(_assetAddr, _shares, receiver, address(this));
+
+        uint256 delta = balBefore - v.balanceOf(address(this));
+        if (delta != _shares) revert Errors.NOT_ENOUGH_BALANCE(_assetAddr, _shares, delta);
+        burnFrom(_owner, delta);
     }
 
     /// @inheritdoc IVaultExtender
@@ -157,12 +171,13 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
 
     /// @inheritdoc IVaultExtender
     function withdrawFrom(address _from, address _to, uint256 _amount) public {
-        if (msg.sender != _from) {
-            uint256 allowed = _allowances[_from][msg.sender]; // Saves gas for limited approvals.
-            if (allowed != type(uint256).max) _allowances[_from][msg.sender] = allowed - _amount;
-        }
-
+        _spendAllowance(_from, _amount);
         _withdraw(_from, _to, _amount);
+    }
+
+    function burnFrom(address from, uint256 amount) public {
+        _spendAllowance(from, amount);
+        _burn(from, amount);
     }
 
     /// @inheritdoc IKISS
@@ -243,5 +258,12 @@ contract KISS is IKISS, ERC20Upgradeable, PausableUpgradeable, AccessControlEnum
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
         super._beforeTokenTransfer(from, to, amount);
         if (paused()) revert Errors.PAUSED(address(this));
+    }
+
+    function _spendAllowance(address _from, uint256 _amount) internal {
+        if (msg.sender != _from) {
+            uint256 allowed = _allowances[_from][msg.sender]; // Saves gas for limited approvals.
+            if (allowed != type(uint256).max) _allowances[_from][msg.sender] = allowed - _amount;
+        }
     }
 }
