@@ -1,0 +1,170 @@
+[
+  {
+    "00_account": "0xe901700f3517cc363a1b630c849f57649b699dae",
+    "01_txHash": "https://arbiscan.io/tx/0x181784164b906305d9c83fecab7bd53408dee55a384db5b16d98658f8f1f270b",
+    "02_kissBurn": "239.980543689580195133",
+    "03_shareBurn": "139.986716748332585238",
+    "04_diff": "99.993826941247609895",
+    "05_bn": {
+      "00_kissBurn": "239980543689580195133",
+      "01_shareBurn": "139986716748332585238",
+      "02_diff": "99993826941247609895"
+    }
+  },
+  {
+    "00_account": "0x80bb6b34b4cec45e5108ea0f5d96003e80779bb4",
+    "01_txHash": "https://arbiscan.io/tx/0xfdccbb8bcce1e4337ad34baaef788f3303b31aa63d70199b9072b96508e3adb7",
+    "02_kissBurn": "278.241146095486235912",
+    "03_shareBurn": "0",
+    "04_diff": "278.241146095486235912",
+    "05_bn": {
+      "00_kissBurn": "278241146095486235912",
+      "01_shareBurn": "0",
+      "02_diff": "278241146095486235912"
+    }
+  },
+  {
+    "00_account": "0xbf24293de9eb6b654aff2bec14c74d643c30e38e",
+    "01_txHash": "https://arbiscan.io/tx/0x5fae90d513ba24a4095a5e4ab61107cb13953cf2c9b2d4ed9a3a2f1467ec0560",
+    "02_kissBurn": "12.508369754126799091",
+    "03_shareBurn": "0",
+    "04_diff": "12.508369754126799091",
+    "05_bn": {
+      "00_kissBurn": "12508369754126799091",
+      "01_shareBurn": "0",
+      "02_diff": "12508369754126799091"
+    }
+  },
+  {
+    "00_account": "0x01810115e4e1906032ed35507109c6914684ec75",
+    "01_txHash": "https://arbiscan.io/tx/0xe323f2069377f99fcff125ab8439450e8667d7248df735062efc7782496f7af3",
+    "02_kissBurn": "323.471641507672494824",
+    "03_shareBurn": "0",
+    "04_diff": "323.471641507672494824",
+    "05_bn": {
+      "00_kissBurn": "323471641507672494824",
+      "01_shareBurn": "0",
+      "02_diff": "323471641507672494824"
+    }
+  },
+  {
+    "00_account": "0xbd080767124c94bd9fc6d8aaf2271cf476378ca5",
+    "01_txHash": "https://arbiscan.io/tx/0x4e2a505792ea919cef4b989db8e69f8f65175778960951ffe0731492d71a7639",
+    "02_kissBurn": "10.001589663048450039",
+    "03_shareBurn": "0",
+    "04_diff": "10.001589663048450039",
+    "05_bn": {
+      "00_kissBurn": "10001589663048450039",
+      "01_shareBurn": "0",
+      "02_diff": "10001589663048450039"
+    }
+  },
+  {
+    "00_account": "0xd6bedecdec6dc1c5900abefd2cab1663bced8e22",
+    "01_txHash": "https://arbiscan.io/tx/0xe59f7829b5341170712d9806e0fa4eafdaf9d4d60053150d7c7aefc3aa30ae12",
+    "02_kissBurn": "1",
+    "03_shareBurn": "0.999758982715041027",
+    "04_diff": "0.000241017284958973",
+    "05_bn": {
+      "00_kissBurn": "1000000000000000000",
+      "01_shareBurn": "999758982715041027",
+      "02_diff": "241017284958973"
+    }
+  },
+  {
+    "00_account": "0xfb408fa20c6f6da099a7492107bc3531911896e3",
+    "01_txHash": "https://arbiscan.io/tx/0x3ea9395ffb8b50d5550108b1c943f6b68cc2913f1d9a5438d06c4b2bf204753a",
+    "02_kissBurn": "314.995361715303119016",
+    "03_shareBurn": "0",
+    "04_diff": "314.995361715303119016",
+    "05_bn": {
+      "00_kissBurn": "314995361715303119016",
+      "01_shareBurn": "0",
+      "02_diff": "314995361715303119016"
+    }
+  },
+  {
+    "00_account": "0xd6bedecdec6dc1c5900abefd2cab1663bced8e22",
+    "01_txHash": "https://arbiscan.io/tx/0xc64a5d9626ea53fba313f3882dafbd9848c39469fb6750617d435dc349d8d926",
+    "02_kissBurn": "53.986744049051538025",
+    "03_shareBurn": "49.987949135499623656",
+    "04_diff": "3.998794913551914369",
+    "05_bn": {
+      "00_kissBurn": "53986744049051538025",
+      "01_shareBurn": "49987949135499623656",
+      "02_diff": "3998794913551914369"
+    }
+  },
+  {
+    "00_account": "0xc0d3410439bdcda8f8364483b3bc9686b7e56639",
+    "01_txHash": "https://arbiscan.io/tx/0x899ccf76cd5924cd6a470a15ac5d3fda33c829f09e81f0dc7d10859f2a674589",
+    "02_kissBurn": "50.3",
+    "03_shareBurn": "0",
+    "04_diff": "50.3",
+    "05_bn": {
+      "00_kissBurn": "50300000000000000000",
+      "01_shareBurn": "0",
+      "02_diff": "50300000000000000000"
+    }
+  },
+  {
+    "00_account": "0x3eadfc19350bb8f36d30f47e450a52228d8005d3",
+    "01_txHash": "https://arbiscan.io/tx/0xe3d9ab345cbec40b66a29c997b855e4f6af1dbcb537112a83922a98aa1d94baf",
+    "02_kissBurn": "41.826649970575352093",
+    "03_shareBurn": "1.998794995081417909",
+    "04_diff": "39.827854975493934184",
+    "05_bn": {
+      "00_kissBurn": "41826649970575352093",
+      "01_shareBurn": "1998794995081417909",
+      "02_diff": "39827854975493934184"
+    }
+  },
+  {
+    "00_account": "0xb92505a3364b7c7e333c05b44ce1e55377fc43ca",
+    "01_txHash": "https://arbiscan.io/tx/0x773d8fa3e61712fb65155e7d32e8856040556fa53416469dd2abf72b7d03bd38",
+    "02_kissBurn": "18.605091958469234",
+    "03_shareBurn": "2.711195767286174552",
+    "04_diff": "15.893896191183059448",
+    "05_bn": {
+      "00_kissBurn": "18605091958469234000",
+      "01_shareBurn": "2711195767286174552",
+      "02_diff": "15893896191183059448"
+    }
+  },
+  {
+    "00_account": "0x5a6b3e907b83de2abd9010509429683cf5ad5984",
+    "01_txHash": "https://arbiscan.io/tx/0x08efc55450360fd456d20bfc9ea5477fa3d6701ba8396969c923c879a4e67aa3",
+    "02_kissBurn": "1",
+    "03_shareBurn": "0",
+    "04_diff": "1",
+    "05_bn": {
+      "00_kissBurn": "1000000000000000000",
+      "01_shareBurn": "0",
+      "02_diff": "1000000000000000000"
+    }
+  },
+  {
+    "00_account": "0x4140100f2229122245e981c3874ba29cc183c8dc",
+    "01_txHash": "https://arbiscan.io/tx/0xd4e3b84fa7376b141bf5291ac216ab8ea92c358ff404dd5d1938c0fade418993",
+    "02_kissBurn": "4013.724600608119206051",
+    "03_shareBurn": "54.07002265981449562",
+    "04_diff": "3959.654577948304710431",
+    "05_bn": {
+      "00_kissBurn": "4013724600608119206051",
+      "01_shareBurn": "54070022659814495620",
+      "02_diff": "3959654577948304710431"
+    }
+  },
+  {
+    "00_account": "0xbd080767124c94bd9fc6d8aaf2271cf476378ca5",
+    "01_txHash": "https://arbiscan.io/tx/0x9d0be1bae2b2be782974eec5b0888522ac2820d9c172af73e07c4da9b9de48ff",
+    "02_kissBurn": "10",
+    "03_shareBurn": "0",
+    "04_diff": "10",
+    "05_bn": {
+      "00_kissBurn": "10000000000000000000",
+      "01_shareBurn": "0",
+      "02_diff": "10000000000000000000"
+    }
+  }
+]

@@ -56,7 +56,7 @@
     "delay": 150
   },
   "solidity.test": {
-    "executeOnSave": false,
+    "executeOnSave": true,
     "verbosity": 2
   }
 }
